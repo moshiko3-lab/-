@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Gmail__search_threads",
+      "mcp__Gmail__get_thread",
+      "mcp__Gmail__create_draft",
+      "mcp__Gmail__label_message",
+      "mcp__Gmail__unlabel_message",
+      "mcp__Gmail__list_labels",
+      "mcp__Shopify__search_products",
+      "mcp__Shopify__get-shop-info",
+      "mcp__Claude_Code_Remote__update_trigger",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__search_threads",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__get_thread",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__create_draft",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__label_message",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__unlabel_message",
+      "mcp__2c6066f8-b612-4a52-ad3c-45ee48fd3e4a__list_labels",
+      "mcp__1c5defc6-0c76-4631-b6d0-818652dc46a3__search_products",
+      "mcp__1c5defc6-0c76-4631-b6d0-818652dc46a3__get-shop-info",
+      "mcp__bf7c680d-5fdc-5ef4-b4a0-abadb619bf0a__update_trigger",
+      "PushNotification"
+    ]
+  }
+}
