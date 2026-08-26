@@ -20,7 +20,7 @@ function getGmailClient(tokens: Credentials): gmail_v1.Gmail {
   return google.gmail({ version: "v1", auth });
 }
 
-async function getOrCreateLabelId(gmail: gmail_v1.Gmail, name: string): Promise<string> {
+export async function getOrCreateLabelId(gmail: gmail_v1.Gmail, name: string): Promise<string> {
   const { data } = await gmail.users.labels.list({ userId: "me" });
   const existing = data.labels?.find((label) => label.name === name);
   if (existing?.id) return existing.id;
@@ -42,13 +42,19 @@ export async function listUnprocessedInboxMessages(
   tokens: Credentials,
   connectedEmail: string,
   maxResults = 20
-): Promise<{ gmail: gmail_v1.Gmail; draftLabelId: string; messages: InboundMessage[] }> {
+): Promise<{
+  gmail: gmail_v1.Gmail;
+  draftLabelId: string;
+  humanReviewLabelId: string;
+  messages: InboundMessage[];
+}> {
   const gmail = getGmailClient(tokens);
   const draftLabelId = await getOrCreateLabelId(gmail, config.draftLabelName);
+  const humanReviewLabelId = await getOrCreateLabelId(gmail, config.humanReviewLabelName);
 
   const { data: list } = await gmail.users.messages.list({
     userId: "me",
-    q: `in:inbox -label:${config.draftLabelName}`,
+    q: `in:inbox -label:${config.draftLabelName} -label:${config.humanReviewLabelName}`,
     maxResults,
   });
 
@@ -78,7 +84,7 @@ export async function listUnprocessedInboxMessages(
     });
   }
 
-  return { gmail, draftLabelId, messages };
+  return { gmail, draftLabelId, humanReviewLabelId, messages };
 }
 
 function toBase64Url(input: string): string {
@@ -117,14 +123,14 @@ export async function createDraftReply(
   return data.id;
 }
 
-export async function markMessageProcessed(
+export async function addLabelsToMessage(
   gmail: gmail_v1.Gmail,
   messageId: string,
-  draftLabelId: string
+  labelIds: string[]
 ): Promise<void> {
   await gmail.users.messages.modify({
     userId: "me",
     id: messageId,
-    requestBody: { addLabelIds: [draftLabelId] },
+    requestBody: { addLabelIds: labelIds },
   });
 }

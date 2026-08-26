@@ -33,4 +33,5 @@ export const config = {
     model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
   },
   draftLabelName: process.env.GMAIL_DRAFT_LABEL ?? "AI-Drafted",
+  humanReviewLabelName: process.env.GMAIL_HUMAN_REVIEW_LABEL ?? "Needs-Human-Review",
 };

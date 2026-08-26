@@ -4,7 +4,7 @@ import { config } from "./config";
 import { createOAuthClient, getAuthUrl } from "./googleAuth";
 import { saveTokens, getTokens, listConnectedAccounts } from "./tokenStore";
 import { listRecentMessages } from "./gmailService";
-import { listUnprocessedInboxMessages, createDraftReply, markMessageProcessed } from "./gmailInboxService";
+import { listUnprocessedInboxMessages, createDraftReply, addLabelsToMessage } from "./gmailInboxService";
 import { findOrdersByEmail } from "./shopifyService";
 import { generateDraftReply } from "./aiDraft";
 
@@ -100,19 +100,36 @@ app.post("/automation/draft-replies", async (req, res) => {
   }
 
   try {
-    const { gmail, draftLabelId, messages } = await listUnprocessedInboxMessages(tokens, email);
+    const { gmail, draftLabelId, humanReviewLabelId, messages } = await listUnprocessedInboxMessages(
+      tokens,
+      email
+    );
 
     const results = [];
     for (const message of messages) {
       try {
         const orders = await findOrdersByEmail(message.fromEmail);
-        const draftText = await generateDraftReply({
+        const draft = await generateDraftReply({
           customerEmail: message.fromEmail,
           customerMessage: message.bodyText,
           orders,
         });
-        const draftId = await createDraftReply(gmail, message, draftText);
-        await markMessageProcessed(gmail, message.id, draftLabelId);
+
+        if (draft.requiresHumanReview) {
+          await addLabelsToMessage(gmail, message.id, [humanReviewLabelId]);
+          results.push({
+            messageId: message.id,
+            from: message.fromEmail,
+            subject: message.subject,
+            ordersFound: orders.length,
+            status: "needs_human_review",
+            reason: draft.text,
+          });
+          continue;
+        }
+
+        const draftId = await createDraftReply(gmail, message, draft.text);
+        await addLabelsToMessage(gmail, message.id, [draftLabelId]);
 
         results.push({
           messageId: message.id,
