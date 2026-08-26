@@ -4,6 +4,9 @@ import { config } from "./config";
 import { createOAuthClient, getAuthUrl } from "./googleAuth";
 import { saveTokens, getTokens, listConnectedAccounts } from "./tokenStore";
 import { listRecentMessages } from "./gmailService";
+import { listUnprocessedInboxMessages, createDraftReply, markMessageProcessed } from "./gmailInboxService";
+import { findOrdersByEmail } from "./shopifyService";
+import { generateDraftReply } from "./aiDraft";
 
 const app = express();
 
@@ -75,6 +78,66 @@ app.get("/gmail/messages", async (req, res) => {
   } catch (err) {
     console.error("Failed to list Gmail messages", err);
     res.status(500).json({ error: "Failed to fetch Gmail messages" });
+  }
+});
+
+/**
+ * Core automation: for every unprocessed inbound message in the connected
+ * mailbox, look up the sender's Shopify orders, ask Claude to draft a reply
+ * grounded in that order data, and save it as a Gmail draft in the same
+ * thread. Nothing is ever sent automatically - a human reviews and sends
+ * each draft from Gmail.
+ */
+app.post("/automation/draft-replies", async (req, res) => {
+  const email = req.query.email;
+  if (typeof email !== "string") {
+    return res.status(400).json({ error: "Missing 'email' query parameter" });
+  }
+
+  const tokens = getTokens(email);
+  if (!tokens) {
+    return res.status(404).json({ error: `No connected Google account for ${email}` });
+  }
+
+  try {
+    const { gmail, draftLabelId, messages } = await listUnprocessedInboxMessages(tokens, email);
+
+    const results = [];
+    for (const message of messages) {
+      try {
+        const orders = await findOrdersByEmail(message.fromEmail);
+        const draftText = await generateDraftReply({
+          customerEmail: message.fromEmail,
+          customerMessage: message.bodyText,
+          orders,
+        });
+        const draftId = await createDraftReply(gmail, message, draftText);
+        await markMessageProcessed(gmail, message.id, draftLabelId);
+
+        results.push({
+          messageId: message.id,
+          from: message.fromEmail,
+          subject: message.subject,
+          ordersFound: orders.length,
+          draftId,
+          status: "drafted",
+        });
+      } catch (err) {
+        console.error(`Failed to draft a reply for message ${message.id}`, err);
+        results.push({
+          messageId: message.id,
+          from: message.fromEmail,
+          subject: message.subject,
+          status: "failed",
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    res.json({ processed: results.length, results });
+  } catch (err) {
+    console.error("Failed to run the draft-replies automation", err);
+    res.status(500).json({ error: "Failed to run the draft-replies automation" });
   }
 });
 

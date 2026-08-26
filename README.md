@@ -37,3 +37,32 @@ npm run dev
 לצורך פשטות הדוגמה שומרת טוקנים בזיכרון התהליך (`src/tokenStore.ts`) — הם
 נמחקים באתחול מחדש של השרת. לפני שימוש בפרודקשן יש להחליף זאת באחסון קבוע
 (מסד נתונים) עם הצפנה של ה-`refresh_token`.
+
+## טיוטות תשובה אוטומטיות ללקוחות (Shopify + AI)
+
+`POST /automation/draft-replies?email=you@example.com` סורק את תיבת ה-Inbox
+של החשבון המחובר, ולכל מייל חדש מלקוח (שעדיין אין לו את התווית
+`AI-Drafted`):
+
+1. מחפש הזמנות של הלקוח ב-Shopify לפי כתובת המייל שלו (Admin API).
+2. שולח ל-Claude את תוכן הפנייה + נתוני ההזמנה, ומבקש טיוטת תשובה.
+3. שומר את הטיוטה כ-**Draft** בג'ימייל, כתגובה לאותה השרשור (thread) — **לא
+   שולח שום דבר אוטומטית**.
+4. מתייג את המייל המקורי ב-`AI-Drafted` כדי שלא יעובד שוב בהרצה הבאה.
+
+בן אדם צריך לפתוח את הטיוטה בג'ימייל, לבדוק אותה, ואז לשלוח אותה בעצמו.
+
+### הגדרה נוספת נדרשת
+
+- **Shopify**: צרו custom app בחנות (Settings > Apps and sales channels >
+  Develop apps), תנו לו הרשאת `read_orders`, והעתיקו את ה-Admin API access
+  token אל `SHOPIFY_ADMIN_ACCESS_TOKEN`. את `SHOPIFY_STORE_DOMAIN` (למשל
+  `your-store.myshopify.com`) שימו גם כן ב-`.env`.
+- **Anthropic**: מפתח API תחת `ANTHROPIC_API_KEY`.
+- כדי שהטיוטות ייווצרו, החשבון צריך להתחבר מחדש דרך `/auth/google` אחרי
+  שהתווספו ה-scopes `gmail.modify` ו-`gmail.compose`.
+
+### הרצה חוזרת
+
+כדי שזה ירוץ אוטומטית על מיילים חדשים, הריצו את ה-endpoint הזה בתדירות
+קבועה (cron / scheduler חיצוני), למשל כל 5–10 דקות.

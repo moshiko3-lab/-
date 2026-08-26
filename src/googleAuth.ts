@@ -5,6 +5,10 @@ export const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/gmail.send",
+  // Needed to create draft replies and label processed messages, without
+  // ever sending mail on the user's behalf.
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.compose",
 ];
 
 export function createOAuthClient() {

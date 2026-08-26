@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-function requireEnv(name: string): string {
+export function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
@@ -15,4 +15,22 @@ export const config = {
     clientSecret: requireEnv("GOOGLE_CLIENT_SECRET"),
     redirectUri: requireEnv("GOOGLE_REDIRECT_URI"),
   },
+  // Only required when /automation/draft-replies is called - kept lazy so the
+  // OAuth connect flow works even before Shopify/Anthropic are configured.
+  shopify: {
+    get storeDomain() {
+      return requireEnv("SHOPIFY_STORE_DOMAIN"); // e.g. my-store.myshopify.com
+    },
+    get adminAccessToken() {
+      return requireEnv("SHOPIFY_ADMIN_ACCESS_TOKEN");
+    },
+    apiVersion: process.env.SHOPIFY_API_VERSION ?? "2024-10",
+  },
+  anthropic: {
+    get apiKey() {
+      return requireEnv("ANTHROPIC_API_KEY");
+    },
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
+  },
+  draftLabelName: process.env.GMAIL_DRAFT_LABEL ?? "AI-Drafted",
 };
