@@ -38,4 +38,7 @@ export const config = {
   // and only run it on-demand via POST /automation/draft-replies.
   automationEnabled: process.env.AUTOMATION_ENABLED !== "false",
   automationIntervalMinutes: Number(process.env.AUTOMATION_INTERVAL_MINUTES ?? 5),
+  // Where connected-account tokens are persisted. Point this at a mounted
+  // persistent volume on your host, or they'll be lost on redeploy.
+  tokenStorePath: process.env.TOKEN_STORE_PATH ?? "data/tokens.json",
 };
