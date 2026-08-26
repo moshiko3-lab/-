@@ -4,9 +4,8 @@ import { config } from "./config";
 import { createOAuthClient, getAuthUrl } from "./googleAuth";
 import { saveTokens, getTokens, listConnectedAccounts } from "./tokenStore";
 import { listRecentMessages } from "./gmailService";
-import { listUnprocessedInboxMessages, createDraftReply, addLabelsToMessage } from "./gmailInboxService";
-import { findOrdersByEmail } from "./shopifyService";
-import { generateDraftReply } from "./aiDraft";
+import { draftRepliesForAccount } from "./automation";
+import { startAutomationScheduler } from "./scheduler";
 
 const app = express();
 
@@ -94,65 +93,13 @@ app.post("/automation/draft-replies", async (req, res) => {
     return res.status(400).json({ error: "Missing 'email' query parameter" });
   }
 
-  const tokens = getTokens(email);
-  if (!tokens) {
-    return res.status(404).json({ error: `No connected Google account for ${email}` });
-  }
-
   try {
-    const { gmail, draftLabelId, humanReviewLabelId, messages } = await listUnprocessedInboxMessages(
-      tokens,
-      email
-    );
-
-    const results = [];
-    for (const message of messages) {
-      try {
-        const orders = await findOrdersByEmail(message.fromEmail);
-        const draft = await generateDraftReply({
-          customerEmail: message.fromEmail,
-          customerMessage: message.bodyText,
-          orders,
-        });
-
-        if (draft.requiresHumanReview) {
-          await addLabelsToMessage(gmail, message.id, [humanReviewLabelId]);
-          results.push({
-            messageId: message.id,
-            from: message.fromEmail,
-            subject: message.subject,
-            ordersFound: orders.length,
-            status: "needs_human_review",
-            reason: draft.text,
-          });
-          continue;
-        }
-
-        const draftId = await createDraftReply(gmail, message, draft.text);
-        await addLabelsToMessage(gmail, message.id, [draftLabelId]);
-
-        results.push({
-          messageId: message.id,
-          from: message.fromEmail,
-          subject: message.subject,
-          ordersFound: orders.length,
-          draftId,
-          status: "drafted",
-        });
-      } catch (err) {
-        console.error(`Failed to draft a reply for message ${message.id}`, err);
-        results.push({
-          messageId: message.id,
-          from: message.fromEmail,
-          subject: message.subject,
-          status: "failed",
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    }
-
+    const results = await draftRepliesForAccount(email);
     res.json({ processed: results.length, results });
   } catch (err) {
+    if (err instanceof Error && err.message.startsWith("No connected Google account")) {
+      return res.status(404).json({ error: err.message });
+    }
     console.error("Failed to run the draft-replies automation", err);
     res.status(500).json({ error: "Failed to run the draft-replies automation" });
   }
@@ -161,4 +108,10 @@ app.post("/automation/draft-replies", async (req, res) => {
 app.listen(config.port, () => {
   console.log(`Server listening on http://localhost:${config.port}`);
   console.log(`Connect a Google account at http://localhost:${config.port}/auth/google`);
+
+  if (config.automationEnabled) {
+    startAutomationScheduler();
+  } else {
+    console.log("Automation scheduler disabled (AUTOMATION_ENABLED=false)");
+  }
 });

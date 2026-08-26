@@ -34,4 +34,8 @@ export const config = {
   },
   draftLabelName: process.env.GMAIL_DRAFT_LABEL ?? "AI-Drafted",
   humanReviewLabelName: process.env.GMAIL_HUMAN_REVIEW_LABEL ?? "Needs-Human-Review",
+  // Set AUTOMATION_ENABLED=false to disable the periodic background scan
+  // and only run it on-demand via POST /automation/draft-replies.
+  automationEnabled: process.env.AUTOMATION_ENABLED !== "false",
+  automationIntervalMinutes: Number(process.env.AUTOMATION_INTERVAL_MINUTES ?? 5),
 };
