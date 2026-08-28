@@ -249,7 +249,7 @@ var KEY="shokogi.manager.v1";
 var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
   gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
-  invoices:[],invoiceSeq:1,tides:[],
+  invoices:[],invoiceSeq:1,tides:[],docs:[],
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -270,7 +270,7 @@ function load(){
         /* a database saved before these existed must not arrive with holes */
         ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
          "clients","staff","products","sessions","bookings","spots","invoices",
-         "tides"].forEach(function(k){
+         "tides","docs"].forEach(function(k){
           if(!Array.isArray(d[k])) d[k]=[];
         });
         if(typeof d.invoiceSeq!=="number") d.invoiceSeq=1;
@@ -557,8 +557,8 @@ function renderClients(){
 
   var w=el("div","panel tbl-wrap"),t=el("table");
   var th=el("thead"),tr=el("tr");
-  ["Name","Contact","Country","Bookings","Spent",""].forEach(function(h,i){
-    tr.appendChild(el("th",i>=3&&i<5?"r":null,h));
+  ["Name","Contact","Country","Docs","Bookings","Spent",""].forEach(function(h,i){
+    tr.appendChild(el("th",i>=4&&i<6?"r":null,h));
   });
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
@@ -570,22 +570,129 @@ function renderClients(){
     var contact=el("td","muted",[c.email,c.phone].filter(Boolean).join(" · ")||"—");
     r.appendChild(contact);
     r.appendChild(el("td","muted",c.country||"—"));
+    var dcell=el("td");
+    var ds=docsFor(c.id);
+    if(!ds.length){ dcell.appendChild(el("span","chip neutral","none")); }
+    else {
+      var worst=ds.map(docStatus).reduce(function(a,x){
+        var rank={ok:0,warnc:1,critc:2};
+        return rank[x.k]>rank[a.k]?x:a;});
+      dcell.appendChild(el("span","chip "+worst.k,
+        ds.length+(worst.k==="ok"?"":" · "+worst.l)));
+    }
+    r.appendChild(dcell);
     r.appendChild(el("td","n r",String(bk.length)));
     r.appendChild(el("td","n r",spent?"$"+money(spent,0):"—"));
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){clientForm(c);});
+    var dv=el("button","btn sm","Docs");
+    dv.addEventListener("click",function(){clientDocsView(c);});
     var d=el("button","btn sm danger","Delete");
     d.addEventListener("click",function(){
       confirmDelete("client "+c.name,function(){
         DB.clients=DB.clients.filter(function(x){return x.id!==c.id;});
+        DB.docs=DB.docs.filter(function(x){return x.clientId!==c.id;});
         save(); render(); toast("Client deleted");
       });
     });
-    box.appendChild(e); box.appendChild(d); act.appendChild(box); r.appendChild(act);
+    box.appendChild(e); box.appendChild(dv); box.appendChild(d);
+    act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
   });
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
   if(!rows.length) host.appendChild(el("div","note","No client matches “"+clientQ+"”."));
+}
+
+
+/* ============================ client documents ============================
+   Waivers, insurance, medical forms. The file itself is not stored — browser
+   storage is the wrong place for scans — but what matters operationally is
+   whether a valid one exists and when it lapses, and that is tracked. */
+var DOC_TYPES=["Waiver","Insurance","Medical","ID / passport","Licence","Other"];
+function docsFor(clientId){
+  return DB.docs.filter(function(d){return d.clientId===clientId;});
+}
+function docStatus(d){
+  if(!d.expires) return {k:"ok",l:"valid"};
+  var t=todayISO();
+  if(d.expires<t) return {k:"critc",l:"expired"};
+  var soon=iso(new Date(new Date(t+"T12:00:00").getTime()+30*864e5));
+  if(d.expires<=soon) return {k:"warnc",l:"expires soon"};
+  return {k:"ok",l:"valid"};
+}
+function docForm(clientId,existing){
+  var d=existing||{clientId:clientId,type:DOC_TYPES[0],name:"",issued:todayISO(),
+    expires:"",note:"",onFile:true};
+  var b=el("div");
+  var type=select(DOC_TYPES.map(function(x){return {v:x,l:x};}),d.type);
+  var name=input("text",d.name,{placeholder:"Reference or file name"});
+  var iss=input("date",d.issued), exp=input("date",d.expires);
+  var onFile=input("checkbox"); onFile.checked=d.onFile!==false; onFile.style.width="auto";
+  var note=input("text",d.note,{placeholder:"Optional note"});
+  b.appendChild(field("Type",type));
+  b.appendChild(field("Reference",name));
+  var g=el("div","grid2");
+  g.appendChild(field("Issued",iss)); g.appendChild(field("Expires",exp,"Blank never expires."));
+  b.appendChild(g);
+  b.appendChild(field("Signed copy held",onFile));
+  b.appendChild(field("Note",note));
+  b.appendChild(el("div","hint",
+    "The document itself stays wherever you keep it. This records that it exists and when it runs out, so an expired waiver shows up before the client does."));
+  openModal(existing?"Edit document":"Add document",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(iss.value&&exp.value&&exp.value<iss.value){
+        toast("The expiry is before the issue date."); return; }
+      var rec=existing||{id:uid("doc"),clientId:clientId};
+      rec.type=type.value; rec.name=name.value.trim(); rec.issued=iss.value;
+      rec.expires=exp.value; rec.onFile=onFile.checked; rec.note=note.value.trim();
+      if(!existing) DB.docs.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+function clientDocsView(c){
+  var b=el("div");
+  var list=docsFor(c.id);
+  var add=el("button","btn sm primary","Add document");
+  add.addEventListener("click",function(){closeModal();docForm(c.id,null);});
+  b.appendChild(el("p","hint",list.length?(list.length+" on record for "+c.name):
+    ("Nothing on record for "+c.name+".")));
+  b.appendChild(add);
+  if(list.length){
+    var w=el("div","panel tbl-wrap"); w.style.marginTop="12px";
+    var t=el("table"),th=el("thead"),tr=el("tr");
+    ["Type","Reference","Issued","Expires","Status",""].forEach(function(h){
+      tr.appendChild(el("th",null,h));});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el("tbody");
+    list.slice().sort(function(a,b2){return (a.expires||"9999")<(b2.expires||"9999")?-1:1;})
+      .forEach(function(d){
+      var st=docStatus(d), r=el("tr");
+      r.appendChild(el("td","strong",d.type));
+      r.appendChild(el("td","muted",d.name||"—"));
+      r.appendChild(el("td",null,d.issued?dm(d.issued):"—"));
+      r.appendChild(el("td",null,d.expires?dm(d.expires):"never"));
+      var sc=el("td"); sc.appendChild(el("span","chip "+st.k,st.l));
+      if(!d.onFile){ sc.appendChild(document.createTextNode(" "));
+        sc.appendChild(el("span","chip warnc","not held")); }
+      r.appendChild(sc);
+      var act=el("td"),box=el("div","rowbtns");
+      var e=el("button","btn sm","Edit");
+      e.addEventListener("click",function(){closeModal();docForm(c.id,d);});
+      var del=el("button","btn sm danger","Del");
+      del.addEventListener("click",function(){
+        closeModal();
+        confirmDelete(d.type+" for "+c.name,function(){
+          DB.docs=DB.docs.filter(function(x){return x.id!==d.id;});
+          save();render();toast("Deleted");});
+      });
+      box.appendChild(e); box.appendChild(del); act.appendChild(box); r.appendChild(act);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  }
+  openModal("Documents · "+c.name,b,[{label:"Close",on:closeModal}]);
 }
 
 /* ============================ crew ============================ */
@@ -740,14 +847,27 @@ function priceSummary(p){
 
 /* ============================ catalog ============================ */
 function productForm(existing){
-  var p=existing||{name:"",kind:(KINDS()[0]?KINDS()[0].k:"lesson"),price:"",sessions:1};
+  var p=existing||{name:"",kind:(KINDS()[0]?KINDS()[0].k:"lesson"),price:"",sessions:1,
+    priceMode:"fixed",code:"",maxAttendants:"",depositType:"",depositValue:"",archived:false};
   var b=el("div");
   var name=input("text",p.name,{placeholder:"e.g. 3 Lesson Surf Course"});
   var kind=select(KINDS().map(function(k){return {v:k.k,l:k.l};}),p.kind);
   var price=input("number",p.price,{step:"0.01",min:"0",placeholder:"0.00"});
   var sess=input("number",p.sessions,{step:"1",min:"1"});
+  var code=input("text",p.code,{placeholder:"Optional product code"});
   b.appendChild(field("Name",name));
-  b.appendChild(field("Type",kind,"Type drives how takings are grouped on the day closing."));
+  var gn=el("div","grid2");
+  gn.appendChild(field("Type",kind,"Drives how takings group on the day closing."));
+  gn.appendChild(field("Product code",code));
+  b.appendChild(gn);
+
+  /* Bloowatch asks this outright — "How is the activity priced?" — and the
+     answer decides which tiers make sense below. */
+  var mode=select([
+    {v:"fixed",l:"One fixed price"},
+    {v:"person",l:"Per number of people"},
+    {v:"item",l:"Per number of items or hours"}],p.priceMode||"fixed");
+  b.appendChild(field("How is this priced?",mode));
   var g=el("div","grid2");
   g.appendChild(field("Base price (USD)",price));
   g.appendChild(field("Sessions included",sess));
@@ -788,6 +908,19 @@ function productForm(existing){
   b.appendChild(th2); b.appendChild(tHost); drawTiers();
   b.appendChild(el("div","hint",
     "A lesson priced per head gets a tier per group size: 1 person $60, from 2 people $40 each. A rental gets a tier per duration: 1h $20, 2h $35. The best tier the booking clears is the one charged."));
+
+  var maxAtt=input("number",p.maxAttendants,{min:"0",step:"1",placeholder:"no limit"});
+  b.appendChild(field("Maximum attendants",maxAtt));
+
+  var depType=select([{v:"",l:"Pay in full"},{v:"fixed",l:"Deposit — fixed amount"},
+    {v:"percent",l:"Deposit — percentage"}],p.depositType||"");
+  var depVal=input("number",p.depositValue,{min:"0",step:"0.01"});
+  var depBox=el("div","grid2");
+  depBox.appendChild(field("Payment",depType));
+  depBox.appendChild(field("Deposit amount",depVal));
+  b.appendChild(depBox);
+  function syncDep(){ depVal.disabled=!depType.value; if(!depType.value) depVal.value=""; }
+  depType.addEventListener("change",syncDep); syncDep();
   openModal(existing?"Edit product":"New product",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
@@ -797,6 +930,10 @@ function productForm(existing){
       rec.price=Number(price.value)||0; rec.sessions=Math.max(1,Number(sess.value)||1);
       rec.prices=tiers.slice().sort(function(a,b){
         return ((a.hours||0)-(b.hours||0))||((a.minPax||1)-(b.minPax||1));});
+      rec.priceMode=mode.value; rec.code=code.value.trim();
+      rec.maxAttendants=maxAtt.value===""?"":Number(maxAtt.value);
+      rec.depositType=depType.value;
+      rec.depositValue=depVal.value===""?"":Number(depVal.value);
       if(!existing) DB.products.push(rec);
       save(); closeModal(); render(); toast(existing?"Product updated":"Product added");
     }}
@@ -839,6 +976,11 @@ function renderCatalog(){
     c.appendChild(tags);
     var sum=priceSummary(p);
     if(sum){ var sl=el("div","hint",sum); c.appendChild(sl); }
+    if(p.depositType&&p.depositValue){
+      var dl=el("div","hint","Deposit "+(p.depositType==="percent"
+        ? p.depositValue+"%" : "$"+money(p.depositValue,0)));
+      c.appendChild(dl);
+    }
     var f=el("div","foot");
     var pr=el("div","pr","$"+money(p.price,0));
     if(p.sessions>1&&p.price) pr.appendChild(el("small"," · $"+money(p.price/p.sessions,0)+"/session"));
@@ -875,7 +1017,8 @@ function catColor(name){
 }
 function sessionForm(existing,presetDate){
   var s=existing||{date:presetDate||schedDate,time:"09:00",duration:90,title:"",
-    staffIds:[],spot:DB.spots[0]?DB.spots[0].name:"",capacity:6,category:"",note:"",
+    staffIds:[],spot:DB.spots[0]?DB.spots[0].name:"",capacity:6,minCapacity:1,
+    category:"",note:"",level:"",ageFrom:"",ageTo:"",allDay:false,isPublic:true,
     participants:[],tideRef:"",tidePos:"before",tideHours:2};
   var b=el("div");
   var title=input("text",s.title,{placeholder:"e.g. Beginner surf lesson"});
@@ -890,9 +1033,27 @@ function sessionForm(existing,presetDate){
   var g1=el("div","grid2");
   g1.appendChild(field("Date",date)); g1.appendChild(field("Start time",time));
   b.appendChild(g1);
+  var minCap=input("number",s.minCapacity==null?1:s.minCapacity,{min:"0",step:"1"});
   var g2=el("div","grid2");
-  g2.appendChild(field("Duration (min)",dur)); g2.appendChild(field("Capacity",cap));
+  g2.appendChild(field("Duration (min)",dur)); g2.appendChild(field("Max capacity",cap));
   b.appendChild(g2);
+  var lvl=select([{v:"",l:"Any level"},{v:"beginner",l:"Beginner"},
+    {v:"intermediate",l:"Intermediate"},{v:"advanced",l:"Advanced"}],s.level||"");
+  var g2b=el("div","grid2");
+  g2b.appendChild(field("Min capacity",minCap,"Below this the session does not run."));
+  g2b.appendChild(field("Level",lvl));
+  b.appendChild(g2b);
+  var ageF=input("number",s.ageFrom,{min:"0",step:"1",placeholder:"any"});
+  var ageT=input("number",s.ageTo,{min:"0",step:"1",placeholder:"any"});
+  var g2c=el("div","grid2");
+  g2c.appendChild(field("Age from",ageF)); g2c.appendChild(field("Age to",ageT));
+  b.appendChild(g2c);
+  var allDay=input("checkbox"); allDay.checked=!!s.allDay; allDay.style.width="auto";
+  var isPub=input("checkbox"); isPub.checked=s.isPublic!==false; isPub.style.width="auto";
+  var g2d=el("div","grid2");
+  g2d.appendChild(field("All-day event",allDay));
+  g2d.appendChild(field("Public",isPub,"Shown to clients booking online."));
+  b.appendChild(g2d);
   var staffHost=el("div"), staffHint=el("div","hint");
   function drawStaff(){
     staffHost.textContent="";
@@ -947,6 +1108,31 @@ function sessionForm(existing,presetDate){
   b.appendChild(tideBox);
   syncTide();
 
+  var rep=null, repDays=[], repUntil=null;
+  if(!existing){
+    var repOn=input("checkbox"); repOn.style.width="auto";
+    var repBox=el("div"); repBox.hidden=true;
+    var dayRow=el("div");
+    dayRow.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px";
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(function(dn,di){
+      var lab=el("label");
+      lab.style.cssText="display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer";
+      var cb=input("checkbox"); cb.style.width="auto";
+      cb.addEventListener("change",function(){
+        if(cb.checked) repDays.push(di); else repDays=repDays.filter(function(x){return x!==di;});
+      });
+      lab.appendChild(cb); lab.appendChild(el("span",null,dn));
+      dayRow.appendChild(lab);
+    });
+    repBox.appendChild(field("Repeat on",dayRow));
+    repUntil=input("date","");
+    repBox.appendChild(field("Until",repUntil,"Sessions are created on every chosen weekday up to this date."));
+    repOn.addEventListener("change",function(){repBox.hidden=!repOn.checked;});
+    b.appendChild(field("Recurring session",repOn));
+    b.appendChild(repBox);
+    rep=repOn;
+  }
+
   var acts=[{label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       if(!title.value.trim()){ toast("A title is required."); title.focus(); return; }
@@ -955,10 +1141,34 @@ function sessionForm(existing,presetDate){
       rec.duration=Number(dur.value)||60; rec.capacity=Number(cap.value)||1;
       rec.staffIds=chosen.slice(); delete rec.staffId;
       rec.spot=spot.value; rec.category=cat.value; rec.note=note.value.trim();
+      rec.minCapacity=Number(minCap.value)||0; rec.level=lvl.value;
+      rec.ageFrom=ageF.value===""?"":Number(ageF.value);
+      rec.ageTo=ageT.value===""?"":Number(ageT.value);
+      rec.allDay=allDay.checked; rec.isPublic=isPub.checked;
       rec.tideRef=tref.value||""; rec.tidePos=tpos.value;
       rec.tideHours=Number(thrs.value)||0;
-      if(!existing) DB.sessions.push(rec);
-      save(); schedDate=rec.date; closeModal(); render(); toast(existing?"Session updated":"Session added");
+      var made=1;
+      if(!existing){
+        DB.sessions.push(rec);
+        /* a recurring session is a set of ordinary sessions, created up front,
+           so any one of them can be moved or cancelled on its own */
+        if(rep && rep.checked && repDays.length && repUntil.value){
+          var cur=new Date(rec.date+"T12:00:00");
+          var end=new Date(repUntil.value+"T12:00:00");
+          var guard=0;
+          while(cur<end && guard++<400){
+            cur=new Date(cur.getTime()+864e5);
+            if(repDays.indexOf(cur.getDay())<0) continue;
+            var k=iso(cur);
+            if(k>repUntil.value) break;
+            var copy=JSON.parse(JSON.stringify(rec));
+            copy.id=uid("se"); copy.date=k; copy.participants=[];
+            DB.sessions.push(copy); made++;
+          }
+        }
+      }
+      save(); schedDate=rec.date; closeModal(); render();
+      toast(existing?"Session updated":(made>1?(made+" sessions created"):"Session added"));
     }}];
   openModal(existing?"Edit session":"New session",b,acts);
 }
@@ -1774,7 +1984,19 @@ function bookingForm(existing){
   addPay.addEventListener("click",function(){
     var t=working.lines.reduce(function(a,l){return a+(Number(l.price)||0)*(Number(l.qty)||0);},0);
     var p=working.payments.reduce(function(a,x){return a+(Number(x.amount)||0);},0);
-    working.payments.push({method:(METHODS()[0]||"Cash"),amount:Math.max(0,t-p),date:date.value});
+    /* if everything on the booking asks for a deposit, offer that rather than
+       the full balance -- typing over it is one keystroke either way */
+    var dep=0, all=working.lines.length>0;
+    working.lines.forEach(function(l){
+      var pr=product(l.productId);
+      var v=(Number(l.price)||0)*(Number(l.qty)||0);
+      if(pr&&pr.depositType&&pr.depositValue){
+        dep += pr.depositType==="percent" ? v*pr.depositValue/100 : Number(pr.depositValue);
+      } else all=false;
+    });
+    var suggest=(all&&dep>0&&p===0)?Math.min(dep,t):Math.max(0,t-p);
+    working.payments.push({method:(METHODS()[0]||"Cash"),
+      amount:Math.round(suggest*100)/100,date:date.value});
     drawPays(); recalc();
   });
   ph.appendChild(addPay);
@@ -1805,8 +2027,9 @@ function bookingForm(existing){
   ]);
 }
 var bkFilter={q:"",status:"all",from:"",to:""};
-var box2Invoice=null;
+var box2Invoice=null, box2Cancel=null;
 function bookingStatus(b){
+  if(b.status==="cancelled") return "cancelled";
   var d=bookingDue(b), paid=bookingPaid(b);
   return d<=0.004?"paid":(paid>0?"partial":"unpaid");
 }
@@ -1834,7 +2057,8 @@ function renderBookings(){
   });
   sb.appendChild(q);
   var st=select([{v:"all",l:"Any status"},{v:"paid",l:"Paid"},
-    {v:"partial",l:"Partly paid"},{v:"unpaid",l:"Unpaid"}],bkFilter.status);
+    {v:"partial",l:"Partly paid"},{v:"unpaid",l:"Unpaid"},
+    {v:"cancelled",l:"Cancelled"}],bkFilter.status);
   st.style.width="auto"; st.style.padding="9px 11px"; st.style.borderRadius="9px";
   st.style.border="1px solid var(--line)"; st.style.background="var(--panel)";
   st.style.color="var(--text)"; st.style.font="inherit";
@@ -1915,15 +2139,26 @@ function renderBookings(){
     if(d<=0.004) dc.classList.add("muted");
     r.appendChild(dc);
     var st=el("td");
-    st.appendChild(el("span","chip "+(d<=0.004?"ok":(paid>0?"warnc":"critc")),
-      d<=0.004?"Paid":(paid>0?"Partial":"Unpaid")));
+    var sv=bookingStatus(bk);
+    var chipCls={paid:"ok",partial:"warnc",unpaid:"critc",cancelled:"neutral"}[sv];
+    var chipTxt={paid:"Paid",partial:"Partial",unpaid:"Unpaid",cancelled:"Cancelled"}[sv];
+    st.appendChild(el("span","chip "+chipCls,chipTxt));
+    var refd=bookingRefunded(bk);
+    if(refd){ st.appendChild(document.createTextNode(" "));
+      st.appendChild(el("span","chip critc","−$"+money(refd,0))); }
     r.appendChild(st);
+    if(sv==="cancelled") r.style.opacity=".62";
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){bookingForm(bk);});
     var have=invoiceFor(bk.id);
     var iv=el("button","btn sm",have?("Inv "+have.number.slice(-4)):"Invoice");
     iv.addEventListener("click",function(){ showInvoice(have||issueInvoice(bk)); });
     box2Invoice=iv;
+    var cx=el("button","btn sm",bk.status==="cancelled"?"Reopen":"Cancel");
+    if(bk.status!=="cancelled") cx.className="btn sm danger";
+    cx.addEventListener("click",function(){
+      if(bk.status==="cancelled") reopenBooking(bk); else cancelBookingForm(bk);});
+    box2Cancel=cx;
     var dl=el("button","btn sm danger","Del");
     dl.addEventListener("click",function(){
       confirmDelete("this booking",function(){
@@ -1931,11 +2166,72 @@ function renderBookings(){
         save(); render(); toast("Booking deleted");
       });
     });
-    box.appendChild(e); box.appendChild(box2Invoice); box.appendChild(dl);
+    box.appendChild(e); box.appendChild(box2Invoice); box.appendChild(box2Cancel);
+    box.appendChild(dl);
     act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
   });
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+}
+
+
+/* ============================ cancelling and refunding ============================
+   A cancelled booking is not a deleted one: the money already taken has to
+   stay visible, and the day it was refunded is its own event. */
+function bookingRefunded(b){
+  return (b.refunds||[]).reduce(function(a,r){return a+(Number(r.amount)||0);},0);
+}
+function bookingNet(b){ return bookingPaid(b)-bookingRefunded(b); }
+function cancelBookingForm(bk){
+  var paid=bookingPaid(bk), already=bookingRefunded(bk);
+  var open=Math.max(0,paid-already);
+  var b=el("div");
+  b.appendChild(el("p",null,
+    "Cancelling keeps the booking and its history. It stops counting as revenue from the day you refund."));
+  var line=el("div","tot");
+  line.appendChild(el("span","lab","Taken"));
+  line.appendChild(el("span","v mono","$"+money(paid)));
+  b.appendChild(line);
+  if(already){
+    var l2=el("div","tot"); l2.style.marginTop="6px";
+    l2.appendChild(el("span","lab","Already refunded"));
+    l2.appendChild(el("span","v mono","$"+money(already)));
+    b.appendChild(l2);
+  }
+  var amt=input("number",open.toFixed(2),{min:"0",step:"0.01"});
+  var mth=select(METHODS().map(function(m){return {v:m,l:m};}),
+    (bk.payments&&bk.payments[0]&&bk.payments[0].method)||METHODS()[0]);
+  var when=input("date",todayISO());
+  var why=input("text","",{placeholder:"Reason (optional)"});
+  b.appendChild(field("Refund amount",amt,
+    open?("Up to $"+money(open)+" is still refundable."):"Nothing left to refund."));
+  var g=el("div","grid2");
+  g.appendChild(field("Refunded by",mth)); g.appendChild(field("Date",when));
+  b.appendChild(g);
+  b.appendChild(field("Reason",why));
+  openModal("Cancel booking",b,[
+    {label:"Back",on:closeModal},
+    {label:"Cancel without refund",on:function(){
+      bk.status="cancelled"; bk.cancelledOn=todayISO(); bk.cancelReason=why.value.trim();
+      save(); closeModal(); render(); toast("Booking cancelled, nothing refunded");
+    }},
+    {label:"Refund and cancel",cls:"danger",on:function(){
+      var v=Number(amt.value)||0;
+      if(v>open+0.004){ toast("That is more than was taken."); return; }
+      if(v>0){
+        bk.refunds=bk.refunds||[];
+        bk.refunds.push({amount:v,method:mth.value,date:when.value||todayISO(),
+          reason:why.value.trim()});
+      }
+      bk.status="cancelled"; bk.cancelledOn=todayISO(); bk.cancelReason=why.value.trim();
+      save(); closeModal(); render();
+      toast(v>0?("Cancelled, $"+money(v,0)+" refunded"):"Booking cancelled");
+    }}
+  ]);
+}
+function reopenBooking(bk){
+  delete bk.status; delete bk.cancelledOn; delete bk.cancelReason;
+  save(); render(); toast("Booking reopened");
 }
 
 /* ============================ register (day closing) ============================
@@ -1962,6 +2258,15 @@ function closingFor(dateStr){
       } else {
         byKind.other=(byKind.other||0)+amt;
       }
+    });
+    /* a refund lands on the day it was given, not the day of the sale */
+    (bk.refunds||[]).forEach(function(rf){
+      if((rf.date||bk.date)!==dateStr) return;
+      var amt=Number(rf.amount)||0; if(!amt) return;
+      total-=amt; count++;
+      byMethod[rf.method]=(byMethod[rf.method]||0)-amt;
+      if(wtot>0){ for(var k in weights) byKind[k]=(byKind[k]||0)-amt*weights[k]/wtot; }
+      else byKind.other=(byKind.other||0)-amt;
     });
   });
   return {date:dateStr,total:total,count:count,byMethod:byMethod,byKind:byKind};
@@ -2188,6 +2493,11 @@ function paymentsIn(prefix){
     (bk.payments||[]).forEach(function(p){
       var d=p.date||bk.date;
       if(d && d.indexOf(prefix)===0) out.push({pay:p,amount:Number(p.amount)||0,date:d,bk:bk});
+    });
+    (bk.refunds||[]).forEach(function(r){
+      var d=r.date||bk.date;
+      if(d && d.indexOf(prefix)===0)
+        out.push({pay:{method:r.method},amount:-(Number(r.amount)||0),date:d,bk:bk});
     });
   });
   return out;
@@ -3086,7 +3396,7 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.seeded=true;
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.docs=[];DB.seeded=true;
       save();render();toast("All records cleared");
     });
   });
@@ -3115,7 +3425,10 @@ function importCatalog(){
     if(DB.products.some(function(x){return x.name===p.name;})) return;
     DB.products.push({id:uid("p"),name:p.name,kind:p.kind,price:p.price||0,
       sessions:p.sessions||1,category:p.category||"",tax:p.tax||0,color:p.color||"",
-      nights:p.nights||null,description:p.description||"",prices:p.prices||[]});
+      nights:p.nights||null,description:p.description||"",prices:p.prices||[],
+      priceMode:(p.prices&&p.prices.some(function(t){return t.hours;}))?"item":
+                ((p.prices&&p.prices.some(function(t){return (t.minPax||1)>1;}))?"person":"fixed"),
+      code:"",maxAttendants:"",depositType:"",depositValue:""});
     added.products++;
   });
   (d.gear||[]).forEach(function(g){

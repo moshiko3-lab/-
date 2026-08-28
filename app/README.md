@@ -29,8 +29,8 @@ the rest of the app never touches storage directly.
 | Today | Takings so far, sessions on the water, outstanding balances |
 | Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings |
 | Board | Sessions as blocks on an hourly timeline, grouped by activity or by instructor; drag one to another row or another hour. Tide times sit above the grid |
-| Bookings | Items, prices, payments, outstanding balance; search and filter by status or date |
-| Clients | Contact details, booking count, lifetime spend |
+| Bookings | Items priced by tier, payments, deposits, outstanding balance, cancellation and refunds; search and filter by status or date |
+| Clients | Contact details, booking count, lifetime spend, documents and when they expire |
 | Catalog | Lessons, courses, rentals, photography, with prices |
 | Gear | Each board and suit by name, with service dates, what is out and until when |
 | Crew | Instructors and assistants, role, session count, time off |
@@ -67,6 +67,10 @@ booking's items cost, the same rule Bloowatch's own report uses.
 
 ## Scope
 
-`spec/BLOOWATCH.md` is the checklist: all 97 routes walked in a signed-in browser
-plus 1,575 interface strings from the app bundle. Most of it is not built yet.
-The table above is what works today.
+Two files hold the target. `spec/BLOOWATCH.md` is what a crawl of all 97 routes
+could see rendered. `spec/TRANSLATIONS.md` is far more complete: all 2,544
+labels, fields, options and messages, taken from the locale compiled into
+Bloowatch's own bundle — including everything that only appears behind a
+button, which no crawl was ever going to reach.
+
+Most of it is still not built. The table above is what works today.
