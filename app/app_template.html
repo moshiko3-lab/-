@@ -998,6 +998,52 @@ function participantsForm(sess){
     closeModal(); render();}}]);
 }
 var planTab="sessions";
+var PLAN_COLS=[
+  {k:"hour",l:"Hour",always:true},
+  {k:"calendar",l:"Activity Calendar"},
+  {k:"instructor",l:"Instructor"},
+  {k:"title",l:"Title",always:true},
+  {k:"note",l:"Note"},
+  {k:"duration",l:"Duration"},
+  {k:"participants",l:"Participants"},
+  {k:"spot",l:"Spot",off:true},
+  {k:"tide",l:"Tide",off:true}
+];
+var planShow=(function(){
+  var d={};
+  PLAN_COLS.forEach(function(c){ d[c.k]=!c.off; });
+  try{
+    var raw=localStorage.getItem("shokogi.manager.plancols");
+    if(raw){
+      var saved=JSON.parse(raw);
+      PLAN_COLS.forEach(function(c){
+        if(typeof saved[c.k]==="boolean") d[c.k]=c.always?true:saved[c.k];
+      });
+    }
+  }catch(e){}
+  return d;
+})();
+function savePlanCols(){
+  try{ localStorage.setItem("shokogi.manager.plancols",JSON.stringify(planShow)); }catch(e){}
+}
+function columnsPicker(){
+  var b=el("div");
+  b.appendChild(el("p","hint","Hide what you do not use. Hour and Title always stay."));
+  PLAN_COLS.forEach(function(c){
+    var lab=el("label");
+    lab.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 2px;cursor:pointer;"+
+      (c.always?"opacity:.55;cursor:default":"");
+    var cb=input("checkbox"); cb.checked=!!planShow[c.k]; cb.style.width="auto";
+    cb.disabled=!!c.always;
+    cb.addEventListener("change",function(){
+      planShow[c.k]=cb.checked; savePlanCols(); renderSchedule();
+    });
+    lab.appendChild(cb); lab.appendChild(el("span",null,c.l));
+    b.appendChild(lab);
+  });
+  openModal("Columns",b,[{label:"Done",cls:"primary",on:function(){
+    closeModal(); renderSchedule();}}]);
+}
 function hhmm(mins){
   var h=Math.floor(mins/60), m=mins%60;
   return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
@@ -1019,6 +1065,9 @@ function renderSchedule(){
   var today=el("button","btn sm","Today");
   today.addEventListener("click",function(){schedDate=todayISO();renderSchedule();});
   top.appendChild(today);
+  var colsBtn=el("button","btn sm","Columns");
+  colsBtn.addEventListener("click",columnsPicker);
+  top.appendChild(colsBtn);
   var add=el("button","btn primary","New session");
   add.addEventListener("click",function(){sessionForm(null,schedDate);});
   top.appendChild(add);
@@ -1156,37 +1205,57 @@ function renderSchedule(){
     return;
   }
 
+  var shown=PLAN_COLS.filter(function(c){return planShow[c.k];});
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
-  ["Hour","Activity Calendar","Instructor","Title","Note","Duration","Participants",""]
-    .forEach(function(h,i){ tr.appendChild(el("th",i===5||i===6?"r":null,h)); });
+  shown.forEach(function(c){
+    tr.appendChild(el("th",(c.k==="duration"||c.k==="participants")?"r":null,c.l));
+  });
+  tr.appendChild(el("th",null,""));
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
   day.forEach(function(x){
     var r=el("tr");
     var colour=catColor(x.category)||"var(--accent-hot)";
-    var hc=el("td","n",x.time);
-    hc.style.borderLeft="4px solid "+colour;
-    r.appendChild(hc);
-    r.appendChild(el("td",x.category?null:"muted",x.category||"—"));
-    var ic=el("td",staffIdsOf(x).length?null:"muted",instructorNames(x));
-    var offSome=staffIdsOf(x).filter(function(id){return isOff(id,x.date);});
-    if(offSome.length){ ic.appendChild(document.createTextNode(" "));
-      ic.appendChild(el("span","chip critc","off")); }
-    r.appendChild(ic);
-    var tc=el("td","strong",x.title);
-    var tl=tideLabel(x);
-    if(tl){ tc.appendChild(document.createTextNode(" "));
-            tc.appendChild(el("span","chip pink",tl)); }
-    r.appendChild(tc);
-    r.appendChild(el("td",x.note?"muted":"muted",x.note||"—"));
-    r.appendChild(el("td","n r",hhmm(x.duration||0)));
-    var pc=el("td","n r");
-    var full=x.participants.length>=x.capacity;
-    var chip=el("span","chip "+(full?"warnc":(x.participants.length?"ok":"neutral")),
-      x.participants.length+" / "+x.capacity);
-    chip.style.cursor="pointer";
-    chip.addEventListener("click",function(){participantsForm(x);});
-    pc.appendChild(chip); r.appendChild(pc);
+    var cell={};
+    cell.hour=function(){
+      var c=el("td","n",x.time);
+      c.style.borderLeft="4px solid "+colour;
+      return c;
+    };
+    cell.calendar=function(){ return el("td",x.category?null:"muted",x.category||"—"); };
+    cell.instructor=function(){
+      var c=el("td",staffIdsOf(x).length?null:"muted",instructorNames(x));
+      if(staffIdsOf(x).some(function(id){return isOff(id,x.date);})){
+        c.appendChild(document.createTextNode(" "));
+        c.appendChild(el("span","chip critc","off"));
+      }
+      return c;
+    };
+    cell.title=function(){
+      var c=el("td","strong",x.title);
+      var tl=tideLabel(x);
+      if(tl){ c.appendChild(document.createTextNode(" "));
+              c.appendChild(el("span","chip pink",tl)); }
+      return c;
+    };
+    cell.note=function(){ return el("td","muted",x.note||"—"); };
+    cell.duration=function(){ return el("td","n r",hhmm(x.duration||0)); };
+    cell.spot=function(){ return el("td",x.spot?"muted":"muted",x.spot||"—"); };
+    cell.tide=function(){
+      var tl=tideLabel(x);
+      return el("td",tl?null:"muted",tl||"—");
+    };
+    cell.participants=function(){
+      var c=el("td","n r");
+      var full=x.participants.length>=x.capacity;
+      var chip=el("span","chip "+(full?"warnc":(x.participants.length?"ok":"neutral")),
+        x.participants.length+" / "+x.capacity);
+      chip.style.cursor="pointer";
+      chip.addEventListener("click",function(){participantsForm(x);});
+      c.appendChild(chip);
+      return c;
+    };
+    shown.forEach(function(c){ r.appendChild(cell[c.k]()); });
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){sessionForm(x);});
     var cl=el("button","btn sm","Clone");
@@ -1202,7 +1271,7 @@ function renderSchedule(){
     /* the people in this session, shown under it rather than hidden in a dialog */
     if(x.participants.length){
       var sub=el("tr");
-      var cell=el("td"); cell.colSpan=8;
+      var cell=el("td"); cell.colSpan=shown.length+1;
       cell.style.cssText="padding:0 13px 10px 17px;background:var(--panel-2)";
       var chips=el("div");
       chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center";
