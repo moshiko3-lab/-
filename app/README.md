@@ -28,12 +28,14 @@ the rest of the app never touches storage directly.
 | --- | --- |
 | Today | Takings so far, sessions on the water, outstanding balances |
 | Schedule | Day-by-day sessions, instructor, spot, capacity, participants |
-| Bookings | Items, prices, payments, outstanding balance per booking |
+| Bookings | Items, prices, payments, outstanding balance; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend |
 | Catalog | Lessons, courses, rentals, photography, with prices |
 | Gear | Boards and kit, units in stock, what is out of service and until when |
 | Crew | Instructors and assistants, role, session count, time off |
 | Day closing | Takings by payment method and by activity |
+| Invoices | A frozen copy of a booking, numbered and printable |
+| Reports | Monthly and yearly takings, by method, activity, product and day |
 | Back office | Business details, spots, activity types, payment methods, roles, custom fields, instructor fee groups, promo codes, partners, accommodation |
 
 The catalog ships with Shokogi's 35 products, 21 crew, 8 pieces of gear and

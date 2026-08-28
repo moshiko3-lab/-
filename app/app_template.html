@@ -228,6 +228,8 @@ td.strong{font-weight:700}
   <section id="p-gear" role="tabpanel" hidden></section>
   <section id="p-crew" role="tabpanel" hidden></section>
   <section id="p-register" role="tabpanel" hidden></section>
+  <section id="p-invoices" role="tabpanel" hidden></section>
+  <section id="p-reports" role="tabpanel" hidden></section>
   <section id="p-settings" role="tabpanel" hidden></section>
 </div>
 
@@ -246,6 +248,7 @@ var KEY="shokogi.manager.v1";
 var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
   gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
+  invoices:[],invoiceSeq:1,
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -265,9 +268,10 @@ function load(){
       if(d&&d.v===1){
         /* a database saved before these existed must not arrive with holes */
         ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
-         "clients","staff","products","sessions","bookings","spots"].forEach(function(k){
+         "clients","staff","products","sessions","bookings","spots","invoices"].forEach(function(k){
           if(!Array.isArray(d[k])) d[k]=[];
         });
+        if(typeof d.invoiceSeq!=="number") d.invoiceSeq=1;
         return d;
       }
     }
@@ -944,6 +948,12 @@ function bookingForm(existing){
     }}
   ]);
 }
+var bkFilter={q:"",status:"all",from:"",to:""};
+var box2Invoice=null;
+function bookingStatus(b){
+  var d=bookingDue(b), paid=bookingPaid(b);
+  return d<=0.004?"paid":(paid>0?"partial":"unpaid");
+}
 function renderBookings(){
   var host=document.getElementById("p-bookings"); host.textContent="";
   var due=DB.bookings.reduce(function(a,b){return a+Math.max(0,bookingDue(b));},0);
@@ -958,13 +968,70 @@ function renderBookings(){
       function(){ DB.products.length? bookingForm(null) : show("catalog"); }));
     return;
   }
+  /* filter bar */
+  var sb=el("div","searchbar");
+  var q=input("search",bkFilter.q,{placeholder:"Search client, item or note"});
+  q.addEventListener("input",function(){
+    bkFilter.q=q.value; renderBookings();
+    var n=document.querySelector("#p-bookings .searchbar input");
+    if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);}
+  });
+  sb.appendChild(q);
+  var st=select([{v:"all",l:"Any status"},{v:"paid",l:"Paid"},
+    {v:"partial",l:"Partly paid"},{v:"unpaid",l:"Unpaid"}],bkFilter.status);
+  st.style.width="auto"; st.style.padding="9px 11px"; st.style.borderRadius="9px";
+  st.style.border="1px solid var(--line)"; st.style.background="var(--panel)";
+  st.style.color="var(--text)"; st.style.font="inherit";
+  st.addEventListener("change",function(){bkFilter.status=st.value;renderBookings();});
+  sb.appendChild(st);
+  var f1=input("date",bkFilter.from); f1.style.width="auto";
+  f1.setAttribute("aria-label","From date");
+  f1.addEventListener("change",function(){bkFilter.from=f1.value;renderBookings();});
+  var f2=input("date",bkFilter.to); f2.style.width="auto";
+  f2.setAttribute("aria-label","To date");
+  f2.addEventListener("change",function(){bkFilter.to=f2.value;renderBookings();});
+  [f1,f2].forEach(function(x){
+    x.style.padding="9px 11px"; x.style.borderRadius="9px";
+    x.style.border="1px solid var(--line)"; x.style.background="var(--panel)";
+    x.style.color="var(--text)"; x.style.font="inherit"; sb.appendChild(x);
+  });
+  if(bkFilter.q||bkFilter.status!=="all"||bkFilter.from||bkFilter.to){
+    var clr=el("button","btn sm","Clear");
+    clr.addEventListener("click",function(){
+      bkFilter={q:"",status:"all",from:"",to:""}; renderBookings();});
+    sb.appendChild(clr);
+  }
+  host.appendChild(sb);
+
+  var term=bkFilter.q.trim().toLowerCase();
+  var rows=DB.bookings.filter(function(bk){
+    if(bkFilter.status!=="all" && bookingStatus(bk)!==bkFilter.status) return false;
+    if(bkFilter.from && bk.date<bkFilter.from) return false;
+    if(bkFilter.to && bk.date>bkFilter.to) return false;
+    if(!term) return true;
+    var hay=[clientName(bk.clientId),bk.notes||""].concat(
+      (bk.lines||[]).map(function(l){var p=product(l.productId);return p?p.name:"";}));
+    return hay.join(" ").toLowerCase().indexOf(term)>=0;
+  }).sort(function(a,b){return a.date<b.date?1:-1;});
+
+  var shownTotal=rows.reduce(function(a,b){return a+bookingTotal(b);},0);
+  var shownDue=rows.reduce(function(a,b){return a+Math.max(0,bookingDue(b));},0);
+  if(rows.length!==DB.bookings.length){
+    host.appendChild(el("div","note",rows.length+" of "+DB.bookings.length+
+      " bookings · $"+money(shownTotal,0)+" total · $"+money(shownDue,0)+" outstanding"));
+  }
+  if(!rows.length){
+    host.appendChild(el("div","note","Nothing matches those filters."));
+    return;
+  }
+
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
   ["Date","Client","Items","Total","Paid","Due","Status",""].forEach(function(h,i){
     tr.appendChild(el("th",(i>=3&&i<=5)?"r":null,h));
   });
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
-  DB.bookings.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(bk){
+  rows.forEach(function(bk){
     var tot=bookingTotal(bk),paid=bookingPaid(bk),d=tot-paid;
     var r=el("tr");
     r.appendChild(el("td",null,dm(bk.date)));
@@ -984,6 +1051,10 @@ function renderBookings(){
     r.appendChild(st);
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){bookingForm(bk);});
+    var have=invoiceFor(bk.id);
+    var iv=el("button","btn sm",have?("Inv "+have.number.slice(-4)):"Invoice");
+    iv.addEventListener("click",function(){ showInvoice(have||issueInvoice(bk)); });
+    box2Invoice=iv;
     var dl=el("button","btn sm danger","Del");
     dl.addEventListener("click",function(){
       confirmDelete("this booking",function(){
@@ -991,7 +1062,8 @@ function renderBookings(){
         save(); render(); toast("Booking deleted");
       });
     });
-    box.appendChild(e); box.appendChild(dl); act.appendChild(box); r.appendChild(act);
+    box.appendChild(e); box.appendChild(box2Invoice); box.appendChild(dl);
+    act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
   });
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
@@ -1091,6 +1163,318 @@ function renderRegister(){
   host.appendChild(tableOf("By activity",c.byKind,kindLabel));
   host.appendChild(el("div","note",
     "A payment that covers several items is split across activities in proportion to what those items cost."));
+}
+
+
+
+/* ============================ invoices ============================
+   An invoice is a frozen copy of a booking, not a live view of it: editing the
+   booking afterwards must not silently rewrite a document already given to a
+   customer. */
+function invoiceFor(bookingId){
+  for(var i=0;i<DB.invoices.length;i++)
+    if(DB.invoices[i].bookingId===bookingId) return DB.invoices[i];
+  return null;
+}
+function issueInvoice(bk){
+  var existing=invoiceFor(bk.id);
+  if(existing) return existing;
+  var bz=cfg().business;
+  var inv={
+    id:uid("inv"),
+    number:String(new Date().getFullYear())+"-"+String(DB.invoiceSeq++).padStart(4,"0"),
+    bookingId:bk.id, date:todayISO(), clientId:bk.clientId,
+    clientName:clientName(bk.clientId),
+    business:{name:bz.name,taxId:bz.taxId,address:bz.address,phone:bz.phone,
+              email:bz.email,currency:bz.currency},
+    lines:(bk.lines||[]).map(function(l){
+      var p=product(l.productId);
+      return {name:p?p.name:"Item",qty:Number(l.qty)||0,price:Number(l.price)||0,
+              tax:p&&p.tax?Number(p.tax):0};
+    }),
+    payments:(bk.payments||[]).map(function(x){
+      return {method:x.method,amount:Number(x.amount)||0,date:x.date};}),
+    notes:bk.notes||""
+  };
+  inv.total=inv.lines.reduce(function(a,l){return a+l.qty*l.price;},0);
+  inv.paid=inv.payments.reduce(function(a,p){return a+p.amount;},0);
+  DB.invoices.push(inv);
+  save();
+  return inv;
+}
+function invoiceView(inv){
+  var b=el("div");
+  var bz=inv.business||{};
+  var head=el("div"); head.style.marginBottom="16px";
+  head.appendChild(el("div","eyebrow","Invoice "+inv.number));
+  var t=el("h3",null,bz.name||"—"); t.style.fontSize="18px"; t.style.marginTop="4px";
+  head.appendChild(t);
+  [bz.taxId?("Tax "+bz.taxId):"",bz.address,[bz.phone,bz.email].filter(Boolean).join(" · ")]
+    .filter(Boolean).forEach(function(line){
+      head.appendChild(el("div","hint",line));
+    });
+  b.appendChild(head);
+
+  var meta=el("div","tot"); meta.style.marginBottom="14px";
+  meta.appendChild(el("span","lab","Billed to"));
+  var who=el("span",null,inv.clientName); who.style.fontWeight="600";
+  meta.appendChild(who);
+  var dt=el("span","v mono",dm(inv.date)); dt.style.fontSize="14px";
+  meta.appendChild(dt);
+  b.appendChild(meta);
+
+  var w=el("div","panel tbl-wrap"),tb0=el("table"),th=el("thead"),tr=el("tr");
+  ["Item","Qty","Price","Amount"].forEach(function(h,i){
+    tr.appendChild(el("th",i?"r":null,h));});
+  th.appendChild(tr); tb0.appendChild(th);
+  var tb=el("tbody");
+  inv.lines.forEach(function(l){
+    var r=el("tr");
+    r.appendChild(el("td","strong",l.name));
+    r.appendChild(el("td","n r",String(l.qty)));
+    r.appendChild(el("td","n r","$"+money(l.price)));
+    r.appendChild(el("td","n r strong","$"+money(l.qty*l.price)));
+    tb.appendChild(r);
+  });
+  var tr2=el("tr");
+  tr2.appendChild(el("td","strong","Total"));
+  tr2.appendChild(el("td")); tr2.appendChild(el("td"));
+  tr2.appendChild(el("td","n r strong","$"+money(inv.total)));
+  tb.appendChild(tr2);
+  tb0.appendChild(tb); w.appendChild(tb0); b.appendChild(w);
+
+  if(inv.payments.length){
+    var ph=el("div","lines-h"); ph.appendChild(el("h4",null,"Payments"));
+    b.appendChild(ph);
+    inv.payments.forEach(function(p){
+      var r=el("div","tot"); r.style.marginTop="6px";
+      r.appendChild(el("span","lab",p.method+(p.date?" · "+dm(p.date):"")));
+      r.appendChild(el("span","v mono","$"+money(p.amount)));
+      b.appendChild(r);
+    });
+  }
+  var bal=el("div","tot"); bal.style.marginTop="10px";
+  var outstanding=inv.total-inv.paid;
+  bal.appendChild(el("span","lab",outstanding>0.004?"Outstanding":"Paid in full"));
+  var bv=el("span","v mono","$"+money(Math.max(0,outstanding)));
+  bv.style.color=outstanding>0.004?"var(--crit)":"var(--good)";
+  bal.appendChild(bv);
+  b.appendChild(bal);
+  if(inv.notes) b.appendChild(el("div","note",inv.notes));
+  return b;
+}
+function showInvoice(inv){
+  openModal("Invoice "+inv.number,invoiceView(inv),[
+    {label:"Close",on:closeModal},
+    {label:"Print",cls:"primary",on:function(){window.print();}}
+  ]);
+}
+function renderInvoices(){
+  var host=document.getElementById("p-invoices"); host.textContent="";
+  var billed=DB.invoices.reduce(function(a,i){return a+i.total;},0);
+  secHeader(host,"Invoices",
+    DB.invoices.length?(DB.invoices.length+" issued · $"+money(billed,0)+" billed"):"",null,null);
+  if(!DB.invoices.length){
+    host.appendChild(emptyState("📄","No invoices yet",
+      "Open a booking from the Bookings screen and issue an invoice for it. An invoice keeps a frozen copy of the booking, so editing the booking later never rewrites a document a customer already has.",
+      "Go to bookings",function(){show("bookings");}));
+    return;
+  }
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Number","Date","Client","Total","Paid","Due",""].forEach(function(h,i){
+    tr.appendChild(el("th",(i>=3&&i<=5)?"r":null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  DB.invoices.slice().sort(function(a,b){return a.number<b.number?1:-1;}).forEach(function(inv){
+    var d=inv.total-inv.paid;
+    var r=el("tr");
+    r.appendChild(el("td","strong",inv.number));
+    r.appendChild(el("td",null,dm(inv.date)));
+    r.appendChild(el("td",null,inv.clientName));
+    r.appendChild(el("td","n r strong","$"+money(inv.total,0)));
+    r.appendChild(el("td","n r","$"+money(inv.paid,0)));
+    var dc=el("td","n r"+(d>0.004?"":" muted"),d>0.004?"$"+money(d,0):"—");
+    r.appendChild(dc);
+    var act=el("td"),box=el("div","rowbtns");
+    var o=el("button","btn sm","Open");
+    o.addEventListener("click",function(){showInvoice(inv);});
+    box.appendChild(o); act.appendChild(box); r.appendChild(act);
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+}
+
+/* ============================ reports ============================ */
+var repMode="month", repAnchor=todayISO().slice(0,7);
+function periodOf(dateStr){
+  return repMode==="month" ? dateStr.slice(0,7) : dateStr.slice(0,4);
+}
+function repRange(){
+  return repMode==="month" ? repAnchor : repAnchor.slice(0,4);
+}
+function paymentsIn(prefix){
+  /* every payment whose date starts with the period, with its booking alongside */
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    (bk.payments||[]).forEach(function(p){
+      var d=p.date||bk.date;
+      if(d && d.indexOf(prefix)===0) out.push({pay:p,amount:Number(p.amount)||0,date:d,bk:bk});
+    });
+  });
+  return out;
+}
+function splitByKind(rows){
+  var out={};
+  rows.forEach(function(r){
+    var w={},wt=0;
+    (r.bk.lines||[]).forEach(function(l){
+      var pr=product(l.productId); if(!pr) return;
+      var v=(Number(l.price)||0)*(Number(l.qty)||0);
+      if(v>0){ w[pr.kind]=(w[pr.kind]||0)+v; wt+=v; }
+    });
+    if(wt>0){ for(var k in w) out[k]=(out[k]||0)+r.amount*w[k]/wt; }
+    else out.other=(out.other||0)+r.amount;
+  });
+  return out;
+}
+function splitByProduct(rows){
+  var out={};
+  rows.forEach(function(r){
+    var w={},wt=0;
+    (r.bk.lines||[]).forEach(function(l){
+      var pr=product(l.productId); if(!pr) return;
+      var v=(Number(l.price)||0)*(Number(l.qty)||0);
+      if(v>0){ w[pr.name]=(w[pr.name]||0)+v; wt+=v; }
+    });
+    if(wt>0){ for(var k in w) out[k]=(out[k]||0)+r.amount*w[k]/wt; }
+  });
+  return out;
+}
+function shiftPeriod(step){
+  if(repMode==="month"){
+    var y=+repAnchor.slice(0,4), m=+repAnchor.slice(5,7)+step;
+    while(m<1){m+=12;y--;} while(m>12){m-=12;y++;}
+    repAnchor=y+"-"+String(m).padStart(2,"0");
+  } else {
+    repAnchor=String(+repAnchor.slice(0,4)+step)+"-01";
+  }
+  renderReports();
+}
+function periodLabel(){
+  if(repMode==="month"){
+    return MON[+repAnchor.slice(5,7)-1]+" "+repAnchor.slice(0,4);
+  }
+  return repAnchor.slice(0,4);
+}
+function barTable(host,title,obj,total,labelFn){
+  var h=el("div","sec-h"); h.appendChild(el("h2",null,title)); host.appendChild(h);
+  var keys=Object.keys(obj).sort(function(a,b){return obj[b]-obj[a];});
+  if(!keys.length){ host.appendChild(el("div","note","Nothing in this period.")); return; }
+  var box=el("div","panel"); box.style.padding="17px 18px 8px";
+  var mx=Math.max.apply(null,keys.map(function(k){return obj[k];}).concat([1]));
+  keys.forEach(function(k){
+    var row=el("div","row");
+    row.appendChild(el("span","nm",labelFn?labelFn(k):k));
+    var v=el("span","vl mono","$"+money(obj[k],2));
+    if(total) v.appendChild(el("small",null,Math.round(obj[k]/total*100)+"%"));
+    row.appendChild(v);
+    var b=el("div","bar"),i=el("i");
+    i.style.width=(obj[k]/mx*100)+"%"; i.style.background="var(--accent-hot)";
+    b.appendChild(i); row.appendChild(b); box.appendChild(row);
+  });
+  host.appendChild(box);
+}
+function renderReports(){
+  var host=document.getElementById("p-reports"); host.textContent="";
+  var h=el("div","sec-h");
+  h.appendChild(el("h2",null,"Reports"));
+  h.appendChild(el("span","spacer"));
+  var sw=el("div","range");
+  [["month","Monthly"],["year","Yearly"]].forEach(function(m){
+    var b=el("button",null,m[1]);
+    b.setAttribute("aria-pressed",repMode===m[0]?"true":"false");
+    b.addEventListener("click",function(){
+      repMode=m[0];
+      repAnchor = m[0]==="month" ? todayISO().slice(0,7) : todayISO().slice(0,4)+"-01";
+      renderReports();
+    });
+    sw.appendChild(b);
+  });
+  h.appendChild(sw); host.appendChild(h);
+
+  var nav=el("div","searchbar");
+  var prev=el("button","btn sm","‹ Previous");
+  prev.addEventListener("click",function(){shiftPeriod(-1);});
+  var lab=el("div"); lab.style.flex="1"; lab.style.textAlign="center";
+  lab.style.fontWeight="700"; lab.style.letterSpacing=".05em";
+  lab.style.textTransform="uppercase"; lab.textContent=periodLabel();
+  var next=el("button","btn sm","Next ›");
+  next.addEventListener("click",function(){shiftPeriod(1);});
+  nav.appendChild(prev); nav.appendChild(lab); nav.appendChild(next);
+  host.appendChild(nav);
+
+  var rows=paymentsIn(repRange());
+  var total=rows.reduce(function(a,r){return a+r.amount;},0);
+  var days={},byMethod={};
+  rows.forEach(function(r){
+    days[r.date]=(days[r.date]||0)+r.amount;
+    byMethod[r.pay.method||"Other"]=(byMethod[r.pay.method||"Other"]||0)+r.amount;
+  });
+  var dayCount=Object.keys(days).length;
+  var best=Object.keys(days).sort(function(a,b){return days[b]-days[a];})[0];
+
+  var k=el("div","kpis");
+  [{l:"Takings",v:"$"+money(total,0),m:rows.length+" payments"},
+   {l:"Trading days",v:String(dayCount),m:dayCount?("$"+money(total/dayCount,0)+" a day"):"nothing yet"},
+   {l:"Best day",v:best?("$"+money(days[best],0)):"—",m:best?dm(best):"—"},
+   {l:"Average sale",v:rows.length?("$"+money(total/rows.length,0)):"—",m:"per payment"}]
+  .forEach(function(it){
+    var p=el("div","panel kpi");
+    p.appendChild(el("div","eyebrow",it.l));
+    p.appendChild(el("span","val mono",it.v));
+    p.appendChild(el("div","meta",it.m));
+    k.appendChild(p);
+  });
+  host.appendChild(k);
+
+  if(!rows.length){
+    host.appendChild(el("div","note","No payments recorded in "+periodLabel()+"."));
+    return;
+  }
+  barTable(host,"By payment method",byMethod,total);
+  barTable(host,"By activity",splitByKind(rows),total,kindLabel);
+  barTable(host,"By product",splitByProduct(rows),total);
+
+  /* the period broken down one level: days in a month, months in a year */
+  var bucket={};
+  rows.forEach(function(r){
+    var key = repMode==="month" ? r.date : r.date.slice(0,7);
+    bucket[key]=(bucket[key]||0)+r.amount;
+  });
+  var h2=el("div","sec-h");
+  h2.appendChild(el("h2",null,repMode==="month"?"Day by day":"Month by month"));
+  host.appendChild(h2);
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  [repMode==="month"?"Date":"Month","Payments","Takings"].forEach(function(x,i){
+    tr.appendChild(el("th",i?"r":null,x));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  Object.keys(bucket).sort().forEach(function(key){
+    var n=rows.filter(function(r){
+      return (repMode==="month"?r.date:r.date.slice(0,7))===key;}).length;
+    var r=el("tr");
+    r.appendChild(el("td","strong",
+      repMode==="month"?(dowOf(key)+", "+dm(key)):(MON[+key.slice(5,7)-1]+" "+key.slice(0,4))));
+    r.appendChild(el("td","n r",String(n)));
+    r.appendChild(el("td","n r strong","$"+money(bucket[key],2)));
+    tb.appendChild(r);
+  });
+  var tot=el("tr");
+  tot.appendChild(el("td","strong","Total"));
+  tot.appendChild(el("td","n r strong",String(rows.length)));
+  tot.appendChild(el("td","n r strong","$"+money(total,2)));
+  tb.appendChild(tot);
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
 }
 
 /* ============================ today ============================ */
@@ -1784,7 +2168,7 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];
       save();render();toast("All records cleared");
     });
   });
@@ -1917,6 +2301,8 @@ var TABS=[{id:"today",l:"Today",r:renderToday},
   {id:"gear",l:"Gear",r:renderGear},
   {id:"crew",l:"Crew",r:renderCrew},
   {id:"register",l:"Day closing",r:renderRegister},
+  {id:"invoices",l:"Invoices",r:renderInvoices},
+  {id:"reports",l:"Reports",r:renderReports},
   {id:"settings",l:"Back office",r:renderSettings}];
 var cur="today";
 var tabsBox=document.getElementById("tabs");
