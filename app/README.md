@@ -29,6 +29,7 @@ the rest of the app never touches storage directly.
 | Today | Takings so far, sessions on the water, outstanding balances |
 | Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings. Filter by activity, instructor, level or how full a session is; choose which columns show |
 | Board | Sessions as blocks on an hourly timeline, grouped by activity or by instructor; drag one to another row or another hour. Tide times sit above the grid |
+| Trips | A boat or van going out: departure, skipper, seats, and a manifest that flags who has no waiver on file |
 | Bookings | Items priced by tier, payments, deposits, outstanding balance, cancellation and refunds; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend, documents and when they expire |
 | Catalog | Lessons, courses, rentals, photography, with prices |

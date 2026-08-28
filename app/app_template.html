@@ -223,6 +223,7 @@ td.strong{font-weight:700}
   <section id="p-today" role="tabpanel"></section>
   <section id="p-schedule" role="tabpanel" hidden></section>
   <section id="p-board" role="tabpanel" hidden></section>
+  <section id="p-trips" role="tabpanel" hidden></section>
   <section id="p-bookings" role="tabpanel" hidden></section>
   <section id="p-clients" role="tabpanel" hidden></section>
   <section id="p-catalog" role="tabpanel" hidden></section>
@@ -249,7 +250,7 @@ var KEY="shokogi.manager.v1";
 var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
   gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
-  invoices:[],invoiceSeq:1,tides:[],docs:[],cash:[],
+  invoices:[],invoiceSeq:1,tides:[],docs:[],cash:[],trips:[],
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -270,7 +271,7 @@ function load(){
         /* a database saved before these existed must not arrive with holes */
         ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
          "clients","staff","products","sessions","bookings","spots","invoices",
-         "tides","docs","cash"].forEach(function(k){
+         "tides","docs","cash","trips"].forEach(function(k){
           if(!Array.isArray(d[k])) d[k]=[];
         });
         if(typeof d.invoiceSeq!=="number") d.invoiceSeq=1;
@@ -2554,6 +2555,169 @@ function renderInvoices(){
 }
 
 
+
+/* ============================ trips ============================
+   A boat or van going out: a departure, a skipper, seats, and who is aboard.
+   Kept apart from sessions because the constraint is the vehicle, not the
+   instructor's hour. */
+function tripForm(existing){
+  var t=existing||{title:"",date:todayISO(),start:"08:00",end:"12:00",capacity:8,
+    pilotId:"",spot:(DB.spots[0]||{}).name||"",notes:"",participants:[]};
+  var b=el("div");
+  var title=input("text",t.title,{placeholder:"e.g. Boat trip to the point"});
+  var date=input("date",t.date);
+  var st=input("time",t.start), en=input("time",t.end);
+  var cap=input("number",t.capacity,{min:"1",step:"1"});
+  var pilot=select([{v:"",l:"Unassigned"}].concat(DB.staff.map(function(x){
+    return {v:x.id,l:x.name+" · "+x.role};})),t.pilotId||"");
+  var spotOpts=DB.spots.map(function(x){return {v:x.name,l:x.name};});
+  var spot=select(spotOpts.length?spotOpts:[{v:"",l:"—"}],t.spot);
+  var notes=el("textarea"); notes.value=t.notes||"";
+  b.appendChild(field("Title",title));
+  var g=el("div","grid2");
+  g.appendChild(field("Date",date)); g.appendChild(field("Seats",cap));
+  b.appendChild(g);
+  var g2=el("div","grid2");
+  g2.appendChild(field("Departs",st)); g2.appendChild(field("Returns",en));
+  b.appendChild(g2);
+  b.appendChild(field("Skipper",pilot));
+  b.appendChild(field("Destination",spot));
+  b.appendChild(field("Notes",notes));
+  openModal(existing?"Edit trip":"New trip",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!title.value.trim()){toast("A title is required.");title.focus();return;}
+      if(st.value&&en.value&&en.value<=st.value){
+        toast("The return time is not after the departure."); return; }
+      var rec=existing||{id:uid("tr"),participants:[]};
+      rec.title=title.value.trim(); rec.date=date.value||todayISO();
+      rec.start=st.value; rec.end=en.value; rec.capacity=Number(cap.value)||1;
+      rec.pilotId=pilot.value; rec.spot=spot.value; rec.notes=notes.value.trim();
+      if(!existing) DB.trips.push(rec);
+      save(); closeModal(); render(); toast(existing?"Trip updated":"Trip added");
+    }}
+  ]);
+}
+function tripPeopleForm(tr){
+  var b=el("div");
+  if(!DB.clients.length){
+    b.appendChild(el("p",null,"Add a client first — people aboard come from your client list."));
+    openModal("Aboard",b,[{label:"Close",on:closeModal}]);
+    return;
+  }
+  b.appendChild(el("p","hint",tr.participants.length+" of "+tr.capacity+" seats taken."));
+  DB.clients.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+    .forEach(function(c){
+    var row=el("label");
+    row.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 2px;cursor:pointer";
+    var cb=input("checkbox"); cb.checked=tr.participants.indexOf(c.id)>=0; cb.style.width="auto";
+    cb.addEventListener("change",function(){
+      if(cb.checked){
+        if(tr.participants.length>=tr.capacity){ cb.checked=false;
+          toast("The boat is full ("+tr.capacity+" seats)."); return; }
+        tr.participants.push(c.id);
+      } else tr.participants=tr.participants.filter(function(x){return x!==c.id;});
+      save(); render();
+    });
+    row.appendChild(cb); row.appendChild(el("span",null,c.name));
+    b.appendChild(row);
+  });
+  openModal("Aboard · "+tr.title,b,[{label:"Done",cls:"primary",on:function(){
+    closeModal();render();}}]);
+}
+function tripManifest(tr){
+  var b=el("div");
+  b.appendChild(el("p","hint",
+    tr.title+" — "+dowOf(tr.date)+", "+dm(tr.date)+", departs "+(tr.start||"—")+
+    ", skipper "+(tr.pilotId?staffName(tr.pilotId):"unassigned")+"."));
+  if(!tr.participants.length){
+    b.appendChild(el("div","note","Nobody is aboard yet."));
+  } else {
+    var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),r0=el("tr");
+    ["#","Name","Phone","Documents"].forEach(function(h){r0.appendChild(el("th",null,h));});
+    th.appendChild(r0); t.appendChild(th);
+    var tb=el("tbody");
+    tr.participants.forEach(function(cid,i){
+      var c=by(cid,DB.clients)||{};
+      var r=el("tr");
+      r.appendChild(el("td","n",String(i+1)));
+      r.appendChild(el("td","strong",c.name||"—"));
+      r.appendChild(el("td","muted",c.phone||"—"));
+      var dc=el("td");
+      var ds=docsFor(cid);
+      if(!ds.length) dc.appendChild(el("span","chip critc","none on file"));
+      else {
+        var worst=ds.map(docStatus).reduce(function(a,x){
+          var rank={ok:0,warnc:1,critc:2}; return rank[x.k]>rank[a.k]?x:a;});
+        dc.appendChild(el("span","chip "+worst.k,worst.l));
+      }
+      r.appendChild(dc);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  }
+  if(tr.notes) b.appendChild(el("div","note",tr.notes));
+  openModal("Manifest",b,[
+    {label:"Close",on:closeModal},
+    {label:"Export",cls:"primary",on:function(){
+      closeModal();
+      exportCsv("manifest-"+tr.date,["#","Name","Phone","Email","Documents"],
+        tr.participants.map(function(cid,i){
+          var c=by(cid,DB.clients)||{};
+          var ds=docsFor(cid);
+          return [i+1,c.name||"",c.phone||"",c.email||"",
+                  ds.length?ds.map(function(d){return d.type;}).join("; "):"none"];
+        }));
+    }}
+  ]);
+}
+function renderTrips(){
+  var host=document.getElementById("p-trips"); host.textContent="";
+  var upcoming=DB.trips.filter(function(t){return t.date>=todayISO();}).length;
+  secHeader(host,"Trips",
+    DB.trips.length?(DB.trips.length+" total · "+upcoming+" upcoming"):"",
+    "New trip",function(){tripForm(null);});
+  if(!DB.trips.length){
+    host.appendChild(emptyState("⛵","No trips yet",
+      "A trip is a boat or van going out: a departure time, a skipper, a number of seats and a manifest of who is aboard. Sessions are about an instructor's hour; a trip is about the vehicle.",
+      "Add the first trip",function(){tripForm(null);}));
+    return;
+  }
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr0=el("tr");
+  ["Date","Departs","Trip","Skipper","Destination","Aboard",""].forEach(function(h,i){
+    tr0.appendChild(el("th",i===5?"r":null,h));});
+  th.appendChild(tr0); t.appendChild(th);
+  var tb=el("tbody");
+  DB.trips.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(x){
+    var r=el("tr");
+    if(x.date<todayISO()) r.style.opacity=".65";
+    r.appendChild(el("td",null,dm(x.date)));
+    r.appendChild(el("td","n",(x.start||"—")+(x.end?" – "+x.end:"")));
+    r.appendChild(el("td","strong",x.title));
+    r.appendChild(el("td",x.pilotId?null:"muted",x.pilotId?staffName(x.pilotId):"Unassigned"));
+    r.appendChild(el("td","muted",x.spot||"—"));
+    var pc=el("td","n r");
+    var full=x.participants.length>=x.capacity;
+    var chip=el("span","chip "+(full?"warnc":(x.participants.length?"ok":"neutral")),
+      x.participants.length+" / "+x.capacity);
+    chip.style.cursor="pointer";
+    chip.addEventListener("click",function(){tripPeopleForm(x);});
+    pc.appendChild(chip); r.appendChild(pc);
+    var act=el("td"),box=el("div","rowbtns");
+    var mf=el("button","btn sm","Manifest");
+    mf.addEventListener("click",function(){tripManifest(x);});
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){tripForm(x);});
+    var d=el("button","btn sm danger","Del");
+    d.addEventListener("click",function(){confirmDelete(x.title,function(){
+      DB.trips=DB.trips.filter(function(y){return y.id!==x.id;});
+      save();render();toast("Trip deleted");});});
+    box.appendChild(mf); box.appendChild(e); box.appendChild(d);
+    act.appendChild(box); r.appendChild(act);
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+}
+
 /* ============================ cash in and out ============================
    Money that moves through the drawer without being a sale: a float at open,
    a supplier paid in cash, wages handed over. It never touches revenue, but
@@ -3575,7 +3739,7 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.docs=[];DB.cash=[];DB.seeded=true;
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.docs=[];DB.cash=[];DB.trips=[];DB.seeded=true;
       save();render();toast("All records cleared");
     });
   });
@@ -3731,6 +3895,7 @@ document.getElementById("btn-backup").addEventListener("click",backupForm);
 var TABS=[{id:"today",l:"Today",r:renderToday},
   {id:"schedule",l:"Planning",r:renderSchedule},
   {id:"board",l:"Board",r:renderBoard},
+  {id:"trips",l:"Trips",r:renderTrips},
   {id:"bookings",l:"Bookings",r:renderBookings},
   {id:"clients",l:"Clients",r:renderClients},
   {id:"catalog",l:"Catalog",r:renderCatalog},
