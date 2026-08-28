@@ -31,9 +31,17 @@ the rest of the app never touches storage directly.
 | Bookings | Items, prices, payments, outstanding balance per booking |
 | Clients | Contact details, booking count, lifetime spend |
 | Catalog | Lessons, courses, rentals, photography, with prices |
-| Crew | Instructors and assistants, role, session count |
+| Gear | Boards and kit, units in stock, what is out of service and until when |
+| Crew | Instructors and assistants, role, session count, time off |
 | Day closing | Takings by payment method and by activity |
-| Back office | Business details, spots, activity types, payment methods, roles, custom fields |
+| Back office | Business details, spots, activity types, payment methods, roles, custom fields, instructor fee groups, promo codes, partners, accommodation |
+
+The catalog ships with Shokogi's 35 products, 8 pieces of gear and its spots,
+exported from Bloowatch with prices, session counts and categories. It is
+offered, never forced: the app still starts empty, the import skips anything
+already there by name, and no clients, bookings or history come across.
+
+Assigning an instructor who is booked off that day says so in the form.
 
 Sessions can be pinned to the tide rather than the clock — "2h before high
 tide" — which is why a spot carries coordinates.

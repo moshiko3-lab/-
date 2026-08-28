@@ -225,6 +225,7 @@ td.strong{font-weight:700}
   <section id="p-bookings" role="tabpanel" hidden></section>
   <section id="p-clients" role="tabpanel" hidden></section>
   <section id="p-catalog" role="tabpanel" hidden></section>
+  <section id="p-gear" role="tabpanel" hidden></section>
   <section id="p-crew" role="tabpanel" hidden></section>
   <section id="p-register" role="tabpanel" hidden></section>
   <section id="p-settings" role="tabpanel" hidden></section>
@@ -232,6 +233,7 @@ td.strong{font-weight:700}
 
 <div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status"></div>
+<script id="seed" type="application/json">/*__SEED__*/</script>
 
 <script>
 (function(){
@@ -243,6 +245,7 @@ td.strong{font-weight:700}
 var KEY="shokogi.manager.v1";
 var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
+  gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -257,7 +260,17 @@ var DB=load();
 function load(){
   try{
     var raw=localStorage.getItem(KEY);
-    if(raw){var d=JSON.parse(raw); if(d&&d.v===1) return d;}
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d&&d.v===1){
+        /* a database saved before these existed must not arrive with holes */
+        ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
+         "clients","staff","products","sessions","bookings","spots"].forEach(function(k){
+          if(!Array.isArray(d[k])) d[k]=[];
+        });
+        return d;
+      }
+    }
   }catch(e){}
   return JSON.parse(JSON.stringify(BLANK));
 }
@@ -538,6 +551,36 @@ function renderCrew(){
     tb.appendChild(r);
   });
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+
+  secHeader(host,"Time off",null,"Add time off",function(){timeOffForm(null);});
+  if(!DB.timeOff.length){
+    host.appendChild(el("div","note","Nobody is booked off."));
+  } else {
+    var w3=el("div","panel tbl-wrap"),t3=el("table"),h3=el("thead"),r3=el("tr");
+    ["Crew","From","Until","Note",""].forEach(function(h){r3.appendChild(el("th",null,h));});
+    h3.appendChild(r3); t3.appendChild(h3);
+    var b3=el("tbody");
+    DB.timeOff.slice().sort(function(a,b){return a.from<b.from?1:-1;}).forEach(function(x){
+      var r=el("tr");
+      var onNow=(!x.from||x.from<=todayISO())&&(!x.to||x.to>=todayISO());
+      var nc=el("td","strong",staffName(x.staffId));
+      if(onNow){ nc.appendChild(document.createTextNode(" "));
+        nc.appendChild(el("span","chip warnc","off now")); }
+      r.appendChild(nc);
+      r.appendChild(el("td",null,x.from?dm(x.from):"—"));
+      r.appendChild(el("td",null,x.to?dm(x.to):"—"));
+      r.appendChild(el("td","muted",x.note||"—"));
+      var act=el("td"),box=el("div","rowbtns");
+      var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){timeOffForm(x);});
+      var d=el("button","btn sm danger","Del");
+      d.addEventListener("click",function(){confirmDelete("this entry",function(){
+        DB.timeOff=DB.timeOff.filter(function(y){return y.id!==x.id;});
+        save();render();toast("Deleted");});});
+      box.appendChild(e); box.appendChild(d); act.appendChild(box); r.appendChild(act);
+      b3.appendChild(r);
+    });
+    t3.appendChild(b3); w3.appendChild(t3); host.appendChild(w3);
+  }
 }
 
 /* ============================ catalog ============================ */
@@ -569,12 +612,28 @@ function productForm(existing){
 function kindLabel(k){ var L=KINDS(); for(var i=0;i<L.length;i++) if(L[i].k===k) return L[i].l; return k; }
 function renderCatalog(){
   var host=document.getElementById("p-catalog"); host.textContent="";
-  secHeader(host,"Catalog",DB.products.length?DB.products.length+" products":"","New product",
-    function(){productForm(null);});
+  var ch=el("div","sec-h");
+  ch.appendChild(el("h2",null,"Catalog"));
+  if(DB.products.length) ch.appendChild(el("span","sub",DB.products.length+" products"));
+  ch.appendChild(el("span","spacer"));
+  if(seedData()){
+    var ib=el("button","btn","Import catalog");
+    ib.addEventListener("click",importPrompt); ch.appendChild(ib);
+  }
+  var nb=el("button","btn primary","New product");
+  nb.addEventListener("click",function(){productForm(null);});
+  ch.appendChild(nb); host.appendChild(ch);
   if(!DB.products.length){
-    host.appendChild(emptyState("🗂","Nothing in the catalog yet",
+    var e=emptyState("🗂","Nothing in the catalog yet",
       "Add the lessons, courses, rentals and extras you sell. Bookings pick from this list, and prices flow through to the day closing.",
-      "Add the first product",function(){productForm(null);}));
+      "Add the first product",function(){productForm(null);});
+    if(seedData()){
+      var imp=el("button","btn primary","Import the Shokogi catalog");
+      imp.style.marginLeft="8px";
+      imp.addEventListener("click",importPrompt);
+      e.appendChild(imp);
+    }
+    host.appendChild(e);
     return;
   }
   var grid=el("div","cards");
@@ -626,7 +685,18 @@ function sessionForm(existing,presetDate){
   var g2=el("div","grid2");
   g2.appendChild(field("Duration (min)",dur)); g2.appendChild(field("Capacity",cap));
   b.appendChild(g2);
-  b.appendChild(field("Instructor",staff,DB.staff.length?null:"Add crew first to assign someone."));
+  var staffHint=el("div","hint");
+  function checkOff(){
+    var offNow=staff.value&&isOff(staff.value,date.value);
+    staffHint.textContent=offNow
+      ? staffName(staff.value)+" is booked off on "+dm(date.value)+"."
+      : (DB.staff.length?"":"Add crew first to assign someone.");
+    staffHint.style.color=offNow?"var(--crit)":"";
+  }
+  staff.addEventListener("change",checkOff);
+  date.addEventListener("change",checkOff);
+  var sf=field("Instructor",staff); sf.appendChild(staffHint);
+  b.appendChild(sf); checkOff();
   b.appendChild(field("Spot",spot));
 
   /* Tide-relative scheduling: a surf session is often pinned to the tide
@@ -1033,6 +1103,12 @@ function renderToday(){
     var e=emptyState("🏄","Your system starts empty",
       "Nothing is imported and nothing is shared — this is yours. Set it up in the order below and it will hang together: crew and catalog first, then clients, then you can schedule sessions and record bookings.",
       "Add your first crew member",function(){show("crew");staffForm(null);});
+    if(seedData()){
+      var imp=el("button","btn primary","Import the Shokogi catalog");
+      imp.style.marginLeft="8px";
+      imp.addEventListener("click",function(){show("catalog");importPrompt();});
+      e.appendChild(imp);
+    }
     host.appendChild(e);
     var steps=el("div","cards"); steps.style.marginTop="14px";
     [["Crew","Instructors and assistants","crew"],
@@ -1107,6 +1183,312 @@ function renderToday(){
   }
 }
 
+
+
+/* ============================ gear ============================ */
+function gearForm(existing){
+  var g=existing||{name:"",units:1,maxPax:1,description:""};
+  var b=el("div");
+  var name=input("text",g.name,{placeholder:"e.g. Soft-boards"});
+  var units=input("number",g.units,{min:"0",step:"1"});
+  var pax=input("number",g.maxPax,{min:"1",step:"1"});
+  var desc=el("textarea"); desc.value=g.description||"";
+  b.appendChild(field("Gear name",name));
+  var gr=el("div","grid2");
+  gr.appendChild(field("Units in stock",units));
+  gr.appendChild(field("Max people per unit",pax));
+  b.appendChild(gr);
+  b.appendChild(field("Description",desc));
+  openModal(existing?"Edit gear":"Add gear",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!name.value.trim()){toast("A name is required.");name.focus();return;}
+      var rec=existing||{id:uid("g")};
+      rec.name=name.value.trim(); rec.units=Number(units.value)||0;
+      rec.maxPax=Number(pax.value)||1; rec.description=desc.value.trim();
+      if(!existing) DB.gear.push(rec);
+      save(); closeModal(); render(); toast(existing?"Gear updated":"Gear added");
+    }}
+  ]);
+}
+function gearBlockForm(existing){
+  if(!DB.gear.length){ toast("Add a piece of gear first."); return; }
+  var x=existing||{gearId:DB.gear[0].id,units:1,from:todayISO(),to:todayISO(),note:""};
+  var b=el("div");
+  var g=select(DB.gear.map(function(y){return {v:y.id,l:y.name};}),x.gearId);
+  var units=input("number",x.units,{min:"1",step:"1"});
+  var from=input("date",x.from), to=input("date",x.to);
+  var note=input("text",x.note,{placeholder:"Broken fin, out for repair…"});
+  b.appendChild(field("Gear",g));
+  b.appendChild(field("Units affected",units));
+  var gr=el("div","grid2");
+  gr.appendChild(field("Out from",from)); gr.appendChild(field("Back on",to));
+  b.appendChild(gr);
+  b.appendChild(field("Note",note));
+  openModal(existing?"Edit unavailability":"Mark gear unavailable",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(from.value&&to.value&&to.value<from.value){
+        toast("The return date is before the start date."); return; }
+      var rec=existing||{id:uid("gb")};
+      rec.gearId=g.value; rec.units=Number(units.value)||1;
+      rec.from=from.value; rec.to=to.value; rec.note=note.value.trim();
+      if(!existing) DB.gearBlocks.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+function gearOutOn(gid,dateStr){
+  return DB.gearBlocks.filter(function(b){
+    return b.gearId===gid && (!b.from||b.from<=dateStr) && (!b.to||b.to>=dateStr);
+  }).reduce(function(a,b){return a+(Number(b.units)||0);},0);
+}
+function renderGear(){
+  var host=document.getElementById("p-gear"); host.textContent="";
+  var total=DB.gear.reduce(function(a,g){return a+(Number(g.units)||0);},0);
+  secHeader(host,"Gear",DB.gear.length?(total+" units across "+DB.gear.length+" types"):"",
+    "Add gear",function(){gearForm(null);});
+  if(!DB.gear.length){
+    host.appendChild(emptyState("🏄‍♂️","No gear yet",
+      "Track boards, wetsuits and anything else you hand out, so you can see what is available on a given day.",
+      "Add the first item",function(){gearForm(null);}));
+    return;
+  }
+  var t=todayISO();
+  var w=el("div","panel tbl-wrap"),tb0=el("table"),th=el("thead"),tr=el("tr");
+  ["Gear","Units","Max pax","Out today","Available today",""].forEach(function(h,i){
+    tr.appendChild(el("th",(i>=1&&i<=4)?"r":null,h));});
+  th.appendChild(tr); tb0.appendChild(th);
+  var tb=el("tbody");
+  DB.gear.forEach(function(g){
+    var out=gearOutOn(g.id,t), avail=(Number(g.units)||0)-out;
+    var r=el("tr");
+    r.appendChild(el("td","strong",g.name));
+    r.appendChild(el("td","n r",String(g.units)));
+    r.appendChild(el("td","n r",String(g.maxPax)));
+    r.appendChild(el("td","n r"+(out?"":" muted"),out?String(out):"—"));
+    var av=el("td","n r");
+    av.appendChild(el("span","chip "+(avail<=0?"critc":(out?"warnc":"ok")),String(avail)));
+    r.appendChild(av);
+    var act=el("td"),box=el("div","rowbtns");
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){gearForm(g);});
+    var d=el("button","btn sm danger","Del");
+    d.addEventListener("click",function(){confirmDelete(g.name,function(){
+      DB.gear=DB.gear.filter(function(y){return y.id!==g.id;});
+      DB.gearBlocks=DB.gearBlocks.filter(function(y){return y.gearId!==g.id;});
+      save();render();toast("Gear deleted");});});
+    box.appendChild(e); box.appendChild(d); act.appendChild(box); r.appendChild(act);
+    tb.appendChild(r);
+  });
+  tb0.appendChild(tb); w.appendChild(tb0); host.appendChild(w);
+
+  secHeader(host,"Out of service",null,"Mark unavailable",function(){gearBlockForm(null);});
+  if(!DB.gearBlocks.length){
+    host.appendChild(el("div","note","Everything is in service."));
+    return;
+  }
+  var w2=el("div","panel tbl-wrap"),t2=el("table"),h2=el("thead"),r2=el("tr");
+  ["Gear","Units","From","Until","Note",""].forEach(function(h,i){
+    r2.appendChild(el("th",i===1?"r":null,h));});
+  h2.appendChild(r2); t2.appendChild(h2);
+  var b2=el("tbody");
+  DB.gearBlocks.slice().sort(function(a,b){return a.from<b.from?1:-1;}).forEach(function(x){
+    var g=by(x.gearId,DB.gear);
+    var r=el("tr");
+    r.appendChild(el("td","strong",g?g.name:"—"));
+    r.appendChild(el("td","n r",String(x.units)));
+    r.appendChild(el("td",null,x.from?dm(x.from):"—"));
+    r.appendChild(el("td",null,x.to?dm(x.to):"—"));
+    r.appendChild(el("td","muted",x.note||"—"));
+    var act=el("td"),box=el("div","rowbtns");
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){gearBlockForm(x);});
+    var d=el("button","btn sm danger","Del");
+    d.addEventListener("click",function(){confirmDelete("this entry",function(){
+      DB.gearBlocks=DB.gearBlocks.filter(function(y){return y.id!==x.id;});
+      save();render();toast("Deleted");});});
+    box.appendChild(e); box.appendChild(d); act.appendChild(box); r.appendChild(act);
+    b2.appendChild(r);
+  });
+  t2.appendChild(b2); w2.appendChild(t2); host.appendChild(w2);
+}
+
+/* ============================ time off ============================ */
+function timeOffForm(existing){
+  if(!DB.staff.length){ toast("Add a crew member first."); return; }
+  var x=existing||{staffId:DB.staff[0].id,from:todayISO(),to:todayISO(),note:""};
+  var b=el("div");
+  var st=select(DB.staff.map(function(y){return {v:y.id,l:y.name};}),x.staffId);
+  var from=input("date",x.from), to=input("date",x.to);
+  var note=input("text",x.note,{placeholder:"Reason (optional)"});
+  b.appendChild(field("Crew member",st));
+  var g=el("div","grid2");
+  g.appendChild(field("From",from)); g.appendChild(field("Until",to));
+  b.appendChild(g);
+  b.appendChild(field("Note",note));
+  openModal(existing?"Edit time off":"Add time off",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(from.value&&to.value&&to.value<from.value){
+        toast("The end date is before the start date."); return; }
+      var rec=existing||{id:uid("to")};
+      rec.staffId=st.value; rec.from=from.value; rec.to=to.value; rec.note=note.value.trim();
+      if(!existing) DB.timeOff.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+function isOff(staffId,dateStr){
+  return DB.timeOff.some(function(t){
+    return t.staffId===staffId && (!t.from||t.from<=dateStr) && (!t.to||t.to>=dateStr);
+  });
+}
+
+/* ============================ fee groups ============================ */
+function feeGroupForm(existing){
+  var f=existing||{name:"",from:"",to:"",rates:[]};
+  var working=JSON.parse(JSON.stringify(f.rates||[]));
+  var b=el("div");
+  var name=input("text",f.name,{placeholder:"e.g. Senior instructors 2026"});
+  var from=input("date",f.from), to=input("date",f.to);
+  b.appendChild(field("Group name",name));
+  var g=el("div","grid2");
+  g.appendChild(field("Valid from",from)); g.appendChild(field("Valid until",to));
+  b.appendChild(g);
+
+  var host=el("div");
+  function draw(){
+    host.textContent="";
+    working.forEach(function(r,i){
+      var row=el("div","line"); row.style.gridTemplateColumns="1fr 80px 80px 70px auto";
+      var k=select(KINDS().map(function(x){return {v:x.k,l:x.l};}),r.kind);
+      k.addEventListener("change",function(){r.kind=k.value;});
+      var hr=input("number",r.perHour,{min:"0",step:"0.5",placeholder:"/hr"});
+      hr.addEventListener("input",function(){r.perHour=Number(hr.value)||0;});
+      var se=input("number",r.perSession,{min:"0",step:"0.5",placeholder:"/session"});
+      se.addEventListener("input",function(){r.perSession=Number(se.value)||0;});
+      var pc=input("number",r.pct,{min:"0",max:"100",step:"0.5",placeholder:"%"});
+      pc.addEventListener("input",function(){r.pct=Number(pc.value)||0;});
+      var rm=el("button","btn sm danger","×");
+      rm.addEventListener("click",function(){working.splice(i,1);draw();});
+      row.appendChild(k);row.appendChild(hr);row.appendChild(se);row.appendChild(pc);row.appendChild(rm);
+      host.appendChild(row);
+    });
+  }
+  var lh=el("div","lines-h");
+  lh.appendChild(el("h4",null,"Rate per activity — hour / session / %"));
+  var add=el("button","btn sm","Add activity");
+  add.addEventListener("click",function(){
+    working.push({kind:(KINDS()[0]||{}).k,perHour:0,perSession:0,pct:0}); draw();});
+  lh.appendChild(add);
+  b.appendChild(lh); b.appendChild(host); draw();
+  b.appendChild(el("div","hint",
+    "Three ways to pay for the same activity, exactly as Bloowatch does it: an hourly rate, a flat rate per session, or a percentage of what the session sold for. Leave the ones you do not use at zero."));
+
+  openModal(existing?"Edit fee group":"New fee group",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!name.value.trim()){toast("A name is required.");name.focus();return;}
+      var rec=existing||{id:uid("fg")};
+      rec.name=name.value.trim(); rec.from=from.value; rec.to=to.value; rec.rates=working;
+      if(!existing) DB.feeGroups.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+
+/* ============================ promo codes ============================ */
+function promoForm(existing){
+  var p=existing||{code:"",type:"percent",value:10,from:"",to:"",maxUses:"",active:true};
+  var b=el("div");
+  var code=input("text",p.code,{placeholder:"SUMMER26"});
+  var type=select([{v:"percent",l:"Percentage off"},{v:"fixed",l:"Fixed amount off"}],p.type);
+  var val=input("number",p.value,{min:"0",step:"0.5"});
+  var from=input("date",p.from), to=input("date",p.to);
+  var uses=input("number",p.maxUses,{min:"0",step:"1",placeholder:"unlimited"});
+  var act=input("checkbox"); act.checked=p.active!==false; act.style.width="auto";
+  b.appendChild(field("Code",code));
+  var g=el("div","grid2");
+  g.appendChild(field("Type",type)); g.appendChild(field("Value",val));
+  b.appendChild(g);
+  var g2=el("div","grid2");
+  g2.appendChild(field("Valid from",from)); g2.appendChild(field("Valid until",to));
+  b.appendChild(g2);
+  b.appendChild(field("Maximum uses",uses));
+  b.appendChild(field("Active",act));
+  openModal(existing?"Edit promo code":"New promo code",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!code.value.trim()){toast("A code is required.");code.focus();return;}
+      var rec=existing||{id:uid("pr")};
+      rec.code=code.value.trim().toUpperCase(); rec.type=type.value;
+      rec.value=Number(val.value)||0; rec.from=from.value; rec.to=to.value;
+      rec.maxUses=uses.value===""?null:Number(uses.value); rec.active=act.checked;
+      if(!existing) DB.promos.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+
+/* ============================ partners ============================ */
+function partnerForm(existing){
+  var p=existing||{company:"",code:"",contact:"",email:"",phone:"",city:"",country:"",commission:0};
+  var b=el("div");
+  var co=input("text",p.company,{placeholder:"Hotel / agency name"});
+  var code=input("text",p.code,{placeholder:"Partner code"});
+  var ct=input("text",p.contact,{placeholder:"Contact person"});
+  var em=input("email",p.email), ph=input("tel",p.phone);
+  var city=input("text",p.city), country=input("text",p.country);
+  var comm=input("number",p.commission,{min:"0",max:"100",step:"0.5"});
+  b.appendChild(field("Company",co));
+  var g=el("div","grid2");
+  g.appendChild(field("Partner code",code)); g.appendChild(field("Commission %",comm));
+  b.appendChild(g);
+  b.appendChild(field("Contact person",ct));
+  var g2=el("div","grid2");
+  g2.appendChild(field("Email",em)); g2.appendChild(field("Phone",ph));
+  b.appendChild(g2);
+  var g3=el("div","grid2");
+  g3.appendChild(field("City",city)); g3.appendChild(field("Country",country));
+  b.appendChild(g3);
+  openModal(existing?"Edit partner":"New partner",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!co.value.trim()){toast("A company name is required.");co.focus();return;}
+      var rec=existing||{id:uid("pa")};
+      rec.company=co.value.trim(); rec.code=code.value.trim(); rec.contact=ct.value.trim();
+      rec.email=em.value.trim(); rec.phone=ph.value.trim(); rec.city=city.value.trim();
+      rec.country=country.value.trim(); rec.commission=Number(comm.value)||0;
+      if(!existing) DB.partners.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
+
+/* ============================ accommodations ============================ */
+function accomForm(existing){
+  var a=existing||{name:"",units:1,maxPax:2,description:""};
+  var b=el("div");
+  var name=input("text",a.name,{placeholder:"e.g. Camp dorm"});
+  var units=input("number",a.units,{min:"0",step:"1"});
+  var pax=input("number",a.maxPax,{min:"1",step:"1"});
+  var desc=el("textarea"); desc.value=a.description||"";
+  b.appendChild(field("Accommodation name",name));
+  var g=el("div","grid2");
+  g.appendChild(field("Units",units)); g.appendChild(field("Max people per unit",pax));
+  b.appendChild(g);
+  b.appendChild(field("Description",desc));
+  openModal(existing?"Edit accommodation":"Add accommodation",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!name.value.trim()){toast("A name is required.");name.focus();return;}
+      var rec=existing||{id:uid("ac")};
+      rec.name=name.value.trim(); rec.units=Number(units.value)||0;
+      rec.maxPax=Number(pax.value)||1; rec.description=desc.value.trim();
+      if(!existing) DB.accommodations.push(rec);
+      save(); closeModal(); render(); toast("Saved");
+    }}
+  ]);
+}
 
 /* ============================ settings (back office) ============================
    Everything the rest of the app reads from -- business details, spots, the
@@ -1352,6 +1734,45 @@ function renderSettings(){
       del:function(x){cfg().customFields=cfg().customFields.filter(function(y){return y!==x;});}
     }));
 
+  grid.appendChild(listEditor("Instructor fee groups",
+    "What crew are paid per activity: by the hour, by the session, or a cut of the sale.",
+    DB.feeGroups,{
+      addLabel:"Add group",
+      read:function(x){
+        var period=(x.from||x.to)?((x.from?dm(x.from):"…")+" – "+(x.to?dm(x.to):"…")):"no end date";
+        return {title:x.name,sub:(x.rates||[]).length+" activity rates · "+period};},
+      form:function(x){feeGroupForm(x);},
+      del:function(x){DB.feeGroups=DB.feeGroups.filter(function(y){return y.id!==x.id;});}
+    }));
+
+  grid.appendChild(listEditor("Promo codes",null,DB.promos,{
+    addLabel:"Add code",
+    read:function(x){
+      var v=x.type==="percent"?(x.value+"% off"):("$"+money(x.value,0)+" off");
+      return {title:x.code,sub:v+(x.active?"":" · inactive")};},
+    form:function(x){promoForm(x);},
+    del:function(x){DB.promos=DB.promos.filter(function(y){return y.id!==x.id;});}
+  }));
+
+  grid.appendChild(listEditor("Partners",
+    "Hotels and agencies that send you clients.",DB.partners,{
+    addLabel:"Add partner",
+    read:function(x){return {title:x.company,
+      sub:[x.code,x.commission?x.commission+"% commission":null,x.city]
+        .filter(Boolean).join(" · ")||"no details"};},
+    form:function(x){partnerForm(x);},
+    del:function(x){DB.partners=DB.partners.filter(function(y){return y.id!==x.id;});}
+  }));
+
+  grid.appendChild(listEditor("Accommodation",
+    "Beds for camps and multi-day packages.",DB.accommodations,{
+    addLabel:"Add accommodation",
+    read:function(x){return {title:x.name,
+      sub:x.units+" units · up to "+x.maxPax+" per unit"};},
+    form:function(x){accomForm(x);},
+    del:function(x){DB.accommodations=DB.accommodations.filter(function(y){return y.id!==x.id;});}
+  }));
+
   host.appendChild(grid);
 
   var danger=el("div","note");
@@ -1362,11 +1783,87 @@ function renderSettings(){
   w.addEventListener("click",function(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
+      DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
+      DB.accommodations=[];DB.feeGroups=[];
       save();render();toast("All records cleared");
     });
   });
   danger.appendChild(w);
   host.appendChild(danger);
+}
+
+
+/* ============================ starter catalog ============================
+   The school's real product list, exported from Bloowatch. It is offered, not
+   forced: the app still starts empty and this only lands when asked for. */
+function seedData(){
+  try{
+    var n=document.getElementById("seed");
+    if(!n) return null;
+    var d=JSON.parse(n.textContent||"null");
+    return (d&&d.products&&d.products.length)?d:null;
+  }catch(e){ return null; }
+}
+function importCatalog(){
+  var d=seedData();
+  if(!d){ toast("No catalog is bundled with this build."); return; }
+  var added={products:0,gear:0,spots:0,kinds:0};
+
+  d.products.forEach(function(p){
+    if(DB.products.some(function(x){return x.name===p.name;})) return;
+    DB.products.push({id:uid("p"),name:p.name,kind:p.kind,price:p.price||0,
+      sessions:p.sessions||1,category:p.category||"",tax:p.tax||0,color:p.color||"",
+      nights:p.nights||null,description:p.description||""});
+    added.products++;
+  });
+  (d.gear||[]).forEach(function(g){
+    if(DB.gear.some(function(x){return x.name===g.name;})) return;
+    DB.gear.push({id:uid("g"),name:g.name,units:g.units||0,maxPax:1,
+      description:g.description||""});
+    added.gear++;
+  });
+  (d.spots||[]).forEach(function(sp){
+    if(DB.spots.some(function(x){return x.name===sp.name;})) return;
+    DB.spots.push({id:uid("sp"),name:sp.name,lat:sp.lat,lon:sp.lon,notes:sp.notes||""});
+    added.spots++;
+  });
+  /* every kind the imported products use must exist, or they group as "other" */
+  d.products.forEach(function(p){
+    if(!cfg().kinds.some(function(k){return k.k===p.kind;})){
+      cfg().kinds.push({k:p.kind,l:p.kind.charAt(0).toUpperCase()+p.kind.slice(1)});
+      added.kinds++;
+    }
+  });
+  save(); render();
+  toast("Imported "+added.products+" products, "+added.gear+" gear, "+added.spots+" spots");
+}
+function importPrompt(){
+  var d=seedData();
+  var b=el("div");
+  if(!d){
+    b.appendChild(el("p",null,"This build does not carry a catalog."));
+    openModal("Import catalog",b,[{label:"Close",on:closeModal}]);
+    return;
+  }
+  b.appendChild(el("p",null,
+    "Brings in "+d.products.length+" products, "+(d.gear||[]).length+" pieces of gear and "+
+    (d.spots||[]).length+" spots, with their prices, session counts and categories."));
+  b.appendChild(el("p","hint",
+    "Nothing is overwritten — anything already here under the same name is skipped, so running this twice is harmless. No clients, bookings or history come across."));
+  var list=el("div","panel"); list.style.maxHeight="230px"; list.style.overflowY="auto";
+  d.products.slice().sort(function(a,b2){return (b2.price||0)-(a.price||0);}).forEach(function(p){
+    var r=el("div","slot"); r.style.gridTemplateColumns="1fr auto"; r.style.padding="8px 14px";
+    var nm=el("div"); nm.appendChild(el("b",null,p.name));
+    nm.appendChild(el("em",null,kindLabel(p.kind)+(p.category?" · "+p.category:"")));
+    r.appendChild(nm);
+    r.appendChild(el("div","mono","$"+money(p.price,0)));
+    list.appendChild(r);
+  });
+  b.appendChild(list);
+  openModal("Import catalog",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Import",cls:"primary",on:function(){closeModal();importCatalog();}}
+  ]);
 }
 
 /* ============================ backup ============================ */
@@ -1409,6 +1906,7 @@ var TABS=[{id:"today",l:"Today",r:renderToday},
   {id:"bookings",l:"Bookings",r:renderBookings},
   {id:"clients",l:"Clients",r:renderClients},
   {id:"catalog",l:"Catalog",r:renderCatalog},
+  {id:"gear",l:"Gear",r:renderGear},
   {id:"crew",l:"Crew",r:renderCrew},
   {id:"register",l:"Day closing",r:renderRegister},
   {id:"settings",l:"Back office",r:renderSettings}];

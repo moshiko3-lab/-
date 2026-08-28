@@ -8,8 +8,12 @@ enters in their own browser. Only the badge is inlined.
 """
 import argparse
 import base64
+import json
 import os
+import re
+import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,13 +22,43 @@ def render(template=None):
     tpl = template or os.path.join(HERE, "app_template.html")
     with open(tpl, encoding="utf-8") as f:
         out = f.read()
+    cat = os.path.join(HERE, "catalog.json")
+    if os.path.exists(cat):
+        with open(cat, encoding="utf-8") as f:
+            blob = json.dumps(json.load(f), ensure_ascii=False, separators=(",", ":"))
+        out = out.replace("/*__SEED__*/", blob.replace("</script>", "<\\/script>"))
+    else:
+        out = out.replace("/*__SEED__*/", "null")
+
     logo = os.path.join(HERE, "logo.png")
     if os.path.exists(logo):
         with open(logo, "rb") as f:
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
-    if "/*__LOGO__*/" in out:
-        raise RuntimeError("logo placeholder was not replaced")
+    for token in ("/*__LOGO__*/", "/*__SEED__*/"):
+        if token in out:
+            raise RuntimeError(f"template placeholder {token} was not replaced")
     return out
+
+
+def check_js(html):
+    """Parse the page's inline script, so a typo fails the build instead of
+    shipping a blank app. Skipped silently where node is unavailable."""
+    m = re.search(r"<script>(.*)</script>", html, re.S)
+    if not m:
+        raise RuntimeError("no inline script found in the page")
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+                                     encoding="utf-8") as f:
+        f.write(m.group(1))
+        path = f.name
+    try:
+        r = subprocess.run(["node", "--check", path], capture_output=True, text=True)
+    except FileNotFoundError:
+        return "node not available, syntax not checked"
+    finally:
+        os.unlink(path)
+    if r.returncode != 0:
+        raise RuntimeError("the page's script does not parse:\n" + (r.stderr or "")[:900])
+    return "script parses"
 
 
 def main():
@@ -33,9 +67,14 @@ def main():
     ap.add_argument("--template")
     a = ap.parse_args()
     html = render(a.template)
+    try:
+        note = check_js(html)
+    except RuntimeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
     with open(a.out, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"wrote {a.out} ({len(html)//1024} KB)")
+    print(f"wrote {a.out} ({len(html)//1024} KB) — {note}")
     return 0
 
 
