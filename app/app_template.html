@@ -339,17 +339,18 @@ function bookingDue(b){ return bookingTotal(b)-bookingPaid(b); }
 
 /* ============================ modal ============================ */
 var scrim=document.getElementById("scrim"),modal=document.getElementById("modal");
-var lastFocus=null;
-function openModal(title,bodyEl,actions){
-  lastFocus=document.activeElement;
+/* Modals stack. A booking form opens a product picker on top of itself, and
+   closing the picker has to give the booking back rather than throw it away. */
+var modalStack=[];
+function paintModal(entry){
   modal.textContent="";
-  var h=el("div","modal-h"); h.appendChild(el("h3",null,title));
+  var h=el("div","modal-h"); h.appendChild(el("h3",null,entry.title));
   var x=el("button","btn sm icon x","Close");
   x.addEventListener("click",closeModal); h.appendChild(x);
   modal.appendChild(h);
-  var b=el("div","modal-b"); b.appendChild(bodyEl); modal.appendChild(b);
+  var b=el("div","modal-b"); b.appendChild(entry.body); modal.appendChild(b);
   var f=el("div","modal-f");
-  (actions||[]).forEach(function(a){
+  (entry.actions||[]).forEach(function(a){
     var btn=el("button","btn "+(a.cls||""),a.label);
     btn.addEventListener("click",a.on); f.appendChild(btn);
   });
@@ -358,9 +359,24 @@ function openModal(title,bodyEl,actions){
   var first=modal.querySelector("input,select,textarea,button");
   if(first) first.focus();
 }
+function openModal(title,bodyEl,actions){
+  modalStack.push({title:title,body:bodyEl,actions:actions,
+    focus:document.activeElement});
+  paintModal(modalStack[modalStack.length-1]);
+}
 function closeModal(){
+  var gone=modalStack.pop();
+  if(modalStack.length){
+    /* hand the one underneath back, exactly as it was */
+    paintModal(modalStack[modalStack.length-1]);
+    return;
+  }
   scrim.hidden=true; modal.textContent="";
-  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+  if(gone && gone.focus && gone.focus.focus) gone.focus.focus();
+}
+function closeAllModals(){
+  modalStack=[];
+  scrim.hidden=true; modal.textContent="";
 }
 scrim.addEventListener("click",function(e){ if(e.target===scrim) closeModal(); });
 addEventListener("keydown",function(e){ if(e.key==="Escape"&&!scrim.hidden) closeModal(); });
@@ -660,7 +676,7 @@ function clientDocsView(c){
   var b=el("div");
   var list=docsFor(c.id);
   var add=el("button","btn sm primary","Add document");
-  add.addEventListener("click",function(){closeModal();docForm(c.id,null);});
+  add.addEventListener("click",function(){docForm(c.id,null);});
   b.appendChild(el("p","hint",list.length?(list.length+" on record for "+c.name):
     ("Nothing on record for "+c.name+".")));
   b.appendChild(add);
@@ -684,10 +700,9 @@ function clientDocsView(c){
       r.appendChild(sc);
       var act=el("td"),box=el("div","rowbtns");
       var e=el("button","btn sm","Edit");
-      e.addEventListener("click",function(){closeModal();docForm(c.id,d);});
+      e.addEventListener("click",function(){docForm(c.id,d);});
       var del=el("button","btn sm danger","Del");
       del.addEventListener("click",function(){
-        closeModal();
         confirmDelete(d.type+" for "+c.name,function(){
           DB.docs=DB.docs.filter(function(x){return x.id!==d.id;});
           save();render();toast("Deleted");});
@@ -1996,7 +2011,6 @@ function clientListFor(dateStr){
   openModal("Client list · "+dm(dateStr),b,[
     {label:"Close",on:closeModal},
     {label:"Export",cls:"primary",on:function(){
-      closeModal();
       exportCsv("clients-"+dateStr,["Client","Phone","Email","Sessions"],
         ids.map(function(cid){
           var c=by(cid,DB.clients)||{};
@@ -2389,15 +2403,300 @@ function renderBoard(){
     "Drag a block sideways to change its hour, or onto another row to move it. Double-click to open it."));
 }
 
+
+
+/* ============================ participants on a booking ============================
+   The person paying is not always the person surfing. A booking for three
+   carries three names, each with what an instructor needs to know before
+   handing over a board. */
+var LEVELS=[{v:"",l:"—"},{v:"beginner",l:"Beginner"},
+  {v:"intermediate",l:"Intermediate"},{v:"advanced",l:"Advanced"}];
+function participantForm(list,idx,onDone){
+  var p=idx==null?{name:"",age:"",level:"",wetsuit:"",height:"",weight:"",
+    clientId:"",insurance:false,notes:"",custom:{}}:list[idx];
+  var b=el("div");
+  var fromClient=select([{v:"",l:"Not a saved client"}].concat(
+    DB.clients.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+      .map(function(c){return {v:c.id,l:c.name};})),p.clientId||"");
+  var name=input("text",p.name,{placeholder:"Full name"});
+  fromClient.addEventListener("change",function(){
+    var c=by(fromClient.value,DB.clients);
+    if(c && !name.value.trim()) name.value=c.name;
+  });
+  var age=input("number",p.age,{min:"0",max:"120",step:"1"});
+  var lvl=select(LEVELS,p.level||"");
+  var wet=input("text",p.wetsuit,{placeholder:"e.g. M, L, XL"});
+  var hgt=input("number",p.height,{min:"0",step:"1",placeholder:"cm"});
+  var wgt=input("number",p.weight,{min:"0",step:"1",placeholder:"kg"});
+  var ins=input("checkbox"); ins.checked=!!p.insurance; ins.style.width="auto";
+  var notes=input("text",p.notes,{placeholder:"Anything the instructor should know"});
+  b.appendChild(field("Existing client",fromClient,
+    "Link it and their documents and history follow the booking."));
+  b.appendChild(field("Name",name));
+  var g=el("div","grid2");
+  g.appendChild(field("Age",age)); g.appendChild(field("Level",lvl));
+  b.appendChild(g);
+  var g2=el("div","grid2");
+  g2.appendChild(field("Wetsuit size",wet)); g2.appendChild(field("Insurance",ins));
+  b.appendChild(g2);
+  var g3=el("div","grid2");
+  g3.appendChild(field("Height (cm)",hgt)); g3.appendChild(field("Weight (kg)",wgt));
+  b.appendChild(g3);
+  b.appendChild(field("Notes",notes));
+  var cf=customInputs("participant",p.custom);
+  if(cf.any) b.appendChild(cf.node);
+
+  openModal(idx==null?"Add participant":"Edit participant",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!name.value.trim()){ toast("A name is required."); name.focus(); return; }
+      var miss=cf.missing();
+      if(miss){ toast(miss+" is required."); return; }
+      var rec={name:name.value.trim(),clientId:fromClient.value,
+        age:age.value===""?"":Number(age.value),level:lvl.value,
+        wetsuit:wet.value.trim(),height:hgt.value===""?"":Number(hgt.value),
+        weight:wgt.value===""?"":Number(wgt.value),
+        insurance:ins.checked,notes:notes.value.trim(),custom:cf.read()};
+      if(idx==null) list.push(rec); else list[idx]=rec;
+      closeModal(); onDone();
+    }}
+  ]);
+}
+function participantsBlock(working,seatsWanted,onChange){
+  var host=el("div");
+  function draw(){
+    host.textContent="";
+    var need=seatsWanted();
+    var head=el("div","lines-h");
+    var h4=el("h4",null,"Participants");
+    head.appendChild(h4);
+    var add=el("button","btn sm","Add participant"); add.type="button";
+    add.addEventListener("click",function(){
+      participantForm(working.participants,null,function(){draw();onChange();});
+    });
+    head.appendChild(add);
+    host.appendChild(head);
+
+    var have=working.participants.length;
+    if(need>0){
+      var note=el("div","hint",
+        have===need ? (have+" of "+need+" named.")
+        : (have<need ? (need-have)+" still to name — the products cover "+need+" "+
+             (need===1?"person":"people")+"."
+           : (have-need)+" more named than the products cover."));
+      note.style.color = have===need ? "var(--good)" : (have<need?"var(--warn)":"var(--crit)");
+      note.style.marginBottom="8px";
+      host.appendChild(note);
+    }
+    if(!have){
+      var e=el("div","hint","Nobody named yet. The client on the booking is assumed.");
+      e.style.padding="4px 2px 8px";
+      host.appendChild(e);
+      return;
+    }
+    working.participants.forEach(function(pp,i){
+      var row=el("div");
+      row.style.cssText="display:flex;align-items:center;gap:9px;padding:8px 11px;"+
+        "border:1px solid var(--line-soft);border-radius:9px;margin-bottom:6px;"+
+        "background:var(--panel-2)";
+      var left=el("div"); left.style.flex="1";
+      var nm=el("div",null,pp.name);
+      nm.style.cssText="font-weight:600;font-size:13.5px";
+      left.appendChild(nm);
+      var bits=[];
+      if(pp.age!=="") bits.push(pp.age+"y");
+      if(pp.level) bits.push(pp.level);
+      if(pp.wetsuit) bits.push("wetsuit "+pp.wetsuit);
+      if(pp.insurance) bits.push("insured");
+      if(bits.length) left.appendChild(el("div","hint",bits.join(" · ")));
+      row.appendChild(left);
+      if(pp.clientId){
+        var ds=docsFor(pp.clientId);
+        if(!ds.length) row.appendChild(el("span","chip critc","no waiver"));
+        else {
+          var worst=ds.map(docStatus).reduce(function(a,x){
+            var rank={ok:0,warnc:1,critc:2}; return rank[x.k]>rank[a.k]?x:a;});
+          if(worst.k!=="ok") row.appendChild(el("span","chip "+worst.k,worst.l));
+        }
+      }
+      var e2=el("button","btn sm","Edit"); e2.type="button";
+      e2.addEventListener("click",function(){
+        participantForm(working.participants,i,function(){draw();onChange();});});
+      row.appendChild(e2);
+      var rm=el("button","btn sm danger","×"); rm.type="button";
+      rm.addEventListener("click",function(){
+        working.participants.splice(i,1); draw(); onChange();});
+      row.appendChild(rm);
+      host.appendChild(row);
+    });
+  }
+  draw();
+  return {node:host,redraw:draw};
+}
+
+/* ============================ product picker ============================
+   A dropdown of 35 names tells you nothing about what anything costs. This is
+   the catalogue: grouped by activity, searchable, every price option on show
+   before you commit to one. */
+var pickQ="", pickKind="";
+function productPicker(onPick){
+  var live=DB.products.filter(function(x){return !x.archived;});
+  if(!live.length){ toast("Add a product to the catalogue first."); return; }
+
+  var b=el("div");
+  var sb=el("div","searchbar");
+  var q=input("search",pickQ,{placeholder:"Search a product"});
+  sb.appendChild(q);
+  var kSel=select([{v:"",l:"Any activity"}].concat(
+    KINDS().map(function(k){return {v:k.k,l:k.l};})),pickKind);
+  kSel.style.cssText="width:auto;padding:9px 11px;border-radius:9px;font:inherit;"+
+    "border:1px solid var(--line);background:var(--panel);color:var(--text)";
+  sb.appendChild(kSel);
+  b.appendChild(sb);
+
+  var listHost=el("div");
+  listHost.style.cssText="max-height:52vh;overflow-y:auto;margin-top:4px";
+  b.appendChild(listHost);
+
+  function draw(){
+    listHost.textContent="";
+    var term=pickQ.trim().toLowerCase();
+    var rows=live.filter(function(x){
+      if(pickKind && x.kind!==pickKind) return false;
+      if(!term) return true;
+      return [x.name,x.code,x.shortDesc].join(" ").toLowerCase().indexOf(term)>=0;
+    });
+    if(!rows.length){
+      listHost.appendChild(el("div","note","Nothing matches."));
+      return;
+    }
+    /* grouped by activity, the way the catalogue reads */
+    var groups={};
+    rows.forEach(function(x){
+      var g=kindLabel(x.kind)||"Other";
+      (groups[g]=groups[g]||[]).push(x);
+    });
+    Object.keys(groups).sort().forEach(function(g){
+      var head=el("div","eyebrow",g);
+      head.style.cssText="padding:12px 2px 7px;position:sticky;top:0;background:var(--panel);"+
+        "font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;"+
+        "color:var(--text-3);z-index:1";
+      listHost.appendChild(head);
+      groups[g].sort(function(a,b2){return (b2.price||0)-(a.price||0);}).forEach(function(x){
+        var row=el("div");
+        row.style.cssText="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;"+
+          "padding:10px 12px;border:1px solid var(--line-soft);border-radius:10px;"+
+          "margin-bottom:7px;cursor:pointer;background:var(--panel-2)";
+        row.tabIndex=0;
+        var left=el("div");
+        var nm=el("div",null,x.name);
+        nm.style.cssText="font-weight:600;font-size:13.5px";
+        left.appendChild(nm);
+        var bits=[];
+        bits.push(ptypeLabel(x.ptype));
+        if(x.sessionsAtBooking) bits.push("sessions at booking");
+        else if(x.sessions>1) bits.push(x.sessions+" sessions");
+        if(x.code) bits.push(x.code);
+        left.appendChild(el("div","hint",bits.join(" · ")));
+        var sum=priceSummary(x);
+        if(sum){
+          var sl=el("div","hint",sum);
+          sl.style.color="var(--accent)";
+          left.appendChild(sl);
+        }
+        if(x.depositType&&x.depositValue){
+          left.appendChild(el("div","hint","Deposit "+(x.depositType==="percent"
+            ? x.depositValue+"%" : "$"+money(x.depositValue,0))));
+        }
+        row.appendChild(left);
+        var pr=el("div","mono","$"+money(x.price,0));
+        pr.style.cssText="font-size:16px;font-weight:600;white-space:nowrap";
+        row.appendChild(pr);
+        function take(){ closeModal(); onPick(x); }  /* pops back to the booking */
+        row.addEventListener("click",take);
+        row.addEventListener("keydown",function(e){
+          if(e.key==="Enter"||e.key===" "){ e.preventDefault(); take(); }});
+        row.addEventListener("mouseenter",function(){row.style.borderColor="var(--accent)";});
+        row.addEventListener("mouseleave",function(){row.style.borderColor="var(--line-soft)";});
+        listHost.appendChild(row);
+      });
+    });
+  }
+  q.addEventListener("input",function(){pickQ=q.value;draw();});
+  kSel.addEventListener("change",function(){pickKind=kSel.value;draw();});
+  draw();
+  openModal("Add product",b,[{label:"Cancel",on:closeModal}]);
+  setTimeout(function(){q.focus();},60);
+}
+
+/* ---- discount, kept apart from simply overriding the price ---- */
+function priceEditForm(line,onDone){
+  var pr=product(line.productId);
+  var base=priceFor(pr,line.pax,line.hours);
+  var b=el("div");
+  b.appendChild(el("p","hint",(pr?pr.name:"Item")+" — tier price $"+money(base)));
+  /* their form leads with the discount, and that is the common case */
+  var mode=select([{v:"discount",l:"Register a discount"},
+                   {v:"adjust",l:"Update the price"}],
+    (line.manual?"adjust":"discount"));
+  var val=input("number",line.discount!=null?line.discount:(line.manual?line.price:""),
+    {min:"0",step:"0.01",placeholder:"0"});
+  var kind=select([{v:"amount",l:"Amount off"},{v:"percent",l:"Percent off"}],
+    line.discountType||"amount");
+  b.appendChild(field("What are you doing?",mode));
+  var kindBox=field("Discount type",kind);
+  b.appendChild(kindBox);
+  var valBox=field("Value",val);
+  b.appendChild(valBox);
+  var preview=el("div","tot");
+  preview.appendChild(el("span","lab","Charged"));
+  var pv=el("span","v mono"); preview.appendChild(pv);
+  b.appendChild(preview);
+  function calc(){
+    var v=Number(val.value)||0;
+    if(mode.value==="adjust") return v;
+    return kind.value==="percent" ? Math.max(0,base*(1-v/100)) : Math.max(0,base-v);
+  }
+  function sync(){
+    kindBox.hidden = mode.value!=="discount";
+    pv.textContent="$"+money(calc());
+    var over = mode.value==="discount" && calc()>base+0.004;
+    pv.style.color = over ? "var(--crit)" : "";
+  }
+  [mode,kind,val].forEach(function(n){
+    n.addEventListener("input",sync); n.addEventListener("change",sync);});
+  sync();
+  openModal("Edit price",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Clear",on:function(){
+      delete line.discount; delete line.discountType; delete line.manual;
+      line.price=base; closeModal(); onDone(); toast("Back to the tier price");
+    }},
+    {label:"Apply",cls:"primary",on:function(){
+      var v=Number(val.value)||0;
+      if(mode.value==="discount"){
+        if(calc()>base+0.004){
+          toast("That raises the price — use Update the price instead."); return; }
+        line.discount=v; line.discountType=kind.value; delete line.manual;
+        line.price=Math.round(calc()*100)/100;
+      } else {
+        delete line.discount; delete line.discountType;
+        line.manual=true; line.price=v;
+      }
+      closeModal(); onDone(); toast("Price updated");
+    }}
+  ]);
+}
+
 /* ============================ bookings ============================ */
 function bookingForm(existing){
   if(!DB.products.length){ toast("Add a product to the catalog first."); return; }
   var bk=existing||{date:todayISO(),clientId:DB.clients[0]?DB.clients[0].id:null,
     lines:[],payments:[],notes:""};
   var working={lines:JSON.parse(JSON.stringify(bk.lines||[])),
-               payments:JSON.parse(JSON.stringify(bk.payments||[]))};
-  if(!working.lines.length) working.lines.push({productId:DB.products[0].id,qty:1,
-    pax:1,hours:null,price:priceFor(DB.products[0],1,null)});
+               payments:JSON.parse(JSON.stringify(bk.payments||[])),
+               participants:JSON.parse(JSON.stringify(bk.participants||[]))};
+
 
   var b=el("div");
   var date=input("date",bk.date);
@@ -2416,6 +2715,7 @@ function bookingForm(existing){
   dueBox.appendChild(dueLab); dueBox.appendChild(dueV);
 
   function recalc(){
+    if(typeof pblock!=="undefined" && pblock) pblock.redraw();
     var t=working.lines.reduce(function(a,l){return a+(Number(l.price)||0)*(Number(l.qty)||0);},0);
     var p=working.payments.reduce(function(a,x){return a+(Number(x.amount)||0);},0);
     totV.textContent="$"+money(t);
@@ -2425,65 +2725,115 @@ function bookingForm(existing){
   }
   function drawLines(){
     linesHost.textContent="";
+    if(!working.lines.length){
+      var e=el("div","hint","No products on this booking yet.");
+      e.style.padding="10px 2px";
+      linesHost.appendChild(e);
+      return;
+    }
     working.lines.forEach(function(l,idx){
       var pr0=product(l.productId);
       var wantPax=hasPaxTiers(pr0), wantHours=hasHourTiers(pr0);
-      var row=el("div","line");
-      row.style.gridTemplateColumns="1fr "+(wantPax?"58px ":"")+(wantHours?"58px ":"")+
-        "56px 88px auto";
-      var sel=select(DB.products.map(function(p){return {v:p.id,l:p.name};}),l.productId);
-      sel.addEventListener("change",function(){
-        l.productId=sel.value;
-        var p=product(sel.value);
-        l.pax=l.pax||1; l.hours=l.hours||null;
-        if(p) l.price=priceFor(p,l.pax,l.hours);
-        drawLines(); recalc();
-      });
-      row.appendChild(sel);
 
+      var card=el("div");
+      card.style.cssText="border:1px solid var(--line-soft);border-radius:10px;"+
+        "padding:11px 12px;margin-bottom:9px;background:var(--panel-2)";
+
+      var top=el("div");
+      top.style.cssText="display:flex;align-items:baseline;gap:9px;margin-bottom:8px";
+      var nm=el("div",null,pr0?pr0.name:"—");
+      nm.style.cssText="font-weight:600;font-size:13.5px;flex:1";
+      top.appendChild(nm);
+      var swap=el("button","btn sm","Change"); swap.type="button";
+      swap.addEventListener("click",function(){
+        productPicker(function(p2){
+          l.productId=p2.id; l.pax=l.pax||1;
+          l.hours=hasHourTiers(p2)?(l.hours||1):null;
+          delete l.discount; delete l.discountType; delete l.manual;
+          l.price=priceFor(p2,l.pax,l.hours);
+          drawLines(); recalc();
+        });
+      });
+      top.appendChild(swap);
+      var rm=el("button","btn sm danger","Remove"); rm.type="button";
+      rm.addEventListener("click",function(){
+        working.lines.splice(idx,1); drawLines(); recalc();});
+      top.appendChild(rm);
+      card.appendChild(top);
+
+      if(pr0){
+        var meta=[ptypeLabel(pr0.ptype)];
+        if(pr0.sessions>1&&!pr0.sessionsAtBooking) meta.push(pr0.sessions+" sessions");
+        var sum=priceSummary(pr0);
+        if(sum) meta.push(sum);
+        var ml=el("div","hint",meta.join(" · "));
+        ml.style.marginBottom="8px";
+        card.appendChild(ml);
+      }
+
+      var row=el("div");
+      row.style.cssText="display:grid;gap:8px;align-items:end;grid-template-columns:"+
+        (wantPax?"minmax(0,1fr) ":"")+(wantHours?"minmax(0,1fr) ":"")+
+        "minmax(0,1fr) minmax(0,1.2fr) auto";
+      function lab(t,node){
+        var w=el("div");
+        var l2=el("div","hint",t); l2.style.marginBottom="3px";
+        w.appendChild(l2); w.appendChild(node); return w;
+      }
       function reprice(){
-        var p=product(l.productId);
-        if(p) l.price=priceFor(p,l.pax,l.hours);
+        var p2=product(l.productId);
+        if(!p2) return;
+        if(l.manual) return;                       /* an overridden price stands */
+        var base=priceFor(p2,l.pax,l.hours);
+        if(l.discount!=null){
+          l.price=Math.round(Math.max(0, l.discountType==="percent"
+            ? base*(1-l.discount/100) : base-l.discount)*100)/100;
+        } else l.price=base;
         if(priceIn) priceIn.value=l.price;
         recalc();
       }
       var priceIn=null;
       if(wantPax){
         var px=input("number",l.pax||1,{min:"1",step:"1"});
-        px.title="People sharing this lesson — the per-head price follows";
         px.addEventListener("input",function(){l.pax=Number(px.value)||1;reprice();});
-        row.appendChild(px);
+        row.appendChild(lab("People",px));
       }
       if(wantHours){
         var hrs=input("number",l.hours||1,{min:"1",step:"1"});
-        hrs.title="Hours out — the rental price follows";
         hrs.addEventListener("input",function(){l.hours=Number(hrs.value)||1;reprice();});
-        row.appendChild(hrs);
+        row.appendChild(lab("Hours",hrs));
       }
       var qty=input("number",l.qty,{min:"1",step:"1"});
-      qty.title="How many of these";
       qty.addEventListener("input",function(){l.qty=Number(qty.value)||1;recalc();});
-      row.appendChild(qty);
+      row.appendChild(lab("Qty",qty));
       priceIn=input("number",l.price,{min:"0",step:"0.01"});
-      priceIn.title="Unit price — set by the tier, override it if you need to";
-      priceIn.addEventListener("input",function(){l.price=Number(priceIn.value)||0;recalc();});
-      row.appendChild(priceIn);
-      var rm=el("button","btn sm danger","×");
-      rm.addEventListener("click",function(){
-        working.lines.splice(idx,1);
-        if(!working.lines.length) working.lines.push({productId:DB.products[0].id,qty:1,
-          pax:1,hours:null,price:priceFor(DB.products[0],1,null)});
-        drawLines(); recalc();
-      });
-      row.appendChild(rm);
-      linesHost.appendChild(row);
+      priceIn.addEventListener("input",function(){
+        l.price=Number(priceIn.value)||0; l.manual=true;
+        delete l.discount; delete l.discountType; recalc();});
+      row.appendChild(lab("Unit price",priceIn));
+      var ed=el("button","btn sm","Price"); ed.type="button";
+      ed.addEventListener("click",function(){
+        priceEditForm(l,function(){drawLines();recalc();});});
+      row.appendChild(ed);
+      card.appendChild(row);
 
-      var sum=priceSummary(pr0);
-      if(sum){
-        var hint=el("div","hint",sum);
-        hint.style.margin="-4px 0 8px";
-        linesHost.appendChild(hint);
+      if(l.discount!=null || l.manual){
+        var p2=product(l.productId);
+        var base=p2?priceFor(p2,l.pax,l.hours):0;
+        var tag=el("div");
+        tag.style.marginTop="8px";
+        if(l.discount!=null){
+          tag.appendChild(el("span","chip warnc","discount "+(l.discountType==="percent"
+            ? l.discount+"%" : "$"+money(l.discount,2))));
+        } else {
+          tag.appendChild(el("span","chip neutral","price overridden"));
+        }
+        var was=el("span","hint"," was $"+money(base));
+        was.style.marginLeft="7px";
+        tag.appendChild(was);
+        card.appendChild(tag);
       }
+      linesHost.appendChild(card);
     });
   }
   function drawPays(){
@@ -2505,12 +2855,14 @@ function bookingForm(existing){
   }
 
   var lh=el("div","lines-h");
-  lh.appendChild(el("h4",null,"Items — product / pax / hours / qty / price"));
-  var addLine=el("button","btn sm","Add item");
+  lh.appendChild(el("h4",null,"Products"));
+  var addLine=el("button","btn sm primary","Add product");
   addLine.addEventListener("click",function(){
-    working.lines.push({productId:DB.products[0].id,qty:1,pax:1,hours:null,
-      price:priceFor(DB.products[0],1,null)});
-    drawLines(); recalc();
+    productPicker(function(p2){
+      working.lines.push({productId:p2.id,qty:1,pax:1,
+        hours:hasHourTiers(p2)?1:null,price:priceFor(p2,1,hasHourTiers(p2)?1:null)});
+      drawLines(); recalc();
+    });
   });
   lh.appendChild(addLine);
   b.appendChild(lh); b.appendChild(linesHost); b.appendChild(totBox);
@@ -2538,6 +2890,17 @@ function bookingForm(existing){
   ph.appendChild(addPay);
   b.appendChild(ph); b.appendChild(payHost); b.appendChild(dueBox);
 
+  /* how many people the products actually cover */
+  function seatsWanted(){
+    return working.lines.reduce(function(a,l){
+      var pr=product(l.productId);
+      var per=(pr&&hasPaxTiers(pr))?(Number(l.pax)||1):1;
+      return a+per*(Number(l.qty)||1);
+    },0);
+  }
+  var pblock=participantsBlock(working,seatsWanted,function(){});
+  b.appendChild(pblock.node);
+
   var notes=el("textarea"); notes.value=bk.notes||"";
   b.appendChild(field("Notes",notes));
   var bcf=customInputs("booking",bk.custom);
@@ -2549,10 +2912,12 @@ function bookingForm(existing){
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       if(!client.value){ toast("Add a client first."); return; }
+      if(!working.lines.length){ toast("Add at least one product."); return; }
       var rec=existing||{id:uid("b")};
       rec.date=date.value||todayISO(); rec.clientId=client.value;
       rec.lines=working.lines.filter(function(l){return l.productId;});
       rec.payments=working.payments.filter(function(p){return Number(p.amount)>0;});
+      rec.participants=working.participants;
       rec.notes=notes.value.trim();
       var bmiss=bcf.missing();
       if(bmiss){ toast(bmiss+" is required."); return; }
@@ -3122,7 +3487,6 @@ function tripManifest(tr){
   openModal("Manifest",b,[
     {label:"Close",on:closeModal},
     {label:"Export",cls:"primary",on:function(){
-      closeModal();
       exportCsv("manifest-"+tr.date,["#","Name","Phone","Email","Documents"],
         tr.participants.map(function(cid,i){
           var c=by(cid,DB.clients)||{};
