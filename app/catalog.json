@@ -1,6 +1,29 @@
 {
  "products": [
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 600.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 400.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 300.0
+    }
+   ],
    "name": "10X SURF LESSON COURSE - NEW",
    "kind": "course",
    "category": "SURF PACK",
@@ -14,6 +37,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": "hourly",
+     "price": 180.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 120.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 90.0
+    }
+   ],
    "name": "3X SURF LESSON COURSE 2024",
    "kind": "course",
    "category": "SURF PACK",
@@ -27,6 +73,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 300.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 200.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 150.0
+    }
+   ],
    "name": "5X SURF LESSON COURSE - NEW",
    "kind": "course",
    "category": "SURF PACK",
@@ -40,6 +109,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 360.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 240.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 180.0
+    }
+   ],
    "name": "6X SURF LESSON COURSE - NEW",
    "kind": "course",
    "category": "SURF PACK",
@@ -53,6 +145,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 420.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 280.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 210.0
+    }
+   ],
    "name": "7X SURF LESSON COURSE",
    "kind": "course",
    "category": "SURF PACK",
@@ -66,6 +181,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": "hourly",
+     "price": 120.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 80.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 60.0
+    }
+   ],
    "name": "2 SURF LESSON 2024",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -79,6 +217,29 @@
    "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard"
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": "hourly",
+     "price": 60.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 40.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 30.0
+    }
+   ],
    "name": "SURF LESSON 2024",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -92,6 +253,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 240.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 160.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 120.0
+    }
+   ],
    "name": "4 SURF LESSON 2024",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -105,6 +289,15 @@
    "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard"
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 70.0
+    }
+   ],
    "name": "VIDEO ANALYSIS",
    "kind": "lesson",
    "category": "VIDEO ANALYSIS BASE",
@@ -118,6 +311,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 0.0
+    }
+   ],
    "name": "VIDEO ANALYSIS - THEORY",
    "kind": "lesson",
    "category": "VIDEO ANALYSIS THEORY",
@@ -131,6 +333,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 90.0
+    }
+   ],
    "name": "1.5 HOUR LESSON",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -144,6 +355,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 150.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 100.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 75.0
+    }
+   ],
    "name": "1 HOUR EXTRA FOIL TOW IN",
    "kind": "lesson",
    "category": "FOIL FREE TOW",
@@ -157,6 +391,29 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 300.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 200.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 200.0
+    }
+   ],
    "name": "2 HOUR FOIL TOW IN",
    "kind": "lesson",
    "category": "FOIL FREE TOW",
@@ -170,6 +427,225 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 20.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 35.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 45.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 60.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 105.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 140.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 15,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 16,
+     "unit": "by_closing_time",
+     "price": 160.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 17,
+     "unit": "by_closing_time",
+     "price": 170.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 18,
+     "unit": "by_closing_time",
+     "price": 180.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 19,
+     "unit": "by_closing_time",
+     "price": 190.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 20,
+     "unit": "by_closing_time",
+     "price": 200.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 21,
+     "unit": "by_closing_time",
+     "price": 210.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 22,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 23,
+     "unit": "by_closing_time",
+     "price": 230.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 24,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 25,
+     "unit": "by_closing_time",
+     "price": 250.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 26,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 27,
+     "unit": "by_closing_time",
+     "price": 270.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 28,
+     "unit": "by_closing_time",
+     "price": 275.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 29,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 30,
+     "unit": "by_closing_time",
+     "price": 285.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 10.0
+    }
+   ],
    "name": "BODY-BOARDS RENTALS",
    "kind": "rental",
    "category": "",
@@ -183,6 +659,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 100.0
+    }
+   ],
    "name": "FOIL RENTAL",
    "kind": "rental",
    "category": "",
@@ -196,6 +681,225 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 20.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 35.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 45.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 60.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 105.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 140.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 15,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 16,
+     "unit": "by_closing_time",
+     "price": 160.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 17,
+     "unit": "by_closing_time",
+     "price": 170.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 18,
+     "unit": "by_closing_time",
+     "price": 180.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 19,
+     "unit": "by_closing_time",
+     "price": 190.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 20,
+     "unit": "by_closing_time",
+     "price": 200.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 21,
+     "unit": "by_closing_time",
+     "price": 210.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 22,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 23,
+     "unit": "by_closing_time",
+     "price": 230.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 24,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 25,
+     "unit": "by_closing_time",
+     "price": 250.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 26,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 27,
+     "unit": "by_closing_time",
+     "price": 270.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 28,
+     "unit": "by_closing_time",
+     "price": 275.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 29,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 30,
+     "unit": "by_closing_time",
+     "price": 285.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 10.0
+    }
+   ],
    "name": "FUN-BOARDS RENTALS",
    "kind": "rental",
    "category": "",
@@ -209,6 +913,57 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 25.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 50.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 150.0
+    }
+   ],
    "name": "HIGH PERFORMANCE",
    "kind": "rental",
    "category": "",
@@ -222,6 +977,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 8.0
+    }
+   ],
    "name": "ICE BATH X1",
    "kind": "other",
    "category": "",
@@ -235,6 +999,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 30.0
+    }
+   ],
    "name": "INSIDE-WATER PHOTOS",
    "kind": "photo",
    "category": "",
@@ -248,6 +1021,225 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 20.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 35.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 45.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 60.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 105.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 140.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 15,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 16,
+     "unit": "by_closing_time",
+     "price": 160.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 17,
+     "unit": "by_closing_time",
+     "price": 170.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 18,
+     "unit": "by_closing_time",
+     "price": 180.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 19,
+     "unit": "by_closing_time",
+     "price": 190.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 20,
+     "unit": "by_closing_time",
+     "price": 200.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 21,
+     "unit": "by_closing_time",
+     "price": 210.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 22,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 23,
+     "unit": "by_closing_time",
+     "price": 230.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 24,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 25,
+     "unit": "by_closing_time",
+     "price": 250.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 26,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 27,
+     "unit": "by_closing_time",
+     "price": 270.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 28,
+     "unit": "by_closing_time",
+     "price": 275.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 29,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 30,
+     "unit": "by_closing_time",
+     "price": 285.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 10.0
+    }
+   ],
    "name": "LONGBOARD RENTAL",
    "kind": "rental",
    "category": "",
@@ -261,6 +1253,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 10.0
+    }
+   ],
    "name": "PHOTOS",
    "kind": "photo",
    "category": "",
@@ -274,6 +1275,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 15.0
+    }
+   ],
    "name": "PILATES X1",
    "kind": "lesson",
    "category": "YOGA",
@@ -287,6 +1297,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 50.0
+    }
+   ],
    "name": "PRIVITE PHOTO SHOOT",
    "kind": "photo",
    "category": "PHOTOGRAPHY",
@@ -300,6 +1319,15 @@
    "description": "Private Photo Session of 1 hour"
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 5.0
+    }
+   ],
    "name": "RENTAL LOCAL",
    "kind": "rental",
    "category": "",
@@ -313,6 +1341,225 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 20.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 35.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 45.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 60.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 105.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 140.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 15,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 16,
+     "unit": "by_closing_time",
+     "price": 160.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 17,
+     "unit": "by_closing_time",
+     "price": 170.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 18,
+     "unit": "by_closing_time",
+     "price": 180.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 19,
+     "unit": "by_closing_time",
+     "price": 190.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 20,
+     "unit": "by_closing_time",
+     "price": 200.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 21,
+     "unit": "by_closing_time",
+     "price": 210.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 22,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 23,
+     "unit": "by_closing_time",
+     "price": 230.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 24,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 25,
+     "unit": "by_closing_time",
+     "price": 250.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 26,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 27,
+     "unit": "by_closing_time",
+     "price": 270.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 28,
+     "unit": "by_closing_time",
+     "price": 275.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 29,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 30,
+     "unit": "by_closing_time",
+     "price": 285.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 10.0
+    }
+   ],
    "name": "SHORT-BOARDS RENTALS",
    "kind": "rental",
    "category": "",
@@ -326,6 +1573,225 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 20.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 35.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 45.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 60.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 70.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 90.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 105.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 110.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 130.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 140.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 15,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 16,
+     "unit": "by_closing_time",
+     "price": 160.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 17,
+     "unit": "by_closing_time",
+     "price": 170.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 18,
+     "unit": "by_closing_time",
+     "price": 180.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 19,
+     "unit": "by_closing_time",
+     "price": 190.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 20,
+     "unit": "by_closing_time",
+     "price": 200.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 21,
+     "unit": "by_closing_time",
+     "price": 210.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 22,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 23,
+     "unit": "by_closing_time",
+     "price": 230.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 24,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 25,
+     "unit": "by_closing_time",
+     "price": 250.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 26,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 27,
+     "unit": "by_closing_time",
+     "price": 270.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 28,
+     "unit": "by_closing_time",
+     "price": 275.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 29,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 30,
+     "unit": "by_closing_time",
+     "price": 285.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 10.0
+    }
+   ],
    "name": "SOFT-BOARDS RENTALS",
    "kind": "rental",
    "category": "",
@@ -339,6 +1805,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 15.0
+    }
+   ],
    "name": "SUMMER CAMPS - EDEN",
    "kind": "course",
    "category": "SURF PACK",
@@ -352,6 +1827,36 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 90.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 75.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 60.0
+    },
+    {
+     "minPax": 4,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 45.0
+    }
+   ],
    "name": "SUP LESSON 1.5 HOUR",
    "kind": "lesson",
    "category": "SUP",
@@ -365,6 +1870,36 @@
    "description": "1 Private Sup Lesson of 1 hour including lycra and Surfboard"
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 70.0
+    },
+    {
+     "minPax": 2,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 60.0
+    },
+    {
+     "minPax": 3,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 50.0
+    },
+    {
+     "minPax": 4,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 40.0
+    }
+   ],
    "name": "SUP LESSON 1 HOUR",
    "kind": "lesson",
    "category": "SUP",
@@ -378,6 +1913,113 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 1,
+     "unit": "by_closing_time",
+     "price": 30.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 2,
+     "unit": "by_closing_time",
+     "price": 55.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 3,
+     "unit": "by_closing_time",
+     "price": 80.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 4,
+     "unit": "by_closing_time",
+     "price": 100.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 5,
+     "unit": "by_closing_time",
+     "price": 120.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 6,
+     "unit": "by_closing_time",
+     "price": 135.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 7,
+     "unit": "by_closing_time",
+     "price": 150.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 8,
+     "unit": "by_closing_time",
+     "price": 165.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 9,
+     "unit": "by_closing_time",
+     "price": 185.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 10,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 11,
+     "unit": "by_closing_time",
+     "price": 220.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 12,
+     "unit": "by_closing_time",
+     "price": 240.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 13,
+     "unit": "by_closing_time",
+     "price": 260.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 14,
+     "unit": "by_closing_time",
+     "price": 280.0
+    },
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": 60,
+     "unit": "from_pickup",
+     "price": 20.0
+    }
+   ],
    "name": "SUP RENTAL",
    "kind": "rental",
    "category": "",
@@ -391,6 +2033,22 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 100.0
+    },
+    {
+     "minPax": 5,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 100.0
+    }
+   ],
    "name": "SURF TRIP",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -404,6 +2062,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 30.0
+    }
+   ],
    "name": "VIDEO",
    "kind": "other",
    "category": "",
@@ -417,6 +2084,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 15.0
+    }
+   ],
    "name": "YOGA - ISABEL",
    "kind": "lesson",
    "category": "YOGA",
@@ -430,6 +2106,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 15.0
+    }
+   ],
    "name": "YOGA X1",
    "kind": "lesson",
    "category": "YOGA",
@@ -443,6 +2128,15 @@
    "description": ""
   },
   {
+   "prices": [
+    {
+     "minPax": 1,
+     "minQty": 1,
+     "hours": null,
+     "unit": null,
+     "price": 20.0
+    }
+   ],
    "name": "YOUNG GUNS",
    "kind": "lesson",
    "category": "SURF PACK",
@@ -2732,10 +4426,10 @@
    "notes": "Bodyboarders. Conflictivo"
   },
   {
-   "name": "Playa Venao1",
-   "lat": -87.0088496735143,
-   "lon": 5.683170548067323,
-   "notes": "Playa Venao1"
+   "name": "Playa Venao",
+   "lat": 7.4283,
+   "lon": -80.1897,
+   "notes": "Coordinates corrected — Bloowatch had this pinned at lat -87, which is not a real latitude, so its tide lookup never resolved."
   }
  ],
  "staff": [

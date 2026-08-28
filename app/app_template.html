@@ -685,6 +685,59 @@ function renderCrew(){
   }
 }
 
+
+/* ============================ pricing ============================
+   A product does not have "a price". A lesson is priced per head by how many
+   share it; a rental by how long the board is out. all_prices in Bloowatch is
+   that matrix, and this is the same thing: tiers, and the rule for picking one. */
+function tiersOf(p){ return (p && p.prices && p.prices.length) ? p.prices : null; }
+function hasPaxTiers(p){
+  var t=tiersOf(p); if(!t) return false;
+  return t.some(function(x){return (x.minPax||1)>1;});
+}
+function hasHourTiers(p){
+  var t=tiersOf(p); if(!t) return false;
+  return t.some(function(x){return x.hours;});
+}
+function priceFor(p,pax,hours){
+  /* the applicable tier is the most generous one the request still clears */
+  var t=tiersOf(p);
+  if(!t) return Number(p&&p.price)||0;
+  var cands=t;
+  if(hasHourTiers(p)){
+    var h=Number(hours)||1;
+    var fit=t.filter(function(x){return x.hours && x.hours<=h;});
+    /* below the smallest tier, charge the smallest tier */
+    cands=fit.length?fit:t.filter(function(x){return x.hours;});
+    cands=[cands.reduce(function(a,b){
+      if(fit.length) return (a.hours>b.hours)?a:b;
+      return (a.hours<b.hours)?a:b;
+    })];
+  }
+  if(hasPaxTiers(p)){
+    var n=Math.max(1,Number(pax)||1);
+    var ok=cands.filter(function(x){return (x.minPax||1)<=n;});
+    if(ok.length) cands=[ok.reduce(function(a,b){
+      return ((a.minPax||1)>(b.minPax||1))?a:b;})];
+  }
+  var chosen=cands[0]||t[0];
+  return Number(chosen.price)||0;
+}
+function priceSummary(p){
+  var t=tiersOf(p);
+  if(!t||t.length<2) return "";
+  if(hasHourTiers(p)){
+    var hs=t.filter(function(x){return x.hours;}).sort(function(a,b){return a.hours-b.hours;});
+    return hs.length+" duration tiers · "+hs[0].hours+"h $"+money(hs[0].price,0)+
+      " … "+hs[hs.length-1].hours+"h $"+money(hs[hs.length-1].price,0);
+  }
+  if(hasPaxTiers(p)){
+    var ps=t.slice().sort(function(a,b){return (a.minPax||1)-(b.minPax||1);});
+    return ps.map(function(x){return (x.minPax||1)+"p $"+money(x.price,0);}).join(" · ");
+  }
+  return "";
+}
+
 /* ============================ catalog ============================ */
 function productForm(existing){
   var p=existing||{name:"",kind:(KINDS()[0]?KINDS()[0].k:"lesson"),price:"",sessions:1};
@@ -696,9 +749,45 @@ function productForm(existing){
   b.appendChild(field("Name",name));
   b.appendChild(field("Type",kind,"Type drives how takings are grouped on the day closing."));
   var g=el("div","grid2");
-  g.appendChild(field("Price (USD)",price));
+  g.appendChild(field("Base price (USD)",price));
   g.appendChild(field("Sessions included",sess));
   b.appendChild(g);
+
+  var tiers=(p.prices||[]).map(function(x){
+    return {minPax:x.minPax||1,hours:x.hours||null,price:x.price||0};});
+  var tHost=el("div");
+  function drawTiers(){
+    tHost.textContent="";
+    if(!tiers.length){
+      tHost.appendChild(el("div","hint",
+        "No tiers — the base price above is charged whatever the group size or duration."));
+      return;
+    }
+    tiers.forEach(function(t,i){
+      var row=el("div","line"); row.style.gridTemplateColumns="70px 70px 90px auto";
+      var px=input("number",t.minPax,{min:"1",step:"1"});
+      px.title="Applies from this many people";
+      px.addEventListener("input",function(){t.minPax=Number(px.value)||1;});
+      var hr=input("number",t.hours==null?"":t.hours,{min:"0",step:"1",placeholder:"any"});
+      hr.title="Applies from this many hours; blank for no duration rule";
+      hr.addEventListener("input",function(){t.hours=hr.value===""?null:Number(hr.value);});
+      var pr=input("number",t.price,{min:"0",step:"0.01"});
+      pr.addEventListener("input",function(){t.price=Number(pr.value)||0;});
+      var rm=el("button","btn sm danger","×");
+      rm.addEventListener("click",function(){tiers.splice(i,1);drawTiers();});
+      row.appendChild(px);row.appendChild(hr);row.appendChild(pr);row.appendChild(rm);
+      tHost.appendChild(row);
+    });
+  }
+  var th2=el("div","lines-h");
+  th2.appendChild(el("h4",null,"Price tiers — from pax / from hours / price"));
+  var addT=el("button","btn sm","Add tier");
+  addT.addEventListener("click",function(){
+    tiers.push({minPax:1,hours:null,price:Number(price.value)||0}); drawTiers();});
+  th2.appendChild(addT);
+  b.appendChild(th2); b.appendChild(tHost); drawTiers();
+  b.appendChild(el("div","hint",
+    "A lesson priced per head gets a tier per group size: 1 person $60, from 2 people $40 each. A rental gets a tier per duration: 1h $20, 2h $35. The best tier the booking clears is the one charged."));
   openModal(existing?"Edit product":"New product",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
@@ -706,6 +795,8 @@ function productForm(existing){
       var rec=existing||{id:uid("p")};
       rec.name=name.value.trim(); rec.kind=kind.value;
       rec.price=Number(price.value)||0; rec.sessions=Math.max(1,Number(sess.value)||1);
+      rec.prices=tiers.slice().sort(function(a,b){
+        return ((a.hours||0)-(b.hours||0))||((a.minPax||1)-(b.minPax||1));});
       if(!existing) DB.products.push(rec);
       save(); closeModal(); render(); toast(existing?"Product updated":"Product added");
     }}
@@ -746,6 +837,8 @@ function renderCatalog(){
     tags.appendChild(el("span","chip neutral",kindLabel(p.kind)));
     if(p.sessions>1) tags.appendChild(el("span","chip pink",p.sessions+" sessions"));
     c.appendChild(tags);
+    var sum=priceSummary(p);
+    if(sum){ var sl=el("div","hint",sum); c.appendChild(sl); }
     var f=el("div","foot");
     var pr=el("div","pr","$"+money(p.price,0));
     if(p.sessions>1&&p.price) pr.appendChild(el("small"," · $"+money(p.price/p.sessions,0)+"/session"));
@@ -916,6 +1009,13 @@ function renderSchedule(){
   var top=el("div","sec-h");
   top.appendChild(el("h2",null,"Planning"));
   top.appendChild(el("span","spacer"));
+  var jump=input("date",schedDate);
+  jump.setAttribute("aria-label","Jump to date");
+  jump.style.cssText="width:auto;padding:7px 10px;border-radius:9px;border:1px solid var(--line);"+
+    "background:var(--panel);color:var(--text);font:inherit;font-size:13px";
+  jump.addEventListener("change",function(){
+    if(jump.value){ schedDate=jump.value; renderSchedule(); }});
+  top.appendChild(jump);
   var today=el("button","btn sm","Today");
   today.addEventListener("click",function(){schedDate=todayISO();renderSchedule();});
   top.appendChild(today);
@@ -948,6 +1048,22 @@ function renderSchedule(){
     schedDate=iso(new Date(new Date(schedDate+"T12:00:00").getTime()+864e5));renderSchedule();});
   bar.appendChild(next);
   host.appendChild(bar);
+
+  var tideP=tideFor(schedDate);
+  var tb0=el("div","panel");
+  tb0.style.cssText="margin-top:12px;padding:10px 14px;display:flex;align-items:center;"+
+    "gap:12px;flex-wrap:wrap";
+  tb0.appendChild(el("span","eyebrow","Tide"));
+  if(tideP&&((tideP.highs||[]).length||(tideP.lows||[]).length)){
+    (tideP.highs||[]).forEach(function(h){tb0.appendChild(el("span","chip pink","High "+h));});
+    (tideP.lows||[]).forEach(function(l){tb0.appendChild(el("span","chip neutral","Low "+l));});
+  } else {
+    tb0.appendChild(el("span","hint","Not set for this day"));
+  }
+  var teP=el("button","btn sm","Edit tides"); teP.style.marginLeft="auto";
+  teP.addEventListener("click",function(){tideForm(schedDate);});
+  tb0.appendChild(teP);
+  host.appendChild(tb0);
 
   var day=DB.sessions.filter(function(x){return x.date===schedDate;})
     .sort(function(a,b){return a.time<b.time?-1:1;});
@@ -1082,10 +1198,31 @@ function renderSchedule(){
     box.appendChild(e); box.appendChild(cl); box.appendChild(d);
     act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
+
+    /* the people in this session, shown under it rather than hidden in a dialog */
+    if(x.participants.length){
+      var sub=el("tr");
+      var cell=el("td"); cell.colSpan=8;
+      cell.style.cssText="padding:0 13px 10px 17px;background:var(--panel-2)";
+      var chips=el("div");
+      chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center";
+      chips.appendChild(el("span","eyebrow","In this session"));
+      x.participants.forEach(function(cid){
+        var ch=el("span","chip neutral",clientName(cid));
+        ch.style.cursor="pointer"; ch.title="Open client";
+        ch.addEventListener("click",function(){
+          var c=by(cid,DB.clients); if(c) clientForm(c);});
+        chips.appendChild(ch);
+      });
+      cell.appendChild(chips); sub.appendChild(cell); tb.appendChild(sub);
+    }
   });
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
 
   var xs=el("div","searchbar"); xs.style.marginTop="12px";
+  var clb=el("button","btn sm","Client list");
+  clb.addEventListener("click",function(){clientListFor(schedDate);});
+  xs.appendChild(clb);
   var xb=el("button","btn sm","Export table");
   xb.addEventListener("click",function(){
     exportCsv("planning-"+schedDate,
@@ -1094,6 +1231,59 @@ function renderSchedule(){
         x.note||"",hhmm(x.duration||0),x.participants.length,x.capacity];}));
   });
   xs.appendChild(xb); host.appendChild(xs);
+}
+function clientListFor(dateStr){
+  var day=DB.sessions.filter(function(x){return x.date===dateStr;})
+    .sort(function(a,b){return a.time<b.time?-1:1;});
+  var per={};
+  day.forEach(function(x){
+    x.participants.forEach(function(cid){
+      (per[cid]=per[cid]||[]).push(x);
+    });
+  });
+  var ids=Object.keys(per).sort(function(a,b){
+    return clientName(a).localeCompare(clientName(b));});
+  var b=el("div");
+  b.appendChild(el("p","hint",
+    dowOf(dateStr)+", "+dm(dateStr)+" — "+ids.length+" client"+(ids.length===1?"":"s")+
+    " across "+day.length+" session"+(day.length===1?"":"s")+"."));
+  if(!ids.length){
+    b.appendChild(el("div","note",
+      "Nobody is booked into a session on this day. Add people to a session from its participants count."));
+    openModal("Client list",b,[{label:"Close",on:closeModal}]);
+    return;
+  }
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Client","Contact","Sessions"].forEach(function(h){tr.appendChild(el("th",null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tbody=el("tbody");
+  ids.forEach(function(cid){
+    var c=by(cid,DB.clients)||{};
+    var r=el("tr");
+    r.appendChild(el("td","strong",c.name||"—"));
+    r.appendChild(el("td","muted",[c.phone,c.email].filter(Boolean).join(" · ")||"—"));
+    var sc=el("td");
+    per[cid].forEach(function(x){
+      var ch=el("span","chip pink",x.time+" "+x.title);
+      ch.style.marginRight="5px";
+      sc.appendChild(ch);
+    });
+    r.appendChild(sc);
+    tbody.appendChild(r);
+  });
+  t.appendChild(tbody); w.appendChild(t); b.appendChild(w);
+  openModal("Client list · "+dm(dateStr),b,[
+    {label:"Close",on:closeModal},
+    {label:"Export",cls:"primary",on:function(){
+      closeModal();
+      exportCsv("clients-"+dateStr,["Client","Phone","Email","Sessions"],
+        ids.map(function(cid){
+          var c=by(cid,DB.clients)||{};
+          return [c.name||"",c.phone||"",c.email||"",
+                  per[cid].map(function(x){return x.time+" "+x.title;}).join("; ")];
+        }));
+    }}
+  ]);
 }
 function cloneSessionForm(src){
   var b=el("div");
@@ -1392,7 +1582,7 @@ function bookingForm(existing){
   var working={lines:JSON.parse(JSON.stringify(bk.lines||[])),
                payments:JSON.parse(JSON.stringify(bk.payments||[]))};
   if(!working.lines.length) working.lines.push({productId:DB.products[0].id,qty:1,
-    price:DB.products[0].price});
+    pax:1,hours:null,price:priceFor(DB.products[0],1,null)});
 
   var b=el("div");
   var date=input("date",bk.date);
@@ -1421,26 +1611,64 @@ function bookingForm(existing){
   function drawLines(){
     linesHost.textContent="";
     working.lines.forEach(function(l,idx){
+      var pr0=product(l.productId);
+      var wantPax=hasPaxTiers(pr0), wantHours=hasHourTiers(pr0);
       var row=el("div","line");
+      row.style.gridTemplateColumns="1fr "+(wantPax?"58px ":"")+(wantHours?"58px ":"")+
+        "56px 88px auto";
       var sel=select(DB.products.map(function(p){return {v:p.id,l:p.name};}),l.productId);
       sel.addEventListener("change",function(){
         l.productId=sel.value;
-        var p=product(sel.value); if(p){ l.price=p.price; qty.dispatchEvent(new Event("input")); }
+        var p=product(sel.value);
+        l.pax=l.pax||1; l.hours=l.hours||null;
+        if(p) l.price=priceFor(p,l.pax,l.hours);
         drawLines(); recalc();
       });
+      row.appendChild(sel);
+
+      function reprice(){
+        var p=product(l.productId);
+        if(p) l.price=priceFor(p,l.pax,l.hours);
+        if(priceIn) priceIn.value=l.price;
+        recalc();
+      }
+      var priceIn=null;
+      if(wantPax){
+        var px=input("number",l.pax||1,{min:"1",step:"1"});
+        px.title="People sharing this lesson — the per-head price follows";
+        px.addEventListener("input",function(){l.pax=Number(px.value)||1;reprice();});
+        row.appendChild(px);
+      }
+      if(wantHours){
+        var hrs=input("number",l.hours||1,{min:"1",step:"1"});
+        hrs.title="Hours out — the rental price follows";
+        hrs.addEventListener("input",function(){l.hours=Number(hrs.value)||1;reprice();});
+        row.appendChild(hrs);
+      }
       var qty=input("number",l.qty,{min:"1",step:"1"});
+      qty.title="How many of these";
       qty.addEventListener("input",function(){l.qty=Number(qty.value)||1;recalc();});
-      var price=input("number",l.price,{min:"0",step:"0.01"});
-      price.addEventListener("input",function(){l.price=Number(price.value)||0;recalc();});
+      row.appendChild(qty);
+      priceIn=input("number",l.price,{min:"0",step:"0.01"});
+      priceIn.title="Unit price — set by the tier, override it if you need to";
+      priceIn.addEventListener("input",function(){l.price=Number(priceIn.value)||0;recalc();});
+      row.appendChild(priceIn);
       var rm=el("button","btn sm danger","×");
       rm.addEventListener("click",function(){
         working.lines.splice(idx,1);
         if(!working.lines.length) working.lines.push({productId:DB.products[0].id,qty:1,
-          price:DB.products[0].price});
+          pax:1,hours:null,price:priceFor(DB.products[0],1,null)});
         drawLines(); recalc();
       });
-      row.appendChild(sel); row.appendChild(qty); row.appendChild(price); row.appendChild(rm);
+      row.appendChild(rm);
       linesHost.appendChild(row);
+
+      var sum=priceSummary(pr0);
+      if(sum){
+        var hint=el("div","hint",sum);
+        hint.style.margin="-4px 0 8px";
+        linesHost.appendChild(hint);
+      }
     });
   }
   function drawPays(){
@@ -1461,10 +1689,12 @@ function bookingForm(existing){
     });
   }
 
-  var lh=el("div","lines-h"); lh.appendChild(el("h4",null,"Items"));
+  var lh=el("div","lines-h");
+  lh.appendChild(el("h4",null,"Items — product / pax / hours / qty / price"));
   var addLine=el("button","btn sm","Add item");
   addLine.addEventListener("click",function(){
-    working.lines.push({productId:DB.products[0].id,qty:1,price:DB.products[0].price});
+    working.lines.push({productId:DB.products[0].id,qty:1,pax:1,hours:null,
+      price:priceFor(DB.products[0],1,null)});
     drawLines(); recalc();
   });
   lh.appendChild(addLine);
@@ -2816,7 +3046,7 @@ function importCatalog(){
     if(DB.products.some(function(x){return x.name===p.name;})) return;
     DB.products.push({id:uid("p"),name:p.name,kind:p.kind,price:p.price||0,
       sessions:p.sessions||1,category:p.category||"",tax:p.tax||0,color:p.color||"",
-      nights:p.nights||null,description:p.description||""});
+      nights:p.nights||null,description:p.description||"",prices:p.prices||[]});
     added.products++;
   });
   (d.gear||[]).forEach(function(g){

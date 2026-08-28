@@ -55,7 +55,22 @@ def build():
     for p in _rows(_get(s, base, f"/schools/{sid}/products/")):
         if p.get("archived"):
             continue
+        # all_prices is the pricing matrix, not a single number: lessons are
+        # priced per head by how many share the session, rentals by how long
+        # the board is out. Flattening it to one price loses the whole model.
+        prices = []
+        for a in (p.get("all_prices") or []):
+            prices.append({
+                "minPax": a.get("min_pax") or 1,
+                "minQty": a.get("min_quantity") or 1,
+                "hours": a.get("duration"),
+                "unit": a.get("price_unit"),
+                "price": num(a.get("price_incl_tax")),
+            })
+        prices.sort(key=lambda x: (x["hours"] or 0, x["minPax"]))
+
         products.append({
+            "prices": prices,
             "name": p.get("name") or p.get("title"),
             "kind": kind_of(p),
             "category": p.get("category_name") or "",
@@ -158,7 +173,9 @@ def main():
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
     units = sum(len(g["units"]) for g in data["gear"])
-    print(f"wrote {a.out}: {len(data['products'])} products, {len(data['gear'])} gear types "
+    tiers = sum(len(p["prices"]) for p in data["products"])
+    print(f"wrote {a.out}: {len(data['products'])} products ({tiers} price tiers), "
+          f"{len(data['gear'])} gear types "
           f"({units} individual units), {len(data['staff'])} crew, "
           f"{len(data['categories'])} categories, {len(data['spots'])} spots, "
           f"{len(data['sessions'])} sessions")
