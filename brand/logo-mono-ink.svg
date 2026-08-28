@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="The Bee logo, single colour">
+  <g transform="translate(8 12) scale(0.96)">
+    <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#17130F"/>
+    <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#ffffff" opacity="1"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#ffffff" opacity="1"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#ffffff"/>
+    <clipPath id="mi-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#ffffff"/>
+    <g clip-path="url(#mi-b)" fill="#17130F">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+  </g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg>

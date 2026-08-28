@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="The Bee app icon">
+  <rect width="512" height="512" rx="114" fill="#17130F"/>
+  <g transform="translate(256 262) scale(4.5) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.26"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.26"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#E8A33D"/>
+    <clipPath id="ic-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#E8A33D"/>
+    <g clip-path="url(#ic-b)" fill="#17130F">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 106" role="img" aria-label="The Bee monoline mark">
+  <path d="M7 98 C24 103 41 94 46 81" fill="none" stroke="#E8A33D"
+        stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.1 8"/>
+  <g transform="translate(50 45) scale(0.88) translate(-50 -49)"><g stroke="#17130F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <g fill="none">
+      <path d="M45.5 24 C42 18 40 16 37.5 14.5"/>
+      <path d="M54.5 24 C58 18 60 16 62.5 14.5"/>
+    </g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6"/>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#FAF3E6"/>
+    <g fill="none">
+      <path d="M41 47.5 H59"/>
+      <path d="M39.5 60 H60.5"/>
+      <path d="M44.5 71.5 H55.5"/>
+    </g>
+    <circle cx="50" cy="30" r="9" fill="#FAF3E6"/>
+  </g></g>
+</svg>

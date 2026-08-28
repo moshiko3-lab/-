@@ -1,0 +1,735 @@
+<title>The Bee Identity</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#F7EFE0; --surface:#FFFCF5; --raise:#FFFFFF;
+    --ink:#17130F; --body:#3D342A; --muted:#7C6C57;
+    --line:#E5D7BF; --line-soft:#EFE6D4;
+    --honey:#E8A33D; --deep:#B8701A; --cream:#FAF3E6;
+    --panel:#141110; --panel-ink:#F6EEDF; --panel-muted:#9C8C77; --panel-line:#2E251A;
+    --shadow:0 1px 2px rgba(23,19,15,.06), 0 12px 32px -18px rgba(23,19,15,.35);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#100D0B; --surface:#191512; --raise:#211B16;
+      --ink:#F7EFE0; --body:#DBCFBC; --muted:#9C8C77;
+      --line:#2E261D; --line-soft:#241D17;
+      --honey:#EDAF4F; --deep:#D08D33; --cream:#FAF3E6;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#100D0B; --surface:#191512; --raise:#211B16;
+    --ink:#F7EFE0; --body:#DBCFBC; --muted:#9C8C77;
+    --line:#2E261D; --line-soft:#241D17;
+    --honey:#EDAF4F; --deep:#D08D33; --cream:#FAF3E6;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.8);
+  }
+
+  *{box-sizing:border-box}
+  svg text{fill:currentColor}
+  .lock--paper .lock__stage{background:#FAF3E6}
+  .lock--paper .lock__stage svg{color:#17130F}
+  .sizes .size:nth-child(1) svg{width:96px}
+  .sizes .size:nth-child(2) svg{width:24px}
+  .sizes .size:nth-child(3) svg{width:16px}
+  body{
+    margin:0; background:var(--ground); color:var(--body);
+    font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding-inline:28px}
+  h1,h2,h3{font-family:Fraunces,Georgia,"Times New Roman",serif; color:var(--ink);
+           font-weight:600; text-wrap:balance; margin:0}
+  p{margin:0}
+  a{color:var(--deep)}
+
+  .eyebrow{
+    font-family:Archivo,sans-serif; font-size:11.5px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+  }
+  .lede{max-width:62ch; font-size:17.5px; color:var(--body)}
+  .note{font-size:14px; color:var(--muted); max-width:60ch}
+  .mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative; overflow:hidden; background:var(--panel); color:var(--panel-ink)}
+  .hero__comb{position:absolute; inset:-10% -5%; opacity:.16; pointer-events:none}
+  .hero__comb path{stroke:var(--honey)}
+  .hero__inner{position:relative; padding:76px 0 68px; display:grid; gap:38px;
+               grid-template-columns:minmax(0,1fr); justify-items:start}
+  .hero .eyebrow{color:var(--honey)}
+  .hero h1{color:var(--panel-ink); font-size:clamp(30px,4.4vw,48px); line-height:1.08; letter-spacing:-.015em; max-width:21ch}
+  .hero p{color:var(--panel-muted); max-width:56ch}
+  .hero__logo{width:min(430px,84%)}
+  .hero__logo svg{width:100%; height:auto; color:var(--panel-ink)}
+  .hero__meta{display:flex; flex-wrap:wrap; gap:10px 26px; font-size:13px; color:var(--panel-muted)}
+  .hero__meta b{color:var(--panel-ink); font-weight:500}
+
+  /* wing lift, once, on load */
+  @keyframes lift{from{transform:translateY(6px) rotate(-3deg); opacity:0} to{transform:none; opacity:1}}
+  .hero__logo svg{animation:lift .9s cubic-bezier(.2,.7,.3,1) both}
+  @media (prefers-reduced-motion:reduce){ .hero__logo svg{animation:none} }
+
+  /* ---------- sections ---------- */
+  section{padding:64px 0; border-top:1px solid var(--line)}
+  .head{display:grid; gap:12px; margin-bottom:36px; max-width:70ch}
+  .head h2{font-size:clamp(23px,3vw,31px); letter-spacing:-.01em}
+
+  .grid3{display:grid; gap:22px; grid-template-columns:repeat(auto-fit,minmax(258px,1fr))}
+  .grid2{display:grid; gap:22px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:4px;
+        padding:26px; display:grid; gap:16px; align-content:start; box-shadow:var(--shadow)}
+  .card__stage{display:grid; place-items:center; min-height:190px; padding:14px 0}
+  .card__stage svg{width:auto; max-width:132px; max-height:132px; height:auto; color:var(--ink)}
+  .card h3{font-size:19px}
+  .card p{font-size:14.5px; color:var(--muted)}
+  .card--pick{border-color:var(--honey); box-shadow:0 0 0 1px var(--honey), var(--shadow)}
+  .tag{display:inline-flex; align-items:center; gap:7px; justify-self:start;
+       font-size:11px; font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+       color:var(--deep); background:color-mix(in srgb, var(--honey) 18%, transparent);
+       border-radius:2px; padding:4px 9px}
+  .tag--quiet{color:var(--muted); background:var(--line-soft)}
+
+  /* ---------- lockups ---------- */
+  .lockups{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .lock{border:1px solid var(--line); border-radius:4px; background:var(--surface);
+        display:grid; grid-template-rows:1fr auto; overflow:hidden}
+  .lock__stage{display:grid; place-items:center; padding:34px 26px; min-height:172px}
+  .lock__stage svg{max-width:100%; max-height:112px; width:auto; height:auto; color:var(--ink)}
+  .lock--dark .lock__stage{background:var(--panel)}
+  .lock--dark .lock__stage svg{color:var(--cream)}
+  .lock--honey .lock__stage{background:var(--honey)}
+  .lock--honey .lock__stage svg{color:var(--ink)}
+  .lock__foot{display:flex; justify-content:space-between; gap:14px; align-items:baseline;
+              padding:13px 18px; border-top:1px solid var(--line); background:var(--raise)}
+  .lock__foot span:first-child{font-size:14px; color:var(--ink); font-weight:500}
+  .lock__foot span:last-child{font-size:12px; color:var(--muted)}
+
+  /* ---------- palette ---------- */
+  .swatches{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+  .sw{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--surface)}
+  .sw__chip{height:104px; box-shadow:inset 0 0 0 1px rgba(140,118,84,.3)}
+  .sw__body{padding:14px 16px; display:grid; gap:3px}
+  .sw__name{font-size:14.5px; color:var(--ink); font-weight:500}
+  .sw__hex{font-size:12.5px; color:var(--muted); letter-spacing:.03em}
+  .sw__use{font-size:12.5px; color:var(--muted)}
+
+  /* ---------- type ---------- */
+  .spec{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:26px; display:grid; gap:14px}
+  .spec__big{font-family:Fraunces,Georgia,serif; font-weight:600; color:var(--ink);
+             font-size:clamp(40px,7vw,66px); line-height:1; letter-spacing:-.02em}
+  .spec__big--sans{font-family:Archivo,sans-serif; font-weight:600; letter-spacing:-.025em}
+  .spec__row{display:flex; flex-wrap:wrap; gap:8px 20px; font-size:12.5px; color:var(--muted)}
+  .spec__sample{font-size:15px; color:var(--body); max-width:56ch}
+
+  /* ---------- construction ---------- */
+  .constr{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:28px; color:var(--ink)}
+  .constr > svg{width:100%; max-width:660px; height:auto; display:block; margin:0 auto}
+  .constr .g-line{stroke:var(--honey)}
+  .constr .g-dash{stroke:var(--muted)}
+  .constr .g-label{fill:var(--muted); font-family:"JetBrains Mono",monospace; font-size:9px}
+
+  .sizes{display:flex; flex-wrap:wrap; gap:30px; align-items:flex-end; margin-top:26px}
+  .size{display:grid; gap:9px; justify-items:center}
+  .size svg{height:auto; color:var(--ink)}
+  .size span{font-size:11.5px; color:var(--muted); font-family:"JetBrains Mono",monospace}
+
+  /* ---------- applications ---------- */
+  .app{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:var(--surface)}
+  .app__stage{display:grid; place-items:center; padding:36px; min-height:250px}
+  .app__foot{padding:13px 18px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); background:var(--raise)}
+  .tile{width:132px; height:132px; border-radius:30px; overflow:hidden;
+         box-shadow:0 18px 34px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(232,163,61,.22)}
+  .tile svg{display:block; width:100%; height:100%}
+  .jar{width:150px; background:linear-gradient(170deg,#F0B85C,#C97F20 62%,#A96412);
+       border-radius:16px 16px 12px 12px; padding:52px 0 30px; display:grid; place-items:center;
+       box-shadow:inset 0 0 0 1px rgba(0,0,0,.14), 0 18px 34px -22px rgba(0,0,0,.7)}
+  .jar__label{width:112px; background:var(--cream); border-radius:2px; padding:16px 12px;
+              display:grid; gap:9px; justify-items:center; box-shadow:0 1px 0 rgba(0,0,0,.1)}
+  .jar__label svg{width:44px; height:auto}
+  .jar__label b{font-family:Fraunces,Georgia,serif; font-size:16px; color:#17130F; font-weight:600}
+  .jar__label i{font-style:normal; font-family:"JetBrains Mono",monospace; font-size:8px;
+                letter-spacing:.18em; color:#8A7458; text-transform:uppercase}
+  .stamp{width:164px; height:164px; border-radius:50%; display:grid; place-items:center; gap:8px;
+         background:#FAF3E6; box-shadow:0 0 0 1.5px #B8701A inset, 0 0 0 6px #FAF3E6 inset,
+         0 0 0 7.5px #B8701A inset, 0 16px 30px -22px rgba(0,0,0,.7)}
+  .stamp svg{width:60px; height:auto}
+  .stamp em{font-style:normal; font-family:"JetBrains Mono",monospace; font-size:8.5px;
+            letter-spacing:.3em; color:#8A6A34; text-transform:uppercase}
+
+  /* ---------- do / don't ---------- */
+  .rules{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .rule{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:18px; display:grid; gap:12px}
+  .rule__stage{display:grid; place-items:center; min-height:104px; background:var(--line-soft); border-radius:3px}
+  .rule__stage svg{width:74px; height:auto; color:var(--ink)}
+  .rule p{font-size:13.5px; color:var(--muted)}
+  .rule b{display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600;
+          letter-spacing:.1em; text-transform:uppercase}
+  .yes{color:#4E7A46} .no{color:#A6452F}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .yes{color:#8FBF83} :root:not([data-theme="light"]) .no{color:#E08D74}}
+  :root[data-theme="dark"] .yes{color:#8FBF83} :root[data-theme="dark"] .no{color:#E08D74}
+  .squash svg{transform:scaleX(1.35)}
+  .tilted svg{transform:rotate(-14deg)}
+
+  /* ---------- files ---------- */
+  .files{width:100%; border-collapse:collapse; font-size:14px}
+  .files th{text-align:left; font-weight:600; font-size:11.5px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--muted); padding:0 14px 10px 0; border-bottom:1px solid var(--line)}
+  .files td{padding:11px 14px 11px 0; border-bottom:1px solid var(--line-soft); vertical-align:top}
+  .files td:first-child{font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--ink); white-space:nowrap}
+  .files td:last-child{color:var(--muted)}
+  .tablewrap{overflow-x:auto}
+
+  footer{padding:44px 0 60px; border-top:1px solid var(--line); color:var(--muted); font-size:13.5px}
+</style>
+
+<header class="hero">
+  <svg class="hero__comb" viewBox="0 0 520 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="comb" width="51.96" height="90" patternUnits="userSpaceOnUse">
+        <g fill="none" stroke-width="1">
+          <path d="M25.98 0 L51.96 15 L51.96 45 L25.98 60 L0 45 L0 15 Z"/>
+          <path d="M25.98 45 L51.96 60 L51.96 90 L25.98 105 L0 90 L0 60 Z"/>
+        </g>
+      </pattern>
+    </defs>
+    <rect width="520" height="300" fill="url(#comb)"/>
+  </svg>
+  <div class="wrap hero__inner">
+    <span class="eyebrow">Identity proposal &middot; v1</span>
+    <div class="hero__logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo">
+  <g transform="translate(8 12) scale(0.96)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="lh-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#lh-b)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg></div>
+    <h1>A bee is never just a bee. It is one cell of something bigger.</h1>
+    <p class="lede">Three routes for the mark, one recommendation, and the working system around it &mdash; lockups, palette, type, clear space and files ready to use.</p>
+    <div class="hero__meta">
+      <span><b>Mark</b> hive cell</span>
+      <span><b>Wordmark</b> Fraunces 600</span>
+      <span><b>Accent</b> Honey #E8A33D</span>
+      <span><b>Files</b> 12 SVG</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">The idea</span>
+    <h2>The bee gets a cell of its own</h2>
+    <p class="lede">A single bee is charming but generic &mdash; every honey brand has one. The hexagon is what makes it specific: it turns the mark into one cell of a comb, which means it tiles. Set the mark beside itself and it builds a hive; use one cell as a container for anything &mdash; a photo, a number, a person&rsquo;s face &mdash; and the identity keeps extending without ever redrawing the bee.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Three directions</span>
+    <h2>Same bee, three temperaments</h2>
+    <p class="note">All three are drawn from one geometry, so you can change your mind later without redrawing anything.</p>
+  </div>
+  <div class="grid3">
+    <article class="card card--pick">
+      <div class="card__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-a"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-a)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <span class="tag">Recommended</span>
+      <h3>01 &mdash; Hive Cell</h3>
+      <p>Solid, confident, unmistakable at 16&nbsp;px. The container does the heavy lifting: it holds shape as an app icon, a stamp, a pin, a favicon. Warmest and most commercial of the three.</p>
+    </article>
+    <article class="card">
+      <div class="card__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 106" role="img" focusable="false" aria-label="The Bee monoline mark">
+  <path d="M7 98 C24 103 41 94 46 81" fill="none" stroke="#E8A33D"
+        stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.1 8"/>
+  <g transform="translate(50 45) scale(0.88) translate(-50 -49)"><g stroke="#17130F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <g fill="none">
+      <path d="M45.5 24 C42 18 40 16 37.5 14.5"/>
+      <path d="M54.5 24 C58 18 60 16 62.5 14.5"/>
+    </g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6"/>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#FAF3E6"/>
+    <g fill="none">
+      <path d="M41 47.5 H59"/>
+      <path d="M39.5 60 H60.5"/>
+      <path d="M44.5 71.5 H55.5"/>
+    </g>
+    <circle cx="50" cy="30" r="9" fill="#FAF3E6"/>
+  </g></g>
+</svg></div>
+      <span class="tag tag--quiet">Alternate</span>
+      <h3>02 &mdash; Flight Line</h3>
+      <p>One line weight, one dotted trail. Editorial and hand-made &mdash; right for packaging, letterpress, embroidery, a menu header. Needs room; it dies below about 40&nbsp;px.</p>
+    </article>
+    <article class="card">
+      <div class="card__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee stripe mark">
+  <g>
+    <path d="M50 44 C34 48 18 42 11 29 C26 20 45 27 50 44 Z" fill="#E8A33D"/>
+    <path d="M50 44 C66 48 82 42 89 29 C74 20 55 27 50 44 Z" fill="#E8A33D"/>
+    <g fill="#17130F">
+      <circle cx="50" cy="45" r="7"/>
+      <rect x="26" y="55" width="48" height="10" rx="5"/>
+      <rect x="32" y="69" width="36" height="10" rx="5"/>
+      <rect x="39" y="83" width="22" height="10" rx="5"/>
+    </g>
+  </g>
+</svg></div>
+      <span class="tag tag--quiet">Alternate</span>
+      <h3>03 &mdash; Stripe</h3>
+      <p>Abstract to the last possible step: two wings, three tapering bands. The most modern and the most scalable &mdash; it survives being stitched, embossed or rendered a centimetre wide.</p>
+    </article>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">The system</span>
+    <h2>Lockups</h2>
+    <p class="note">The horizontal lockup is the default. Use stacked where width is short, the mark alone where the name is already present.</p>
+  </div>
+  <div class="lockups">
+    <div class="lock"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo">
+  <g transform="translate(8 12) scale(0.96)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="lh-b-h"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#lh-b-h)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg></div>
+      <div class="lock__foot"><span>Horizontal</span><span>Primary</span></div></div>
+    <div class="lock"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 210" role="img" focusable="false" aria-label="The Bee logo, stacked">
+  <g transform="translate(80 8)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="ls-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#ls-b)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="130" y="188" text-anchor="middle" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="54" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg></div>
+      <div class="lock__foot"><span>Stacked</span><span>Narrow spaces</span></div></div>
+    <div class="lock lock--dark"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo">
+  <g transform="translate(8 12) scale(0.96)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="lhr-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#lhr-b)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#FAF3E6">the bee</text>
+</svg></div>
+      <div class="lock__foot"><span>Reversed</span><span>Dark grounds</span></div></div>
+    <div class="lock lock--honey"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark, reversed">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#17130F"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.26"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.26"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#E8A33D"/>
+    <clipPath id="mhr-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#E8A33D"/>
+    <g clip-path="url(#mhr-b)" fill="#17130F">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <div class="lock__foot"><span>Mark on honey</span><span>Ink cell</span></div></div>
+    <div class="lock lock--paper"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo, single colour">
+  <g transform="translate(8 12) scale(0.96)">
+    <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#17130F"/>
+    <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#ffffff" opacity="1"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#ffffff" opacity="1"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#ffffff"/>
+    <clipPath id="mi-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#ffffff"/>
+    <g clip-path="url(#mi-b)" fill="#17130F">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+  </g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg></div>
+      <div class="lock__foot"><span>One colour</span><span>Fax, etch, emboss</span></div></div>
+    <div class="lock lock--dark"><div class="lock__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo, reversed single colour">
+  <g transform="translate(8 12) scale(0.96)">
+    <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#FAF3E6"/>
+    <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#17130F" opacity="1"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#17130F" opacity="1"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mc-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mc-b)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+  </g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#FAF3E6">the bee</text>
+</svg></div>
+      <div class="lock__foot"><span>One colour, knocked out</span><span>Foil, screen print</span></div></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Palette</span>
+    <h2>Honey, not highlighter</h2>
+    <p class="note">The trap with a bee is cadmium yellow. Everything here is pulled a half-step towards amber and brown, so it reads as food and craft rather than warning tape.</p>
+  </div>
+  <div class="swatches">
+    <div class="sw"><div class="sw__chip" style="background:#E8A33D"></div><div class="sw__body">
+      <span class="sw__name">Honey</span><span class="sw__hex mono">#E8A33D</span><span class="sw__use">Primary. The cell, the accent.</span></div></div>
+    <div class="sw"><div class="sw__chip" style="background:#B8701A"></div><div class="sw__body">
+      <span class="sw__name">Deep Honey</span><span class="sw__hex mono">#B8701A</span><span class="sw__use">Links, hover, small type on cream.</span></div></div>
+    <div class="sw"><div class="sw__chip" style="background:#17130F"></div><div class="sw__body">
+      <span class="sw__name">Ink</span><span class="sw__hex mono">#17130F</span><span class="sw__use">The bee. Headlines. Warm, never blue-black.</span></div></div>
+    <div class="sw"><div class="sw__chip" style="background:#FAF3E6"></div><div class="sw__body">
+      <span class="sw__name">Wax</span><span class="sw__hex mono">#FAF3E6</span><span class="sw__use">Wings, stripes, paper ground.</span></div></div>
+    <div class="sw"><div class="sw__chip" style="background:#4F6B4A"></div><div class="sw__body">
+      <span class="sw__name">Meadow</span><span class="sw__hex mono">#4F6B4A</span><span class="sw__use">Secondary only. Never inside the mark.</span></div></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Typography</span>
+    <h2>A soft serif and a working grotesque</h2>
+  </div>
+  <div class="grid2">
+    <div class="spec">
+      <div class="spec__big">the bee</div>
+      <div class="spec__row"><span>Fraunces &middot; 600</span><span>opsz 144</span><span>tracking &minus;1</span></div>
+      <p class="spec__sample">Carries the wordmark and every headline. Its slightly wonky, old-style shapes give the name warmth the geometry of the mark deliberately withholds.</p>
+    </div>
+    <div class="spec">
+      <div class="spec__big spec__big--sans">Set 240g</div>
+      <div class="spec__row"><span>Archivo &middot; 400 / 500 / 600</span><span>UI, body, labels</span></div>
+      <p class="spec__sample">Everything else: running text, buttons, packaging small print, tables. Sturdy at small sizes and quiet enough to leave the serif alone.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Construction</span>
+    <h2>Clear space and minimum size</h2>
+    <p class="note">One unit <b class="mono">x</b> is half the height of the cell. Keep <b class="mono">x</b> clear on every side &mdash; no type, no rules, no photo edges.</p>
+  </div>
+  <div class="constr">
+    <svg viewBox="0 0 460 190" role="img" aria-label="Clear space diagram: one x unit of margin on all sides, where x is half the cell height">
+      <rect x="24" y="24" width="412" height="142" fill="none" stroke-width="1" stroke-dasharray="4 4" class="g-dash"/>
+      <g transform="translate(72 48)"><svg width="316" height="94.8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo">
+  <g transform="translate(8 12) scale(0.96)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="lh-b-c"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#lh-b-c)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg></g>
+      <g class="g-line" stroke-width="1">
+        <path d="M24 24 H72 M24 166 H72 M48 24 V48 M48 142 V166"/>
+      </g>
+      <text x="24" y="16" class="g-label">clear space = x</text>
+      <text x="56" y="98" class="g-label">x</text>
+      <text x="436" y="184" text-anchor="end" class="g-label">x = ½ cell height</text>
+    </svg>
+  </div>
+  <div class="sizes">
+    <div class="size"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" focusable="false" aria-label="The Bee logo">
+  <g transform="translate(8 12) scale(0.96)"><path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="lh-b-s1"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#lh-b-s1)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g></g>
+  <text x="126" y="81" font-family="Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif" font-weight="600" font-size="62" letter-spacing="-1" fill="#17130F">the bee</text>
+</svg><span>lockup &middot; min 96 px wide</span></div>
+    <div class="size"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-s2"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-s2)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg><span>mark &middot; min 24 px</span></div>
+    <div class="size"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee favicon">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.86) translate(-50 -49)">
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="fv-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#fv-b)" fill="#FAF3E6">
+      <rect x="30" y="46" width="40" height="7"/>
+      <rect x="30" y="60" width="40" height="7"/>
+    </g>
+  </g>
+</svg><span>favicon &middot; 16 px, simplified</span></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">In the world</span>
+    <h2>Where it has to work</h2>
+  </div>
+  <div class="grid3">
+    <div class="app"><div class="app__stage"><div class="tile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" focusable="false" aria-label="The Bee app icon">
+  <rect width="512" height="512" rx="114" fill="#17130F"/>
+  <g transform="translate(256 262) scale(4.5) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.26"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.26"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#E8A33D" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#E8A33D"/>
+    <clipPath id="ic-b"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#E8A33D"/>
+    <g clip-path="url(#ic-b)" fill="#17130F">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div></div>
+      <div class="app__foot">App icon &middot; 512 px, ink ground</div></div>
+    <div class="app"><div class="app__stage"><div class="jar"><div class="jar__label"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-j"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-j)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg><b>the bee</b><i>raw &middot; 340 g</i></div></div></div>
+      <div class="app__foot">Jar label &middot; mark over wordmark</div></div>
+    <div class="app"><div class="app__stage"><div class="stamp"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee stripe mark">
+  <g>
+    <path d="M50 44 C34 48 18 42 11 29 C26 20 45 27 50 44 Z" fill="#E8A33D"/>
+    <path d="M50 44 C66 48 82 42 89 29 C74 20 55 27 50 44 Z" fill="#E8A33D"/>
+    <g fill="#17130F">
+      <circle cx="50" cy="45" r="7"/>
+      <rect x="26" y="55" width="48" height="10" rx="5"/>
+      <rect x="32" y="69" width="36" height="10" rx="5"/>
+      <rect x="39" y="83" width="22" height="10" rx="5"/>
+    </g>
+  </g>
+</svg><em>the bee</em></div></div>
+      <div class="app__foot">Stamp / pin &middot; stripe mark, one colour</div></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Usage</span>
+    <h2>Four ways to keep it intact</h2>
+  </div>
+  <div class="rules">
+    <div class="rule"><div class="rule__stage"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-r1"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-r1)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <b class="yes">&#10003; Do</b><p>Scale the whole mark proportionally. The cell and the bee are one object.</p></div>
+    <div class="rule"><div class="rule__stage squash"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-r2"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-r2)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <b class="no">&#10005; Don&rsquo;t</b><p>Stretch the cell to fill a space. Use the stacked lockup instead.</p></div>
+    <div class="rule"><div class="rule__stage tilted"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-r3"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-r3)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <b class="no">&#10005; Don&rsquo;t</b><p>Rotate the cell. It sits point-up, always &mdash; that is what makes it tile.</p></div>
+    <div class="rule"><div class="rule__stage" style="background:#4F6B4A"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" focusable="false" aria-label="The Bee mark">
+  <path d="M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z" fill="#E8A33D"/>
+  <g transform="translate(50 52) scale(0.74) translate(-50 -49)"><g>
+    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="#FAF3E6" opacity="0.9"/>
+    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="#FAF3E6" opacity="0.9"/>
+    <path d="M45.5 24 C42 18 40 16 37.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M54.5 24 C58 18 60 16 62.5 14.5" fill="none" stroke="#17130F" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="9" fill="#17130F"/>
+    <clipPath id="mh-b-r4"><path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z"/></clipPath>
+    <path d="M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 C42 78 34 66 34 54 C34 45 41 38 50 38 Z" fill="#17130F"/>
+    <g clip-path="url(#mh-b-r4)" fill="#FAF3E6">
+      <rect x="30" y="44" width="40" height="6.5"/>
+      <rect x="30" y="56" width="40" height="6.5"/>
+      <rect x="30" y="68" width="40" height="5.5"/>
+    </g>
+  </g></g>
+</svg></div>
+      <b class="no">&#10005; Don&rsquo;t</b><p>Place the honey cell on a mid-tone colour. Ink, wax or a photo&rsquo;s dark area only.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="head">
+    <span class="eyebrow">Delivered</span>
+    <h2>What&rsquo;s in the repository</h2>
+    <p class="note">All vector, all generated from one script &mdash; change the geometry once and every file redraws.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="files">
+    <thead><tr><th>File</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>logo-horizontal.svg</td><td>Primary lockup, light grounds</td></tr>
+      <tr><td>logo-horizontal-reversed.svg</td><td>Primary lockup, dark grounds</td></tr>
+      <tr><td>logo-stacked.svg</td><td>Narrow and square placements</td></tr>
+      <tr><td>logo-mono-ink.svg / -cream.svg</td><td>Single-colour print, foil, etch</td></tr>
+      <tr><td>mark-hex.svg / -reversed.svg</td><td>Mark alone, both grounds</td></tr>
+      <tr><td>mark-monoline.svg / -dark.svg</td><td>Direction 02, light and dark</td></tr>
+      <tr><td>mark-stripe.svg</td><td>Direction 03</td></tr>
+      <tr><td>icon-app.svg</td><td>512 px app icon with safe margins</td></tr>
+      <tr><td>favicon.svg</td><td>16&ndash;32 px, antennae removed</td></tr>
+      <tr><td>generate.py</td><td>Redraws the whole set from shared geometry</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <p>Wordmark set in Fraunces. Before final release, convert the wordmark to outlines in the delivered SVGs so the files no longer depend on the font being installed.</p>
+</footer>
