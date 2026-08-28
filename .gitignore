@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+# never commit credentials
+.env
+secrets/
+*.enc
+*.key
