@@ -171,9 +171,6 @@ def parse_report(data, expect_date=None):
     cs = sum(out["categories"].values())
     if out["categories"] and abs(cs - out["total"]) > 0.01:
         out["warnings"].append(f"categories sum {cs:.2f} != total {out['total']:.2f}")
-    unknown = [m for m in out["methods"] if m not in METHODS]
-    for m in unknown:
-        out["warnings"].append(f"unusual payment method {m}={out['methods'][m]['amount']:.2f}")
     if expect_date and out["date"] and out["date"] != expect_date:
         out["warnings"].append(f"report is for {out['date']}, asked for {expect_date}")
     return out
@@ -183,9 +180,16 @@ def summarise(rep):
     """Flatten a parsed report into the columns the summary sheet uses."""
     cats = dict(rep["categories"])
     other = {k: v for k, v in cats.items() if k not in MAIN_CATEGORIES}
+    # Cash/credit/gateway are the usual three, but Check, Money transfer and
+    # OTA Payment all turn up in real days. They are perfectly valid -- they
+    # just need a column of their own, or their money would vanish from the
+    # method breakdown while still counting toward the total.
+    other_pay = {m: v["amount"] for m, v in rep["methods"].items() if m not in METHODS}
     notes = list(rep["warnings"])
+    if other_pay:
+        notes.append("also paid by " + ", ".join(f"{k} {v:.2f}" for k, v in sorted(other_pay.items())))
     if other:
-        notes.append("other: " + ", ".join(f"{k} {v:.2f}" for k, v in sorted(other.items())))
+        notes.append("other categories: " + ", ".join(f"{k} {v:.2f}" for k, v in sorted(other.items())))
     if rep["refunds"]:
         notes.append(f"refunds {rep['refunds']:.2f}")
     if rep["cancellations"]:
@@ -199,6 +203,7 @@ def summarise(rep):
         "Credit": round(rep["methods"].get("Credit card", {}).get("amount", 0.0), 2),
         "Cash": round(rep["methods"].get("Cash", {}).get("amount", 0.0), 2),
         "Web": round(rep["methods"].get("Payment gateway", {}).get("amount", 0.0), 2),
+        "OtherPay": round(sum(other_pay.values()), 2),
         "Packages": round(cats.get("PACKAGES", 0.0), 2),
         "Lessons": round(cats.get("LESSONS", 0.0), 2),
         "Rentals": round(cats.get("BOARD RENTALS", 0.0), 2),
@@ -211,8 +216,8 @@ def summarise(rep):
 
 
 COLUMNS = ["Date", "Day", "Transactions", "Total", "Credit", "Cash", "Web",
-           "Packages", "Lessons", "Rentals", "Photography", "Other",
-           "Refunds", "Check", "Notes"]
+           "OtherPay", "Packages", "Lessons", "Rentals", "Photography",
+           "Other", "Refunds", "Check", "Notes"]
 
 
 def get_days(dates):

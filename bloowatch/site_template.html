@@ -1,0 +1,575 @@
+<title>SHOKOGI Control Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* SHOKOGI brand: #f46e95 on white, black text, Figtree, uppercase tracked labels.
+   Taken from the live storefront theme so the tool matches the shop. */
+:root{
+  --ground:#f7f5f6; --panel:#ffffff; --panel-2:#faf7f8;
+  --line:#e6dfe2; --line-soft:#efe9eb;
+  --text:#121011; --text-2:#5c5257; --text-3:#8d8288;
+  --accent:#e04b78; --accent-hot:#f46e95; --accent-soft:#fdeaf0; --accent-ink:#ffffff;
+  --good:#1f7a4d; --warn:#9a6a10; --crit:#b23a2c;
+  --shadow:0 1px 2px rgba(18,16,17,.05),0 10px 26px -14px rgba(18,16,17,.22);
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#131012; --panel:#1c181a; --panel-2:#211c1f;
+    --line:#332c30; --line-soft:#282225;
+    --text:#f4eff1; --text-2:#b3a7ac; --text-3:#867a80;
+    --accent:#f46e95; --accent-hot:#ff8dad; --accent-soft:#3a1f29; --accent-ink:#1a1013;
+    --good:#5ec98d; --warn:#e0ae4a; --crit:#f0705c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.75);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#131012; --panel:#1c181a; --panel-2:#211c1f;
+  --line:#332c30; --line-soft:#282225;
+  --text:#f4eff1; --text-2:#b3a7ac; --text-3:#867a80;
+  --accent:#f46e95; --accent-hot:#ff8dad; --accent-soft:#3a1f29; --accent-ink:#1a1013;
+  --good:#5ec98d; --warn:#e0ae4a; --crit:#f0705c;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.75);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--text);
+  font-family:Figtree,-apple-system,"Segoe UI",system-ui,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance; letter-spacing:-.02em; font-weight:700}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+
+header.top{background:var(--panel);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20}
+.top-in{max-width:1200px;margin:0 auto;padding:15px 22px 0;
+  display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+.brand .mark{width:26px;height:26px;border-radius:7px;flex:none;
+  background:var(--accent-hot);display:grid;place-items:center;
+  color:#fff;font-weight:800;font-size:13px;letter-spacing:-.03em}
+.brand h1{font-size:19px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.brand h1 span{color:var(--text-3);font-weight:600}
+.stamp{font-size:12px;color:var(--text-3);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.stamp b{color:var(--text-2);font-weight:600}
+.live{display:inline-flex;align-items:center;gap:6px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+
+nav.tabs{display:flex;gap:1px;overflow-x:auto;width:100%;margin-top:13px;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+  white-space:nowrap;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);padding:10px 15px 13px;border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s}
+nav.tabs button:hover{color:var(--text)}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:4px}
+
+.wrap{max-width:1200px;margin:0 auto;padding:0 22px 80px}
+section[hidden]{display:none!important}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);
+  box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:32px 0 12px}
+.sec-h h2{font-size:17px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+.sec-h .sub{font-size:13px;color:var(--text-3)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:12px;margin-top:24px}
+.kpi{padding:16px 17px 17px}
+.kpi .lab{color:var(--text-3)}
+.kpi .val{font-size:29px;font-weight:700;margin-top:8px;display:block;letter-spacing:-.03em}
+.kpi .meta{font-size:12.5px;color:var(--text-2);margin-top:4px}
+
+.range{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  margin-left:auto}
+.range button{appearance:none;border:0;background:var(--panel);cursor:pointer;font:inherit;
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-2);padding:7px 14px}
+.range button+button{border-left:1px solid var(--line)}
+.range button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.range button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.chart-card{padding:18px 18px 8px;margin-top:12px}
+.chart-wrap{overflow-x:auto}
+svg.chart{display:block;width:100%;height:236px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-2);padding:10px 2px 8px}
+.legend i{width:11px;height:3px;border-radius:2px;display:inline-block;margin-right:7px;
+  vertical-align:middle}
+.legend i.sq{height:10px;border-radius:2px}
+.tip{position:fixed;pointer-events:none;z-index:60;background:var(--text);color:var(--panel);
+  border-radius:8px;padding:9px 12px;font-size:12.5px;line-height:1.5;
+  box-shadow:0 8px 26px rgba(0,0,0,.32);opacity:0;transition:opacity .12s}
+.tip b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px}
+
+.mix{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}
+.mix .panel{padding:17px 18px 19px}
+.mix h3{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:15px}
+.row{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:baseline;margin-bottom:12px}
+.row .nm{font-size:13.5px;color:var(--text-2)}
+.row .vl{font-size:13px;font-weight:600}
+.row .vl small{color:var(--text-3);font-weight:500;margin-left:6px}
+.bar{grid-column:1/-1;height:7px;border-radius:4px;background:var(--line-soft);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+
+.tbl-wrap{overflow-x:auto;border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th,td{padding:10px 12px;text-align:left;white-space:nowrap}
+th.r,td.r{text-align:right}
+thead th{position:sticky;top:0;background:var(--panel-2);z-index:1;cursor:pointer;user-select:none;
+  font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);border-bottom:1px solid var(--line)}
+thead th:hover{color:var(--text)}
+thead th[aria-sort]{color:var(--accent)}
+thead th .ar{font-size:8px}
+tbody tr{border-bottom:1px solid var(--line-soft)}
+tbody tr:hover{background:var(--panel-2)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+td.strong{font-weight:700}
+.muted{color:var(--text-3)}
+
+.chip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:3px 8px;border-radius:999px;line-height:1.45;white-space:nowrap}
+.chip.ok{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.chip.warnc{background:color-mix(in srgb,var(--warn) 17%,transparent);color:var(--warn)}
+.chip.critc{background:color-mix(in srgb,var(--crit) 15%,transparent);color:var(--crit)}
+.chip.pink{background:var(--accent-soft);color:var(--accent)}
+.chip.neutral{background:var(--line-soft);color:var(--text-2)}
+
+.day{margin-top:13px;overflow:hidden}
+.day-h{display:flex;align-items:baseline;gap:11px;padding:13px 17px;background:var(--panel-2);
+  border-bottom:1px solid var(--line-soft)}
+.day-h h3{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.day-h .c{font-size:12px;color:var(--text-3);margin-left:auto}
+.slot{display:grid;grid-template-columns:64px 1fr auto;gap:13px;align-items:center;
+  padding:11px 17px;border-bottom:1px solid var(--line-soft)}
+.slot:last-child{border-bottom:0}
+.slot .t{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;color:var(--text-2)}
+.slot .nm{display:flex;align-items:center;gap:10px;min-width:0}
+.slot .dot{width:8px;height:22px;border-radius:3px;flex:none}
+.slot .nm b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .sp{font-size:12px;color:var(--text-3)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:11px;margin-top:12px}
+.card{padding:15px 16px;display:flex;flex-direction:column;gap:9px}
+.card .nm{font-weight:700;font-size:14px;line-height:1.35;letter-spacing:-.01em}
+.card .tags{display:flex;gap:5px;flex-wrap:wrap}
+.card .foot{display:flex;align-items:baseline;gap:9px;margin-top:auto;padding-top:5px}
+.card .pr{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600;
+  font-variant-numeric:tabular-nums}
+.card .pr small{font-size:11.5px;color:var(--text-3);font-weight:400}
+
+.note{font-size:13px;color:var(--text-2);background:var(--panel-2);
+  border-left:3px solid var(--accent);padding:12px 15px;border-radius:0 9px 9px 0;margin-top:14px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--text-3);display:flex;gap:16px;flex-wrap:wrap;
+  letter-spacing:.03em;text-transform:uppercase;font-weight:600}
+
+@media (max-width:640px){
+  .wrap{padding:0 14px 60px}
+  .top-in{padding:13px 14px 0}
+  .kpi .val{font-size:25px}
+  .slot{grid-template-columns:56px 1fr;gap:9px}
+  .slot .cap{grid-column:2;justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="mark">SK</span>
+      <h1>Shokogi <span>Control Room</span></h1>
+    </div>
+    <div class="stamp">
+      <span class="live"><i></i>Synced <b id="stamp-time">—</b></span>
+      <span>Source <b>Bloowatch</b></span>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="p-overview" role="tabpanel">
+    <div class="kpis" id="kpis"></div>
+    <div class="sec-h">
+      <h2>Revenue</h2>
+      <span class="sub" id="chart-sub"></span>
+      <div class="range" id="range" role="group" aria-label="Time range"></div>
+    </div>
+    <div class="panel chart-card">
+      <div class="chart-wrap"><svg class="chart" id="chart" role="img" aria-label="Daily revenue"></svg></div>
+      <div class="legend">
+        <span><i class="sq" style="background:var(--accent-hot)"></i>Daily takings</span>
+        <span><i style="background:var(--text-2)"></i>7-day average</span>
+      </div>
+    </div>
+    <div class="mix">
+      <div class="panel"><h3>By activity</h3><div id="mix-cat"></div></div>
+      <div class="panel"><h3>By payment method</h3><div id="mix-pay"></div></div>
+      <div class="panel"><h3>Average by weekday</h3><div id="mix-dow"></div></div>
+    </div>
+  </section>
+
+  <section id="p-closings" role="tabpanel" hidden>
+    <div class="sec-h"><h2>Day closings</h2>
+      <span class="sub">Click a heading to sort. Every row comes from Bloowatch's own report.</span></div>
+    <div class="panel tbl-wrap"><table id="t-closings"></table></div>
+    <div class="note" id="closings-note"></div>
+  </section>
+
+  <section id="p-agenda" role="tabpanel" hidden>
+    <div class="sec-h"><h2>Schedule</h2><span class="sub" id="agenda-sub"></span></div>
+    <div id="agenda"></div>
+  </section>
+
+  <section id="p-catalog" role="tabpanel" hidden>
+    <div class="sec-h"><h2>Lessons &amp; courses</h2><span class="sub" id="cat-sub"></span></div>
+    <div class="cards" id="c-classes"></div>
+    <div class="sec-h"><h2>Rental gear</h2></div>
+    <div class="cards" id="c-rentals"></div>
+  </section>
+
+  <section id="p-team" role="tabpanel" hidden>
+    <div class="sec-h"><h2>Crew</h2><span class="sub" id="team-sub"></span></div>
+    <div class="panel tbl-wrap"><table id="t-team"></table></div>
+  </section>
+
+  <footer>
+    <span>Shokogi Surf School</span><span>Playa Venao, Panama</span>
+    <span id="foot-range"></span>
+  </footer>
+</div>
+
+<div class="tip" id="tip" role="status"></div>
+
+<script id="data" type="application/json">/*__DATA__*/</script>
+<script>
+(function(){
+"use strict";
+var D=JSON.parse(document.getElementById("data").textContent);
+var C=D.closings.slice().sort(function(a,b){return a.Date<b.Date?-1:1;});
+var DOW={Sun:"Sunday",Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday",Sat:"Saturday"};
+var DOW3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function money(n,d){return (Number(n)||0).toLocaleString("en-US",
+  {minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
+function dm(iso){var p=iso.split("-");return MON[+p[1]-1]+" "+(+p[2]);}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+function sum(rows,k){return rows.reduce(function(a,r){return a+(Number(r[k])||0);},0);}
+
+var RANGES=[{n:7,l:"7 days"},{n:30,l:"30 days"},{n:C.length,l:"All"}];
+var range=Math.min(30,C.length);
+function inRange(){return C.slice(Math.max(0,C.length-range));}
+
+var rb=document.getElementById("range");
+RANGES.forEach(function(r){
+  var b=el("button",null,r.l);
+  b.setAttribute("aria-pressed",r.n===range?"true":"false");
+  b.addEventListener("click",function(){
+    range=r.n;
+    [].forEach.call(rb.children,function(x){x.setAttribute("aria-pressed","false");});
+    b.setAttribute("aria-pressed","true");
+    renderKpis();renderChart();renderMix();
+  });
+  rb.appendChild(b);
+});
+
+function renderKpis(){
+  var R=inRange(),box=document.getElementById("kpis");
+  var total=sum(R,"Total"),tx=sum(R,"Transactions");
+  var best=R.reduce(function(a,r){return(!a||r.Total>a.Total)?r:a;},null);
+  var last=C[C.length-1];
+  var items=[
+    {l:"Revenue",v:"$"+money(total),m:R.length+" trading days"},
+    {l:"Daily average",v:"$"+money(total/Math.max(1,R.length)),m:"across "+R.length+" days"},
+    {l:"Transactions",v:money(tx),m:"$"+money(total/Math.max(1,tx))+" average sale"},
+    {l:"Best day",v:"$"+money(best?best.Total:0),m:best?(DOW[best.Day]+", "+dm(best.Date)):"—"},
+    {l:"Latest close",v:"$"+money(last?last.Total:0),m:last?(DOW[last.Day]+", "+dm(last.Date)):"—"}
+  ];
+  box.textContent="";
+  items.forEach(function(it){
+    var c=el("div","panel kpi");
+    c.appendChild(el("div","lab eyebrow",it.l));
+    c.appendChild(el("span","val num",it.v));
+    c.appendChild(el("div","meta",it.m));
+    box.appendChild(c);
+  });
+  document.getElementById("chart-sub").textContent=
+    R.length?dm(R[0].Date)+" – "+dm(R[R.length-1].Date):"";
+}
+
+var tip=document.getElementById("tip");
+function showTip(e,html){
+  tip.innerHTML=html;tip.style.opacity="1";
+  var r=tip.getBoundingClientRect();
+  var x=e.clientX-r.width/2,y=e.clientY-r.height-14;
+  x=Math.max(8,Math.min(x,innerWidth-r.width-8));
+  if(y<8)y=e.clientY+18;
+  tip.style.left=x+"px";tip.style.top=y+"px";
+}
+function hideTip(){tip.style.opacity="0";}
+
+function renderChart(){
+  var R=inRange(),svg=document.getElementById("chart");
+  var host=svg.parentNode.clientWidth||900;
+  var W=Math.max(host,R.length*20),H=236,PT=16,PB=30,PL=46,PR=10;
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  svg.style.minWidth=(W>host?W+"px":"100%");
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  var NS="http://www.w3.org/2000/svg";
+  function mk(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+  var max=Math.max.apply(null,R.map(function(r){return r.Total;}).concat([1]));
+  var step=Math.pow(10,String(Math.round(max)).length-1);
+  var top=Math.ceil(max/step)*step;if(top<max*1.04)top+=step;
+  function y(v){return PT+(H-PT-PB)*(1-v/top);}
+
+  [0,.25,.5,.75,1].forEach(function(f){
+    var v=top*f,yy=y(v);
+    svg.appendChild(mk("line",{x1:PL,x2:W-PR,y1:yy,y2:yy,stroke:"var(--line-soft)","stroke-width":1}));
+    var t=mk("text",{x:PL-9,y:yy+4,"font-size":10.5,fill:"var(--text-3)","text-anchor":"end",
+      "font-family":"IBM Plex Mono, monospace"});
+    t.textContent=v>=1000?(v/1000)+"k":String(v);
+    svg.appendChild(t);
+  });
+
+  var bw=(W-PL-PR)/R.length,bar=Math.min(16,bw*.62);
+  R.forEach(function(r,i){
+    var cx=PL+bw*(i+.5),h=Math.max(1.5,y(0)-y(r.Total));
+    var g=mk("g",{});
+    g.appendChild(mk("rect",{x:cx-bar/2,y:y(r.Total),width:bar,height:h,rx:2.5,
+      fill:"var(--accent-hot)"}));
+    g.appendChild(mk("rect",{x:cx-bw/2,y:PT,width:bw,height:H-PT-PB,fill:"transparent"}));
+    g.style.cursor="crosshair";
+    g.addEventListener("mousemove",function(e){
+      showTip(e,DOW[r.Day]+" "+dm(r.Date)+"<br><b>$"+money(r.Total)+"</b> · "+
+        r.Transactions+" sales");
+    });
+    g.addEventListener("mouseleave",hideTip);
+    svg.appendChild(g);
+  });
+
+  if(R.length>=7){
+    var pts=[];
+    for(var i=6;i<R.length;i++){
+      var s=0;for(var j=i-6;j<=i;j++)s+=R[j].Total;
+      pts.push((PL+bw*(i+.5))+","+y(s/7));
+    }
+    svg.appendChild(mk("polyline",{points:pts.join(" "),fill:"none",stroke:"var(--text-2)",
+      "stroke-width":1.8,"stroke-linejoin":"round","stroke-linecap":"round","opacity":.75}));
+  }
+
+  var every=Math.ceil(R.length/24);
+  R.forEach(function(r,i){
+    if(i%every)return;
+    var t=mk("text",{x:PL+bw*(i+.5),y:H-11,"font-size":9.5,fill:"var(--text-3)",
+      "text-anchor":"middle","font-family":"IBM Plex Mono, monospace"});
+    t.textContent=r.Day.charAt(0);
+    svg.appendChild(t);
+  });
+}
+
+function barRows(host,rows,color){
+  host.textContent="";
+  var mx=Math.max.apply(null,rows.map(function(r){return r.v;}).concat([1]));
+  var tot=rows.reduce(function(a,r){return a+r.v;},0);
+  rows.forEach(function(r){
+    var w=el("div","row");
+    w.appendChild(el("span","nm",r.k));
+    var v=el("span","vl num","$"+money(r.v));
+    if(tot) v.appendChild(el("small",null,Math.round(r.v/tot*100)+"%"));
+    w.appendChild(v);
+    var b=el("div","bar"),i=el("i");
+    i.style.width=(r.v/mx*100)+"%";i.style.background=color;
+    b.appendChild(i);w.appendChild(b);host.appendChild(w);
+  });
+}
+function renderMix(){
+  var R=inRange();
+  barRows(document.getElementById("mix-cat"),[
+    {k:"Lessons",v:sum(R,"Lessons")},{k:"Courses & packages",v:sum(R,"Packages")},
+    {k:"Board rentals",v:sum(R,"Rentals")},{k:"Photography",v:sum(R,"Photography")},
+    {k:"Other",v:sum(R,"Other")}
+  ].filter(function(r){return r.v>0;}).sort(function(a,b){return b.v-a.v;}),"var(--accent-hot)");
+  barRows(document.getElementById("mix-pay"),[
+    {k:"Card",v:sum(R,"Credit")},{k:"Cash",v:sum(R,"Cash")},
+    {k:"Online",v:sum(R,"Web")},{k:"Other",v:sum(R,"OtherPay")}
+  ].filter(function(r){return r.v>0;}).sort(function(a,b){return b.v-a.v;}),"var(--text-2)");
+  var s={},n={};
+  R.forEach(function(r){s[r.Day]=(s[r.Day]||0)+r.Total;n[r.Day]=(n[r.Day]||0)+1;});
+  barRows(document.getElementById("mix-dow"),
+    DOW3.filter(function(d){return s[d];}).map(function(d){return {k:DOW[d],v:s[d]/n[d]};})
+      .sort(function(a,b){return b.v-a.v;}),"var(--accent-hot)");
+}
+
+var COLS=[
+  {k:"Date",l:"Date",f:function(r){return dm(r.Date);}},
+  {k:"Day",l:"Day",f:function(r){return r.Day;},cls:"muted"},
+  {k:"Transactions",l:"Sales",n:1},
+  {k:"Total",l:"Total",n:1,strong:1},
+  {k:"Credit",l:"Card",n:1},{k:"Cash",l:"Cash",n:1},
+  {k:"Web",l:"Online",n:1},{k:"OtherPay",l:"Other",n:1},
+  {k:"Lessons",l:"Lessons",n:1},{k:"Packages",l:"Courses",n:1},
+  {k:"Rentals",l:"Rentals",n:1},{k:"Photography",l:"Photo",n:1},
+  {k:"Check",l:"Check"}
+];
+var sortK="Date",sortDir=-1;
+function renderClosings(){
+  var t=document.getElementById("t-closings");t.textContent="";
+  var th=el("thead"),tr=el("tr");
+  COLS.forEach(function(c){
+    var h=el("th",c.n?"r":null,c.l);
+    if(sortK===c.k){h.setAttribute("aria-sort",sortDir<0?"descending":"ascending");
+      h.appendChild(el("span","ar"," "+(sortDir<0?"▼":"▲")));}
+    h.addEventListener("click",function(){
+      if(sortK===c.k)sortDir=-sortDir;else{sortK=c.k;sortDir=-1;}renderClosings();});
+    tr.appendChild(h);
+  });
+  th.appendChild(tr);t.appendChild(th);
+  var rows=C.slice().sort(function(a,b){
+    var x=a[sortK],y=b[sortK];
+    if(typeof x==="number"&&typeof y==="number")return (x-y)*sortDir;
+    return (String(x)<String(y)?-1:String(x)>String(y)?1:0)*sortDir;
+  });
+  var tb=el("tbody");
+  rows.forEach(function(r){
+    var row=el("tr");
+    COLS.forEach(function(c){
+      var td=el("td");
+      if(c.k==="Check"){
+        var ok=r.Check==="OK";
+        td.appendChild(el("span","chip "+(ok?"ok":"critc"),ok?"Balanced":"Review"));
+        if(r.Notes)td.title=r.Notes;
+      }else if(c.n){
+        td.className="n r"+(c.strong?" strong":"");
+        var v=Number(r[c.k])||0;
+        td.textContent=c.k==="Transactions"?money(v):(v?"$"+money(v,v%1?2:0):"—");
+        if(!v)td.classList.add("muted");
+      }else{
+        td.className=c.cls||"";
+        td.textContent=c.f?c.f(r):r[c.k];
+      }
+      row.appendChild(td);
+    });
+    tb.appendChild(row);
+  });
+  t.appendChild(tb);
+}
+
+function renderAgenda(){
+  var host=document.getElementById("agenda");host.textContent="";
+  var days={};
+  D.agenda.forEach(function(s){(days[s.date]=days[s.date]||[]).push(s);});
+  var keys=Object.keys(days).sort();
+  document.getElementById("agenda-sub").textContent=
+    D.agenda.length+" activities across the next "+keys.length+" days";
+  keys.forEach(function(k){
+    var box=el("div","panel day"),h=el("div","day-h");
+    var d=new Date(k+"T12:00:00");
+    h.appendChild(el("h3",null,DOW[DOW3[d.getDay()]]+" · "+dm(k)));
+    h.appendChild(el("span","c",days[k].length+" activities"));
+    box.appendChild(h);
+    days[k].sort(function(a,b){return a.time<b.time?-1:1;}).forEach(function(s){
+      var r=el("div","slot");
+      r.appendChild(el("div","t",s.time||"—"));
+      var nm=el("div","nm"),dot=el("span","dot");
+      dot.style.background=s.color||"var(--text-3)";
+      nm.appendChild(dot);
+      nm.appendChild(el("b",null,s.name));
+      if(s.spot)nm.appendChild(el("span","sp",s.spot));
+      r.appendChild(nm);
+      var cap=el("div","cap"),full=s.max&&s.attendants>=s.max;
+      cap.appendChild(el("span","chip "+(s.attendants?(full?"warnc":"pink"):"neutral"),
+        s.max?(s.attendants+" / "+s.max):String(s.attendants)));
+      r.appendChild(cap);
+      box.appendChild(r);
+    });
+    host.appendChild(box);
+  });
+  if(!keys.length)host.appendChild(el("div","note","No activities scheduled in the range pulled."));
+}
+
+function renderCatalog(){
+  var cls=D.products.filter(function(p){return p.klass!=="rental";});
+  var host=document.getElementById("c-classes");host.textContent="";
+  document.getElementById("cat-sub").textContent=cls.length+" active products";
+  cls.sort(function(a,b){return (Number(b.price)||0)-(Number(a.price)||0);}).forEach(function(p){
+    var c=el("div","panel card");
+    c.appendChild(el("div","nm",p.name));
+    var tags=el("div","tags");
+    if(p.category)tags.appendChild(el("span","chip neutral",p.category));
+    if(p.sessions>1)tags.appendChild(el("span","chip pink",p.sessions+" sessions"));
+    c.appendChild(tags);
+    var f=el("div","foot"),pr=el("div","pr",p.price!=null?"$"+money(p.price):"—");
+    if(p.sessions>1&&p.price)pr.appendChild(el("small"," · $"+money(Number(p.price)/p.sessions)+"/session"));
+    f.appendChild(pr);c.appendChild(f);host.appendChild(c);
+  });
+  var rh=document.getElementById("c-rentals");rh.textContent="";
+  D.rentals.forEach(function(r){
+    var c=el("div","panel card");
+    c.appendChild(el("div","nm",r.name));
+    var f=el("div","foot");
+    f.appendChild(el("span","chip neutral",r.units!=null?r.units+" units":"—"));
+    c.appendChild(f);rh.appendChild(c);
+  });
+}
+
+var ROLE={instructor:"Instructor",assistant:"Assistant",manager:"Manager",admin:"Admin",
+  photographer:"Photographer",staff:"Staff",owner:"Owner"};
+function renderTeam(){
+  var t=document.getElementById("t-team");t.textContent="";
+  document.getElementById("team-sub").textContent=D.staff.length+" active crew";
+  var th=el("thead"),tr=el("tr");
+  ["Name","Role"].forEach(function(h){tr.appendChild(el("th",null,h));});
+  th.appendChild(tr);t.appendChild(th);
+  var tb=el("tbody");
+  D.staff.forEach(function(s){
+    var r=el("tr");
+    r.appendChild(el("td","strong",s.name));
+    var td=el("td");
+    td.appendChild(el("span","chip neutral",ROLE[s.role]||s.role||"—"));
+    r.appendChild(td);tb.appendChild(r);
+  });
+  t.appendChild(tb);
+}
+
+var TABS=[{id:"overview",l:"Overview"},{id:"closings",l:"Day closings"},
+  {id:"agenda",l:"Schedule"},{id:"catalog",l:"Catalog"},{id:"team",l:"Crew"}];
+var tabsBox=document.getElementById("tabs");
+function show(id){
+  TABS.forEach(function(t){document.getElementById("p-"+t.id).hidden=t.id!==id;});
+  [].forEach.call(tabsBox.children,function(b){
+    b.setAttribute("aria-selected",b.dataset.id===id?"true":"false");});
+  try{localStorage.setItem("shokogi.tab",id);}catch(e){}
+  if(id==="overview")renderChart();
+  scrollTo(0,0);
+}
+TABS.forEach(function(t){
+  var b=el("button",null,t.l);
+  b.dataset.id=t.id;b.setAttribute("role","tab");
+  b.addEventListener("click",function(){show(t.id);});
+  tabsBox.appendChild(b);
+});
+
+document.getElementById("stamp-time").textContent=
+  D.generated_at.replace("T"," ").slice(5,16);
+var f0=C[0],f1=C[C.length-1];
+document.getElementById("foot-range").textContent=
+  f0?(dm(f0.Date)+" – "+dm(f1.Date)):"";
+var flagged=C.filter(function(r){return r.Check!=="OK";}).length;
+document.getElementById("closings-note").textContent=flagged?
+  (flagged+" day(s) flagged. Hover the label to see what did not reconcile."):
+  ("All "+C.length+" days reconcile: payment methods and activity categories each add up to the day total.");
+
+renderKpis();renderChart();renderMix();renderClosings();
+renderAgenda();renderCatalog();renderTeam();
+var saved=null;try{saved=localStorage.getItem("shokogi.tab");}catch(e){}
+show(TABS.some(function(t){return t.id===saved;})?saved:"overview");
+
+var rt;addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(renderChart,120);});
+})();
+</script>
