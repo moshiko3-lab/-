@@ -43,6 +43,6 @@ booking's items cost, the same rule Bloowatch's own report uses.
 
 ## Scope
 
-`spec/BLOOWATCH.md` is the checklist: 84 pages walked in a signed-in browser
+`spec/BLOOWATCH.md` is the checklist: all 97 routes walked in a signed-in browser
 plus 1,575 interface strings from the app bundle. Most of it is not built yet.
 The table above is what works today.

@@ -455,7 +455,7 @@
   "columns": [],
   "tabs": [],
   "menu": [],
-  "text_len": 169,
+  "text_len": 156,
   "final_url": "https://shokogi.bloowatch.com/bookings/list"
  },
  "bookings/payments": {
@@ -795,7 +795,8 @@
    "account_circle MOSHIKO L.",
    "+ Booking",
    "Refresh",
-   "Columns"
+   "Columns",
+   "10"
   ],
   "fields": [],
   "columns": [
@@ -806,7 +807,7 @@
   ],
   "tabs": [],
   "menu": [],
-  "text_len": 205,
+  "text_len": 1467,
   "final_url": "https://shokogi.bloowatch.com/logs"
  },
  "logs/list": {
@@ -2096,5 +2097,408 @@
   "menu": [],
   "text_len": 471,
   "final_url": "https://shokogi.bloowatch.com/settings/integration/payments/redsys"
+ },
+ "settings/integration/payments/six": {
+  "route": "settings/integration/payments/six",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Confirm Payment Solution"
+  ],
+  "fields": [
+   {
+    "label": "Customer ID",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Terminal ID",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Username",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 352,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/payments/six"
+ },
+ "settings/integration/payments/stripe": {
+  "route": "settings/integration/payments/stripe",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Remove Payment Solution",
+   "Confirm Payment Solution"
+  ],
+  "fields": [
+   {
+    "label": "Live Publishable Key",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 460,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/payments/stripe"
+ },
+ "settings/legal": {
+  "route": "settings/legal",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Undo",
+   "Redo",
+   "Formats",
+   "Bold",
+   "Italic",
+   "Text color",
+   "Background color",
+   "Align left",
+   "Align center",
+   "Align right",
+   "Justify",
+   "Bullet list",
+   "Numbered list",
+   "Decrease indent",
+   "Increase indent",
+   "Insert/edit link",
+   "Insert/edit image",
+   "Source code",
+   "Cancel",
+   "Save",
+   "NEW TAX NOTE",
+   "Columns"
+  ],
+  "fields": [],
+  "columns": [
+   "Title",
+   "Description"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 351,
+  "final_url": "https://shokogi.bloowatch.com/settings/legal"
+ },
+ "settings/org": {
+  "route": "settings/org",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/org"
+ },
+ "settings/rules/list": {
+  "route": "settings/rules/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/rules/list"
+ },
+ "settings/rules/new": {
+  "route": "settings/rules/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Insert Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 290,
+  "final_url": "https://shokogi.bloowatch.com/settings/rules/new"
+ },
+ "settings/sales-templates": {
+  "route": "settings/sales-templates",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Undo",
+   "Redo",
+   "Formats",
+   "Bold",
+   "Italic",
+   "Text color",
+   "Background color",
+   "Align left",
+   "Align center",
+   "Align right",
+   "Justify",
+   "Bullet list",
+   "Numbered list",
+   "Decrease indent",
+   "Increase indent",
+   "Insert/edit link",
+   "Insert/edit image",
+   "Source code",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 374,
+  "final_url": "https://shokogi.bloowatch.com/settings/sales-templates"
+ },
+ "settings/sales-templates/invoice-settings": {
+  "route": "settings/sales-templates/invoice-settings",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/sales-templates/invoice-settings"
+ },
+ "time-off": {
+  "route": "time-off",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Add Time-Off",
+   "Columns",
+   "10"
+  ],
+  "fields": [
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Instructor Instructor All MOSHIKO LEVY GIGI AMIR EDEN YUVAL VILENSKY INSTRUCTORS",
+    "type": "select",
+    "options": [
+     "Instructor",
+     "All",
+     "MOSHIKO LEVY",
+     "GIGI AMIR",
+     "EDEN",
+     "YUVAL VILENSKY",
+     "INSTRUCTORS - FULL",
+     "NAFTALY",
+     "INSTRUCTORS - FREELANCE",
+     "DYLAN",
+     "VICTOR",
+     "GUR YOSEF",
+     "SHAKED",
+     "YOCHAI"
+    ]
+   }
+  ],
+  "columns": [
+   "Staff",
+   "Time Off Starts",
+   "Time Off Ends",
+   "Note"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 989,
+  "final_url": "https://shokogi.bloowatch.com/time-off"
+ },
+ "trips": {
+  "route": "trips",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Creation Date",
+   "delete Delete",
+   "edit Edit",
+   "Add Trip",
+   "Columns"
+  ],
+  "fields": [
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Title",
+   "Capacity",
+   "Pilot",
+   "Date"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 281,
+  "final_url": "https://shokogi.bloowatch.com/trips"
+ },
+ "trips/list": {
+  "route": "trips/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/trips/list"
+ },
+ "trips/new": {
+  "route": "trips/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Add Pilote",
+   "Cancel",
+   "Add Trip"
+  ],
+  "fields": [
+   {
+    "label": "Title",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Dive Sites",
+    "type": "search",
+    "options": null
+   },
+   {
+    "label": "Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting time *",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Ending time *",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Max Capacity",
+    "type": "number",
+    "options": null
+   },
+   {
+    "label": "Instructor",
+    "type": "search",
+    "options": null
+   },
+   {
+    "label": "Description",
+    "type": "textarea",
+    "options": null
+   },
+   {
+    "label": "Description Activity Calendar",
+    "type": "search",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 270,
+  "final_url": "https://shokogi.bloowatch.com/trips/new"
+ },
+ "unavailability-gear": {
+  "route": "unavailability-gear",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "ADD UNAVAILABILITY",
+   "Columns"
+  ],
+  "fields": [
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Unit",
+   "Gear",
+   "Time Off Starts",
+   "Time Off Ends",
+   "Note"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 245,
+  "final_url": "https://shokogi.bloowatch.com/unavailability-gear"
  }
 }
