@@ -27,14 +27,14 @@ the rest of the app never touches storage directly.
 | Screen | Covers |
 | --- | --- |
 | Today | Takings so far, sessions on the water, outstanding balances |
-| Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings |
+| Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings. Filter by activity, instructor, level or how full a session is; choose which columns show |
 | Board | Sessions as blocks on an hourly timeline, grouped by activity or by instructor; drag one to another row or another hour. Tide times sit above the grid |
 | Bookings | Items priced by tier, payments, deposits, outstanding balance, cancellation and refunds; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend, documents and when they expire |
 | Catalog | Lessons, courses, rentals, photography, with prices |
 | Gear | Each board and suit by name, with service dates, what is out and until when |
 | Crew | Instructors and assistants, role, session count, time off |
-| Day closing | Takings by payment method and by activity |
+| Day closing | Takings by payment method and by activity, plus the cash drawer: float in, suppliers out, what should be in the till |
 | Invoices | A frozen copy of a booking, numbered and printable |
 | Reports | Monthly and yearly takings, by method, activity, product and day |
 | Back office | Business details, spots, activity types, payment methods, roles, custom fields, instructor fee groups, promo codes, partners, accommodation |
