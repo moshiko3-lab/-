@@ -1807,7 +1807,7 @@ function seedData(){
 function importCatalog(){
   var d=seedData();
   if(!d){ toast("No catalog is bundled with this build."); return; }
-  var added={products:0,gear:0,spots:0,kinds:0};
+  var added={products:0,gear:0,spots:0,kinds:0,crew:0};
 
   d.products.forEach(function(p){
     if(DB.products.some(function(x){return x.name===p.name;})) return;
@@ -1822,6 +1822,12 @@ function importCatalog(){
       description:g.description||""});
     added.gear++;
   });
+  (d.staff||[]).forEach(function(st){
+    if(DB.staff.some(function(x){return x.name===st.name;})) return;
+    DB.staff.push({id:uid("s"),name:st.name,role:st.role||"Instructor",phone:"",email:""});
+    added.crew++;
+    if(cfg().roles.indexOf(st.role)<0 && st.role) cfg().roles.push(st.role);
+  });
   (d.spots||[]).forEach(function(sp){
     if(DB.spots.some(function(x){return x.name===sp.name;})) return;
     DB.spots.push({id:uid("sp"),name:sp.name,lat:sp.lat,lon:sp.lon,notes:sp.notes||""});
@@ -1835,7 +1841,8 @@ function importCatalog(){
     }
   });
   save(); render();
-  toast("Imported "+added.products+" products, "+added.gear+" gear, "+added.spots+" spots");
+  toast("Imported "+added.products+" products, "+added.crew+" crew, "+
+        added.gear+" gear, "+added.spots+" spots");
 }
 function importPrompt(){
   var d=seedData();
@@ -1846,10 +1853,11 @@ function importPrompt(){
     return;
   }
   b.appendChild(el("p",null,
-    "Brings in "+d.products.length+" products, "+(d.gear||[]).length+" pieces of gear and "+
-    (d.spots||[]).length+" spots, with their prices, session counts and categories."));
+    "Brings in "+d.products.length+" products, "+(d.staff||[]).length+" crew, "+
+    (d.gear||[]).length+" pieces of gear and "+(d.spots||[]).length+
+    " spots, with prices, session counts, categories and roles."));
   b.appendChild(el("p","hint",
-    "Nothing is overwritten — anything already here under the same name is skipped, so running this twice is harmless. No clients, bookings or history come across."));
+    "Nothing is overwritten — anything already here under the same name is skipped, so running this twice is harmless. No clients, bookings or history come across, and crew arrive as names and roles only, without phone numbers or email addresses."));
   var list=el("div","panel"); list.style.maxHeight="230px"; list.style.overflowY="auto";
   d.products.slice().sort(function(a,b2){return (b2.price||0)-(a.price||0);}).forEach(function(p){
     var r=el("div","slot"); r.style.gridTemplateColumns="1fr auto"; r.style.padding="8px 14px";

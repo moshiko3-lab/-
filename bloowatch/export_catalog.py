@@ -79,13 +79,25 @@ def build():
             "description": (r.get("description") or "").strip(),
         })
 
+    # Names and roles only. Personal phone numbers and email addresses are
+    # deliberately left out: this file gets inlined into a page that can be
+    # shared by URL, and a staff contact list should not travel that way.
+    staff = []
+    for st in _rows(_get(s, base, f"/schools/{sid}/staff/", show_archived="false")):
+        name = " ".join(x for x in (st.get("first_name"), st.get("last_name")) if x).strip()
+        if not name:
+            continue
+        role = (st.get("role") or "staff").strip()
+        staff.append({"name": name, "role": role[:1].upper() + role[1:]})
+
     spots = []
     for sp in _rows(_get(s, base, f"/schools/{sid}/spots/")):
         loc = (sp.get("location") or {}).get("coordinates") or [None, None]
         spots.append({"name": sp.get("name"), "lat": loc[1], "lon": loc[0],
                       "notes": (sp.get("description") or "").strip()})
 
-    return {"products": products, "gear": gear, "categories": cats, "spots": spots}
+    return {"products": products, "gear": gear, "categories": cats,
+            "spots": spots, "staff": staff}
 
 
 def main():
@@ -100,7 +112,8 @@ def main():
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
     print(f"wrote {a.out}: {len(data['products'])} products, {len(data['gear'])} gear, "
-          f"{len(data['categories'])} categories, {len(data['spots'])} spots")
+          f"{len(data['staff'])} crew, {len(data['categories'])} categories, "
+          f"{len(data['spots'])} spots")
     return 0
 
 

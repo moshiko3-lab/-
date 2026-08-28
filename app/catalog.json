@@ -3271,5 +3271,91 @@
    "lon": -80.1897,
    "notes": "Coordinates corrected — Bloowatch had this pinned at lat -87, which is not a real latitude, so its tide lookup never resolved."
   }
+ ],
+ "staff": [
+  {
+   "name": "MOSHIKO LEVY",
+   "role": "Manager"
+  },
+  {
+   "name": "GIGI AMIR",
+   "role": "Manager"
+  },
+  {
+   "name": "EDEN",
+   "role": "Manager"
+  },
+  {
+   "name": "YUVAL VILENSKY",
+   "role": "Manager"
+  },
+  {
+   "name": "INSTRUCTORS - FULL",
+   "role": "Assistant"
+  },
+  {
+   "name": "NAFTALY",
+   "role": "Instructor"
+  },
+  {
+   "name": "INSTRUCTORS - FREELANCE",
+   "role": "Assistant"
+  },
+  {
+   "name": "DYLAN",
+   "role": "Instructor"
+  },
+  {
+   "name": "VICTOR",
+   "role": "Instructor"
+  },
+  {
+   "name": "GUR YOSEF",
+   "role": "Instructor"
+  },
+  {
+   "name": "SHAKED",
+   "role": "Instructor"
+  },
+  {
+   "name": "YOCHAI",
+   "role": "Instructor"
+  },
+  {
+   "name": "YOGA & PILATES",
+   "role": "Assistant"
+  },
+  {
+   "name": "LIAV",
+   "role": "Assistant"
+  },
+  {
+   "name": "BEN",
+   "role": "Assistant"
+  },
+  {
+   "name": "INSTRUCTORS - ASSISTANTS",
+   "role": "Assistant"
+  },
+  {
+   "name": "DANIEL",
+   "role": "Instructor"
+  },
+  {
+   "name": "YONATAN",
+   "role": "Assistant"
+  },
+  {
+   "name": "IDAN",
+   "role": "Assistant"
+  },
+  {
+   "name": "PHOTOGRAPHERS",
+   "role": "Assistant"
+  },
+  {
+   "name": "PAZ",
+   "role": "Manager"
+  }
  ]
 }

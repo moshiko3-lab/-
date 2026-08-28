@@ -36,8 +36,11 @@ the rest of the app never touches storage directly.
 | Day closing | Takings by payment method and by activity |
 | Back office | Business details, spots, activity types, payment methods, roles, custom fields, instructor fee groups, promo codes, partners, accommodation |
 
-The catalog ships with Shokogi's 35 products, 8 pieces of gear and its spots,
-exported from Bloowatch with prices, session counts and categories. It is
+The catalog ships with Shokogi's 35 products, 21 crew, 8 pieces of gear and
+its spots, exported from Bloowatch with prices, session counts, categories and
+roles. Crew arrive as names and roles only — phone numbers and email addresses
+are deliberately left out, because the built page can be shared by URL and a
+staff contact list should not travel that way. It is
 offered, never forced: the app still starts empty, the import skips anything
 already there by name, and no clients, bookings or history come across.
 
