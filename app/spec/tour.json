@@ -1,0 +1,2100 @@
+{
+ "agenda": {
+  "route": "agenda",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Activities",
+   "+ SESSION",
+   "keyboard_arrow_down",
+   "Today",
+   "keyboard_arrow_left",
+   "keyboard_arrow_right",
+   "settings",
+   "filter_list",
+   "group",
+   "more_vert",
+   "more_horiz"
+  ],
+  "fields": [
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "search",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 5725,
+  "final_url": "https://shokogi.bloowatch.com/agenda/activities"
+ },
+ "agenda/activities": {
+  "route": "agenda/activities",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Activities",
+   "+ SESSION",
+   "keyboard_arrow_down",
+   "Today",
+   "keyboard_arrow_left",
+   "keyboard_arrow_right",
+   "settings",
+   "filter_list",
+   "group",
+   "more_vert",
+   "more_horiz"
+  ],
+  "fields": [
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "search",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 5725,
+  "final_url": "https://shokogi.bloowatch.com/agenda/activities"
+ },
+ "agenda/rental": {
+  "route": "agenda/rental",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Activities",
+   "+ SESSION",
+   "keyboard_arrow_down",
+   "Today",
+   "keyboard_arrow_left",
+   "keyboard_arrow_right",
+   "settings",
+   "filter_list",
+   "group",
+   "more_vert",
+   "more_horiz"
+  ],
+  "fields": [
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "search",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 5725,
+  "final_url": "https://shokogi.bloowatch.com/agenda/activities"
+ },
+ "agenda/rents": {
+  "route": "agenda/rents",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/agenda/rents"
+ },
+ "agenda/staff": {
+  "route": "agenda/staff",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/agenda/staff"
+ },
+ "booking": {
+  "route": "booking",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school",
+   "2 SURF LESSON 2024",
+   "Deals",
+   "4 SURF LESSON 2024"
+  ],
+  "buttons": [
+   "BOOK NOW"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 365,
+  "final_url": "https://shokogi.bloowatch.com/booking"
+ },
+ "booking/cart": {
+  "route": "booking/cart",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school",
+   "1. Booking Summary",
+   "2. Billing Information",
+   "3. Validation & Payment"
+  ],
+  "buttons": [],
+  "fields": [
+   {
+    "label": "First Name *",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Last Name *",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "+507Panama (Panamá)+507Afghanistan (‫افغانستان‬‎)+93Albania (Shqipëri)+355Algeri",
+    "type": "tel",
+    "options": null
+   },
+   {
+    "label": "Email is Required!",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "City is Required!",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Zip code is Required!",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Note",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 534,
+  "final_url": "https://shokogi.bloowatch.com/booking/cart"
+ },
+ "booking/checkout": {
+  "route": "booking/checkout",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/booking/checkout"
+ },
+ "booking/complete": {
+  "route": "booking/complete",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/booking/complete"
+ },
+ "booking/products/item": {
+  "route": "booking/products/item",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 28,
+  "final_url": "https://shokogi.bloowatch.com/booking/products/item"
+ },
+ "booking/products/list": {
+  "route": "booking/products/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 28,
+  "final_url": "https://shokogi.bloowatch.com/booking/products/list"
+ },
+ "booking/reservation": {
+  "route": "booking/reservation",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/booking/reservation"
+ },
+ "booking/reservation/participants": {
+  "route": "booking/reservation/participants",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school",
+   "2 SURF LESSON 2024",
+   "Deals",
+   "4 SURF LESSON 2024"
+  ],
+  "buttons": [
+   "BOOK NOW"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 365,
+  "final_url": "https://shokogi.bloowatch.com/booking"
+ },
+ "booking/reservation/sessions": {
+  "route": "booking/reservation/sessions",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school",
+   "2 SURF LESSON 2024",
+   "Deals",
+   "4 SURF LESSON 2024"
+  ],
+  "buttons": [
+   "BOOK NOW"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 365,
+  "final_url": "https://shokogi.bloowatch.com/booking"
+ },
+ "booking/status": {
+  "route": "booking/status",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school",
+   "Transaction Status",
+   "Unexpected Error!"
+  ],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 112,
+  "final_url": "https://shokogi.bloowatch.com/booking/status"
+ },
+ "booking/terms": {
+  "route": "booking/terms",
+  "headings": [
+   "ONLINE BOOKING Shokogi surf school"
+  ],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 146,
+  "final_url": "https://shokogi.bloowatch.com/booking/terms"
+ },
+ "bookings": {
+  "route": "bookings",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Status",
+   "Activity Calendar",
+   "Product",
+   "Invoiced",
+   "Instructor",
+   "refresh",
+   "columns",
+   "15"
+  ],
+  "fields": [
+   {
+    "label": "Search customer Search participants Search booking code",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Booking Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Booking Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Session Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Session Date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "#id",
+   "Name",
+   "Activity Calendar",
+   "Date Created",
+   "Origin",
+   "PAX",
+   "Total",
+   "Due",
+   "Status"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1718,
+  "final_url": "https://shokogi.bloowatch.com/bookings"
+ },
+ "bookings/add": {
+  "route": "bookings/add",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "More",
+   "confirm 0.00 $",
+   "CANCEL"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [
+   "Booking",
+   "More",
+   "person_addAdd Customer"
+  ],
+  "menu": [],
+  "text_len": 1157,
+  "final_url": "https://shokogi.bloowatch.com/bookings/add"
+ },
+ "bookings/creditnote": {
+  "route": "bookings/creditnote",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Refresh",
+   "Columns"
+  ],
+  "fields": [
+   {
+    "label": "Search client name Search booking code",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "ID",
+   "Name",
+   "Order",
+   "Creation Date",
+   "Total"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 289,
+  "final_url": "https://shokogi.bloowatch.com/bookings/creditnote"
+ },
+ "bookings/invoices/list": {
+  "route": "bookings/invoices/list",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 143,
+  "final_url": "https://shokogi.bloowatch.com/bookings/invoices/list"
+ },
+ "bookings/list": {
+  "route": "bookings/list",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 169,
+  "final_url": "https://shokogi.bloowatch.com/bookings/list"
+ },
+ "bookings/payments": {
+  "route": "bookings/payments",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "file_download Export CSV",
+   "file_downloadExport Report",
+   "Refresh",
+   "Columns",
+   "25"
+  ],
+  "fields": [],
+  "columns": [
+   "ID",
+   "Name",
+   "Order",
+   "Payment Date",
+   "Payment Note",
+   "Recipient",
+   "Amount",
+   "Method"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 2076,
+  "final_url": "https://shokogi.bloowatch.com/bookings/payments"
+ },
+ "clients": {
+  "route": "clients",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "file_download Export CSV",
+   "Refresh",
+   "Columns",
+   "more_vert",
+   "10"
+  ],
+  "fields": [
+   {
+    "label": "Search",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Select CSV file to create users",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "file",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Name",
+   "Profile",
+   "Telephone",
+   "Email",
+   "Contact",
+   "Total",
+   "Due"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 880,
+  "final_url": "https://shokogi.bloowatch.com/clients"
+ },
+ "clients/edit/credit": {
+  "route": "clients/edit/credit",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "file_download Export CSV",
+   "Refresh",
+   "Columns",
+   "more_vert",
+   "10"
+  ],
+  "fields": [
+   {
+    "label": "Search",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Select CSV file to create users",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "file",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Name",
+   "Profile",
+   "Telephone",
+   "Email",
+   "Contact",
+   "Total",
+   "Due"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 893,
+  "final_url": "https://shokogi.bloowatch.com/clients"
+ },
+ "clients/list": {
+  "route": "clients/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/clients/list"
+ },
+ "commissions": {
+  "route": "commissions",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "New Commission Group",
+   "Columns"
+  ],
+  "fields": [],
+  "columns": [
+   "Name",
+   "Associated Partners"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 216,
+  "final_url": "https://shokogi.bloowatch.com/commissions"
+ },
+ "commissions/list": {
+  "route": "commissions/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/commissions/list"
+ },
+ "commissions/new": {
+  "route": "commissions/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "ADD PRODUCTS TO THE GROUP",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Enter Name for Commission Group",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Product Name"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 222,
+  "final_url": "https://shokogi.bloowatch.com/commissions/new"
+ },
+ "fees": {
+  "route": "fees",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Instructor",
+   "Create A Fee Statement",
+   "Refresh",
+   "Columns"
+  ],
+  "fields": [
+   {
+    "label": "Starting date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Staff",
+   "Code",
+   "From",
+   "To",
+   "Total",
+   "Status"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 294,
+  "final_url": "https://shokogi.bloowatch.com/fees"
+ },
+ "fees/list": {
+  "route": "fees/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/fees/list"
+ },
+ "fiscal": {
+  "route": "fiscal",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "fiscal/archives": {
+  "route": "fiscal/archives",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "fiscal/duplicates": {
+  "route": "fiscal/duplicates",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "fiscal/tickets": {
+  "route": "fiscal/tickets",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/fiscal/tickets"
+ },
+ "home": {
+  "route": "home",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/home"
+ },
+ "logs": {
+  "route": "logs",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Refresh",
+   "Columns"
+  ],
+  "fields": [],
+  "columns": [
+   "Date",
+   "Staff",
+   "Log Type",
+   "Log Message"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 205,
+  "final_url": "https://shokogi.bloowatch.com/logs"
+ },
+ "logs/list": {
+  "route": "logs/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/logs/list"
+ },
+ "manager": {
+  "route": "manager",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 162,
+  "final_url": "https://shokogi.bloowatch.com/manager"
+ },
+ "manager/accommodations/list": {
+  "route": "manager/accommodations/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/manager/accommodations/list"
+ },
+ "manager/accommodations/new": {
+  "route": "manager/accommodations/new",
+  "headings": [
+   "ADD ACCOMMODATION"
+  ],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "ADD ACCOMMODATION"
+  ],
+  "fields": [
+   {
+    "label": "Accommodation Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Input description",
+    "type": "textarea",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Maximum pax per unit",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Maximum pax per unit",
+    "type": "number",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Maximum pax per unit",
+    "type": "number",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 280,
+  "final_url": "https://shokogi.bloowatch.com/manager/accommodations/new"
+ },
+ "manager/contact": {
+  "route": "manager/contact",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 162,
+  "final_url": "https://shokogi.bloowatch.com/manager/contact"
+ },
+ "manager/gears/list": {
+  "route": "manager/gears/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/manager/gears/list"
+ },
+ "manager/gears/new": {
+  "route": "manager/gears/new",
+  "headings": [
+   "Add Gear"
+  ],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Gear Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Input description",
+    "type": "textarea",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Max Pax /Unit",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Max Pax /Unit",
+    "type": "number",
+    "options": null
+   },
+   {
+    "label": "Unit Name Units Quantity Max Pax /Unit",
+    "type": "number",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 233,
+  "final_url": "https://shokogi.bloowatch.com/manager/gears/new"
+ },
+ "manager/products": {
+  "route": "manager/products",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "NEW PRODUCT",
+   "Edit product categories",
+   "Columns",
+   "25"
+  ],
+  "fields": [],
+  "columns": [
+   "Pos",
+   "Name",
+   "Activity Calendar",
+   "Sessions",
+   "Accommodation",
+   "Price"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1404,
+  "final_url": "https://shokogi.bloowatch.com/manager/products"
+ },
+ "manager/products/create": {
+  "route": "manager/products/create",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "select"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 790,
+  "final_url": "https://shokogi.bloowatch.com/manager/products/create"
+ },
+ "manager/products/create/init": {
+  "route": "manager/products/create/init",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Continue",
+   "Cancel"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [
+   "information",
+   "price",
+   "Add-ons",
+   "ECOMMERCE"
+  ],
+  "menu": [],
+  "text_len": 255,
+  "final_url": "https://shokogi.bloowatch.com/manager/products/create/init"
+ },
+ "manager/products/create/setup": {
+  "route": "manager/products/create/setup",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Continue",
+   "Cancel"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [
+   "information",
+   "price",
+   "Add-ons",
+   "ECOMMERCE"
+  ],
+  "menu": [],
+  "text_len": 255,
+  "final_url": "https://shokogi.bloowatch.com/manager/products/create/setup"
+ },
+ "manager/products/list": {
+  "route": "manager/products/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/manager/products/list"
+ },
+ "manager/promocode": {
+  "route": "manager/promocode",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "NEW PROMO CODE"
+  ],
+  "fields": [],
+  "columns": [
+   "Title",
+   "Promo Code",
+   "Status",
+   "Value",
+   "Usage Count"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 256,
+  "final_url": "https://shokogi.bloowatch.com/manager/promocode"
+ },
+ "manager/promocode/list": {
+  "route": "manager/promocode/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/manager/promocode/list"
+ },
+ "manager/promocode/new": {
+  "route": "manager/promocode/new",
+  "headings": [
+   "Promo Code"
+  ],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Fixed",
+   "Active",
+   "Cancel",
+   "SAVE"
+  ],
+  "fields": [
+   {
+    "label": "Title Promo Code info This is the sequence of character the customer will introd",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Title Promo Code info This is the sequence of character the customer will introd",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Type (€/%) info Promo code can be a fixed amount (for ex : $10) or a percentage ",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 415,
+  "final_url": "https://shokogi.bloowatch.com/manager/promocode/new"
+ },
+ "manager/staff": {
+  "route": "manager/staff",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "NEW STAFF"
+  ],
+  "fields": [],
+  "columns": [
+   "Pos",
+   "Name",
+   "Role",
+   "Telephone",
+   "Hours this month"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1409,
+  "final_url": "https://shokogi.bloowatch.com/manager/staff"
+ },
+ "manager/staff/list": {
+  "route": "manager/staff/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/manager/staff/list"
+ },
+ "manager/staff/new": {
+  "route": "manager/staff/new",
+  "headings": [
+   "ADD STAFF"
+  ],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Assistant",
+   "Add a Group",
+   "Cancel",
+   "SAVE"
+  ],
+  "fields": [
+   {
+    "label": "First Name Last Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "First Name Last Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Role info Define the access rights for this staff. See more information here. As",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Telephone",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address City",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address City",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Birthday Legal Information info This information will be displayed on Fee Statem",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Birthday Legal Information info This information will be displayed on Fee Statem",
+    "type": "textarea",
+    "options": null
+   },
+   {
+    "label": "This staff member will be shown on the planning Position in the staff list",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Activities info Associate a staff to one or more activities. You can create new ",
+    "type": "search",
+    "options": null
+   },
+   {
+    "label": "Activities info Associate a staff to one or more activities. You can create new ",
+    "type": "search",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Fee Group",
+   "Validity Period"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 696,
+  "final_url": "https://shokogi.bloowatch.com/manager/staff/new"
+ },
+ "partners": {
+  "route": "partners",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "New Partner",
+   "Columns"
+  ],
+  "fields": [],
+  "columns": [
+   "Partner Name",
+   "Commission Group",
+   "Telephone"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 224,
+  "final_url": "https://shokogi.bloowatch.com/partners"
+ },
+ "partners/list": {
+  "route": "partners/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/partners/list"
+ },
+ "partners/new": {
+  "route": "partners/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Company Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Partner Code",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "First Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Last Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Email",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Telephone",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address1",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address2",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "City",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Zip code",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Country Country Afghanistan Åland Islands Albania Algeria American Samoa Andorra",
+    "type": "select",
+    "options": [
+     "Country",
+     "Afghanistan",
+     "Åland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola",
+     "Anguilla",
+     "Antarctica",
+     "Antigua and Barbuda",
+     "Argentina",
+     "Armenia",
+     "Aruba"
+    ]
+   },
+   {
+    "label": "Tax ID",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Commission Group Select a Commission Group",
+    "type": "select",
+    "options": [
+     "Select a Commission Group"
+    ]
+   }
+  ],
+  "columns": [],
+  "tabs": [
+   "Information"
+  ],
+  "menu": [],
+  "text_len": 3351,
+  "final_url": "https://shokogi.bloowatch.com/partners/new"
+ },
+ "register": {
+  "route": "register",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "register/list": {
+  "route": "register/list",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "register/pay-in-out": {
+  "route": "register/pay-in-out",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "register/tickets": {
+  "route": "register/tickets",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Today",
+   "More",
+   "Refresh",
+   "Columns",
+   "more_vert"
+  ],
+  "fields": [],
+  "columns": [
+   "Hour",
+   "Activity Calendar",
+   "Instructor",
+   "Title",
+   "Note",
+   "Duration",
+   "Participants"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 1579,
+  "final_url": "https://shokogi.bloowatch.com/"
+ },
+ "report": {
+  "route": "report",
+  "headings": [
+   "Categories Revenue",
+   "Products Revenue"
+  ],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "keyboard_arrow_left",
+   "keyboard_arrow_right",
+   "file_download Export Bookings",
+   "file_download Export Invoices",
+   "file_download Export Payments",
+   "file_download Export Tickets"
+  ],
+  "fields": [
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 945,
+  "final_url": "https://shokogi.bloowatch.com/report"
+ },
+ "sessions": {
+  "route": "sessions",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Creation Date",
+   "Instructor",
+   "Activity Calendar",
+   "content_copy CLONE",
+   "delete Delete",
+   "edit Edit",
+   "file_downloadExport Table",
+   "ADD SESSION",
+   "Columns",
+   "25"
+  ],
+  "fields": [
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Starting Date",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Name",
+   "Creation Date",
+   "Participants",
+   "Staff",
+   "Starting time",
+   "Duration"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 2415,
+  "final_url": "https://shokogi.bloowatch.com/sessions"
+ },
+ "settings": {
+  "route": "settings",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "$ US Dollar(USD)",
+   "Logo",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Official Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Tax ID",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "VAT Number",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Activity Code",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address1",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Address2",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "City",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "ZipCode",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "select",
+    "options": [
+     "Country",
+     "Afghanistan",
+     "Åland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola",
+     "Anguilla",
+     "Antarctica",
+     "Antigua and Barbuda",
+     "Argentina",
+     "Armenia",
+     "Aruba"
+    ]
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "select",
+    "options": [
+     "Timezone",
+     "(undefined) America/Panama"
+    ]
+   },
+   {
+    "label": "Telephone",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Email",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Website",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "select",
+    "options": [
+     "Language",
+     "English",
+     "French",
+     "Spanish"
+    ]
+   },
+   {
+    "label": "Commercial Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "file",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 3462,
+  "final_url": "https://shokogi.bloowatch.com/settings"
+ },
+ "settings/activity-settings/activity/new": {
+  "route": "settings/activity-settings/activity/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Zoom in",
+   "Zoom out",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Insert Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "textarea",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 525,
+  "final_url": "https://shokogi.bloowatch.com/settings/activity-settings/activity/new"
+ },
+ "settings/activity-settings/list": {
+  "route": "settings/activity-settings/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/activity-settings/list"
+ },
+ "settings/activity-settings/new": {
+  "route": "settings/activity-settings/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Zoom in",
+   "Zoom out",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Insert Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "(unlabelled)",
+    "type": "textarea",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 529,
+  "final_url": "https://shokogi.bloowatch.com/settings/activity-settings/new"
+ },
+ "settings/custom-fields": {
+  "route": "settings/custom-fields",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "New Field"
+  ],
+  "fields": [],
+  "columns": [
+   "Name",
+   "Label",
+   "Type"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 315,
+  "final_url": "https://shokogi.bloowatch.com/settings/custom-fields"
+ },
+ "settings/custom-fields/customer-form": {
+  "route": "settings/custom-fields/customer-form",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "New Field"
+  ],
+  "fields": [],
+  "columns": [
+   "Name",
+   "Label",
+   "Type"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 315,
+  "final_url": "https://shokogi.bloowatch.com/settings/custom-fields/customer-form"
+ },
+ "settings/custom-fields/participant-form": {
+  "route": "settings/custom-fields/participant-form",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/custom-fields/participant-form"
+ },
+ "settings/custom-fields/question-form": {
+  "route": "settings/custom-fields/question-form",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "New Field"
+  ],
+  "fields": [],
+  "columns": [
+   "Name",
+   "Label",
+   "Type"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 315,
+  "final_url": "https://shokogi.bloowatch.com/settings/custom-fields/question-form"
+ },
+ "settings/e-commerce": {
+  "route": "settings/e-commerce",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Copy Code"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 765,
+  "final_url": "https://shokogi.bloowatch.com/settings/e-commerce"
+ },
+ "settings/emails": {
+  "route": "settings/emails",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Undo",
+   "Redo",
+   "Formats",
+   "Bold",
+   "Italic",
+   "Text color",
+   "Background color",
+   "Align left",
+   "Align center",
+   "Align right",
+   "Justify",
+   "Bullet list",
+   "Numbered list",
+   "Decrease indent",
+   "Increase indent",
+   "Insert/edit link",
+   "Insert/edit image",
+   "Source code",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 614,
+  "final_url": "https://shokogi.bloowatch.com/settings/emails"
+ },
+ "settings/fee-management/list": {
+  "route": "settings/fee-management/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/fee-management/list"
+ },
+ "settings/fee-management/new": {
+  "route": "settings/fee-management/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Add Activities to the Group",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Enter name for fee group",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Validity Period",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "To",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [
+   "Activity Calendar",
+   "Amount per hour",
+   "Amount per session",
+   "Commission per session %"
+  ],
+  "tabs": [],
+  "menu": [],
+  "text_len": 434,
+  "final_url": "https://shokogi.bloowatch.com/settings/fee-management/new"
+ },
+ "settings/general-settings/list": {
+  "route": "settings/general-settings/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/general-settings/list"
+ },
+ "settings/general-settings/new": {
+  "route": "settings/general-settings/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Save"
+  ],
+  "fields": [
+   {
+    "label": "Payment Method Name",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Account number",
+    "type": "text",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 341,
+  "final_url": "https://shokogi.bloowatch.com/settings/general-settings/new"
+ },
+ "settings/integration/list": {
+  "route": "settings/integration/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/list"
+ },
+ "settings/integration/management": {
+  "route": "settings/integration/management",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 238,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/management"
+ },
+ "settings/integration/management/i-calendar/list": {
+  "route": "settings/integration/management/i-calendar/list",
+  "headings": [],
+  "buttons": [],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 0,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/management/i-calendar/list"
+ },
+ "settings/integration/management/i-calendar/new": {
+  "route": "settings/integration/management/i-calendar/new",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "SAVE"
+  ],
+  "fields": [
+   {
+    "label": "Select staff to share",
+    "type": "search",
+    "options": null
+   },
+   {
+    "label": "Select activities to share",
+    "type": "search",
+    "options": null
+   },
+   {
+    "label": "Select participant custom fields to share",
+    "type": "search",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 820,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/management/i-calendar/new"
+ },
+ "settings/integration/payments": {
+  "route": "settings/integration/payments",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking"
+  ],
+  "fields": [],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 238,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/payments"
+ },
+ "settings/integration/payments/paypal": {
+  "route": "settings/integration/payments/paypal",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Confirm Payment Solution"
+  ],
+  "fields": [
+   {
+    "label": "Test Publishable Key",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   },
+   {
+    "label": "Live Publishable Key",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 394,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/payments/paypal"
+ },
+ "settings/integration/payments/redsys": {
+  "route": "settings/integration/payments/redsys",
+  "headings": [],
+  "buttons": [
+   "account_circle MOSHIKO L.",
+   "+ Booking",
+   "Cancel",
+   "Confirm Payment Solution"
+  ],
+  "fields": [
+   {
+    "label": "Merchant Number",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "Terminal Number",
+    "type": "text",
+    "options": null
+   },
+   {
+    "label": "********",
+    "type": "password",
+    "options": null
+   }
+  ],
+  "columns": [],
+  "tabs": [],
+  "menu": [],
+  "text_len": 471,
+  "final_url": "https://shokogi.bloowatch.com/settings/integration/payments/redsys"
+ }
+}
