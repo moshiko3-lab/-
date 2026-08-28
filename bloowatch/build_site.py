@@ -8,6 +8,7 @@ so the result is one file that can be dropped onto any static host -- no
 server, no build step, no API keys sitting in the page.
 """
 import argparse
+import base64
 import json
 import os
 import sys
@@ -25,8 +26,16 @@ def render(data, template=None):
     # the payload lives inside a <script> block, so its own tags must not close it
     blob = blob.replace("</script>", "<\\/script>")
     out = tpl.replace("/*__DATA__*/", blob)
-    if "/*__DATA__*/" in out:
-        raise RuntimeError("template placeholder was not replaced")
+
+    # the badge is inlined as a data URI so the page stays a single file
+    logo = os.path.join(HERE, "logo.png")
+    if os.path.exists(logo):
+        with open(logo, "rb") as f:
+            out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
+
+    for token in ("/*__DATA__*/", "/*__LOGO__*/"):
+        if token in out:
+            raise RuntimeError(f"template placeholder {token} was not replaced")
     return out
 
 
