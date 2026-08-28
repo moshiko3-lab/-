@@ -7,6 +7,7 @@ session counts, tax, colours and durations, not just names.
     python3 export_catalog.py --out catalog.json
 """
 import argparse
+import datetime as dt
 import json
 import sys
 
@@ -68,13 +69,25 @@ def build():
             "description": (p.get("description") or "").strip(),
         })
 
+    # "units" is not a count -- it is the individual boards, each with its own
+    # name, capacity and service dates. Keep them, that is the useful part.
     gear = []
     for r in _rows(_get(s, base, f"/schools/{sid}/rentals/")):
         if r.get("archived"):
             continue
+        units = []
+        for u in (r.get("units") or []):
+            units.append({
+                "name": u.get("name"),
+                "maxPax": u.get("max_pax") or 1,
+                "purchased": u.get("purchase_date"),
+                "lastCheck": u.get("last_check"),
+                "nextCheck": u.get("next_check"),
+                "notes": (u.get("notes") or "").strip(),
+            })
         gear.append({
             "name": r.get("name"),
-            "units": r.get("units"),
+            "units": units,
             "type": r.get("rental_type"),
             "description": (r.get("description") or "").strip(),
         })
@@ -96,8 +109,41 @@ def build():
         spots.append({"name": sp.get("name"), "lat": loc[1], "lon": loc[0],
                       "notes": (sp.get("description") or "").strip()})
 
+    # The schedule as it stands: sessions from a week back to a month ahead.
+    # Participants are dropped -- they point at clients, which stay behind.
+    sessions = []
+    start = dt.date.today() - dt.timedelta(days=7)
+    cat_by_id = {c["id"]: c for c in cats}
+    for i in range(38):
+        d = (start + dt.timedelta(days=i)).isoformat()
+        try:
+            rows = _rows(_get(s, base, f"/schools/{sid}/sessions/",
+                              date=d, offset=0, limit=100, ordering="starting_time"))
+        except Exception:
+            continue
+        for x in rows:
+            st = x.get("starting_time") or ""
+            try:
+                hhmm = dt.datetime.strptime(st[:25].strip(),
+                                            "%a, %d %b %Y %H:%M:%S").strftime("%H:%M")
+            except ValueError:
+                hhmm = "09:00"
+            cat = cat_by_id.get(x.get("category"), {})
+            dur = str(x.get("duration") or "01:00:00").split(":")
+            try:
+                mins = int(dur[0]) * 60 + int(dur[1])
+            except (ValueError, IndexError):
+                mins = 60
+            sessions.append({
+                "date": d, "time": hhmm,
+                "title": x.get("name") or cat.get("name") or "Session",
+                "category": cat.get("name") or "",
+                "duration": mins,
+                "capacity": x.get("max_attendants") or x.get("allowed_attendants") or 1,
+            })
+
     return {"products": products, "gear": gear, "categories": cats,
-            "spots": spots, "staff": staff}
+            "spots": spots, "staff": staff, "sessions": sessions}
 
 
 def main():
@@ -111,9 +157,11 @@ def main():
         return 1
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
-    print(f"wrote {a.out}: {len(data['products'])} products, {len(data['gear'])} gear, "
-          f"{len(data['staff'])} crew, {len(data['categories'])} categories, "
-          f"{len(data['spots'])} spots")
+    units = sum(len(g["units"]) for g in data["gear"])
+    print(f"wrote {a.out}: {len(data['products'])} products, {len(data['gear'])} gear types "
+          f"({units} individual units), {len(data['staff'])} crew, "
+          f"{len(data['categories'])} categories, {len(data['spots'])} spots, "
+          f"{len(data['sessions'])} sessions")
     return 0
 
 

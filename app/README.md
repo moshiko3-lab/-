@@ -31,18 +31,26 @@ the rest of the app never touches storage directly.
 | Bookings | Items, prices, payments, outstanding balance; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend |
 | Catalog | Lessons, courses, rentals, photography, with prices |
-| Gear | Boards and kit, units in stock, what is out of service and until when |
+| Gear | Each board and suit by name, with service dates, what is out and until when |
 | Crew | Instructors and assistants, role, session count, time off |
 | Day closing | Takings by payment method and by activity |
 | Invoices | A frozen copy of a booking, numbered and printable |
 | Reports | Monthly and yearly takings, by method, activity, product and day |
 | Back office | Business details, spots, activity types, payment methods, roles, custom fields, instructor fee groups, promo codes, partners, accommodation |
 
-The catalog ships with Shokogi's 35 products, 21 crew, 8 pieces of gear and
-its spots, exported from Bloowatch with prices, session counts, categories and
-roles. Crew arrive as names and roles only — phone numbers and email addresses
-are deliberately left out, because the built page can be shared by URL and a
-staff contact list should not travel that way. It is
+Everything except clients comes across from Bloowatch and loads by itself the
+first time the app is opened: 35 products with prices and session counts, 21
+crew, 12 activity calendars with their colours, 267 individually named boards
+and suits across 8 gear types, both spots, and the schedule from a week back to
+a month ahead.
+
+Three things stay behind on purpose. Clients, bookings and payment history,
+which is what "start from zero" meant. Session participants, because they point
+at those clients. And crew phone numbers and email addresses, because the built
+page inlines this data and can be shared by URL.
+
+A wipe in the back office clears the records and does not invite the catalog
+back in. It is
 offered, never forced: the app still starts empty, the import skips anything
 already there by name, and no clients, bookings or history come across.
 

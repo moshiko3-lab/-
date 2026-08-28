@@ -409,6 +409,82 @@ function secHeader(host,title,sub,actionLabel,onAction){
   host.appendChild(h);
 }
 
+
+/* ============================ custom fields on forms ============================
+   The back office defines these; every form that can carry them renders them
+   here, so a field added in settings actually shows up where it was aimed. */
+function fieldsFor(scope){
+  return (cfg().customFields||[]).filter(function(f){return f.applies===scope;});
+}
+function customInputs(scope,values){
+  /* returns {nodes:[…], read:fn} so callers stay short */
+  var defs=fieldsFor(scope), made=[];
+  var wrap=el("div");
+  defs.forEach(function(f,i){
+    var key="cf"+i+"_"+f.label;
+    var cur=(values||{})[f.label];
+    var node;
+    if(f.type==="checkbox"){
+      node=input("checkbox"); node.checked=!!cur; node.style.width="auto";
+    } else if(f.type==="select"){
+      var opts=(f.options||"").split(",").map(function(x){return x.trim();})
+        .filter(Boolean).map(function(x){return {v:x,l:x};});
+      node=select([{v:"",l:"—"}].concat(opts),cur||"");
+    } else {
+      node=input(f.type==="number"?"number":(f.type==="date"?"date":"text"),cur||"");
+    }
+    wrap.appendChild(field(f.label+(f.required?" *":""),node));
+    made.push({def:f,node:node});
+  });
+  return {
+    node:wrap,
+    any:defs.length>0,
+    missing:function(){
+      for(var i=0;i<made.length;i++){
+        var m=made[i];
+        if(!m.def.required) continue;
+        var v=m.def.type==="checkbox"?m.node.checked:m.node.value;
+        if(!v) return m.def.label;
+      }
+      return null;
+    },
+    read:function(){
+      var out={};
+      made.forEach(function(m){
+        out[m.def.label]=m.def.type==="checkbox"?m.node.checked:m.node.value;
+      });
+      return out;
+    }
+  };
+}
+
+/* ============================ csv export ============================ */
+function csvCell(v){
+  var s=v==null?"":String(v);
+  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function csvText(headers,rows){
+  return [headers.map(csvCell).join(",")]
+    .concat(rows.map(function(r){return r.map(csvCell).join(",");})).join("\n");
+}
+function exportCsv(name,headers,rows){
+  if(!rows.length){ toast("Nothing to export."); return; }
+  var text=csvText(headers,rows);
+  /* The viewer sandbox blocks downloads a page starts itself, so the file is
+     handed over as selectable text rather than a link that silently does
+     nothing. */
+  var b=el("div");
+  b.appendChild(el("p",null,rows.length+" rows. Copy this and save it as "+name+".csv"));
+  var ta=el("textarea"); ta.value=text; ta.setAttribute("aria-label","CSV data");
+  ta.style.minHeight="230px"; ta.style.fontFamily="'IBM Plex Mono',monospace";
+  ta.style.fontSize="11.5px"; ta.style.whiteSpace="pre";
+  b.appendChild(field("CSV",ta));
+  openModal("Export "+name,b,[
+    {label:"Close",on:closeModal},
+    {label:"Select all",cls:"primary",on:function(){ta.focus();ta.select();toast("Now copy it");}}
+  ]);
+}
+
 /* ============================ clients ============================ */
 function clientForm(existing){
   var c=existing||{name:"",email:"",phone:"",country:"",notes:""};
@@ -424,13 +500,19 @@ function clientForm(existing){
   b.appendChild(g);
   b.appendChild(field("Country",country));
   b.appendChild(field("Notes",notes));
+  var cf=customInputs("client",c.custom);
+  if(cf.any){ b.appendChild(el("div","lines-h").appendChild(el("h4",null,"Extra")).parentNode);
+              b.appendChild(cf.node); }
   openModal(existing?"Edit client":"New client",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       if(!name.value.trim()){ toast("A name is required."); name.focus(); return; }
+      var miss=cf.missing();
+      if(miss){ toast(miss+" is required."); return; }
       var rec=existing||{id:uid("c")};
       rec.name=name.value.trim(); rec.email=email.value.trim(); rec.phone=phone.value.trim();
       rec.country=country.value.trim(); rec.notes=notes.value.trim();
+      rec.custom=cf.read();
       if(!existing){ rec.created=todayISO(); DB.clients.push(rec); }
       save(); closeModal(); render(); toast(existing?"Client updated":"Client added");
     }}
@@ -452,7 +534,18 @@ function renderClients(){
   q.addEventListener("input",function(){clientQ=q.value;renderClients();
     var n=document.querySelector("#p-clients .searchbar input"); if(n){n.focus();
       n.setSelectionRange(n.value.length,n.value.length);}});
-  sb.appendChild(q); host.appendChild(sb);
+  sb.appendChild(q);
+  var xc=el("button","btn sm","Export CSV");
+  xc.addEventListener("click",function(){
+    exportCsv("clients",["Name","Email","Phone","Country","Bookings","Spent","Notes"],
+      DB.clients.map(function(c){
+        var bk=DB.bookings.filter(function(b){return b.clientId===c.id;});
+        return [c.name,c.email,c.phone,c.country,bk.length,
+                bk.reduce(function(a,b){return a+bookingPaid(b);},0).toFixed(2),c.notes];
+      }));
+  });
+  sb.appendChild(xc);
+  host.appendChild(sb);
 
   var term=clientQ.trim().toLowerCase();
   var rows=DB.clients.filter(function(c){
@@ -819,6 +912,9 @@ function renderSchedule(){
     cap.appendChild(chip); r.appendChild(cap);
     var act=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){sessionForm(s);});
+    var cl=el("button","btn sm","Clone");
+    cl.title="Copy this session to another day";
+    cl.addEventListener("click",function(){cloneSessionForm(s);});
     var d=el("button","btn sm danger","Del");
     d.addEventListener("click",function(){
       confirmDelete("this session",function(){
@@ -826,10 +922,40 @@ function renderSchedule(){
         save(); render(); toast("Session deleted");
       });
     });
-    act.appendChild(e); act.appendChild(d); r.appendChild(act);
+    act.appendChild(e); act.appendChild(cl); act.appendChild(d); r.appendChild(act);
     box.appendChild(r);
   });
   host.appendChild(box);
+}
+function cloneSessionForm(src){
+  var b=el("div");
+  b.appendChild(el("p",null,"Copy “"+src.title+"” to other days. Participants are not copied."));
+  var from=input("date",src.date);
+  var count=input("number",1,{min:"1",max:"60",step:"1"});
+  var every=select([{v:"1",l:"Every day"},{v:"7",l:"Same weekday, every week"}],"1");
+  var g=el("div","grid2");
+  g.appendChild(field("Starting on",from)); g.appendChild(field("How many copies",count));
+  b.appendChild(g);
+  b.appendChild(field("Repeat",every));
+  openModal("Clone session",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Clone",cls:"primary",on:function(){
+      var n=Math.max(1,Math.min(60,Number(count.value)||1));
+      var step=Number(every.value)||1;
+      var start=new Date((from.value||src.date)+"T12:00:00");
+      var made=0;
+      for(var i=0;i<n;i++){
+        var d=iso(new Date(start.getTime()+i*step*864e5));
+        if(d===src.date && i===0 && from.value===src.date){ /* keep the original */ }
+        DB.sessions.push({id:uid("se"),title:src.title,date:d,time:src.time,
+          duration:src.duration,capacity:src.capacity,staffId:src.staffId,spot:src.spot,
+          tideRef:src.tideRef||"",tidePos:src.tidePos||"before",tideHours:src.tideHours||0,
+          participants:[]});
+        made++;
+      }
+      save(); closeModal(); render(); toast(made+" session"+(made===1?"":"s")+" created");
+    }}
+  ]);
 }
 
 /* ============================ bookings ============================ */
@@ -931,6 +1057,8 @@ function bookingForm(existing){
 
   var notes=el("textarea"); notes.value=bk.notes||"";
   b.appendChild(field("Notes",notes));
+  var bcf=customInputs("booking",bk.custom);
+  if(bcf.any) b.appendChild(bcf.node);
 
   drawLines(); drawPays(); recalc();
 
@@ -943,6 +1071,9 @@ function bookingForm(existing){
       rec.lines=working.lines.filter(function(l){return l.productId;});
       rec.payments=working.payments.filter(function(p){return Number(p.amount)>0;});
       rec.notes=notes.value.trim();
+      var bmiss=bcf.missing();
+      if(bmiss){ toast(bmiss+" is required."); return; }
+      rec.custom=bcf.read();
       if(!existing) DB.bookings.push(rec);
       save(); closeModal(); render(); toast(existing?"Booking updated":"Booking saved");
     }}
@@ -1001,9 +1132,22 @@ function renderBookings(){
       bkFilter={q:"",status:"all",from:"",to:""}; renderBookings();});
     sb.appendChild(clr);
   }
+  var xb=el("button","btn sm","Export CSV");
+  xb.addEventListener("click",function(){
+    exportCsv("bookings",["Date","Client","Items","Total","Paid","Due","Status","Notes"],
+      rowsForExport().map(function(bk){
+        return [bk.date,clientName(bk.clientId),
+          (bk.lines||[]).map(function(l){var p=product(l.productId);
+            return (l.qty>1?l.qty+"x ":"")+(p?p.name:"");}).join("; "),
+          bookingTotal(bk).toFixed(2),bookingPaid(bk).toFixed(2),
+          Math.max(0,bookingDue(bk)).toFixed(2),bookingStatus(bk),bk.notes||""];
+      }));
+  });
+  sb.appendChild(xb);
   host.appendChild(sb);
 
   var term=bkFilter.q.trim().toLowerCase();
+  function rowsForExport(){ return rows; }
   var rows=DB.bookings.filter(function(bk){
     if(bkFilter.status!=="all" && bookingStatus(bk)!==bkFilter.status) return false;
     if(bkFilter.from && bk.date<bkFilter.from) return false;
@@ -1570,30 +1714,73 @@ function renderToday(){
 
 
 /* ============================ gear ============================ */
+function unitCount(g){ return (g.units||[]).length; }
 function gearForm(existing){
-  var g=existing||{name:"",units:1,maxPax:1,description:""};
+  var g=existing||{name:"",units:[],description:""};
+  var working=(g.units||[]).slice();
   var b=el("div");
   var name=input("text",g.name,{placeholder:"e.g. Soft-boards"});
-  var units=input("number",g.units,{min:"0",step:"1"});
-  var pax=input("number",g.maxPax,{min:"1",step:"1"});
   var desc=el("textarea"); desc.value=g.description||"";
   b.appendChild(field("Gear name",name));
-  var gr=el("div","grid2");
-  gr.appendChild(field("Units in stock",units));
-  gr.appendChild(field("Max people per unit",pax));
-  b.appendChild(gr);
   b.appendChild(field("Description",desc));
+
+  var host=el("div");
+  function draw(){
+    host.textContent="";
+    if(!working.length){ host.appendChild(el("div","hint","No items yet.")); return; }
+    working.forEach(function(u,i){
+      var row=el("div","line"); row.style.gridTemplateColumns="1fr 62px auto";
+      var n=input("text",u.name,{placeholder:"Board name or number"});
+      n.addEventListener("input",function(){u.name=n.value;});
+      var mp=input("number",u.maxPax,{min:"1",step:"1"});
+      mp.addEventListener("input",function(){u.maxPax=Number(mp.value)||1;});
+      var rm=el("button","btn sm danger","×");
+      rm.addEventListener("click",function(){working.splice(i,1);draw();});
+      row.appendChild(n); row.appendChild(mp); row.appendChild(rm);
+      host.appendChild(row);
+    });
+  }
+  var lh=el("div","lines-h");
+  lh.appendChild(el("h4",null,"Individual items — name / max pax"));
+  var add=el("button","btn sm","Add item");
+  add.addEventListener("click",function(){
+    working.push({id:uid("u"),name:"",maxPax:1}); draw();});
+  lh.appendChild(add);
+  b.appendChild(lh); b.appendChild(host); draw();
+  b.appendChild(el("div","hint",
+    "Each board or suit is tracked on its own, so availability is a real count and a specific item can be pulled from service."));
+
   openModal(existing?"Edit gear":"Add gear",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       if(!name.value.trim()){toast("A name is required.");name.focus();return;}
       var rec=existing||{id:uid("g")};
-      rec.name=name.value.trim(); rec.units=Number(units.value)||0;
-      rec.maxPax=Number(pax.value)||1; rec.description=desc.value.trim();
+      rec.name=name.value.trim(); rec.description=desc.value.trim();
+      rec.units=working.filter(function(u){return (u.name||"").trim();});
       if(!existing) DB.gear.push(rec);
       save(); closeModal(); render(); toast(existing?"Gear updated":"Gear added");
     }}
   ]);
+}
+function gearUnitsView(g){
+  var b=el("div");
+  var out=gearOutOn(g.id,todayISO());
+  b.appendChild(el("p","hint",unitCount(g)+" items, "+out+" out of service today."));
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Item","Max pax","Last check","Next check"].forEach(function(h,i){
+    tr.appendChild(el("th",i===1?"r":null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  (g.units||[]).forEach(function(u){
+    var r=el("tr");
+    r.appendChild(el("td","strong",u.name));
+    r.appendChild(el("td","n r",String(u.maxPax||1)));
+    r.appendChild(el("td",u.lastCheck?null:"muted",u.lastCheck||"—"));
+    r.appendChild(el("td",u.nextCheck?null:"muted",u.nextCheck||"—"));
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  return b;
 }
 function gearBlockForm(existing){
   if(!DB.gear.length){ toast("Add a piece of gear first."); return; }
@@ -1629,27 +1816,32 @@ function gearOutOn(gid,dateStr){
 }
 function renderGear(){
   var host=document.getElementById("p-gear"); host.textContent="";
-  var total=DB.gear.reduce(function(a,g){return a+(Number(g.units)||0);},0);
+  var total=DB.gear.reduce(function(a,g){return a+unitCount(g);},0);
   secHeader(host,"Gear",DB.gear.length?(total+" units across "+DB.gear.length+" types"):"",
     "Add gear",function(){gearForm(null);});
   if(!DB.gear.length){
     host.appendChild(emptyState("🏄‍♂️","No gear yet",
-      "Track boards, wetsuits and anything else you hand out, so you can see what is available on a given day.",
+      "Track boards, wetsuits and anything else you hand out. Each item is listed on its own, so availability on a day is a real count.",
       "Add the first item",function(){gearForm(null);}));
     return;
   }
   var t=todayISO();
   var w=el("div","panel tbl-wrap"),tb0=el("table"),th=el("thead"),tr=el("tr");
-  ["Gear","Units","Max pax","Out today","Available today",""].forEach(function(h,i){
-    tr.appendChild(el("th",(i>=1&&i<=4)?"r":null,h));});
+  ["Gear","Items","Out today","Available today",""].forEach(function(h,i){
+    tr.appendChild(el("th",(i>=1&&i<=3)?"r":null,h));});
   th.appendChild(tr); tb0.appendChild(th);
   var tb=el("tbody");
   DB.gear.forEach(function(g){
-    var out=gearOutOn(g.id,t), avail=(Number(g.units)||0)-out;
+    var out=gearOutOn(g.id,t), avail=unitCount(g)-out;
     var r=el("tr");
-    r.appendChild(el("td","strong",g.name));
-    r.appendChild(el("td","n r",String(g.units)));
-    r.appendChild(el("td","n r",String(g.maxPax)));
+    var nc=el("td","strong",g.name);
+    if(unitCount(g)){
+      nc.style.cursor="pointer"; nc.title="See the individual items";
+      nc.addEventListener("click",function(){
+        openModal(g.name,gearUnitsView(g),[{label:"Close",on:closeModal}]);});
+    }
+    r.appendChild(nc);
+    r.appendChild(el("td","n r",String(unitCount(g))));
     r.appendChild(el("td","n r"+(out?"":" muted"),out?String(out):"—"));
     var av=el("td","n r");
     av.appendChild(el("span","chip "+(avail<=0?"critc":(out?"warnc":"ok")),String(avail)));
@@ -2080,7 +2272,8 @@ function renderSettings(){
       addLabel:"Add type",
       read:function(x){
         var n=DB.products.filter(function(p){return p.kind===x.k;}).length;
-        return {title:x.l,sub:n+" product"+(n===1?"":"s")+" · code "+x.k};},
+        return {title:x.l,sub:n+" product"+(n===1?"":"s")+" · code "+x.k+
+          (x.color?" · "+x.color:"")};},
       form:function(x,i){kindForm(x,i);},
       del:function(x){cfg().kinds=cfg().kinds.filter(function(y){return y.k!==x.k;});}
     }));
@@ -2168,7 +2361,7 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.seeded=true;
       save();render();toast("All records cleared");
     });
   });
@@ -2191,7 +2384,7 @@ function seedData(){
 function importCatalog(){
   var d=seedData();
   if(!d){ toast("No catalog is bundled with this build."); return; }
-  var added={products:0,gear:0,spots:0,kinds:0,crew:0};
+  var added={products:0,gear:0,units:0,spots:0,kinds:0,crew:0,sessions:0,cats:0};
 
   d.products.forEach(function(p){
     if(DB.products.some(function(x){return x.name===p.name;})) return;
@@ -2202,9 +2395,21 @@ function importCatalog(){
   });
   (d.gear||[]).forEach(function(g){
     if(DB.gear.some(function(x){return x.name===g.name;})) return;
-    DB.gear.push({id:uid("g"),name:g.name,units:g.units||0,maxPax:1,
-      description:g.description||""});
-    added.gear++;
+    var units=(g.units||[]).map(function(u){
+      return {id:uid("u"),name:u.name||"",maxPax:u.maxPax||1,
+              lastCheck:u.lastCheck||"",nextCheck:u.nextCheck||"",notes:u.notes||""};
+    });
+    DB.gear.push({id:uid("g"),name:g.name,units:units,description:g.description||""});
+    added.gear++; added.units+=units.length;
+  });
+
+  /* activity calendars become activity types, keeping their colour */
+  (d.categories||[]).forEach(function(c){
+    if(!c.name) return;
+    var code=c.name.toLowerCase().replace(/[^a-z0-9]+/g,"_");
+    if(cfg().kinds.some(function(k){return k.k===code||k.l===c.name;})) return;
+    cfg().kinds.push({k:code,l:c.name,color:c.color||""});
+    added.cats++;
   });
   (d.staff||[]).forEach(function(st){
     if(DB.staff.some(function(x){return x.name===st.name;})) return;
@@ -2224,9 +2429,21 @@ function importCatalog(){
       added.kinds++;
     }
   });
-  save(); render();
-  toast("Imported "+added.products+" products, "+added.crew+" crew, "+
-        added.gear+" gear, "+added.spots+" spots");
+  /* the schedule, without participants -- those point at clients, which stay put */
+  (d.sessions||[]).forEach(function(x){
+    if(DB.sessions.some(function(y){
+      return y.date===x.date && y.time===x.time && y.title===x.title;})) return;
+    DB.sessions.push({id:uid("se"),title:x.title,date:x.date,time:x.time,
+      duration:x.duration||60,capacity:x.capacity||1,staffId:null,
+      spot:(DB.spots[0]||{}).name||"",tideRef:"",tidePos:"before",tideHours:0,
+      participants:[],category:x.category||""});
+    added.sessions++;
+  });
+
+  save();
+  if(typeof cur!=="undefined" && cur) render();
+  toast("Loaded "+added.products+" products, "+added.crew+" crew, "+
+        added.units+" gear items and "+added.sessions+" sessions");
 }
 function importPrompt(){
   var d=seedData();
@@ -2238,8 +2455,9 @@ function importPrompt(){
   }
   b.appendChild(el("p",null,
     "Brings in "+d.products.length+" products, "+(d.staff||[]).length+" crew, "+
-    (d.gear||[]).length+" pieces of gear and "+(d.spots||[]).length+
-    " spots, with prices, session counts, categories and roles."));
+    (d.gear||[]).reduce(function(a,g){return a+(g.units||[]).length;},0)+
+    " individual gear items, "+(d.sessions||[]).length+" scheduled sessions and "+
+    (d.spots||[]).length+" spots — with prices, session counts, categories, colours and roles."));
   b.appendChild(el("p","hint",
     "Nothing is overwritten — anything already here under the same name is skipped, so running this twice is harmless. No clients, bookings or history come across, and crew arrive as names and roles only, without phone numbers or email addresses."));
   var list=el("div","panel"); list.style.maxHeight="230px"; list.style.overflowY="auto";
@@ -2323,6 +2541,14 @@ function show(id){
 }
 function render(){
   for(var i=0;i<TABS.length;i++) if(TABS[i].id===cur){ TABS[i].r(); return; }
+}
+
+/* The catalog was asked for, so it should simply be there. It loads once, on a
+   database nobody has put anything into yet; after a deliberate wipe the flag
+   stays set and it does not come back uninvited. */
+if(!DB.seeded && !DB.products.length && !DB.staff.length && seedData()){
+  DB.seeded=true;
+  importCatalog();
 }
 
 var saved=null; try{ saved=localStorage.getItem("shokogi.manager.tab"); }catch(e){}
