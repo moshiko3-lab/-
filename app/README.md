@@ -58,6 +58,11 @@ already there by name, and no clients, bookings or history come across.
 
 Assigning an instructor who is booked off that day says so in the form.
 
+A seat in a session holds either a saved client or somebody named on a booking
+who was never a client — the seating dialog, the board's rail, the trip
+manifests and the day's client list all resolve both, and say which a person
+came from.
+
 Sessions can be pinned to the tide rather than the clock — "2h before high
 tide" — which is why a spot carries coordinates. Tide times are entered per
 day; a day without them says so rather than drawing a curve that would be

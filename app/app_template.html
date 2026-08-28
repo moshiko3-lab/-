@@ -1561,36 +1561,84 @@ function tideLabel(s){
   return s.tideHours+"h "+s.tidePos+" "+(s.tideRef==="high"?"high":"low")+" tide";
 }
 function participantsForm(sess){
+  var people=peopleOn(sess.date);
   var b=el("div");
-  if(!DB.clients.length){
-    b.appendChild(el("p",null,"Add a client first — participants are picked from your client list."));
+  if(!people.length){
+    b.appendChild(el("p",null,
+      "Nobody to seat yet. Add a client, or name participants on a booking."));
     openModal("Participants",b,[{label:"Close",on:closeModal}]);
     return;
   }
-  var list=el("div");
-  DB.clients.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);}).forEach(function(c){
-    var row=el("label","line"); row.style.gridTemplateColumns="auto 1fr";
-    row.style.alignItems="center"; row.style.cursor="pointer";
-    var cb=input("checkbox"); cb.checked=sess.participants.indexOf(c.id)>=0;
-    cb.style.width="auto";
-    cb.addEventListener("change",function(){
-      if(cb.checked){
-        if(sess.participants.length>=sess.capacity){ cb.checked=false;
-          toast("Session is at capacity ("+sess.capacity+")."); return; }
-        sess.participants.push(c.id);
-      } else {
-        sess.participants=sess.participants.filter(function(x){return x!==c.id;});
-      }
-      save(); render();
+  var head=el("p","hint");
+  function refreshHead(){
+    head.textContent=sess.participants.length+" of "+sess.capacity+" seats taken"+
+      (sess.minCapacity?(", minimum "+sess.minCapacity):"")+".";
+    head.style.color = sess.participants.length>=sess.capacity ? "var(--warn)"
+      : (sess.minCapacity && sess.participants.length<sess.minCapacity ? "var(--crit)" : "");
+  }
+  refreshHead(); b.appendChild(head);
+
+  var q=input("search","",{placeholder:"Search a name"});
+  b.appendChild(field("Find",q));
+  var listHost=el("div");
+  listHost.style.cssText="max-height:46vh;overflow-y:auto";
+  b.appendChild(listHost);
+
+  function draw(){
+    listHost.textContent="";
+    var term=(q.value||"").trim().toLowerCase();
+    var rows=people.filter(function(x){
+      return !term || x.name.toLowerCase().indexOf(term)>=0;});
+    /* seated first, then everyone else */
+    rows.sort(function(a,b2){
+      var sa=sess.participants.indexOf(a.ref)>=0?0:1;
+      var sb=sess.participants.indexOf(b2.ref)>=0?0:1;
+      return sa!==sb ? sa-sb : a.name.localeCompare(b2.name);
     });
-    row.appendChild(cb); row.appendChild(el("span",null,c.name));
-    list.appendChild(row);
-  });
-  b.appendChild(el("p","hint","Booked "+sess.participants.length+" of "+sess.capacity+" places."));
-  b.appendChild(list);
-  openModal("Participants · "+sess.title,b,[{label:"Done",cls:"primary",on:function(){
+    if(!rows.length){ listHost.appendChild(el("div","note","Nobody matches."));return; }
+    rows.forEach(function(x){
+      var seated=sess.participants.indexOf(x.ref)>=0;
+      var row=el("label");
+      row.style.cssText="display:flex;align-items:center;gap:10px;padding:8px 10px;"+
+        "border:1px solid "+(seated?"var(--accent)":"var(--line-soft)")+";border-radius:9px;"+
+        "margin-bottom:6px;cursor:pointer;background:"+(seated?"var(--accent-soft)":"var(--panel-2)");
+      var cb=input("checkbox"); cb.checked=seated; cb.style.width="auto";
+      cb.addEventListener("change",function(){
+        if(cb.checked){
+          if(sess.participants.length>=sess.capacity){
+            cb.checked=false; toast("Session is at capacity ("+sess.capacity+")."); return; }
+          sess.participants.push(x.ref);
+        } else {
+          sess.participants=sess.participants.filter(function(r){return r!==x.ref;});
+        }
+        save(); refreshHead(); draw(); render();
+      });
+      row.appendChild(cb);
+      var mid=el("div"); mid.style.flex="1";
+      var nm=el("div",null,x.name); nm.style.cssText="font-weight:600;font-size:13.5px";
+      mid.appendChild(nm);
+      var bits=[x.from];
+      if(x.age!==""&&x.age!=null) bits.push(x.age+"y");
+      if(x.level) bits.push(x.level);
+      if(x.wetsuit) bits.push("wetsuit "+x.wetsuit);
+      mid.appendChild(el("div","hint",bits.filter(Boolean).join(" · ")));
+      row.appendChild(mid);
+      var ds=x.clientId?docsFor(x.clientId):[];
+      if(x.clientId && !ds.length) row.appendChild(el("span","chip critc","no waiver"));
+      else if(ds.length){
+        var worst=ds.map(docStatus).reduce(function(a,y){
+          var rank={ok:0,warnc:1,critc:2}; return rank[y.k]>rank[a.k]?y:a;});
+        if(worst.k!=="ok") row.appendChild(el("span","chip "+worst.k,worst.l));
+      }
+      listHost.appendChild(row);
+    });
+  }
+  q.addEventListener("input",draw);
+  draw();
+  openModal("Seat people · "+sess.title,b,[{label:"Done",cls:"primary",on:function(){
     closeModal(); render();}}]);
 }
+
 var planTab="sessions";
 var planFilter={cat:"",staff:"",level:"",fill:""};
 function planFilterActive(){
@@ -1943,11 +1991,14 @@ function renderSchedule(){
       var chips=el("div");
       chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center";
       chips.appendChild(el("span","eyebrow","In this session"));
-      x.participants.forEach(function(cid){
-        var ch=el("span","chip neutral",clientName(cid));
-        ch.style.cursor="pointer"; ch.title="Open client";
-        ch.addEventListener("click",function(){
-          var c=by(cid,DB.clients); if(c) clientForm(c);});
+      x.participants.forEach(function(ref){
+        var si=seatInfo(ref);
+        var ch=el("span","chip "+(si.missing?"critc":"neutral"),si.name);
+        if(si.clientId){
+          ch.style.cursor="pointer"; ch.title="Open client";
+          ch.addEventListener("click",function(){
+            var c=by(si.clientId,DB.clients); if(c) clientForm(c);});
+        }
         chips.appendChild(ch);
       });
       cell.appendChild(chips); sub.appendChild(cell); tb.appendChild(sub);
@@ -1973,12 +2024,12 @@ function clientListFor(dateStr){
     .sort(function(a,b){return a.time<b.time?-1:1;});
   var per={};
   day.forEach(function(x){
-    x.participants.forEach(function(cid){
-      (per[cid]=per[cid]||[]).push(x);
+    x.participants.forEach(function(ref){
+      (per[ref]=per[ref]||[]).push(x);
     });
   });
   var ids=Object.keys(per).sort(function(a,b){
-    return clientName(a).localeCompare(clientName(b));});
+    return seatName(a).localeCompare(seatName(b));});
   var b=el("div");
   b.appendChild(el("p","hint",
     dowOf(dateStr)+", "+dm(dateStr)+" — "+ids.length+" client"+(ids.length===1?"":"s")+
@@ -1993,13 +2044,14 @@ function clientListFor(dateStr){
   ["Client","Contact","Sessions"].forEach(function(h){tr.appendChild(el("th",null,h));});
   th.appendChild(tr); t.appendChild(th);
   var tbody=el("tbody");
-  ids.forEach(function(cid){
-    var c=by(cid,DB.clients)||{};
+  ids.forEach(function(ref){
+    var si=seatInfo(ref);
+    var c=si.clientId?(by(si.clientId,DB.clients)||{}):{};
     var r=el("tr");
-    r.appendChild(el("td","strong",c.name||"—"));
+    r.appendChild(el("td","strong",si.name));
     r.appendChild(el("td","muted",[c.phone,c.email].filter(Boolean).join(" · ")||"—"));
     var sc=el("td");
-    per[cid].forEach(function(x){
+    per[ref].forEach(function(x){
       var ch=el("span","chip pink",x.time+" "+x.title);
       ch.style.marginRight="5px";
       sc.appendChild(ch);
@@ -2011,11 +2063,13 @@ function clientListFor(dateStr){
   openModal("Client list · "+dm(dateStr),b,[
     {label:"Close",on:closeModal},
     {label:"Export",cls:"primary",on:function(){
-      exportCsv("clients-"+dateStr,["Client","Phone","Email","Sessions"],
-        ids.map(function(cid){
-          var c=by(cid,DB.clients)||{};
-          return [c.name||"",c.phone||"",c.email||"",
-                  per[cid].map(function(x){return x.time+" "+x.title;}).join("; ")];
+      exportCsv("clients-"+dateStr,["Name","From","Phone","Email","Sessions"],
+        ids.map(function(ref){
+          var si=seatInfo(ref);
+          var c=si.clientId?(by(si.clientId,DB.clients)||{}):{};
+          return [si.name,si.kind==="client"?"client":"booking",
+                  c.phone||"",c.email||"",
+                  per[ref].map(function(x){return x.time+" "+x.title;}).join("; ")];
         }));
     }}
   ]);
@@ -2123,21 +2177,31 @@ function sessionInRow(x,row){
   return (x.category||"")===row.key;
 }
 function unassignedOn(dateStr){
-  /* people with a booking that day who are not yet in any session that day */
-  var inSessions={};
+  /* everyone named on a booking for that day who is not yet in a session */
+  var seated={};
   DB.sessions.forEach(function(x){
     if(x.date!==dateStr) return;
-    x.participants.forEach(function(cid){ inSessions[cid]=true; });
+    x.participants.forEach(function(ref){ seated[ref]=true; });
   });
   var out=[];
   DB.bookings.forEach(function(bk){
-    if(bk.status==="cancelled") return;
-    if(bk.date!==dateStr) return;
-    if(!bk.clientId || inSessions[bk.clientId]) return;
-    if(out.some(function(o){return o.clientId===bk.clientId;})) return;
-    out.push({clientId:bk.clientId,booking:bk,
-      items:(bk.lines||[]).map(function(l){
-        var p=product(l.productId); return p?p.name:"";}).filter(Boolean)});
+    if(bk.status==="cancelled" || bk.date!==dateStr) return;
+    var items=(bk.lines||[]).map(function(l){
+      var p=product(l.productId); return p?p.name:"";}).filter(Boolean);
+    var named=(bk.participants||[]).filter(function(pp){return pp.pid;});
+    if(named.length){
+      named.forEach(function(pp){
+        var ref=seatRef("participant",bk.id,pp.pid);
+        if(seated[ref]) return;
+        out.push({ref:ref,name:pp.name,clientId:pp.clientId||"",items:items,
+          level:pp.level,wetsuit:pp.wetsuit});
+      });
+    } else if(bk.clientId){
+      /* nobody named, so the booking stands for the client who made it */
+      var cref=seatRef("client",bk.clientId);
+      if(!seated[cref] && !out.some(function(o){return o.ref===cref;}))
+        out.push({ref:cref,name:clientName(bk.clientId),clientId:bk.clientId,items:items});
+    }
   });
   return out;
 }
@@ -2162,25 +2226,28 @@ function assignRail(dateStr,onChange){
   note.style.padding="10px 16px 4px";
   rail.appendChild(note);
   pending.forEach(function(x){
-    var c=by(x.clientId,DB.clients)||{};
     var card=el("div");
     card.style.cssText="margin:8px 12px;padding:9px 11px;border:1px solid var(--line);"+
       "border-radius:9px;background:var(--panel-2);cursor:grab;font-size:13px";
     card.draggable=true;
-    card.appendChild(el("div",null,c.name||"—")).style.fontWeight="600";
-    if(x.items.length){
-      var it=el("div","hint",x.items.join(", "));
+    card.appendChild(el("div",null,x.name||"—")).style.fontWeight="600";
+    var sub=[];
+    if(x.level) sub.push(x.level);
+    if(x.wetsuit) sub.push("wetsuit "+x.wetsuit);
+    if(x.items.length) sub.push(x.items.join(", "));
+    if(sub.length){
+      var it=el("div","hint",sub.join(" · "));
       it.style.marginTop="2px";
       card.appendChild(it);
     }
-    var docs=docsFor(x.clientId);
-    if(!docs.length){
+    var docs=x.clientId?docsFor(x.clientId):[];
+    if(x.clientId && !docs.length){
       var w=el("span","chip critc","no waiver");
       w.style.marginTop="5px"; w.style.display="inline-block";
       card.appendChild(w);
     }
     card.addEventListener("dragstart",function(e){
-      e.dataTransfer.setData("text/plain","client:"+x.clientId);
+      e.dataTransfer.setData("text/plain","seat:"+x.ref);
       e.dataTransfer.effectAllowed="copy";
       card.style.opacity=".45";
     });
@@ -2323,7 +2390,7 @@ function renderBoard(){
     lane.addEventListener("drop",function(e){
       e.preventDefault(); lane.style.background="";
       var id=e.dataTransfer.getData("text/plain")||"";
-      if(id.indexOf("client:")===0){
+      if(id.indexOf("seat:")===0){
         toast("Drop a name onto a session block, not the empty lane."); return; }
       var ses=by(id,DB.sessions); if(!ses) return;
       var rect=lane.getBoundingClientRect();
@@ -2377,16 +2444,16 @@ function renderBoard(){
       blk.addEventListener("dragleave",function(){blk.style.outline="";});
       blk.addEventListener("drop",function(e){
         var data=e.dataTransfer.getData("text/plain")||"";
-        if(data.indexOf("client:")!==0) return;
+        if(data.indexOf("seat:")!==0) return;
         e.preventDefault(); e.stopPropagation();
         blk.style.outline="";
-        var cid=data.slice(7);
-        if(x.participants.indexOf(cid)>=0){ toast("Already in this session."); return; }
+        var ref=data.slice(5);
+        if(x.participants.indexOf(ref)>=0){ toast("Already in this session."); return; }
         if(x.participants.length>=x.capacity){
           toast(x.title+" is full ("+x.capacity+")."); return; }
-        x.participants.push(cid);
+        x.participants.push(ref);
         save(); renderBoard();
-        toast(clientName(cid)+" → "+x.title);
+        toast(seatName(ref)+" → "+x.title);
       });
       blk.addEventListener("dblclick",function(){sessionForm(x);});
       lane.appendChild(blk);
@@ -2404,6 +2471,56 @@ function renderBoard(){
 }
 
 
+
+
+/* ============================ who is in a seat ============================
+   A seat holds either a saved client or a person named on a booking who was
+   never a client. Older rows stored a bare client id, so those still resolve. */
+function seatRef(kind,a,b2){
+  return kind==="client" ? ("c:"+a) : ("p:"+a+":"+b2);
+}
+function seatInfo(ref){
+  if(typeof ref!=="string") return {name:"—",missing:true};
+  if(ref.indexOf("c:")===0 || ref.indexOf(":")<0){
+    var cid=ref.indexOf("c:")===0?ref.slice(2):ref;   /* bare id = old format */
+    var c=by(cid,DB.clients);
+    return c?{name:c.name,clientId:cid,kind:"client"}
+            :{name:"(deleted client)",missing:true,kind:"client"};
+  }
+  if(ref.indexOf("p:")===0){
+    var parts=ref.split(":");
+    var bk=by(parts[1],DB.bookings);
+    if(bk){
+      var pp=(bk.participants||[]).filter(function(x){return x.pid===parts[2];})[0];
+      if(pp) return {name:pp.name,kind:"participant",clientId:pp.clientId||"",
+                     participant:pp,booking:bk};
+    }
+    return {name:"(removed from booking)",missing:true,kind:"participant"};
+  }
+  return {name:"—",missing:true};
+}
+function seatName(ref){ return seatInfo(ref).name; }
+function seatDocs(ref){
+  var i=seatInfo(ref);
+  return i.clientId?docsFor(i.clientId):[];
+}
+/* everyone named across the day's bookings, seated or not */
+function peopleOn(dateStr){
+  var out=[];
+  DB.clients.forEach(function(c){
+    out.push({ref:seatRef("client",c.id),name:c.name,from:"client",clientId:c.id});
+  });
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    (bk.participants||[]).forEach(function(pp){
+      if(!pp.pid) return;
+      out.push({ref:seatRef("participant",bk.id,pp.pid),name:pp.name,
+        from:"booking "+dm(bk.date),clientId:pp.clientId||"",
+        level:pp.level,wetsuit:pp.wetsuit,age:pp.age,bookingId:bk.id});
+    });
+  });
+  return out;
+}
 
 /* ============================ participants on a booking ============================
    The person paying is not always the person surfing. A booking for three
@@ -2452,7 +2569,8 @@ function participantForm(list,idx,onDone){
       if(!name.value.trim()){ toast("A name is required."); name.focus(); return; }
       var miss=cf.missing();
       if(miss){ toast(miss+" is required."); return; }
-      var rec={name:name.value.trim(),clientId:fromClient.value,
+      var rec={pid:(idx==null?uid("pt"):(list[idx].pid||uid("pt"))),
+        name:name.value.trim(),clientId:fromClient.value,
         age:age.value===""?"":Number(age.value),level:lvl.value,
         wetsuit:wet.value.trim(),height:hgt.value===""?"":Number(hgt.value),
         weight:wgt.value===""?"":Number(wgt.value),
@@ -3427,26 +3545,30 @@ function tripForm(existing){
 }
 function tripPeopleForm(tr){
   var b=el("div");
-  if(!DB.clients.length){
-    b.appendChild(el("p",null,"Add a client first — people aboard come from your client list."));
+  if(!peopleOn(tr.date).length){
+    b.appendChild(el("p",null,
+      "Nobody to put aboard yet. Add a client, or name participants on a booking."));
     openModal("Aboard",b,[{label:"Close",on:closeModal}]);
     return;
   }
   b.appendChild(el("p","hint",tr.participants.length+" of "+tr.capacity+" seats taken."));
-  DB.clients.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
-    .forEach(function(c){
+  peopleOn(tr.date).forEach(function(x){
     var row=el("label");
     row.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 2px;cursor:pointer";
-    var cb=input("checkbox"); cb.checked=tr.participants.indexOf(c.id)>=0; cb.style.width="auto";
+    var cb=input("checkbox"); cb.checked=tr.participants.indexOf(x.ref)>=0; cb.style.width="auto";
     cb.addEventListener("change",function(){
       if(cb.checked){
         if(tr.participants.length>=tr.capacity){ cb.checked=false;
           toast("The boat is full ("+tr.capacity+" seats)."); return; }
-        tr.participants.push(c.id);
-      } else tr.participants=tr.participants.filter(function(x){return x!==c.id;});
+        tr.participants.push(x.ref);
+      } else tr.participants=tr.participants.filter(function(y){return y!==x.ref;});
       save(); render();
     });
-    row.appendChild(cb); row.appendChild(el("span",null,c.name));
+    row.appendChild(cb);
+    var mid=el("div"); mid.style.flex="1";
+    mid.appendChild(el("span",null,x.name));
+    if(x.from!=="client") mid.appendChild(el("div","hint",x.from));
+    row.appendChild(mid);
     b.appendChild(row);
   });
   openModal("Aboard · "+tr.title,b,[{label:"Done",cls:"primary",on:function(){
@@ -3464,14 +3586,15 @@ function tripManifest(tr){
     ["#","Name","Phone","Documents"].forEach(function(h){r0.appendChild(el("th",null,h));});
     th.appendChild(r0); t.appendChild(th);
     var tb=el("tbody");
-    tr.participants.forEach(function(cid,i){
-      var c=by(cid,DB.clients)||{};
+    tr.participants.forEach(function(ref,i){
+      var si=seatInfo(ref);
+      var c=si.clientId?(by(si.clientId,DB.clients)||{}):{};
       var r=el("tr");
       r.appendChild(el("td","n",String(i+1)));
-      r.appendChild(el("td","strong",c.name||"—"));
+      r.appendChild(el("td","strong",si.name));
       r.appendChild(el("td","muted",c.phone||"—"));
       var dc=el("td");
-      var ds=docsFor(cid);
+      var ds=si.clientId?docsFor(si.clientId):[];
       if(!ds.length) dc.appendChild(el("span","chip critc","none on file"));
       else {
         var worst=ds.map(docStatus).reduce(function(a,x){
@@ -3488,10 +3611,11 @@ function tripManifest(tr){
     {label:"Close",on:closeModal},
     {label:"Export",cls:"primary",on:function(){
       exportCsv("manifest-"+tr.date,["#","Name","Phone","Email","Documents"],
-        tr.participants.map(function(cid,i){
-          var c=by(cid,DB.clients)||{};
-          var ds=docsFor(cid);
-          return [i+1,c.name||"",c.phone||"",c.email||"",
+        tr.participants.map(function(ref,i){
+          var si=seatInfo(ref);
+          var c=si.clientId?(by(si.clientId,DB.clients)||{}):{};
+          var ds=si.clientId?docsFor(si.clientId):[];
+          return [i+1,si.name,c.phone||"",c.email||"",
                   ds.length?ds.map(function(d){return d.type;}).join("; "):"none"];
         }));
     }}
