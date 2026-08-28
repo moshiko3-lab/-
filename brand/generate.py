@@ -1,175 +1,157 @@
 #!/usr/bin/env python3
-"""Generates the full logo file set for "The Bee" from one shared geometry.
+"""Logo file set for the dinghy "the bee".
 
-Everything is derived from a 100x100 mark grid so the bee stays identical
-across the hex mark, the monoline mark, the icon and the lockups.
+Built for one production method: single-colour cut vinyl at small size.
+No floating islands, no hairlines, no sharp tips. Every shape is a separate
+positive piece; corner rounding comes from stroking each path in its own
+fill colour with a round join.
+
+The wordmark is real outlines (Fraunces Bold Italic, in wordmark.path,
+normalised to font-size 100 with the baseline at y=0), so no file here
+depends on a font being installed. See outline_wordmark.py to regenerate it.
 """
 import os
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 
-INK    = "#17130F"
-HONEY  = "#E8A33D"
-DEEP   = "#B8701A"
-CREAM  = "#FAF3E6"
+NAVY  = "#12283F"
+HONEY = "#E8A33D"
+FOAM  = "#F7F4EC"
+CUT   = "#000000"
 
-HEX  = "M50 2 L89.6 26 L89.6 74 L50 98 L10.4 74 L10.4 26 Z"
-BODY = ("M50 38 C59 38 66 45 66 54 C66 66 58 78 50 84 "
-        "C42 78 34 66 34 54 C34 45 41 38 50 38 Z")
-ANT_L = "M45.5 24 C42 18 40 16 37.5 14.5"
-ANT_R = "M54.5 24 C58 18 60 16 62.5 14.5"
+# ---- the mark, on a 100-unit grid -----------------------------------------
+WING_L = "M50 43 C38 46 24 43 16 34 C25 28 42 30 50 43 Z"
+WING_R = "M50 43 C62 46 76 43 84 34 C75 28 58 30 50 43 Z"
+MARK_X, MARK_Y, MARK_W, MARK_H = 14.5, 29.0, 71.0, 64.0   # ink box
 
-
-def bee_solid(pfx, body, stripe, wing, wing_op="0.9"):
-    """Top-down bee, filled. Wings sit behind the body."""
-    return f'''<g>
-    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="{wing}" opacity="{wing_op}"/>
-    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="{wing}" opacity="{wing_op}"/>
-    <path d="{ANT_L}" fill="none" stroke="{body}" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="{ANT_R}" fill="none" stroke="{body}" stroke-width="3.2" stroke-linecap="round"/>
-    <circle cx="50" cy="30" r="9" fill="{body}"/>
-    <clipPath id="{pfx}-b"><path d="{BODY}"/></clipPath>
-    <path d="{BODY}" fill="{body}"/>
-    <g clip-path="url(#{pfx}-b)" fill="{stripe}">
-      <rect x="30" y="44" width="40" height="6.5"/>
-      <rect x="30" y="56" width="40" height="6.5"/>
-      <rect x="30" y="68" width="40" height="5.5"/>
-    </g>
-  </g>'''
+# ---- the wordmark, at font-size 100, baseline y=0, origin x=0 -------------
+WORD_D = open(os.path.join(OUT, "wordmark.path")).read().strip()
+WORD_X0, WORD_Y0, WORD_X1, WORD_Y1 = 4.51, -71.95, 335.26, 1.35   # ink box
 
 
-def bee_line(stroke, ground, w="3.4"):
-    """Same bee as a single-weight outline. Each shape knocks out the one
-    behind it with a ground-coloured fill, so no two lines ever cross."""
-    return f'''<g stroke="{stroke}" stroke-width="{w}" stroke-linecap="round" stroke-linejoin="round">
-    <g fill="none">
-      <path d="{ANT_L}"/>
-      <path d="{ANT_R}"/>
-    </g>
-    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="{ground}"/>
-    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="{ground}"/>
-    <path d="{BODY}" fill="{ground}"/>
-    <g fill="none">
-      <path d="M41 47.5 H59"/>
-      <path d="M39.5 60 H60.5"/>
-      <path d="M44.5 71.5 H55.5"/>
-    </g>
-    <circle cx="50" cy="30" r="9" fill="{ground}"/>
-  </g>'''
+def bee(wing, bar):
+    """Two swept wings, a head, three tapering bands.
+
+    The bands read twice: the stripes of a bee seen from above, and the wake
+    of a small boat. Nothing is a hole, so it weeds and lifts cleanly."""
+    return (f'<g fill="{wing}" stroke="{wing}" stroke-width="3" stroke-linejoin="round">'
+            f'<path d="{WING_L}"/><path d="{WING_R}"/></g>'
+            f'<g fill="{bar}"><circle cx="50" cy="45" r="7"/>'
+            f'<rect x="26" y="55" width="48" height="10" rx="5"/>'
+            f'<rect x="32" y="69" width="36" height="10" rx="5"/>'
+            f'<rect x="39" y="83" width="22" height="10" rx="5"/></g>')
 
 
-def stripe_mark(bar, wing):
-    """Direction C: abstract bee - two swept wings over three tapering bars."""
-    return f'''<g>
-    <path d="M50 44 C34 48 18 42 11 29 C26 20 45 27 50 44 Z" fill="{wing}"/>
-    <path d="M50 44 C66 48 82 42 89 29 C74 20 55 27 50 44 Z" fill="{wing}"/>
-    <g fill="{bar}">
-      <circle cx="50" cy="45" r="7"/>
-      <rect x="26" y="55" width="48" height="10" rx="5"/>
-      <rect x="32" y="69" width="36" height="10" rx="5"/>
-      <rect x="39" y="83" width="22" height="10" rx="5"/>
-    </g>
-  </g>'''
+def mark_at(x, y, height):
+    """Place the mark with its ink box top-left at (x, y)."""
+    s = height / MARK_H
+    return (f'<g transform="translate({x:g} {y:g}) scale({s:.4f}) '
+            f'translate({-MARK_X:g} {-MARK_Y:g})">{bee("%s", "%s")}</g>', s)
 
 
-def svg(view, inner, extra=""):
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{view}" '
-            f'role="img"{extra}>\n  {inner}\n</svg>\n')
+def mark_g(x, y, height, wing, bar):
+    s = height / MARK_H
+    return (f'<g transform="translate({x:g} {y:g}) scale({s:.4f}) '
+            f'translate({-MARK_X:g} {-MARK_Y:g})">{bee(wing, bar)}</g>')
 
 
-BEE_IN_HEX = 'transform="translate(50 52) scale(0.74) translate(-50 -49)"'
+def word_g(x, baseline, size, fill, centre=False):
+    """Place the wordmark. x is the ink left edge, or the ink centre if centre."""
+    s = size / 100.0
+    ox = x - (WORD_X0 + WORD_X1) / 2 * s if centre else x - WORD_X0 * s
+    return (f'<path transform="translate({ox:.2f} {baseline:.2f}) scale({s:.4f})" '
+            f'd="{WORD_D}" fill="{fill}"/>')
 
 
-def hex_mark(pfx, hexfill, body, stripe, wing, wing_op="0.9"):
-    return (f'<path d="{HEX}" fill="{hexfill}"/>\n  '
-            f'<g {BEE_IN_HEX}>{bee_solid(pfx, body, stripe, wing, wing_op)}</g>')
+def word_metrics(size):
+    s = size / 100.0
+    return (WORD_X1 - WORD_X0) * s, -WORD_Y0 * s, WORD_Y1 * s   # width, above, below
+
+
+def svg(view, inner, label):
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{view}" role="img" '
+            f'aria-label="{label}">{inner}</svg>\n')
 
 
 def write(name, content):
-    with open(os.path.join(OUT, name), "w") as f:
-        f.write(content)
+    open(os.path.join(OUT, name), "w").write(content)
     print("wrote", name)
 
 
-# ---------------------------------------------------------------- marks
-write("mark-hex.svg", svg("0 0 100 100",
-      hex_mark("mh", HONEY, INK, CREAM, CREAM),
-      ' aria-label="The Bee mark"'))
-
-write("mark-hex-reversed.svg", svg("0 0 100 100",
-      hex_mark("mhr", INK, HONEY, INK, CREAM, "0.26"),
-      ' aria-label="The Bee mark, reversed"'))
-
-def monoline(stroke, ground):
-    return svg("0 0 100 106",
-        f'''<path d="M7 98 C24 103 41 94 46 81" fill="none" stroke="{HONEY}"
-        stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.1 8"/>
-  <g transform="translate(50 45) scale(0.88) translate(-50 -49)">{bee_line(stroke, ground)}</g>''',
-        ' aria-label="The Bee monoline mark"')
+# ---------------------------------------------------------------- the mark
+PAD = 2
 
 
-write("mark-monoline.svg", monoline(INK, CREAM))
-write("mark-monoline-dark.svg", monoline(CREAM, INK))
-
-write("mark-stripe.svg", svg("0 0 100 100",
-      stripe_mark(INK, HONEY),
-      ' aria-label="The Bee stripe mark"'))
-
-# ---------------------------------------------------------------- lockups
-WORD = ("font-family=\"Fraunces, 'Fraunces 144', Georgia, 'Times New Roman', serif\" "
-        "font-weight=\"600\"")
+def mark_file(wing, bar, label):
+    return svg(f"{MARK_X-PAD:g} {MARK_Y-PAD:g} {MARK_W+2*PAD:g} {MARK_H+2*PAD:g}",
+               bee(wing, bar), label)
 
 
-def horizontal(pfx, hexfill, body, stripe, wing, text):
-    return svg("0 0 400 120",
-        f'''<g transform="translate(8 12) scale(0.96)">{hex_mark(pfx, hexfill, body, stripe, wing)}</g>
-  <text x="126" y="81" {WORD} font-size="62" letter-spacing="-1" fill="{text}">the bee</text>''',
-        ' aria-label="The Bee logo"')
+write("mark-two-tone.svg", mark_file(HONEY, NAVY, "the bee mark"))
+write("mark-navy.svg",     mark_file(NAVY, NAVY, "the bee mark, navy"))
+write("mark-honey.svg",    mark_file(HONEY, HONEY, "the bee mark, honey"))
+write("mark-foam.svg",     mark_file(FOAM, FOAM, "the bee mark, foam"))
+
+# ------------------------------------------------------- bow lockup (wide)
+# Mark left, name right. Goes along the hull side, forward of amidships.
+BOW_H, BOW_SIZE, BOW_GAP, BOW_PAD = 88, 62, 28, 8
 
 
-write("logo-horizontal.svg", horizontal("lh", HONEY, INK, CREAM, CREAM, INK))
-write("logo-horizontal-reversed.svg", horizontal("lhr", HONEY, INK, CREAM, CREAM, CREAM))
+def bow(wing, bar, text, label):
+    mw = MARK_W * BOW_H / MARK_H
+    tw, above, below = word_metrics(BOW_SIZE)
+    tx = BOW_PAD + mw + BOW_GAP
+    base = BOW_PAD + BOW_H / 2 + (above - below) / 2
+    return svg(f"0 0 {tx + tw + BOW_PAD:.0f} {BOW_PAD*2 + BOW_H:.0f}",
+               mark_g(BOW_PAD, BOW_PAD, BOW_H, wing, bar)
+               + word_g(tx, base, BOW_SIZE, text), label)
 
-write("logo-stacked.svg", svg("0 0 260 210",
-      f'''<g transform="translate(80 8)">{hex_mark("ls", HONEY, INK, CREAM, CREAM)}</g>
-  <text x="130" y="188" text-anchor="middle" {WORD} font-size="54" letter-spacing="-1" fill="{INK}">the bee</text>''',
-      ' aria-label="The Bee logo, stacked"'))
 
-# ---------------------------------------------------------------- one-colour
-write("logo-mono-ink.svg", svg("0 0 400 120",
-      f'''<g transform="translate(8 12) scale(0.96)">
-    <path d="{HEX}" fill="{INK}"/>
-    <g {BEE_IN_HEX}>{bee_solid("mi", "#ffffff", INK, "#ffffff", "1")}</g>
-  </g>
-  <text x="126" y="81" {WORD} font-size="62" letter-spacing="-1" fill="{INK}">the bee</text>''',
-      ' aria-label="The Bee logo, single colour"'))
+write("logo-bow-two-tone.svg", bow(HONEY, NAVY, NAVY, "the bee"))
+write("logo-bow-navy.svg",     bow(NAVY, NAVY, NAVY, "the bee, navy"))
+write("logo-bow-foam.svg",     bow(FOAM, FOAM, FOAM, "the bee, foam"))
 
-write("logo-mono-cream.svg", svg("0 0 400 120",
-      f'''<g transform="translate(8 12) scale(0.96)">
-    <path d="{HEX}" fill="{CREAM}"/>
-    <g {BEE_IN_HEX}>{bee_solid("mc", INK, CREAM, INK, "1")}</g>
-  </g>
-  <text x="126" y="81" {WORD} font-size="62" letter-spacing="-1" fill="{CREAM}">the bee</text>''',
-      ' aria-label="The Bee logo, reversed single colour"'))
+# -------------------------------------------------- transom lockup (stacked)
+TR_H, TR_SIZE, TR_GAP, TR_PAD = 96, 54, 18, 8
 
-# ---------------------------------------------------------------- icon + favicon
-write("icon-app.svg", svg("0 0 512 512",
-      f'''<rect width="512" height="512" rx="114" fill="{INK}"/>
-  <g transform="translate(256 262) scale(4.5) translate(-50 -49)">{bee_solid("ic", HONEY, INK, CREAM, "0.26")}</g>''',
-      ' aria-label="The Bee app icon"'))
 
-# Favicon drops the antennae and thins the stripes - they disappear below 24px.
-write("favicon.svg", svg("0 0 100 100",
-      f'''<path d="{HEX}" fill="{HONEY}"/>
-  <g transform="translate(50 52) scale(0.86) translate(-50 -49)">
-    <ellipse cx="30" cy="40" rx="15" ry="8" transform="rotate(30 30 40)" fill="{CREAM}"/>
-    <ellipse cx="70" cy="40" rx="15" ry="8" transform="rotate(-30 70 40)" fill="{CREAM}"/>
-    <circle cx="50" cy="30" r="9" fill="{INK}"/>
-    <clipPath id="fv-b"><path d="{BODY}"/></clipPath>
-    <path d="{BODY}" fill="{INK}"/>
-    <g clip-path="url(#fv-b)" fill="{CREAM}">
-      <rect x="30" y="46" width="40" height="7"/>
-      <rect x="30" y="60" width="40" height="7"/>
-    </g>
-  </g>''',
-      ' aria-label="The Bee favicon"'))
+def transom(wing, bar, text, label):
+    mw = MARK_W * TR_H / MARK_H
+    tw, above, below = word_metrics(TR_SIZE)
+    w = max(mw, tw) + TR_PAD * 2
+    base = TR_PAD + TR_H + TR_GAP + above
+    return svg(f"0 0 {w:.0f} {base + below + TR_PAD:.0f}",
+               mark_g(w / 2 - mw / 2, TR_PAD, TR_H, wing, bar)
+               + word_g(w / 2, base, TR_SIZE, text, centre=True), label)
+
+
+write("logo-transom-two-tone.svg", transom(HONEY, NAVY, NAVY, "the bee, stacked"))
+write("logo-transom-navy.svg",     transom(NAVY, NAVY, NAVY, "the bee, stacked, navy"))
+write("logo-transom-foam.svg",     transom(FOAM, FOAM, FOAM, "the bee, stacked, foam"))
+
+# ------------------------------------------ name alone (gunwale, oar, trailer)
+def wordmark_file(fill, label, size=62, pad=6):
+    tw, above, below = word_metrics(size)
+    return svg(f"0 0 {tw + pad*2:.0f} {above + below + pad*2:.0f}",
+               word_g(pad, pad + above, size, fill), label)
+
+
+write("wordmark-navy.svg", wordmark_file(NAVY, "the bee wordmark"))
+write("wordmark-foam.svg", wordmark_file(FOAM, "the bee wordmark, foam"))
+
+# ---------------------------------------------------------------- roundel
+def roundel(ring, wing, bar, label):
+    h = 52
+    return svg("0 0 120 120",
+               f'<circle cx="60" cy="60" r="60" fill="{ring}"/>'
+               + mark_g(60 - MARK_W * h / MARK_H / 2, 60 - h / 2, h, wing, bar), label)
+
+
+write("roundel-navy.svg",  roundel(NAVY, HONEY, FOAM, "the bee roundel"))
+write("roundel-honey.svg", roundel(HONEY, NAVY, NAVY, "the bee roundel, honey"))
+
+# ------------------------------------------------------------- cut files
+# One colour, nothing to separate. These go to the vinyl cutter.
+write("cut-mark.svg",     mark_file(CUT, CUT, "the bee mark, cut file"))
+write("cut-bow.svg",      bow(CUT, CUT, CUT, "the bee bow lockup, cut file"))
+write("cut-transom.svg",  transom(CUT, CUT, CUT, "the bee transom lockup, cut file"))

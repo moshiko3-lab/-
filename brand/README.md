@@ -1,56 +1,61 @@
-# the bee — brand assets
+# the bee — boat marks
 
-Everything here is drawn from one shared geometry in `generate.py`. Edit the
-geometry once and run `python3 generate.py` to redraw every file.
+Marks for the dinghy *the bee*. Everything is redrawn from one geometry by
+`generate.py`; run `python3 generate.py` after any change.
+
+Open `marks.html` for the full presentation.
 
 ## The mark
 
-A bee sitting in a single comb cell. The hexagon is the idea: it tiles, so the
-mark extends into patterns, containers and crops without the bee ever being
-redrawn. It sits point-up, always.
+Two swept wings, a head, three tapering bands. It reads twice — a bee seen
+from above, and the wake of something small moving fast.
+
+It is built for one production method: single-colour cut vinyl at small size.
+
+- **No holes.** Every piece is positive, so nothing has to be weeded out of an
+  interior and nothing floats off the backing sheet.
+- **No hairlines.** The thinnest element is a wing tip at 2.8 mm when the mark
+  is cut 60 mm tall. That sets the minimum size.
+- **No sharp points.** Every corner is rounded — sharp tips lift first.
 
 ## Files
 
 | File | Use |
 | --- | --- |
-| `logo-horizontal.svg` | Primary lockup, light grounds |
-| `logo-horizontal-reversed.svg` | Primary lockup, dark grounds |
-| `logo-stacked.svg` | Narrow and square placements |
-| `logo-mono-ink.svg` / `logo-mono-cream.svg` | Single-colour print, foil, etch |
-| `mark-hex.svg` / `mark-hex-reversed.svg` | Mark alone, both grounds |
-| `mark-monoline.svg` / `mark-monoline-dark.svg` | Direction 02, light and dark |
-| `mark-stripe.svg` | Direction 03 |
-| `icon-app.svg` | 512 px app icon |
-| `favicon.svg` | 16–32 px, antennae removed |
-| `identity.html` | The full identity presentation |
+| `logo-bow-two-tone.svg` / `-navy` / `-foam` | Bow lockup, three colourways |
+| `logo-transom-two-tone.svg` / `-navy` / `-foam` | Stacked lockup for the stern |
+| `mark-two-tone.svg` / `-navy` / `-honey` / `-foam` | Mark alone |
+| `wordmark-navy.svg` / `-foam` | Name alone, outlined |
+| `roundel-navy.svg` / `-honey` | Sticker and badge version |
+| `cut-mark.svg` / `cut-bow.svg` / `cut-transom.svg` | Single-colour cut files for the vinyl shop |
+| `generate.py` | Redraws every file |
+| `wordmark.path` / `outline_wordmark.py` | The outlined name, and how to regenerate it |
+| `archive/` | The first round (hive cell / honey), kept for reference |
 
-## Palette
+## Colour
 
 | Name | Hex | Use |
 | --- | --- | --- |
-| Honey | `#E8A33D` | Primary. The cell, the accent. |
-| Deep Honey | `#B8701A` | Links, hover, small type on cream. |
-| Ink | `#17130F` | The bee, headlines. Warm, never blue-black. |
-| Wax | `#FAF3E6` | Wings, stripes, paper ground. |
-| Meadow | `#4F6B4A` | Secondary only. Never inside the mark. |
+| Navy | `#12283F` | On white, grey or wood hulls. The default. |
+| Honey | `#E8A33D` | The wings in two-colour. Alone only on navy. |
+| Foam | `#F7F4EC` | On navy, black or dark grey hulls and tubes. |
+
+Two-colour is a layered cut — a second sheet plus a registration step. One
+colour is what to order for a quick turnaround.
+
+## Sizes on the boat
+
+| Placement | Size | File |
+| --- | --- | --- |
+| Hull side, forward | 120 mm wide | `cut-bow.svg` |
+| Transom | 90 mm tall | `cut-transom.svg` |
+| Oar blade, tube, tiller | 60 mm tall | `cut-mark.svg` |
+| Gunwale, trailer | 35 mm cap height | `wordmark-navy.svg` |
+
+Never below a 60 mm mark height. Ask for marine cast vinyl (not calendared) so
+it follows a curved hull. Nothing here is antifoul-safe — topsides only.
 
 ## Type
 
-- **Fraunces 600** — wordmark and headlines.
-- **Archivo 400/500/600** — body, UI, small print.
-
-## Clear space and minimum size
-
-One unit `x` = half the cell height. Keep `x` clear on all four sides.
-Minimums: lockup 96 px wide, mark 24 px, favicon 16 px (use `favicon.svg`).
-
-## Don't
-
-- Stretch the cell to fill a space — use the stacked lockup.
-- Rotate the cell. It is point-up so it tiles.
-- Put the honey cell on a mid-tone colour. Ink, wax or a dark photo area only.
-
-## Before final release
-
-The wordmark in the SVGs is live text in Fraunces. Convert it to outlines so
-the files no longer depend on the font being installed.
+The name is Fraunces Bold Italic, already converted to outlines in every
+delivered file. No font is needed downstream.
