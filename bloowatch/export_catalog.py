@@ -31,6 +31,24 @@ def kind_of(p):
     return "lesson"
 
 
+# Their product_class is coarse -- class / rental / item -- so the name settles
+# the rest, the way their own eight types split it.
+def ptype_of(p):
+    cls = (p.get("product_class") or "").lower()
+    name = (p.get("name") or "").upper()
+    if cls == "rental":
+        return "rental"
+    if cls == "item":
+        return "item"
+    if "CAMP" in name:
+        return "camp"
+    if "TRIP" in name or "TOUR" in name:
+        return "tour"
+    if "COURSE" in name or "PACK" in name:
+        return "course"
+    return "class"
+
+
 def num(v):
     try:
         return round(float(v), 2)
@@ -73,6 +91,7 @@ def build():
             "prices": prices,
             "name": p.get("name") or p.get("title"),
             "kind": kind_of(p),
+            "ptype": ptype_of(p),
             "category": p.get("category_name") or "",
             "price": num(p.get("price")) or 0,
             "publicPrice": num(p.get("public_price")),

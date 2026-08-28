@@ -197,6 +197,10 @@ td.strong{font-weight:700}
   border:1px solid var(--line);background:var(--panel);color:var(--text)}
 .searchbar input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 
+@media (max-width:1000px){
+  #p-board > div[style*="grid-template-columns: 1fr 230px"],
+  #p-board > div[style*="1fr 230px"]{grid-template-columns:1fr!important}
+}
 @media (max-width:640px){
   .wrap{padding:0 13px 70px}
   .top-in{padding:12px 13px 0}
@@ -847,41 +851,121 @@ function priceSummary(p){
 }
 
 /* ============================ catalog ============================ */
+var PRODUCT_TYPES=[
+  {v:"class",l:"Class (flexible)"},{v:"course",l:"Course on specific periods"},
+  {v:"tour",l:"Tour"},{v:"camp",l:"Camp"},{v:"accommodation",l:"Accommodation"},
+  {v:"rental",l:"Rental"},{v:"item",l:"Item"},{v:"membership",l:"Membership"}
+];
+var WEEKDAY_SHORT=["S","M","T","W","T","F","S"];
+
 function productForm(existing){
   var p=existing||{name:"",kind:(KINDS()[0]?KINDS()[0].k:"lesson"),price:"",sessions:1,
-    priceMode:"fixed",code:"",maxAttendants:"",depositType:"",depositValue:"",archived:false};
-  var b=el("div");
-  var name=input("text",p.name,{placeholder:"e.g. 3 Lesson Surf Course"});
-  var kind=select(KINDS().map(function(k){return {v:k.k,l:k.l};}),p.kind);
-  var price=input("number",p.price,{step:"0.01",min:"0",placeholder:"0.00"});
-  var sess=input("number",p.sessions,{step:"1",min:"1"});
-  var code=input("text",p.code,{placeholder:"Optional product code"});
-  b.appendChild(field("Name",name));
-  var gn=el("div","grid2");
-  gn.appendChild(field("Type",kind,"Drives how takings group on the day closing."));
-  gn.appendChild(field("Product code",code));
-  b.appendChild(gn);
-
-  /* Bloowatch asks this outright — "How is the activity priced?" — and the
-     answer decides which tiers make sense below. */
-  var mode=select([
-    {v:"fixed",l:"One fixed price"},
-    {v:"person",l:"Per number of people"},
-    {v:"item",l:"Per number of items or hours"}],p.priceMode||"fixed");
-  b.appendChild(field("How is this priced?",mode));
-  var g=el("div","grid2");
-  g.appendChild(field("Base price (USD)",price));
-  g.appendChild(field("Sessions included",sess));
-  b.appendChild(g);
+    priceMode:"fixed",code:"",maxAttendants:"",depositType:"",depositValue:"",archived:false,
+    ptype:"class",description:"",shortDesc:"",longDesc:"",emailDesc:"",showEmailDesc:false,
+    account:"",position:"",tax:0,taxNote:"",publicPrice:"",
+    onlineSale:true,onlinePay:"full",onlinePayValue:"",sessionChoice:"full",
+    clientCreatesSessions:false,filterByInstructor:false,
+    sessionsAtBooking:false,privateSession:false,privateCourse:false,
+    weekDays:[],startHours:[],availFrom:"",availTo:"",meetingSpot:"",
+    limitedStock:false,stock:"",limitedAvail:false,availMax:"",
+    gearId:"",accomId:"",nights:"",nightsAtBooking:false};
 
   var tiers=(p.prices||[]).map(function(x){
     return {minPax:x.minPax||1,hours:x.hours||null,price:x.price||0};});
+  var weekDays=(p.weekDays||[]).slice();
+  var startHours=(p.startHours||[]).slice();
+
+  var b=el("div");
+
+  /* --- tab strip, as their product form has --- */
+  var TABS3=[{k:"info",l:"Information"},{k:"price",l:"Price"},{k:"cal",l:"Calendar"},
+             {k:"online",l:"Online sale"}];
+  var strip=el("div");
+  strip.style.cssText="display:flex;gap:2px;border-bottom:1px solid var(--line);"+
+    "margin:-4px 0 16px;overflow-x:auto";
+  var panes={};
+  TABS3.forEach(function(t){ panes[t.k]=el("div"); });
+  function showTab(k){
+    TABS3.forEach(function(t){ panes[t.k].hidden = t.k!==k; });
+    [].forEach.call(strip.children,function(btn){
+      var on=btn.dataset.k===k;
+      btn.style.color=on?"var(--accent)":"var(--text-3)";
+      btn.style.borderBottomColor=on?"var(--accent)":"transparent";
+    });
+  }
+  TABS3.forEach(function(t){
+    var btn=el("button",null,t.l);
+    btn.dataset.k=t.k; btn.type="button";
+    btn.style.cssText="appearance:none;border:0;background:none;cursor:pointer;font:inherit;"+
+      "font-weight:700;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;"+
+      "padding:9px 13px 11px;border-bottom:2px solid transparent;white-space:nowrap";
+    btn.addEventListener("click",function(){showTab(t.k);});
+    strip.appendChild(btn);
+  });
+  b.appendChild(strip);
+  TABS3.forEach(function(t){ b.appendChild(panes[t.k]); });
+
+  /* ---------------- information ---------------- */
+  var I=panes.info;
+  var name=input("text",p.name,{placeholder:"e.g. 3 Lesson Surf Course"});
+  var ptype=select(PRODUCT_TYPES,p.ptype||"class");
+  var kind=select(KINDS().map(function(k){return {v:k.k,l:k.l};}),p.kind);
+  var code=input("text",p.code,{placeholder:"Product code"});
+  var account=input("text",p.account,{placeholder:"Account number"});
+  var position=input("number",p.position,{min:"1",step:"1",placeholder:"order in the list"});
+  var desc=el("textarea"); desc.value=p.description||"";
+  var shortD=input("text",p.shortDesc,{placeholder:"One line for the catalogue"});
+  var longD=el("textarea"); longD.value=p.longDesc||"";
+  var emailD=el("textarea"); emailD.value=p.emailDesc||"";
+  var showEmailD=input("checkbox"); showEmailD.checked=!!p.showEmailDesc; showEmailD.style.width="auto";
+  var maxAtt=input("number",p.maxAttendants,{min:"0",step:"1",placeholder:"no limit"});
+
+  I.appendChild(field("Name",name));
+  var gi=el("div","grid2");
+  gi.appendChild(field("Product type",ptype));
+  gi.appendChild(field("Activity calendar",kind,"Groups takings on the day closing."));
+  I.appendChild(gi);
+  var gi2=el("div","grid2");
+  gi2.appendChild(field("Product code",code));
+  gi2.appendChild(field("Account number",account));
+  I.appendChild(gi2);
+  var gi3=el("div","grid2");
+  gi3.appendChild(field("Position in list",position));
+  gi3.appendChild(field("Maximum attendants",maxAtt));
+  I.appendChild(gi3);
+  I.appendChild(field("Description",desc));
+  I.appendChild(field("Short description",shortD));
+  I.appendChild(field("Long description",longD,"Shown on the booking site."));
+  I.appendChild(field("Description in email",emailD));
+  I.appendChild(field("Show it in emails",showEmailD));
+
+  /* ---------------- price ---------------- */
+  var P=panes.price;
+  var mode=select([
+    {v:"fixed",l:"One fixed price"},
+    {v:"person",l:"Per number of people"},
+    {v:"item",l:"Per number of items or hours"},
+    {v:"sessions",l:"Discount by number of sessions"},
+    {v:"group",l:"Group discount"}],p.priceMode||"fixed");
+  var price=input("number",p.price,{step:"0.01",min:"0",placeholder:"0.00"});
+  var pubPrice=input("number",p.publicPrice,{step:"0.01",min:"0",placeholder:"same as price"});
+  var tax=input("number",p.tax,{step:"0.01",min:"0",placeholder:"0"});
+  var taxNote=input("text",p.taxNote,{placeholder:"e.g. exempt, reduced rate"});
+  P.appendChild(field("How is this priced?",mode));
+  var gp=el("div","grid2");
+  gp.appendChild(field("Price (tax included)",price));
+  gp.appendChild(field("Public price",pubPrice,"Shown in the online catalogue."));
+  P.appendChild(gp);
+  var gp2=el("div","grid2");
+  gp2.appendChild(field("Tax %",tax)); gp2.appendChild(field("Tax note",taxNote));
+  P.appendChild(gp2);
+
   var tHost=el("div");
   function drawTiers(){
     tHost.textContent="";
     if(!tiers.length){
       tHost.appendChild(el("div","hint",
-        "No tiers — the base price above is charged whatever the group size or duration."));
+        "No tiers — the price above is charged whatever the group size or duration."));
       return;
     }
     tiers.forEach(function(t,i){
@@ -894,7 +978,7 @@ function productForm(existing){
       hr.addEventListener("input",function(){t.hours=hr.value===""?null:Number(hr.value);});
       var pr=input("number",t.price,{min:"0",step:"0.01"});
       pr.addEventListener("input",function(){t.price=Number(pr.value)||0;});
-      var rm=el("button","btn sm danger","×");
+      var rm=el("button","btn sm danger","×"); rm.type="button";
       rm.addEventListener("click",function(){tiers.splice(i,1);drawTiers();});
       row.appendChild(px);row.appendChild(hr);row.appendChild(pr);row.appendChild(rm);
       tHost.appendChild(row);
@@ -902,58 +986,272 @@ function productForm(existing){
   }
   var th2=el("div","lines-h");
   th2.appendChild(el("h4",null,"Price tiers — from pax / from hours / price"));
-  var addT=el("button","btn sm","Add tier");
+  var addT=el("button","btn sm","Add tier"); addT.type="button";
   addT.addEventListener("click",function(){
     tiers.push({minPax:1,hours:null,price:Number(price.value)||0}); drawTiers();});
   th2.appendChild(addT);
-  b.appendChild(th2); b.appendChild(tHost); drawTiers();
-  b.appendChild(el("div","hint",
-    "A lesson priced per head gets a tier per group size: 1 person $60, from 2 people $40 each. A rental gets a tier per duration: 1h $20, 2h $35. The best tier the booking clears is the one charged."));
-
-  var maxAtt=input("number",p.maxAttendants,{min:"0",step:"1",placeholder:"no limit"});
-  b.appendChild(field("Maximum attendants",maxAtt));
+  P.appendChild(th2); P.appendChild(tHost); drawTiers();
+  P.appendChild(el("div","hint",
+    "A lesson priced per head gets a tier per group size: 1 person $60, from 2 people $40 each. A rental gets a tier per duration: 1h $20, 2h $35. The best tier a booking clears is the one charged."));
 
   var depType=select([{v:"",l:"Pay in full"},{v:"fixed",l:"Deposit — fixed amount"},
     {v:"percent",l:"Deposit — percentage"}],p.depositType||"");
   var depVal=input("number",p.depositValue,{min:"0",step:"0.01"});
-  var depBox=el("div","grid2");
-  depBox.appendChild(field("Payment",depType));
-  depBox.appendChild(field("Deposit amount",depVal));
-  b.appendChild(depBox);
+  var gd=el("div","grid2");
+  gd.appendChild(field("Payment",depType)); gd.appendChild(field("Deposit",depVal));
+  P.appendChild(gd);
   function syncDep(){ depVal.disabled=!depType.value; if(!depType.value) depVal.value=""; }
   depType.addEventListener("change",syncDep); syncDep();
-  openModal(existing?"Edit product":"New product",b,[
-    {label:"Cancel",on:closeModal},
-    {label:"Save",cls:"primary",on:function(){
-      if(!name.value.trim()){ toast("A name is required."); name.focus(); return; }
-      var rec=existing||{id:uid("p")};
-      rec.name=name.value.trim(); rec.kind=kind.value;
-      rec.price=Number(price.value)||0; rec.sessions=Math.max(1,Number(sess.value)||1);
-      rec.prices=tiers.slice().sort(function(a,b){
-        return ((a.hours||0)-(b.hours||0))||((a.minPax||1)-(b.minPax||1));});
-      rec.priceMode=mode.value; rec.code=code.value.trim();
-      rec.maxAttendants=maxAtt.value===""?"":Number(maxAtt.value);
-      rec.depositType=depType.value;
-      rec.depositValue=depVal.value===""?"":Number(depVal.value);
-      if(!existing) DB.products.push(rec);
-      save(); closeModal(); render(); toast(existing?"Product updated":"Product added");
-    }}
-  ]);
+
+  var limStock=input("checkbox"); limStock.checked=!!p.limitedStock; limStock.style.width="auto";
+  var stock=input("number",p.stock,{min:"0",step:"1"});
+  var gs=el("div","grid2");
+  gs.appendChild(field("Limited stock",limStock)); gs.appendChild(field("Units in stock",stock));
+  P.appendChild(gs);
+  function syncStock(){ stock.disabled=!limStock.checked; }
+  limStock.addEventListener("change",syncStock); syncStock();
+
+  /* ---------------- calendar / sessions ---------------- */
+  var C=panes.cal;
+  var sess=input("number",p.sessions,{step:"1",min:"1"});
+  var sessAtBooking=input("checkbox"); sessAtBooking.checked=!!p.sessionsAtBooking;
+  sessAtBooking.style.width="auto";
+  var priv=input("checkbox"); priv.checked=!!p.privateSession; priv.style.width="auto";
+  var privC=input("checkbox"); privC.checked=!!p.privateCourse; privC.style.width="auto";
+  var gc=el("div","grid2");
+  gc.appendChild(field("Number of sessions",sess));
+  gc.appendChild(field("Chosen at booking",sessAtBooking,"Client picks how many."));
+  C.appendChild(gc);
+  var gc2=el("div","grid2");
+  gc2.appendChild(field("Private sessions",priv));
+  gc2.appendChild(field("Private course",privC,"Only one booking per course."));
+  C.appendChild(gc2);
+  function syncSess(){ sess.disabled=sessAtBooking.checked; }
+  sessAtBooking.addEventListener("change",syncSess); syncSess();
+
+  var dayRow=el("div");
+  dayRow.style.cssText="display:flex;gap:6px;flex-wrap:wrap";
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(function(dn,di){
+    var lab=el("label");
+    lab.style.cssText="display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer";
+    var cb=input("checkbox"); cb.style.width="auto";
+    cb.checked=weekDays.indexOf(di)>=0;
+    cb.addEventListener("change",function(){
+      if(cb.checked){ if(weekDays.indexOf(di)<0) weekDays.push(di); }
+      else weekDays=weekDays.filter(function(x){return x!==di;});
+    });
+    lab.appendChild(cb); lab.appendChild(el("span",null,dn));
+    dayRow.appendChild(lab);
+  });
+  C.appendChild(field("Runs on these days",dayRow,"Leave all clear for any day."));
+
+  var hHost=el("div");
+  function drawHours(){
+    hHost.textContent="";
+    if(!startHours.length){
+      hHost.appendChild(el("div","hint","No fixed start times — any hour."));
+      return;
+    }
+    startHours.forEach(function(h,i){
+      var row=el("div","line"); row.style.gridTemplateColumns="1fr auto";
+      var t=input("time",h);
+      t.addEventListener("input",function(){startHours[i]=t.value;});
+      var rm=el("button","btn sm danger","×"); rm.type="button";
+      rm.addEventListener("click",function(){startHours.splice(i,1);drawHours();});
+      row.appendChild(t); row.appendChild(rm);
+      hHost.appendChild(row);
+    });
+  }
+  var hh=el("div","lines-h");
+  hh.appendChild(el("h4",null,"Starting hours"));
+  var addH=el("button","btn sm","Add hour"); addH.type="button";
+  addH.addEventListener("click",function(){startHours.push("09:00");drawHours();});
+  hh.appendChild(addH);
+  C.appendChild(hh); C.appendChild(hHost); drawHours();
+
+  var avFrom=input("date",p.availFrom), avTo=input("date",p.availTo);
+  var ga=el("div","grid2");
+  ga.appendChild(field("Available from",avFrom)); ga.appendChild(field("Available until",avTo));
+  C.appendChild(ga);
+  C.appendChild(el("div","hint","Outside these dates the product is not offered."));
+
+  var spotOpts=[{v:"",l:"—"}].concat(DB.spots.map(function(x){return {v:x.name,l:x.name};}));
+  var meet=select(spotOpts,p.meetingSpot||"");
+  C.appendChild(field("Meeting spot",meet));
+
+  var gearOpts=[{v:"",l:"—"}].concat(DB.gear.map(function(g){return {v:g.id,l:g.name};}));
+  var gearSel=select(gearOpts,p.gearId||"");
+  var accomOpts=[{v:"",l:"—"}].concat(DB.accommodations.map(function(a){
+    return {v:a.id,l:a.name};}));
+  var accomSel=select(accomOpts,p.accomId||"");
+  var nights=input("number",p.nights,{min:"1",step:"1"});
+  var nightsAtBk=input("checkbox"); nightsAtBk.checked=!!p.nightsAtBooking;
+  nightsAtBk.style.width="auto";
+  var gearBox=field("Gear used",gearSel,"Required for a rental product.");
+  var accomBox=el("div");
+  accomBox.appendChild(field("Accommodation",accomSel));
+  var gn=el("div","grid2");
+  gn.appendChild(field("Nights",nights));
+  gn.appendChild(field("Nights chosen at booking",nightsAtBk));
+  accomBox.appendChild(gn);
+  C.appendChild(gearBox); C.appendChild(accomBox);
+  function syncType(){
+    gearBox.hidden = ptype.value!=="rental";
+    accomBox.hidden = ptype.value!=="accommodation" && ptype.value!=="camp";
+    nights.disabled = nightsAtBk.checked;
+  }
+  ptype.addEventListener("change",syncType);
+  nightsAtBk.addEventListener("change",syncType);
+  syncType();
+
+  /* ---------------- online sale ---------------- */
+  var O=panes.online;
+  var onSale=input("checkbox"); onSale.checked=p.onlineSale!==false; onSale.style.width="auto";
+  O.appendChild(field("Sell online",onSale,"Offered on the booking site."));
+  var onPay=select([
+    {v:"full",l:"Customer pays the full amount"},
+    {v:"percent",l:"Customer pays a percentage"},
+    {v:"fixed",l:"Customer pays a fixed part"},
+    {v:"validate",l:"Customer only confirms, pays nothing"}],p.onlinePay||"full");
+  var onPayVal=input("number",p.onlinePayValue,{min:"0",step:"0.01"});
+  O.appendChild(field("Online payment",onPay));
+  var onPayBox=field("Amount",onPayVal);
+  O.appendChild(onPayBox);
+  function syncOnPay(){
+    onPayBox.hidden = (onPay.value==="full"||onPay.value==="validate");
+    onPayVal.placeholder = onPay.value==="percent" ? "percent" : "amount";
+  }
+  onPay.addEventListener("change",syncOnPay); syncOnPay();
+
+  var sesChoice=select([
+    {v:"full",l:"Must pick every session in the product"},
+    {v:"one",l:"Must pick at least one session"},
+    {v:"zero",l:"Need not pick any session"}],p.sessionChoice||"full");
+  O.appendChild(field("Session selection",sesChoice));
+  var clientCreates=input("checkbox"); clientCreates.checked=!!p.clientCreatesSessions;
+  clientCreates.style.width="auto";
+  var filtByInstr=input("checkbox"); filtByInstr.checked=!!p.filterByInstructor;
+  filtByInstr.style.width="auto";
+  O.appendChild(field("Client can create sessions",clientCreates));
+  O.appendChild(field("Client can filter by instructor",filtByInstr));
+  var limAv=input("checkbox"); limAv.checked=!!p.limitedAvail; limAv.style.width="auto";
+  var avMax=input("number",p.availMax,{min:"0",step:"1"});
+  var gav=el("div","grid2");
+  gav.appendChild(field("Limited availability",limAv));
+  gav.appendChild(field("Availability max",avMax));
+  O.appendChild(gav);
+  function syncAv(){ avMax.disabled=!limAv.checked; }
+  limAv.addEventListener("change",syncAv); syncAv();
+
+  showTab("info");
+
+  var acts=[{label:"Cancel",on:closeModal}];
+  if(existing){
+    acts.push({label:p.archived?"Unarchive":"Archive",on:function(){
+      existing.archived=!existing.archived;
+      save(); closeModal(); render();
+      toast(existing.archived?"Product archived":"Product restored");
+    }});
+  }
+  acts.push({label:"Save",cls:"primary",on:function(){
+    if(!name.value.trim()){ toast("A name is required."); showTab("info"); name.focus(); return; }
+    if(ptype.value==="rental" && !gearSel.value){
+      toast("A rental product needs its gear."); showTab("cal"); return; }
+    if(position.value!=="" && Number(position.value)<1){
+      toast("Position must be greater than 0."); showTab("info"); return; }
+    if(onPay.value==="percent"){
+      var pv=Number(onPayVal.value)||0;
+      if(pv<=0||pv>100){ toast("The percentage must be between 1 and 100.");
+        showTab("online"); return; }
+    }
+    if(depType.value==="percent"){
+      var dv=Number(depVal.value)||0;
+      if(dv<=0||dv>100){ toast("The deposit percentage must be between 1 and 100.");
+        showTab("price"); return; }
+    }
+    if(depType.value==="fixed" && Number(depVal.value)>Number(price.value||0)){
+      toast("The deposit is more than the price."); showTab("price"); return; }
+    if(avFrom.value && avTo.value && avTo.value<avFrom.value){
+      toast("Available-until is before available-from."); showTab("cal"); return; }
+
+    var rec=existing||{id:uid("p")};
+    rec.name=name.value.trim(); rec.kind=kind.value; rec.ptype=ptype.value;
+    rec.price=Number(price.value)||0;
+    rec.publicPrice=pubPrice.value===""?"":Number(pubPrice.value);
+    rec.tax=Number(tax.value)||0; rec.taxNote=taxNote.value.trim();
+    rec.sessions=Math.max(1,Number(sess.value)||1);
+    rec.sessionsAtBooking=sessAtBooking.checked;
+    rec.prices=tiers.slice().sort(function(a,b){
+      return ((a.hours||0)-(b.hours||0))||((a.minPax||1)-(b.minPax||1));});
+    rec.priceMode=mode.value; rec.code=code.value.trim();
+    rec.account=account.value.trim();
+    rec.position=position.value===""?"":Number(position.value);
+    rec.maxAttendants=maxAtt.value===""?"":Number(maxAtt.value);
+    rec.depositType=depType.value;
+    rec.depositValue=depVal.value===""?"":Number(depVal.value);
+    rec.description=desc.value.trim(); rec.shortDesc=shortD.value.trim();
+    rec.longDesc=longD.value.trim(); rec.emailDesc=emailD.value.trim();
+    rec.showEmailDesc=showEmailD.checked;
+    rec.privateSession=priv.checked; rec.privateCourse=privC.checked;
+    rec.weekDays=weekDays.slice().sort();
+    rec.startHours=startHours.filter(Boolean).sort();
+    rec.availFrom=avFrom.value; rec.availTo=avTo.value;
+    rec.meetingSpot=meet.value; rec.gearId=gearSel.value; rec.accomId=accomSel.value;
+    rec.nights=nights.value===""?"":Number(nights.value);
+    rec.nightsAtBooking=nightsAtBk.checked;
+    rec.limitedStock=limStock.checked;
+    rec.stock=stock.value===""?"":Number(stock.value);
+    rec.limitedAvail=limAv.checked;
+    rec.availMax=avMax.value===""?"":Number(avMax.value);
+    rec.onlineSale=onSale.checked; rec.onlinePay=onPay.value;
+    rec.onlinePayValue=onPayVal.value===""?"":Number(onPayVal.value);
+    rec.sessionChoice=sesChoice.value;
+    rec.clientCreatesSessions=clientCreates.checked;
+    rec.filterByInstructor=filtByInstr.checked;
+    if(!existing) DB.products.push(rec);
+    save(); closeModal(); render(); toast(existing?"Product updated":"Product added");
+  }});
+  openModal(existing?"Edit product":"New product",b,acts);
 }
 function kindLabel(k){ var L=KINDS(); for(var i=0;i<L.length;i++) if(L[i].k===k) return L[i].l; return k; }
+var catFilter={q:"",type:"",kind:"",show:"active"};
+function ptypeLabel(v){
+  for(var i=0;i<PRODUCT_TYPES.length;i++) if(PRODUCT_TYPES[i].v===v) return PRODUCT_TYPES[i].l;
+  return v||"—";
+}
 function renderCatalog(){
   var host=document.getElementById("p-catalog"); host.textContent="";
+  var active=DB.products.filter(function(x){return !x.archived;}).length;
+  var archived=DB.products.length-active;
+
   var ch=el("div","sec-h");
   ch.appendChild(el("h2",null,"Catalog"));
-  if(DB.products.length) ch.appendChild(el("span","sub",DB.products.length+" products"));
+  if(DB.products.length) ch.appendChild(el("span","sub",
+    active+" active"+(archived?" · "+archived+" archived":"")));
   ch.appendChild(el("span","spacer"));
   if(seedData()){
     var ib=el("button","btn","Import catalog");
     ib.addEventListener("click",importPrompt); ch.appendChild(ib);
   }
+  var xb=el("button","btn","Export CSV");
+  xb.addEventListener("click",function(){
+    exportCsv("products",
+      ["Name","Type","Activity","Code","Price","Public price","Tax","Sessions",
+       "Deposit","Tiers","Online","Archived"],
+      DB.products.map(function(x){
+        return [x.name,ptypeLabel(x.ptype),kindLabel(x.kind),x.code||"",
+          x.price,x.publicPrice===""||x.publicPrice==null?"":x.publicPrice,x.tax||0,
+          x.sessionsAtBooking?"at booking":x.sessions,
+          x.depositType?(x.depositType==="percent"?x.depositValue+"%":"$"+x.depositValue):"",
+          (x.prices||[]).length, x.onlineSale===false?"no":"yes",
+          x.archived?"yes":""];
+      }));
+  });
+  ch.appendChild(xb);
   var nb=el("button","btn primary","New product");
   nb.addEventListener("click",function(){productForm(null);});
   ch.appendChild(nb); host.appendChild(ch);
+
   if(!DB.products.length){
     var e=emptyState("🗂","Nothing in the catalog yet",
       "Add the lessons, courses, rentals and extras you sell. Bookings pick from this list, and prices flow through to the day closing.",
@@ -967,30 +1265,100 @@ function renderCatalog(){
     host.appendChild(e);
     return;
   }
+
+  /* filters */
+  function styled(n){
+    n.style.cssText="width:auto;padding:8px 10px;border-radius:9px;font:inherit;font-size:13px;"+
+      "border:1px solid var(--line);background:var(--panel);color:var(--text)";
+    return n;
+  }
+  var sb=el("div","searchbar");
+  var q=input("search",catFilter.q,{placeholder:"Search name, code or description"});
+  q.addEventListener("input",function(){
+    catFilter.q=q.value; renderCatalog();
+    var n=document.querySelector("#p-catalog .searchbar input");
+    if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);}
+  });
+  sb.appendChild(q);
+  var fType=styled(select([{v:"",l:"Any type"}].concat(
+    PRODUCT_TYPES.map(function(t){return {v:t.v,l:t.l};})),catFilter.type));
+  fType.addEventListener("change",function(){catFilter.type=fType.value;renderCatalog();});
+  sb.appendChild(fType);
+  var fKind=styled(select([{v:"",l:"Any activity"}].concat(
+    KINDS().map(function(k){return {v:k.k,l:k.l};})),catFilter.kind));
+  fKind.addEventListener("change",function(){catFilter.kind=fKind.value;renderCatalog();});
+  sb.appendChild(fKind);
+  var fShow=styled(select([{v:"active",l:"Active"},{v:"archived",l:"Archived"},
+    {v:"all",l:"All"}],catFilter.show));
+  fShow.addEventListener("change",function(){catFilter.show=fShow.value;renderCatalog();});
+  sb.appendChild(fShow);
+  host.appendChild(sb);
+
+  var term=catFilter.q.trim().toLowerCase();
+  var rows=DB.products.filter(function(x){
+    if(catFilter.show==="active" && x.archived) return false;
+    if(catFilter.show==="archived" && !x.archived) return false;
+    if(catFilter.type && (x.ptype||"class")!==catFilter.type) return false;
+    if(catFilter.kind && x.kind!==catFilter.kind) return false;
+    if(!term) return true;
+    return [x.name,x.code,x.description,x.shortDesc].join(" ").toLowerCase().indexOf(term)>=0;
+  }).sort(function(a,b){
+    var pa=a.position===""||a.position==null?9999:a.position;
+    var pb=b.position===""||b.position==null?9999:b.position;
+    if(pa!==pb) return pa-pb;
+    return (b.price||0)-(a.price||0);
+  });
+
+  if(!rows.length){
+    host.appendChild(el("div","note","Nothing matches those filters."));
+    return;
+  }
+  if(rows.length!==DB.products.length){
+    host.appendChild(el("div","note",rows.length+" of "+DB.products.length+" products."));
+  }
+
   var grid=el("div","cards");
-  DB.products.slice().sort(function(a,b){return (b.price||0)-(a.price||0);}).forEach(function(p){
+  rows.forEach(function(x){
     var c=el("div","panel card");
-    c.appendChild(el("div","nm",p.name));
+    if(x.archived) c.style.opacity=".6";
+    c.appendChild(el("div","nm",x.name));
+
     var tags=el("div","tags");
-    tags.appendChild(el("span","chip neutral",kindLabel(p.kind)));
-    if(p.sessions>1) tags.appendChild(el("span","chip pink",p.sessions+" sessions"));
+    tags.appendChild(el("span","chip neutral",ptypeLabel(x.ptype)));
+    if(x.kind) tags.appendChild(el("span","chip pink",kindLabel(x.kind)));
+    if(x.sessionsAtBooking) tags.appendChild(el("span","chip neutral","sessions at booking"));
+    else if(x.sessions>1) tags.appendChild(el("span","chip neutral",x.sessions+" sessions"));
+    if(x.privateSession) tags.appendChild(el("span","chip neutral","private"));
+    if(x.archived) tags.appendChild(el("span","chip warnc","archived"));
+    if(x.onlineSale===false) tags.appendChild(el("span","chip neutral","not online"));
     c.appendChild(tags);
-    var sum=priceSummary(p);
-    if(sum){ var sl=el("div","hint",sum); c.appendChild(sl); }
-    if(p.depositType&&p.depositValue){
-      var dl=el("div","hint","Deposit "+(p.depositType==="percent"
-        ? p.depositValue+"%" : "$"+money(p.depositValue,0)));
-      c.appendChild(dl);
-    }
+
+    var facts=[];
+    var sum=priceSummary(x);
+    if(sum) facts.push(sum);
+    if(x.depositType&&x.depositValue) facts.push("Deposit "+(x.depositType==="percent"
+      ? x.depositValue+"%" : "$"+money(x.depositValue,0)));
+    if(x.tax) facts.push("Tax "+x.tax+"%");
+    if(x.limitedStock&&x.stock!=="") facts.push(x.stock+" in stock");
+    if((x.weekDays||[]).length) facts.push("Runs "+x.weekDays.map(function(d){
+      return DOW[d];}).join(" "));
+    if((x.startHours||[]).length) facts.push("Starts "+x.startHours.join(", "));
+    if(x.availFrom||x.availTo) facts.push("Available "+(x.availFrom?dm(x.availFrom):"…")+
+      " – "+(x.availTo?dm(x.availTo):"…"));
+    if(x.meetingSpot) facts.push("Meets at "+x.meetingSpot);
+    if(x.code) facts.push("Code "+x.code);
+    facts.forEach(function(f){ c.appendChild(el("div","hint",f)); });
+
     var f=el("div","foot");
-    var pr=el("div","pr","$"+money(p.price,0));
-    if(p.sessions>1&&p.price) pr.appendChild(el("small"," · $"+money(p.price/p.sessions,0)+"/session"));
+    var pr=el("div","pr","$"+money(x.price,0));
+    if(x.sessions>1&&x.price&&!x.sessionsAtBooking)
+      pr.appendChild(el("small"," · $"+money(x.price/x.sessions,0)+"/session"));
     f.appendChild(pr);
-    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){productForm(p);});
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){productForm(x);});
     var d=el("button","btn sm danger","Del");
     d.addEventListener("click",function(){
-      confirmDelete(p.name,function(){
-        DB.products=DB.products.filter(function(x){return x.id!==p.id;});
+      confirmDelete(x.name,function(){
+        DB.products=DB.products.filter(function(y){return y.id!==x.id;});
         save(); render(); toast("Product deleted");
       });
     });
@@ -1740,6 +2108,74 @@ function sessionInRow(x,row){
   }
   return (x.category||"")===row.key;
 }
+function unassignedOn(dateStr){
+  /* people with a booking that day who are not yet in any session that day */
+  var inSessions={};
+  DB.sessions.forEach(function(x){
+    if(x.date!==dateStr) return;
+    x.participants.forEach(function(cid){ inSessions[cid]=true; });
+  });
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    if(bk.date!==dateStr) return;
+    if(!bk.clientId || inSessions[bk.clientId]) return;
+    if(out.some(function(o){return o.clientId===bk.clientId;})) return;
+    out.push({clientId:bk.clientId,booking:bk,
+      items:(bk.lines||[]).map(function(l){
+        var p=product(l.productId); return p?p.name:"";}).filter(Boolean)});
+  });
+  return out;
+}
+function assignRail(dateStr,onChange){
+  var pending=unassignedOn(dateStr);
+  var rail=el("div","panel");
+  rail.style.cssText="padding:0;overflow:hidden;align-self:start;position:sticky;top:96px";
+  var h=el("div","day-h");
+  h.appendChild(el("h3",null,"To assign"));
+  h.appendChild(el("span","c",String(pending.length)));
+  rail.appendChild(h);
+  if(!pending.length){
+    var e=el("div","hint",
+      DB.bookings.some(function(b){return b.date===dateStr;})
+        ? "Everyone booked today is in a session."
+        : "Nobody has booked for this day yet.");
+    e.style.padding="14px 16px";
+    rail.appendChild(e);
+    return rail;
+  }
+  var note=el("div","hint","Drag a name onto a session to put them in it.");
+  note.style.padding="10px 16px 4px";
+  rail.appendChild(note);
+  pending.forEach(function(x){
+    var c=by(x.clientId,DB.clients)||{};
+    var card=el("div");
+    card.style.cssText="margin:8px 12px;padding:9px 11px;border:1px solid var(--line);"+
+      "border-radius:9px;background:var(--panel-2);cursor:grab;font-size:13px";
+    card.draggable=true;
+    card.appendChild(el("div",null,c.name||"—")).style.fontWeight="600";
+    if(x.items.length){
+      var it=el("div","hint",x.items.join(", "));
+      it.style.marginTop="2px";
+      card.appendChild(it);
+    }
+    var docs=docsFor(x.clientId);
+    if(!docs.length){
+      var w=el("span","chip critc","no waiver");
+      w.style.marginTop="5px"; w.style.display="inline-block";
+      card.appendChild(w);
+    }
+    card.addEventListener("dragstart",function(e){
+      e.dataTransfer.setData("text/plain","client:"+x.clientId);
+      e.dataTransfer.effectAllowed="copy";
+      card.style.opacity=".45";
+    });
+    card.addEventListener("dragend",function(){card.style.opacity="1";});
+    rail.appendChild(card);
+  });
+  return rail;
+}
+
 function renderBoard(){
   var host=document.getElementById("p-board"); host.textContent="";
   var top=el("div","sec-h");
@@ -1807,7 +2243,9 @@ function renderBoard(){
 
   /* the grid */
   var span=(BOARD_TO-BOARD_FROM)*60;
-  var wrap=el("div","panel"); wrap.style.cssText="margin-top:12px;overflow-x:auto";
+  var shell=el("div");
+  shell.style.cssText="display:grid;grid-template-columns:1fr 230px;gap:12px;margin-top:12px";
+  var wrap=el("div","panel"); wrap.style.cssText="overflow-x:auto";
   var grid=el("div"); grid.style.cssText="min-width:940px;position:relative";
 
   var head=el("div");
@@ -1870,7 +2308,9 @@ function renderBoard(){
     lane.addEventListener("dragleave",function(){lane.style.background="";});
     lane.addEventListener("drop",function(e){
       e.preventDefault(); lane.style.background="";
-      var id=e.dataTransfer.getData("text/plain");
+      var id=e.dataTransfer.getData("text/plain")||"";
+      if(id.indexOf("client:")===0){
+        toast("Drop a name onto a session block, not the empty lane."); return; }
       var ses=by(id,DB.sessions); if(!ses) return;
       var rect=lane.getBoundingClientRect();
       var frac=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
@@ -1915,13 +2355,35 @@ function renderBoard(){
         blk.style.opacity=".45";
       });
       blk.addEventListener("dragend",function(){blk.style.opacity=".9";});
+      blk.addEventListener("dragover",function(e){
+        if((e.dataTransfer.types||[]).indexOf("text/plain")<0) return;
+        e.preventDefault(); e.stopPropagation();
+        blk.style.outline="2px solid var(--text)";
+      });
+      blk.addEventListener("dragleave",function(){blk.style.outline="";});
+      blk.addEventListener("drop",function(e){
+        var data=e.dataTransfer.getData("text/plain")||"";
+        if(data.indexOf("client:")!==0) return;
+        e.preventDefault(); e.stopPropagation();
+        blk.style.outline="";
+        var cid=data.slice(7);
+        if(x.participants.indexOf(cid)>=0){ toast("Already in this session."); return; }
+        if(x.participants.length>=x.capacity){
+          toast(x.title+" is full ("+x.capacity+")."); return; }
+        x.participants.push(cid);
+        save(); renderBoard();
+        toast(clientName(cid)+" → "+x.title);
+      });
       blk.addEventListener("dblclick",function(){sessionForm(x);});
       lane.appendChild(blk);
     });
     r.appendChild(lane);
     grid.appendChild(r);
   });
-  wrap.appendChild(grid); host.appendChild(wrap);
+  wrap.appendChild(grid);
+  shell.appendChild(wrap);
+  shell.appendChild(assignRail(boardDate));
+  host.appendChild(shell);
   if(!byRow) host.appendChild(el("div","note","Nothing scheduled on "+dm(boardDate)+"."));
   else host.appendChild(el("div","note",
     "Drag a block sideways to change its hour, or onto another row to move it. Double-click to open it."));
@@ -3769,9 +4231,12 @@ function importCatalog(){
     DB.products.push({id:uid("p"),name:p.name,kind:p.kind,price:p.price||0,
       sessions:p.sessions||1,category:p.category||"",tax:p.tax||0,color:p.color||"",
       nights:p.nights||null,description:p.description||"",prices:p.prices||[],
+      ptype:p.ptype||"class",
       priceMode:(p.prices&&p.prices.some(function(t){return t.hours;}))?"item":
                 ((p.prices&&p.prices.some(function(t){return (t.minPax||1)>1;}))?"person":"fixed"),
-      code:"",maxAttendants:"",depositType:"",depositValue:""});
+      code:"",maxAttendants:"",depositType:"",depositValue:"",
+      onlineSale:true,onlinePay:"full",sessionChoice:"full",
+      weekDays:[],startHours:[],archived:false});
     added.products++;
   });
   (d.gear||[]).forEach(function(g){
