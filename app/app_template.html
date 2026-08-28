@@ -222,6 +222,7 @@ td.strong{font-weight:700}
 <div class="wrap">
   <section id="p-today" role="tabpanel"></section>
   <section id="p-schedule" role="tabpanel" hidden></section>
+  <section id="p-board" role="tabpanel" hidden></section>
   <section id="p-bookings" role="tabpanel" hidden></section>
   <section id="p-clients" role="tabpanel" hidden></section>
   <section id="p-catalog" role="tabpanel" hidden></section>
@@ -248,7 +249,7 @@ var KEY="shokogi.manager.v1";
 var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
   gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
-  invoices:[],invoiceSeq:1,
+  invoices:[],invoiceSeq:1,tides:[],
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -268,7 +269,8 @@ function load(){
       if(d&&d.v===1){
         /* a database saved before these existed must not arrive with holes */
         ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
-         "clients","staff","products","sessions","bookings","spots","invoices"].forEach(function(k){
+         "clients","staff","products","sessions","bookings","spots","invoices",
+         "tides"].forEach(function(k){
           if(!Array.isArray(d[k])) d[k]=[];
         });
         if(typeof d.invoiceSeq!=="number") d.invoiceSeq=1;
@@ -628,7 +630,7 @@ function renderCrew(){
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
   DB.staff.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(s){
-    var n=DB.sessions.filter(function(x){return x.staffId===s.id;}).length;
+    var n=DB.sessions.filter(function(x){return staffIdsOf(x).indexOf(s.id)>=0;}).length;
     var r=el("tr");
     r.appendChild(el("td","strong",s.name));
     var rt=el("td"); rt.appendChild(el("span","chip pink",s.role)); r.appendChild(rt);
@@ -640,7 +642,10 @@ function renderCrew(){
     d.addEventListener("click",function(){
       confirmDelete(s.name,function(){
         DB.staff=DB.staff.filter(function(x){return x.id!==s.id;});
-        DB.sessions.forEach(function(x){ if(x.staffId===s.id) x.staffId=null; });
+        DB.sessions.forEach(function(x){
+      x.staffIds=staffIdsOf(x).filter(function(id){return id!==s.id;});
+      delete x.staffId;
+    });
         save(); render(); toast("Crew member deleted");
       });
     });
@@ -761,9 +766,23 @@ function renderCatalog(){
 
 /* ============================ schedule ============================ */
 var schedDate=todayISO();
+function staffIdsOf(s){
+  /* sessions used to carry a single instructor; keep old rows working */
+  if(Array.isArray(s.staffIds)) return s.staffIds;
+  return s.staffId?[s.staffId]:[];
+}
+function instructorNames(s){
+  var ids=staffIdsOf(s);
+  if(!ids.length) return "Unassigned";
+  return ids.map(staffName).join(", ");
+}
+function catColor(name){
+  var k=(cfg().kinds||[]).filter(function(x){return x.l===name;})[0];
+  return (k&&k.color)||"";
+}
 function sessionForm(existing,presetDate){
   var s=existing||{date:presetDate||schedDate,time:"09:00",duration:90,title:"",
-    staffId:DB.staff[0]?DB.staff[0].id:null,spot:DB.spots[0]?DB.spots[0].name:"",capacity:6,
+    staffIds:[],spot:DB.spots[0]?DB.spots[0].name:"",capacity:6,category:"",note:"",
     participants:[],tideRef:"",tidePos:"before",tideHours:2};
   var b=el("div");
   var title=input("text",s.title,{placeholder:"e.g. Beginner surf lesson"});
@@ -771,8 +790,7 @@ function sessionForm(existing,presetDate){
   var time=input("time",s.time);
   var dur=input("number",s.duration,{step:"15",min:"15"});
   var cap=input("number",s.capacity,{step:"1",min:"1"});
-  var staffOpts=[{v:"",l:"Unassigned"}].concat(DB.staff.map(function(x){return {v:x.id,l:x.name+" · "+x.role};}));
-  var staff=select(staffOpts,s.staffId||"");
+  var chosen=staffIdsOf(s).slice();
   var spotOpts=DB.spots.map(function(x){return {v:x.name,l:x.name};});
   var spot=select(spotOpts.length?spotOpts:[{v:"",l:"— add a spot in Settings —"}],s.spot);
   b.appendChild(field("Title",title));
@@ -782,18 +800,41 @@ function sessionForm(existing,presetDate){
   var g2=el("div","grid2");
   g2.appendChild(field("Duration (min)",dur)); g2.appendChild(field("Capacity",cap));
   b.appendChild(g2);
-  var staffHint=el("div","hint");
-  function checkOff(){
-    var offNow=staff.value&&isOff(staff.value,date.value);
-    staffHint.textContent=offNow
-      ? staffName(staff.value)+" is booked off on "+dm(date.value)+"."
-      : (DB.staff.length?"":"Add crew first to assign someone.");
-    staffHint.style.color=offNow?"var(--crit)":"";
+  var staffHost=el("div"), staffHint=el("div","hint");
+  function drawStaff(){
+    staffHost.textContent="";
+    if(!DB.staff.length){ staffHost.appendChild(el("div","hint","Add crew first.")); return; }
+    DB.staff.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+      .forEach(function(x){
+        var lab=el("label"); lab.style.display="inline-flex"; lab.style.alignItems="center";
+        lab.style.gap="6px"; lab.style.marginRight="12px"; lab.style.marginBottom="6px";
+        lab.style.fontSize="13.5px"; lab.style.cursor="pointer";
+        var cb=input("checkbox"); cb.checked=chosen.indexOf(x.id)>=0; cb.style.width="auto";
+        cb.addEventListener("change",function(){
+          if(cb.checked){ if(chosen.indexOf(x.id)<0) chosen.push(x.id); }
+          else chosen=chosen.filter(function(y){return y!==x.id;});
+          checkOff();
+        });
+        lab.appendChild(cb); lab.appendChild(el("span",null,x.name));
+        staffHost.appendChild(lab);
+      });
   }
-  staff.addEventListener("change",checkOff);
+  function checkOff(){
+    var off=chosen.filter(function(id){return isOff(id,date.value);}).map(staffName);
+    staffHint.textContent=off.length
+      ? off.join(", ")+(off.length>1?" are":" is")+" booked off on "+dm(date.value)+"."
+      : "";
+    staffHint.style.color=off.length?"var(--crit)":"";
+  }
   date.addEventListener("change",checkOff);
-  var sf=field("Instructor",staff); sf.appendChild(staffHint);
-  b.appendChild(sf); checkOff();
+  var sf=field("Instructors",staffHost); sf.appendChild(staffHint);
+  b.appendChild(sf); drawStaff(); checkOff();
+
+  var catOpts=[{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){return {v:k.l,l:k.l};}));
+  var cat=select(catOpts,s.category||"");
+  b.appendChild(field("Activity calendar",cat));
+  var note=input("text",s.note,{placeholder:"Optional note shown on the planning row"});
+  b.appendChild(field("Note",note));
   b.appendChild(field("Spot",spot));
 
   /* Tide-relative scheduling: a surf session is often pinned to the tide
@@ -819,7 +860,8 @@ function sessionForm(existing,presetDate){
       var rec=existing||{id:uid("se"),participants:[]};
       rec.title=title.value.trim(); rec.date=date.value||todayISO(); rec.time=time.value||"09:00";
       rec.duration=Number(dur.value)||60; rec.capacity=Number(cap.value)||1;
-      rec.staffId=staff.value||null; rec.spot=spot.value;
+      rec.staffIds=chosen.slice(); delete rec.staffId;
+      rec.spot=spot.value; rec.category=cat.value; rec.note=note.value.trim();
       rec.tideRef=tref.value||""; rec.tidePos=tpos.value;
       rec.tideHours=Number(thrs.value)||0;
       if(!existing) DB.sessions.push(rec);
@@ -862,70 +904,196 @@ function participantsForm(sess){
   openModal("Participants · "+sess.title,b,[{label:"Done",cls:"primary",on:function(){
     closeModal(); render();}}]);
 }
+var planTab="sessions";
+function hhmm(mins){
+  var h=Math.floor(mins/60), m=mins%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
 function renderSchedule(){
   var host=document.getElementById("p-schedule"); host.textContent="";
-  secHeader(host,"Schedule",null,"New session",function(){sessionForm(null,schedDate);});
 
-  /* seven-day strip anchored on the selected day */
+  /* day strip: two back, six forward, with Today alongside */
+  var top=el("div","sec-h");
+  top.appendChild(el("h2",null,"Planning"));
+  top.appendChild(el("span","spacer"));
+  var today=el("button","btn sm","Today");
+  today.addEventListener("click",function(){schedDate=todayISO();renderSchedule();});
+  top.appendChild(today);
+  var add=el("button","btn primary","New session");
+  add.addEventListener("click",function(){sessionForm(null,schedDate);});
+  top.appendChild(add);
+  host.appendChild(top);
+
   var bar=el("div","daybar");
+  var prev=el("button"); prev.appendChild(el("div","n","‹"));
+  prev.addEventListener("click",function(){
+    schedDate=iso(new Date(new Date(schedDate+"T12:00:00").getTime()-864e5));renderSchedule();});
+  bar.appendChild(prev);
   var base=new Date(schedDate+"T12:00:00");
-  for(var i=-2;i<=7;i++){
+  for(var i=-2;i<=6;i++){
     (function(off){
       var d=new Date(base.getTime()+off*864e5), k=iso(d);
-      var n=DB.sessions.filter(function(s){return s.date===k;}).length;
+      var n=DB.sessions.filter(function(x){return x.date===k;}).length;
       var b=el("button");
       b.setAttribute("aria-pressed",k===schedDate?"true":"false");
-      b.appendChild(el("div","d",DOW[d.getDay()]));
+      b.appendChild(el("div","d",DOW[d.getDay()]+" "+MON[d.getMonth()]));
       b.appendChild(el("div","n",String(d.getDate())));
       b.appendChild(el("div","c",n?n+" act":"—"));
       b.addEventListener("click",function(){schedDate=k;renderSchedule();});
       bar.appendChild(b);
     })(i);
   }
+  var next=el("button"); next.appendChild(el("div","n","›"));
+  next.addEventListener("click",function(){
+    schedDate=iso(new Date(new Date(schedDate+"T12:00:00").getTime()+864e5));renderSchedule();});
+  bar.appendChild(next);
   host.appendChild(bar);
 
-  var day=DB.sessions.filter(function(s){return s.date===schedDate;})
+  var day=DB.sessions.filter(function(x){return x.date===schedDate;})
     .sort(function(a,b){return a.time<b.time?-1:1;});
+  var rentalsOut=DB.gearBlocks.filter(function(b){
+    return (!b.from||b.from<=schedDate)&&(!b.to||b.to>=schedDate);}).length;
+  var bookingsToday=DB.bookings.filter(function(b){return b.date===schedDate;}).length;
+  var accom=DB.accommodations.length;
+
+  /* counter tabs, as on their planning */
+  var tabs=el("div"); tabs.style.display="flex"; tabs.style.gap="2px";
+  tabs.style.borderBottom="1px solid var(--line)"; tabs.style.marginTop="14px";
+  tabs.style.overflowX="auto";
+  [["sessions","Sessions",day.length],["rental","Rental",rentalsOut],
+   ["accom","Accommodations",accom],["bookings","Bookings",bookingsToday]]
+  .forEach(function(t){
+    var b=el("button"); b.className="";
+    b.style.cssText="appearance:none;border:0;background:none;cursor:pointer;font:inherit;"+
+      "font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;"+
+      "padding:10px 14px 11px;border-bottom:2px solid transparent;white-space:nowrap;"+
+      (planTab===t[0]?"color:var(--accent);border-bottom-color:var(--accent);":"color:var(--text-3);");
+    b.appendChild(document.createTextNode(t[1]+" "));
+    var c=el("span","chip "+(planTab===t[0]?"pink":"neutral"),String(t[2]));
+    b.appendChild(c);
+    b.addEventListener("click",function(){planTab=t[0];renderSchedule();});
+    tabs.appendChild(b);
+  });
+  host.appendChild(tabs);
+
+  if(planTab==="rental"){
+    if(!rentalsOut){ host.appendChild(el("div","note","No gear is out of service on "+dm(schedDate)+".")); return; }
+    var wr=el("div","panel tbl-wrap"),tr0=el("table"),hr=el("thead"),rr=el("tr");
+    ["Gear","Units","From","Until","Note"].forEach(function(h,i){
+      rr.appendChild(el("th",i===1?"r":null,h));});
+    hr.appendChild(rr); tr0.appendChild(hr);
+    var br=el("tbody");
+    DB.gearBlocks.filter(function(b){
+      return (!b.from||b.from<=schedDate)&&(!b.to||b.to>=schedDate);}).forEach(function(x){
+      var g=by(x.gearId,DB.gear), r=el("tr");
+      r.appendChild(el("td","strong",g?g.name:"—"));
+      r.appendChild(el("td","n r",String(x.units)));
+      r.appendChild(el("td",null,x.from?dm(x.from):"—"));
+      r.appendChild(el("td",null,x.to?dm(x.to):"—"));
+      r.appendChild(el("td","muted",x.note||"—"));
+      br.appendChild(r);
+    });
+    tr0.appendChild(br); wr.appendChild(tr0); host.appendChild(wr); return;
+  }
+  if(planTab==="accom"){
+    if(!accom){ host.appendChild(el("div","note","No accommodation is set up. Add it in the back office.")); return; }
+    var wa=el("div","panel tbl-wrap"),ta=el("table"),ha=el("thead"),ra=el("tr");
+    ["Accommodation","Units","Max per unit"].forEach(function(h,i){
+      ra.appendChild(el("th",i?"r":null,h));});
+    ha.appendChild(ra); ta.appendChild(ha);
+    var ba=el("tbody");
+    DB.accommodations.forEach(function(x){
+      var r=el("tr");
+      r.appendChild(el("td","strong",x.name));
+      r.appendChild(el("td","n r",String(x.units)));
+      r.appendChild(el("td","n r",String(x.maxPax)));
+      ba.appendChild(r);
+    });
+    ta.appendChild(ba); wa.appendChild(ta); host.appendChild(wa); return;
+  }
+  if(planTab==="bookings"){
+    if(!bookingsToday){ host.appendChild(el("div","note","No bookings taken on "+dm(schedDate)+".")); return; }
+    var wb=el("div","panel tbl-wrap"),tbl=el("table"),hb=el("thead"),rb=el("tr");
+    ["Client","Items","Total","Paid","Status"].forEach(function(h,i){
+      rb.appendChild(el("th",(i===2||i===3)?"r":null,h));});
+    hb.appendChild(rb); tbl.appendChild(hb);
+    var bb=el("tbody");
+    DB.bookings.filter(function(b){return b.date===schedDate;}).forEach(function(bk){
+      var r=el("tr");
+      r.appendChild(el("td","strong",clientName(bk.clientId)));
+      r.appendChild(el("td","muted",(bk.lines||[]).map(function(l){
+        var pr=product(l.productId); return pr?pr.name:"";}).join(", ")));
+      r.appendChild(el("td","n r","$"+money(bookingTotal(bk),0)));
+      r.appendChild(el("td","n r","$"+money(bookingPaid(bk),0)));
+      var st=el("td"); var s2=bookingStatus(bk);
+      st.appendChild(el("span","chip "+(s2==="paid"?"ok":(s2==="partial"?"warnc":"critc")),s2));
+      r.appendChild(st);
+      bb.appendChild(r);
+    });
+    tbl.appendChild(bb); wb.appendChild(tbl); host.appendChild(wb); return;
+  }
+
   if(!day.length){
     host.appendChild(emptyState("📅","Nothing on "+dm(schedDate),
       "No sessions scheduled for this day yet.",
       "Add a session",function(){sessionForm(null,schedDate);}));
     return;
   }
-  var box=el("div","panel");
-  day.forEach(function(s){
-    var r=el("div","slot");
-    r.appendChild(el("div","t",s.time));
-    var nm=el("div","nm"); nm.appendChild(el("span","dot"));
-    var txt=el("div");
-    txt.appendChild(el("b",null,s.title));
-    var meta=staffName(s.staffId)+(s.spot?" · "+s.spot:"")+" · "+s.duration+" min";
-    var tl=tideLabel(s); if(tl) meta+=" · "+tl;
-    txt.appendChild(el("em",null,meta));
-    nm.appendChild(txt); r.appendChild(nm);
-    var cap=el("div","cap");
-    var full=s.participants.length>=s.capacity;
-    var chip=el("span","chip "+(full?"warnc":(s.participants.length?"ok":"neutral")),
-      s.participants.length+" / "+s.capacity);
+
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Hour","Activity Calendar","Instructor","Title","Note","Duration","Participants",""]
+    .forEach(function(h,i){ tr.appendChild(el("th",i===5||i===6?"r":null,h)); });
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  day.forEach(function(x){
+    var r=el("tr");
+    var colour=catColor(x.category)||"var(--accent-hot)";
+    var hc=el("td","n",x.time);
+    hc.style.borderLeft="4px solid "+colour;
+    r.appendChild(hc);
+    r.appendChild(el("td",x.category?null:"muted",x.category||"—"));
+    var ic=el("td",staffIdsOf(x).length?null:"muted",instructorNames(x));
+    var offSome=staffIdsOf(x).filter(function(id){return isOff(id,x.date);});
+    if(offSome.length){ ic.appendChild(document.createTextNode(" "));
+      ic.appendChild(el("span","chip critc","off")); }
+    r.appendChild(ic);
+    var tc=el("td","strong",x.title);
+    var tl=tideLabel(x);
+    if(tl){ tc.appendChild(document.createTextNode(" "));
+            tc.appendChild(el("span","chip pink",tl)); }
+    r.appendChild(tc);
+    r.appendChild(el("td",x.note?"muted":"muted",x.note||"—"));
+    r.appendChild(el("td","n r",hhmm(x.duration||0)));
+    var pc=el("td","n r");
+    var full=x.participants.length>=x.capacity;
+    var chip=el("span","chip "+(full?"warnc":(x.participants.length?"ok":"neutral")),
+      x.participants.length+" / "+x.capacity);
     chip.style.cursor="pointer";
-    chip.addEventListener("click",function(){participantsForm(s);});
-    cap.appendChild(chip); r.appendChild(cap);
-    var act=el("div","rowbtns");
-    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){sessionForm(s);});
+    chip.addEventListener("click",function(){participantsForm(x);});
+    pc.appendChild(chip); r.appendChild(pc);
+    var act=el("td"),box=el("div","rowbtns");
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){sessionForm(x);});
     var cl=el("button","btn sm","Clone");
-    cl.title="Copy this session to another day";
-    cl.addEventListener("click",function(){cloneSessionForm(s);});
+    cl.addEventListener("click",function(){cloneSessionForm(x);});
     var d=el("button","btn sm danger","Del");
-    d.addEventListener("click",function(){
-      confirmDelete("this session",function(){
-        DB.sessions=DB.sessions.filter(function(x){return x.id!==s.id;});
-        save(); render(); toast("Session deleted");
-      });
-    });
-    act.appendChild(e); act.appendChild(cl); act.appendChild(d); r.appendChild(act);
-    box.appendChild(r);
+    d.addEventListener("click",function(){confirmDelete("this session",function(){
+      DB.sessions=DB.sessions.filter(function(y){return y.id!==x.id;});
+      save();render();toast("Session deleted");});});
+    box.appendChild(e); box.appendChild(cl); box.appendChild(d);
+    act.appendChild(box); r.appendChild(act);
+    tb.appendChild(r);
   });
-  host.appendChild(box);
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+
+  var xs=el("div","searchbar"); xs.style.marginTop="12px";
+  var xb=el("button","btn sm","Export table");
+  xb.addEventListener("click",function(){
+    exportCsv("planning-"+schedDate,
+      ["Hour","Activity Calendar","Instructor","Title","Note","Duration","Participants","Capacity"],
+      day.map(function(x){return [x.time,x.category||"",instructorNames(x),x.title,
+        x.note||"",hhmm(x.duration||0),x.participants.length,x.capacity];}));
+  });
+  xs.appendChild(xb); host.appendChild(xs);
 }
 function cloneSessionForm(src){
   var b=el("div");
@@ -948,7 +1116,8 @@ function cloneSessionForm(src){
         var d=iso(new Date(start.getTime()+i*step*864e5));
         if(d===src.date && i===0 && from.value===src.date){ /* keep the original */ }
         DB.sessions.push({id:uid("se"),title:src.title,date:d,time:src.time,
-          duration:src.duration,capacity:src.capacity,staffId:src.staffId,spot:src.spot,
+          duration:src.duration,capacity:src.capacity,staffIds:staffIdsOf(src).slice(),
+          spot:src.spot,category:src.category||"",note:src.note||"",
           tideRef:src.tideRef||"",tidePos:src.tidePos||"before",tideHours:src.tideHours||0,
           participants:[]});
         made++;
@@ -956,6 +1125,263 @@ function cloneSessionForm(src){
       save(); closeModal(); render(); toast(made+" session"+(made===1?"":"s")+" created");
     }}
   ]);
+}
+
+
+/* ============================ tides ============================
+   Tide times are entered, never guessed. An empty day simply says so rather
+   than drawing a curve that would be fiction. */
+function tideFor(dateStr){
+  for(var i=0;i<DB.tides.length;i++) if(DB.tides[i].date===dateStr) return DB.tides[i];
+  return null;
+}
+function parseTimes(str){
+  return String(str||"").split(/[,\s]+/).map(function(x){return x.trim();})
+    .filter(function(x){return /^\d{1,2}:\d{2}$/.test(x);})
+    .map(function(x){var p=x.split(":");
+      return String(+p[0]).padStart(2,"0")+":"+p[1];});
+}
+function tideForm(dateStr){
+  var t=tideFor(dateStr)||{date:dateStr,highs:[],lows:[]};
+  var b=el("div");
+  b.appendChild(el("p","hint",
+    "Tide times for "+dowOf(dateStr)+", "+dm(dateStr)+". Enter them as 24-hour times separated by commas, for example 09:52, 22:14."));
+  var hi=input("text",(t.highs||[]).join(", "),{placeholder:"09:52, 22:14"});
+  var lo=input("text",(t.lows||[]).join(", "),{placeholder:"03:40, 16:08"});
+  b.appendChild(field("High tide",hi));
+  b.appendChild(field("Low tide",lo));
+  openModal("Tides",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      var rec=tideFor(dateStr);
+      if(!rec){ rec={date:dateStr}; DB.tides.push(rec); }
+      rec.highs=parseTimes(hi.value); rec.lows=parseTimes(lo.value);
+      save(); closeModal(); render(); toast("Tides saved");
+    }}
+  ]);
+}
+
+/* ============================ board ============================
+   The timeline: rows are activity calendars or instructors, columns are hours,
+   and a session is a block you can drag onto another row or another time. */
+var boardDate=todayISO(), boardGroup="category";
+var BOARD_FROM=5, BOARD_TO=20;
+function minsOf(hhmmStr){
+  var p=String(hhmmStr||"09:00").split(":");
+  return (+p[0])*60+(+p[1]||0);
+}
+function toHHMM(mins){
+  mins=Math.max(0,Math.min(24*60-1,Math.round(mins)));
+  return String(Math.floor(mins/60)).padStart(2,"0")+":"+String(mins%60).padStart(2,"0");
+}
+function boardRows(){
+  if(boardGroup==="staff"){
+    /* unassigned sits at the top: it is the pile you are trying to clear */
+    var rows=[{key:"",label:"Unassigned",color:""}];
+    return rows.concat(DB.staff.slice()
+      .sort(function(a,b){return a.name.localeCompare(b.name);})
+      .map(function(x){return {key:x.id,label:x.name,color:""};}));
+  }
+  var seen={},out=[];
+  (cfg().kinds||[]).forEach(function(k){
+    if(seen[k.l]) return; seen[k.l]=1;
+    out.push({key:k.l,label:k.l,color:k.color||""});
+  });
+  out.push({key:"",label:"No calendar",color:""});
+  return out;
+}
+function sessionInRow(x,row){
+  if(boardGroup==="staff"){
+    var ids=staffIdsOf(x);
+    return row.key ? ids.indexOf(row.key)>=0 : ids.length===0;
+  }
+  return (x.category||"")===row.key;
+}
+function renderBoard(){
+  var host=document.getElementById("p-board"); host.textContent="";
+  var top=el("div","sec-h");
+  top.appendChild(el("h2",null,"Board"));
+  top.appendChild(el("span","sub","Drag a session to another row or another hour"));
+  top.appendChild(el("span","spacer"));
+  var grp=el("div","range");
+  [["category","By activity"],["staff","By instructor"]].forEach(function(g){
+    var b=el("button",null,g[1]);
+    b.setAttribute("aria-pressed",boardGroup===g[0]?"true":"false");
+    b.addEventListener("click",function(){boardGroup=g[0];renderBoard();});
+    grp.appendChild(b);
+  });
+  top.appendChild(grp);
+  var td=el("button","btn sm","Today");
+  td.addEventListener("click",function(){boardDate=todayISO();renderBoard();});
+  top.appendChild(td);
+  var ns=el("button","btn primary","New session");
+  ns.addEventListener("click",function(){sessionForm(null,boardDate);});
+  top.appendChild(ns);
+  host.appendChild(top);
+
+  var nav=el("div","daybar");
+  var pv=el("button"); pv.appendChild(el("div","n","‹"));
+  pv.addEventListener("click",function(){
+    boardDate=iso(new Date(new Date(boardDate+"T12:00:00").getTime()-864e5));renderBoard();});
+  nav.appendChild(pv);
+  var base=new Date(boardDate+"T12:00:00");
+  for(var i=-2;i<=4;i++){
+    (function(off){
+      var d=new Date(base.getTime()+off*864e5),k=iso(d);
+      var n=DB.sessions.filter(function(x){return x.date===k;}).length;
+      var b=el("button");
+      b.setAttribute("aria-pressed",k===boardDate?"true":"false");
+      b.appendChild(el("div","d",DOW[d.getDay()]+" "+MON[d.getMonth()]));
+      b.appendChild(el("div","n",String(d.getDate())));
+      b.appendChild(el("div","c",n?n+" act":"—"));
+      b.addEventListener("click",function(){boardDate=k;renderBoard();});
+      nav.appendChild(b);
+    })(i);
+  }
+  var nx=el("button"); nx.appendChild(el("div","n","›"));
+  nx.addEventListener("click",function(){
+    boardDate=iso(new Date(new Date(boardDate+"T12:00:00").getTime()+864e5));renderBoard();});
+  nav.appendChild(nx);
+  host.appendChild(nav);
+
+  /* tide strip */
+  var tide=tideFor(boardDate);
+  var tideBar=el("div","panel"); tideBar.style.cssText=
+    "margin-top:12px;padding:10px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap";
+  tideBar.appendChild(el("span","eyebrow","Tide"));
+  if(tide&&((tide.highs||[]).length||(tide.lows||[]).length)){
+    (tide.highs||[]).forEach(function(h){
+      var c=el("span","chip pink","High "+h); tideBar.appendChild(c);});
+    (tide.lows||[]).forEach(function(l){
+      var c=el("span","chip neutral","Low "+l); tideBar.appendChild(c);});
+  } else {
+    tideBar.appendChild(el("span","hint","Not set for this day"));
+  }
+  var te=el("button","btn sm","Edit tides"); te.style.marginLeft="auto";
+  te.addEventListener("click",function(){tideForm(boardDate);});
+  tideBar.appendChild(te);
+  host.appendChild(tideBar);
+
+  /* the grid */
+  var span=(BOARD_TO-BOARD_FROM)*60;
+  var wrap=el("div","panel"); wrap.style.cssText="margin-top:12px;overflow-x:auto";
+  var grid=el("div"); grid.style.cssText="min-width:940px;position:relative";
+
+  var head=el("div");
+  head.style.cssText="display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid var(--line);"+
+    "position:sticky;top:0;background:var(--panel-2);z-index:2";
+  head.appendChild(el("div"));
+  var hours=el("div"); hours.style.cssText="position:relative;height:30px";
+  for(var h=BOARD_FROM;h<=BOARD_TO;h++){
+    (function(hh){
+      var x=((hh-BOARD_FROM)*60)/span*100;
+      var l=el("div",null,String(hh).padStart(2,"0")+":00");
+      l.style.cssText="position:absolute;left:"+x+"%;top:8px;font-size:10.5px;"+
+        "font-family:'IBM Plex Mono',monospace;color:var(--text-3);transform:translateX(-50%)";
+      hours.appendChild(l);
+    })(h);
+  }
+  /* tide markers ride the same scale as the hours */
+  if(tide){
+    (tide.highs||[]).concat(tide.lows||[]).forEach(function(t,i){
+      var isHigh=(tide.highs||[]).indexOf(t)>=0;
+      var m=minsOf(t);
+      if(m<BOARD_FROM*60||m>BOARD_TO*60) return;
+      var x=(m-BOARD_FROM*60)/span*100;
+      var mk=el("div");
+      mk.style.cssText="position:absolute;left:"+x+"%;top:0;bottom:0;width:2px;"+
+        "background:"+(isHigh?"var(--accent-hot)":"var(--text-3)")+";opacity:.5";
+      mk.title=(isHigh?"High":"Low")+" tide "+t;
+      hours.appendChild(mk);
+    });
+  }
+  head.appendChild(hours); grid.appendChild(head);
+
+  var rows=boardRows();
+  var byRow=0;
+  rows.forEach(function(row){
+    var items=DB.sessions.filter(function(x){
+      return x.date===boardDate && sessionInRow(x,row);});
+    if(!items.length && boardGroup==="category" && !row.key) return;
+    byRow++;
+    var r=el("div");
+    r.style.cssText="display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid var(--line-soft);min-height:42px";
+    var lab=el("div");
+    lab.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12.5px;"+
+      "font-weight:600;border-right:1px solid var(--line-soft);overflow:hidden";
+    if(row.color){
+      var dot=el("span"); dot.style.cssText="width:9px;height:9px;border-radius:3px;flex:none;"+
+        "background:"+row.color; lab.appendChild(dot);
+    }
+    var lt=el("span",null,row.label);
+    lt.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    lab.appendChild(lt);
+    r.appendChild(lab);
+
+    var lane=el("div");
+    lane.style.cssText="position:relative;min-height:42px;background-image:repeating-linear-gradient("+
+      "to right,var(--line-soft) 0 1px,transparent 1px "+(100/(BOARD_TO-BOARD_FROM))+"%)";
+    lane.dataset.rowKey=row.key;
+    lane.addEventListener("dragover",function(e){e.preventDefault();
+      lane.style.background="var(--accent-soft)";});
+    lane.addEventListener("dragleave",function(){lane.style.background="";});
+    lane.addEventListener("drop",function(e){
+      e.preventDefault(); lane.style.background="";
+      var id=e.dataTransfer.getData("text/plain");
+      var ses=by(id,DB.sessions); if(!ses) return;
+      var rect=lane.getBoundingClientRect();
+      var frac=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+      var mins=BOARD_FROM*60+frac*span;
+      ses.time=toHHMM(Math.round(mins/15)*15);
+      if(boardGroup==="staff"){
+        ses.staffIds=row.key?[row.key]:[];
+        delete ses.staffId;
+      } else {
+        ses.category=row.key;
+      }
+      save(); renderBoard();
+      toast(ses.title+" → "+(row.label)+" at "+ses.time);
+    });
+
+    items.forEach(function(x){
+      var st=minsOf(x.time)-BOARD_FROM*60;
+      var dur=Math.max(15,x.duration||60);
+      var left=Math.max(0,st/span*100);
+      var width=Math.min(100-left,dur/span*100);
+      var blk=el("div");
+      var colour=catColor(x.category)||"var(--accent-hot)";
+      blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:5px;bottom:5px;"+
+        "background:"+colour+";opacity:.9;border-radius:5px;padding:4px 7px;overflow:hidden;"+
+        "cursor:grab;color:#fff;font-size:11.5px;font-weight:600;line-height:1.25;"+
+        "text-shadow:0 1px 2px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px";
+      blk.draggable=true;
+      blk.title=x.time+" · "+x.title+" · "+instructorNames(x)+
+        " · "+x.participants.length+"/"+x.capacity+(tideLabel(x)?" · "+tideLabel(x):"");
+      var t=el("span",null,x.title);
+      t.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+      blk.appendChild(t);
+      if(x.participants.length){
+        var c=el("span",null,String(x.participants.length));
+        c.style.cssText="margin-left:auto;background:rgba(255,255,255,.28);border-radius:999px;"+
+          "padding:0 6px;font-size:10.5px";
+        blk.appendChild(c);
+      }
+      blk.addEventListener("dragstart",function(e){
+        e.dataTransfer.setData("text/plain",x.id);
+        e.dataTransfer.effectAllowed="move";
+        blk.style.opacity=".45";
+      });
+      blk.addEventListener("dragend",function(){blk.style.opacity=".9";});
+      blk.addEventListener("dblclick",function(){sessionForm(x);});
+      lane.appendChild(blk);
+    });
+    r.appendChild(lane);
+    grid.appendChild(r);
+  });
+  wrap.appendChild(grid); host.appendChild(wrap);
+  if(!byRow) host.appendChild(el("div","note","Nothing scheduled on "+dm(boardDate)+"."));
+  else host.appendChild(el("div","note",
+    "Drag a block sideways to change its hour, or onto another row to move it. Double-click to open it."));
 }
 
 /* ============================ bookings ============================ */
@@ -1693,7 +2119,7 @@ function renderToday(){
       var nm=el("div","nm"); nm.appendChild(el("span","dot"));
       var txt=el("div");
       txt.appendChild(el("b",null,s.title));
-      var m2=staffName(s.staffId)+(s.spot?" · "+s.spot:"");
+      var m2=instructorNames(s)+(s.spot?" · "+s.spot:"");
       var t2=tideLabel(s); if(t2) m2+=" · "+t2;
       txt.appendChild(el("em",null,m2));
       nm.appendChild(txt); r.appendChild(nm);
@@ -2361,7 +2787,7 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.seeded=true;
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.seeded=true;
       save();render();toast("All records cleared");
     });
   });
@@ -2434,9 +2860,9 @@ function importCatalog(){
     if(DB.sessions.some(function(y){
       return y.date===x.date && y.time===x.time && y.title===x.title;})) return;
     DB.sessions.push({id:uid("se"),title:x.title,date:x.date,time:x.time,
-      duration:x.duration||60,capacity:x.capacity||1,staffId:null,
+      duration:x.duration||60,capacity:x.capacity||1,
       spot:(DB.spots[0]||{}).name||"",tideRef:"",tidePos:"before",tideHours:0,
-      participants:[],category:x.category||""});
+      participants:[],category:x.category||"",note:"",staffIds:[]});
     added.sessions++;
   });
 
@@ -2512,7 +2938,8 @@ document.getElementById("btn-backup").addEventListener("click",backupForm);
 
 /* ============================ tabs ============================ */
 var TABS=[{id:"today",l:"Today",r:renderToday},
-  {id:"schedule",l:"Schedule",r:renderSchedule},
+  {id:"schedule",l:"Planning",r:renderSchedule},
+  {id:"board",l:"Board",r:renderBoard},
   {id:"bookings",l:"Bookings",r:renderBookings},
   {id:"clients",l:"Clients",r:renderClients},
   {id:"catalog",l:"Catalog",r:renderCatalog},

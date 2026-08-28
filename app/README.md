@@ -27,7 +27,8 @@ the rest of the app never touches storage directly.
 | Screen | Covers |
 | --- | --- |
 | Today | Takings so far, sessions on the water, outstanding balances |
-| Schedule | Day-by-day sessions, instructor, spot, capacity, participants |
+| Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings |
+| Board | Sessions as blocks on an hourly timeline, grouped by activity or by instructor; drag one to another row or another hour. Tide times sit above the grid |
 | Bookings | Items, prices, payments, outstanding balance; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend |
 | Catalog | Lessons, courses, rentals, photography, with prices |
@@ -57,7 +58,9 @@ already there by name, and no clients, bookings or history come across.
 Assigning an instructor who is booked off that day says so in the form.
 
 Sessions can be pinned to the tide rather than the clock — "2h before high
-tide" — which is why a spot carries coordinates.
+tide" — which is why a spot carries coordinates. Tide times are entered per
+day; a day without them says so rather than drawing a curve that would be
+invented. A session can carry several instructors, as they do in practice.
 
 The day closing splits a payment across activities in proportion to what the
 booking's items cost, the same rule Bloowatch's own report uses.

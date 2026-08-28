@@ -61,6 +61,38 @@ def check_js(html):
     return "script parses"
 
 
+def check_runtime(path):
+    """Open the built page in Chromium and fail on any uncaught error.
+
+    node --check only parses; it cannot see a name that does not exist until
+    the line runs. That gap shipped a broken board once already."""
+    chrome = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+    if not os.path.exists(chrome):
+        return "chromium not available, runtime not checked"
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return "playwright not available, runtime not checked"
+    errors = []
+    with sync_playwright() as p:
+        b = p.chromium.launch(headless=True, executable_path=chrome,
+                              args=["--no-sandbox"])
+        pg = b.new_context(viewport={"width": 1500, "height": 1000}).new_page()
+        pg.on("pageerror", lambda e: errors.append(str(e)[:200]))
+        pg.goto("file://" + os.path.abspath(path))
+        pg.wait_for_timeout(2500)
+        tabs = pg.query_selector_all("nav.tabs button")
+        # click through every screen; a render that throws only shows up here
+        for i in range(len(tabs)):
+            pg.query_selector_all("nav.tabs button")[i].click()
+            pg.wait_for_timeout(700)
+        n = len(tabs)
+        b.close()
+    if errors:
+        raise RuntimeError("the page throws at runtime:\n  " + "\n  ".join(errors[:6]))
+    return f"{n} screens render clean"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="index.html")
@@ -74,7 +106,12 @@ def main():
         return 1
     with open(a.out, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"wrote {a.out} ({len(html)//1024} KB) — {note}")
+    try:
+        runtime = check_runtime(a.out)
+    except RuntimeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    print(f"wrote {a.out} ({len(html)//1024} KB) — {note}, {runtime}")
     return 0
 
 
