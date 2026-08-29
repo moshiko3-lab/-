@@ -1,0 +1,91 @@
+# Bloowatch daily closings
+
+Pulls SHOKOGI's day closing straight from Bloowatch instead of relying on a
+file downloaded by hand into Google Drive.
+
+## Why this exists
+
+The old flow depended on someone exporting `payments-*.csv` from Bloowatch into
+a Drive folder. That export is a snapshot of the moment it is taken, so a file
+pulled at midday silently misses every payment that comes in afterwards. On
+2026-08-28 the hand-exported file showed **160** while the day actually closed
+at **1800**.
+
+This reads Bloowatch's own report endpoint, the same one behind the dashboard's
+"export report" button, so the figures are the company's own and are always the
+complete day.
+
+## Usage
+
+```
+BLOOWATCH_URL=https://shokogi.bloowatch.com \
+BLOOWATCH_EMAIL=... BLOOWATCH_PASSWORD=... \
+python3 daily_report.py 2026-08-27 2026-08-28
+python3 daily_report.py --json 2026-08-28
+```
+
+Credentials are read from the environment only. They are never written to disk,
+never logged, and must not be committed. Set them as environment variables on
+the Claude Code environment so they survive a container restart.
+
+## Output columns
+
+`Date, Day, Transactions, Total, Credit, Cash, Web, Packages, Lessons, Rentals,
+Photography, Other, Refunds, Check, Notes`
+
+`Check` is `OK` only when the payment methods add up to the total *and* the
+categories add up to the total. Otherwise it is `CHECK!` and `Notes` says what
+disagreed. A category Bloowatch reports that has no column of its own (for
+example `VIDEO ANALYSIS`) is added into `Other` and named in `Notes`, so nothing
+is ever dropped silently.
+
+## Things that will bite you
+
+* **`date_start` / `date_end` do not work.** On `/api/schools/<id>/payments/`
+  and `/orders/` those parameters are accepted and then ignored: you get the
+  most recent rows across all dates, not the range you asked for. Filter client
+  side. This module sidesteps it by using the report endpoint, which takes
+  `from_date=YYYY/MM/DD` and does honour it.
+* **Refunds come through as `(50.0000)`** — accounting parentheses for a
+  negative — anywhere you read raw payment amounts.
+* **There is no fetch-one-order endpoint.** `/api/schools/<id>/orders/<id>/`
+  returns 404, and `search=` matches nothing, so reaching an old order means
+  paging through the list.
+* **Chromium cannot reach the host over TLS 1.3** from the sandbox: the relay
+  drops its oversized ClientHello and the tab shows `ERR_CONNECTION_RESET`,
+  which looks exactly like bot blocking but is not. Launch with
+  `--ssl-version-max=tls1.2` if you need a browser. This module uses plain HTTP
+  requests and is unaffected.
+
+## Field names that are not what they look like
+
+Four of these were exported wrong, or not at all, until someone opened the page
+next to the JSON and compared them column by column.
+
+* **`is_public` on a product is the SOLD ONLINE column**, not "visible to
+  staff". Two of Shokogi's thirty-five products carry it. A booking page built
+  without reading it offers board hire and staff-only lines to the public.
+* **A product has two categories.** `category_name` is the ACTIVITY CALENDAR
+  the sessions land on (`SURF PACK`); `product_categories` is the shop's own
+  grouping (`PACKAGES`, `LESSONS`) and is what their public site tabs by.
+  `order` is the POS column.
+* **A session's instructor is `assigned`**, a list of `{id, first_name,
+  last_name}`. Nothing in the session record is called `staff` or `instructor`.
+* **A staff member's `categories` are the activities they may teach.** Their
+  own staff page states the rule: only staff carrying the activity are proposed
+  when the session is built. `languages` are two-letter codes, `order` is the
+  hand position in the list, `show_in_agenda` keeps someone off the board
+  without deleting them, and `hours_worked_this_month` arrives as `"27:30:00"`.
+
+Half the app also lives under `/_new/en/…` — Resources → Staff is
+`/_new/en/resources/staff`, not `/manager/staff/list`. A guessed route returns
+a white page rather than a 404, so a crawl of invented routes looks like a
+crawl of empty screens. Read the routes off their own navigation.
+
+## Reference
+
+`/api/payments/daily-report?from_date=YYYY/MM/DD` returns a BIFF8 `.xls`
+workbook (`application/vnd.ms-excel`). `biff.py` reads just enough of that
+format to recover the cell grid. Beyond the summary used here, the workbook
+also carries a category-by-payment-method cross tab and the day's refunds and
+cancellations.

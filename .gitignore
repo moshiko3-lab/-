@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+
+# built pages: rebuild them with build.py rather than committing 500 KB of
+# generated markup on every change
+app/index.html
+app/booking.html
+index.html
+booking.html
+
+# never commit credentials
+.env
+secrets/
+*.enc
+*.key
+
+# real customers: names, phone numbers, email addresses. catalog.json is kept
+# free of personal data on purpose; this file cannot be, so it never lands in
+# the repository and the page built from it does not belong on a public URL.
+app/clients.json
+clients.json

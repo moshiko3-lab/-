@@ -1,0 +1,2689 @@
+# Bloowatch, in its own words
+
+Every label, field, button, tooltip and message in the application: **2544 strings across 81 groups**, lifted from the locale module compiled into its bundle.
+
+This is the complete functional surface. Where the page crawl could only see what happened to be on screen, this shows what exists at all — including the dialogs, the modes and the options behind every button.
+
+Use it as the checklist. `BLOOWATCH.md` has what the crawl saw rendered; this has everything.
+
+## bookings — 310 strings
+
+* `booking` — Booking
+* `bookings` — Bookings
+* `new_booking_with_customer` — Add New Booking
+* `payments_title` — Payments
+* `messages_title` — Messages
+* `invoices_title` — Invoices
+* `creditnote_title` — Credit Note
+* `adult` — Adult
+* `adults` — Adults
+* `night` — night
+* `nights` — nights
+* `name` — Bookings
+* `date` — Booking Date
+* `created` — Date Created
+* `status_text` — Booking Status
+* `status_field` — Status
+* `balance` — Balance
+* `origin` — Origin
+* `customer_arrival_date` — Arrival Date
+* `dashboard` — back-office
+* `minisite` — eCommerce
+* `reseller_minisite` — eCommerce
+* `open` — Open Booking
+* `edit` — Edit Booking
+* `open_client_profile` — Open Client Profile
+* `paid` — Paid
+* `confirm` — Confirm Booking
+* `unconfirm_booking` — Unconfirm Booking
+* `cancel` — Cancel Booking
+* `refund_booking` — Refund Booking
+* `cancel_booking_without_refund` — Cancel Booking without refund
+* `cancel_booking_and_refund` — Cancel Booking and refund
+* `delete` — Delete Booking
+* `create_rental_contract` — Create Rental Contract
+* `modal_title` — Edit total price
+* `modal_text` — Please enter the new total price
+* `edit_price` — Edit Price
+* `new_price_type_discount` — Register a Discount
+* `seasonal_rate_apply_title` — Seasonal rate apply
+* `new_price_type_adjust_price` — Update Price
+* `new_price_type_discount_error` — Please use 'Update Price' when increasing the price.
+* `original_price` — Original Price
+* `new_price` — New Price
+* `preserve_discount_title` — Existing discount
+* `preserve_discount_description` — has a {{discountType}} discount. Do you want to keep it on the new price?
+* `preserve_discount_new_price` — New price
+* `preserve_discount_with_discount` — With discount ({{discountType}})
+* `preserve_discount_manual_description` — has a manual price of {{manualPrice}}. Do you want to keep it?
+* `preserve_discount_manual_price` — Manual price
+* `preserve_discount_keep` — Keep discount
+* `preserve_discount_remove` — Remove discount
+* `confirmation_email` — Confirmation Email
+* `new` — + Booking
+* `payment` — PAYMENT
+* `payment_status` — Payment status
+* `deposit_for_online` — Deposit (for online payment)
+* `cash` — Cash
+* `product_details` — Product details
+* `client_info` — Client Information
+* `booking_summary` — Booking Summary
+* `total` — Total
+* `subtotal` — Subtotal
+* `tax_incl` — tax. incl.
+* `tax_excl` — tax. excl.
+* `price` — Price
+* `fare` — Fare
+* `quantity` — Quantity
+* `taxes_fees` — Taxes & Fees
+* `review_order` — REVIEW ORDER
+* `billing_info` — BILLING INFO
+* `use_contact_billing` — Use Contact Information for billing
+* `warn_mail_is_sent_to_email` — a confirmation email will be sent to your email address
+* `add_invoice_pdf_email` — Add invoice PDF to email
+* `total_price` — Total Price
+* `select_product` — Please select a product
+* `select_subproduct` — Please select a subproduct
+* `session_assignment` — Session Assignment
+* `guest_info` — Guest Information
+* `customer_participate` — Contact Customer will participate in the activity
+* `note` — Note
+* `add_ons` — ADD-ONS
+* `assign` — Assign users to sessions
+* `add_quote` — + Add another quote
+* `are_you_sure` — Are you sure you want to delete this booking?
+* `confirm_cancelling` — Do you confirm you want to cancel this order?
+* `confirm_without_payment` — Confirm this customer although he is not paying now
+* `paid_to_date` — Paid to date
+* `paid_by` — Paid by
+* `amount_due` — Due Balance
+* `amount` — Amount
+* `deposit` — Deposit
+* `select_payment_method` — Select payment method
+* `refund` — Refund
+* `refund_now` — Refund
+* `options` — Options
+* `meeting_spots` — Meeting Spots
+* `assigned` — Assigned
+* `updateـassignedـsessions` — update assigned sessions
+* `assign_missing_sessions` — assign missing sessions
+* `select_date_course` — Select date
+* `select_meeting_spots` — Select Meeting Spots
+* `session_number` — Session Number
+* `status.draft` — Draft
+* `p_status.pending` — PENDING
+* `p_status.deposit` — DEPOSIT
+* `p_status.paid` — PAID
+* `p_status.refunded` — REFUNDED
+* `p_status.failed` — FAILED
+* `p_status.cancelled` — CANCELLED
+* `licence.check_licence` — CHECK LICENCE
+* `licence.license_checked` — LICENSE CHECKED
+* `licence.generate` — GENERATE LICENCE
+* `licence.license_generated` — LICENSE GENERATED
+* `licence.valid_licence_response` — Your customer has a valid licence number
+* `licence.valid_licence_response_year` — Your customer has a valid licence number for year
+* `licence.no_valid_licence_response` — No valid license found for your customer.
+* `licence.no_valid_licence_response_note` — Please make sure you introduced the correct number. Or generate a new license.
+* `licence.obsolete_licence_response` — Your customer has an obsolete license for year
+* `licence.refresh_licence` — Please refresh licence
+* `licence.licence_created` — Licence has been created for customer
+* `licence.licence_failed` — Licence creation failed
+* `licence.back_booking` — Back to Booking
+* `licence.your_customer_licence_is_obsolete` — Your customer licence is obsolete
+* `licence.renew_license` — Renew License
+* `licence.generate_licence` — GENERATE LICENSE
+* `licence.licence_renewed` — LICENSE RENEWED
+* `licence.license_verified` — License verified
+* `licence.generate_licence_note` — To generate or renew a license, please confirm the booking and reopen it.
+* `licence.generate_licence_requires_email` — Add a customer email to generate the FFVoile licence.
+* `licence.renew_confirmation` — You are about to renew a license for %a %b. Please confirm.
+* `licence.generate_confirmation` — You are about to create a license for %a %b  Please confirm.
+* `licence.invalid_license_number` — Invalid license number.
+* `licence.valid_license_number` — This participant has a valid license for
+* `payments.default` — Payment Type
+* `payments.title` — Partial or Total Payment
+* `payments.D` — Deferred Payment
+* `payments.T` — Total Payment
+* `payments.A` — Advance Payment
+* `paymentmethod.title` — Payment Method
+* `paymentmethod.Credit card` — Credit Card
+* `paymentmethod.Cash` — Cash
+* `paymentmethod.Check` — Check
+* `paymentmethod.Ancv` — ANCV
+* `paymentmethod.ANCV` — ANCV
+* `paymentmethod.Money Transfer` — Money Transfer
+* `paymentmethod.Transfer` — Money Transfer
+* `paymentmethod.Payment gateway` — Payment Gateway
+* `paymentmethod.Stripe` — Stripe
+* `paymentmethod.paypal` — Paypal
+* `paymentmethod.Paypal` — Paypal
+* `paymentmethod.E-transaction` — E-transaction
+* `paymentmethod.Etransaction` — E-transaction
+* `fields.session_date` — Session Date
+* `fields.instructor_session` — Session Instructor
+* `fields.placeholder.session_start_date` — Start Date
+* `fields.placeholder.session_end_date` — End Date
+* `fields.placeholder.start_date` — Start Date
+* `fields.placeholder.end_date` — End Date
+* `buttons.save` — SAVE
+* `buttons.prev` — PREVIOUS
+* `buttons.next` — NEXT
+* `buttons.email_and_save` — EMAIL & SAVE
+* `buttons.cancel` — CANCEL
+* `buttons.invoice_pdf` — INVOICE PDF
+* `buttons.save_only` — Save Only
+* `buttons.save_and_pay` — Save & Pay Now
+* `buttons.confirm` — Confirm
+* `buttons.confirm_pay` — CONFIRM AND PAY
+* `buttons.confirm_only` — confirm only
+* `buttons.confirm_booking` — CONFIRM BOOKING
+* `buttons.edit_sessions` — Edit Sessions
+* `alerts.customer_info` — Customer information is required (Name, Last Name, Email & phone)
+* `alerts.invalid_phone` — Phone number is not valid. Accepted formats:
+* `alerts.invalid_mail` — The E-mail is not valid
+* `alerts.empty_age` — The field age is required
+* `alerts.empty_product` — You have an empty product (or no products), delete it or add required information.
+* `alerts.empty_product_variant` — You have selected a parent product, choose a SUBPRODUCT to continue.
+* `alerts.empty_number_classes` — You should select the number of classes you want to book.
+* `alerts.required_billing` — Billing data is required (Name, Last Name, Email & Phone)
+* `alerts.required_payment` — Payment data is required !
+* `alerts.order_success` — The order has been created successfully !!
+* `alerts.empty_rental` — Accommodation units are required
+* `alerts.need_more_units` — More units are required
+* `alerts.people_greater_than_units` — Units count is greater than people count!
+* `alerts.max_people_reached` — The number of clients selected does not fit within the selected session. Please edit this session or choose another one
+* `alerts.introduce_negative_value` — Please introduce negative value for refund
+* `error.First Name is Required!` — First Name is Required
+* `error.Last Name is Required!` — Last Name is Required
+* `error.Phone is Required!` — Phone is Required
+* `error.Email is Required!` — Email is Required
+* `error.Invalid Phone!` — Provided phone is not valid
+* `error.Invalid Email!` — Provided email is not valid
+* `error.Payment method is Required!` — Payment method is Required
+* `error.Address is Required!` — Address is Required
+* `error.Country is Required!` — Country is Requiredâ€‚
+* `error.City is Required!` — City is Required
+* `error.You need to agree on Terms!` — You need to agree on Terms
+* `error.Zip code is Required` — Zip code is Required
+* `error.Invalid Zip code!` — Invalid Zip code!
+* `error.Invalid Emergency Contact Person!` — Invalid Emergency Contact Person!
+* `error.Emergency Contact Person is Required!` — Emergency Contact Person is Required!
+* `error.Invalid Emergency Telephone Number!` — Invalid Emergency Telephone Number!
+* `error.Emergency Telephone Number is Required!` — Emergency Telephone Number is Required!
+* `error.Invalid ABC Membership Number!` — Invalid ABC Membership Number!
+* `error.Payment amount is Required!` — Amount is required
+* `all_types` — All
+* `add_customer` — Add Customer
+* `customer_info` — Customer Info
+* `please_add` — Select a product
+* `add_product` — Add Product
+* `tax` — Tax
+* `discount` — Discount
+* `charge` — Charge
+* `charge_confirm` — confirm
+* `charge_title` — Confirm
+* `receipt` — Receipt
+* `send_invoice` — Send confirmation email
+* `send_confirmation_emails` — SEND CONFIRMATION EMAILS
+* `accept_marketing` — Accept Marketing
+* `no_ticket` — No receipt
+* `print_ticket` — Print Receipt
+* `contact_info` — Contact Information
+* `client_profile` — Client Profile
+* `profile` — Profile
+* `business_name` — Business Name
+* `business_registration_number` — Business Registration Number
+* `individual` — Individual
+* `business` — Business
+* `school` — School
+* `company` — Company
+* `select_paymentmethod` — Please select a payment method
+* `select_email` — Please select email
+* `email_online_payment` — Email Online Payment
+* `payment_request` — Payment Request
+* `email_booking_receipt` — Email Booking Receipt
+* `booking_information` — Booking Information
+* `email_participant_forms` — Email Participant Forms
+* `confirmation_to_partner` — Confirmation to Partner
+* `participant_data` — Participant Data
+* `people` — Participant
+* `order_participants` — Order Participants
+* `detail_participants` — Details of participants
+* `expandall` — Expand all
+* `collapseall` — Collapse all
+* `clearall` — Clear all
+* `date_from` — Date From
+* `date_to` — Date To
+* `sessions` — Sessions
+* `selected_sessions` — Selected sessions
+* `selected_session` — Selected session
+* `courses` — Courses
+* `select_option` — Please select option!
+* `choose_option` — Choose option!
+* `select_hour` — Select Hour
+* `same_as_client` — This participant is the buyer
+* `select` — Select
+* `unselect` — Deselect
+* `no_sessions` — No Sessions
+* `documents` — Documents
+* `history` — History
+* `messages` — Messages
+* `no_variants` — No Variants
+* `edit_total_price` — Edit Total Price
+* `enter_total_price` — Please enter the new total price
+* `enter_product_price` — Please enter the new product price
+* `activity_summary` — Activity Summary
+* `summary` — Summary
+* `remaining_sessions` — Remaining session(s)!
+* `select_course` — Please select course!
+* `select_sessions` — Please select session!
+* `select_unit` — Please select unit!
+* `select_date` — Please select dates!
+* `class_product` — A product that offers one or several classes.
+* `item_product` — A basic product for merchandising or similar, not involving activities
+* `accommodation_product` — A product that offers nights of accommodation only - no activity included.
+* `camp_product` — A product that offers a package for accommodation and activities.
+* `pay` — Pay
+* `rental_product` — A product to hire some gear.
+* `receipt_confirmation_pay` — Receipt
+* `requested_amount` — Requested Amount
+* `print_ticket_confirmation_pay` — Print ticket
+* `ticket_print.receipt` — receipt
+* `ticket_print.duplicate` — duplicate
+* `search_customer` — Search customer
+* `search_participants` — Search participants
+* `search_for_participants` — Search for participants
+* `search_from_all` — Search betweeen all participants
+* `search_for_associated` — Search participants associated to a specific customer
+* `order_note` — Online booking client note
+* `check_units.units_not_available` — UNITS NOT AVAILABLE
+* `check_units.units_not_available_for_this_period` — Following unit(s) are not available for this period :
+* `check_units.are_you_sure` — Are you sure you want to change dates ?
+* `invoices.cancel_invoice` — Cancel Invoice
+* `invoices.confirm_invoice_cancel` — Do you confirm Invoice 'invoiceNumber' Cancellation?
+* `invoices.cancel_generate_credit_note` — This will generate a Credit Note and Order 'orderID' will be canceled.
+* `change_in_invoiced_booking.confirm_ask` — Do you confirm that you want to proceed ?
+* `ticket_bai_confirmation_modal_title` — The creation of an invoice is managed externally from the TicketBaiWS control panel.
+* `sessions_over_capacity.title` — Sessions Over Capacity
+* `sessions_over_capacity.message` — Some of the sessions of this course exceed capacity and have been disconnected.
+* `sessions_over_capacity.booking_continues` — Bookings will continue, but clients will NOT be assigned to these sessions.
+* `sessions_over_capacity.risk_warning` — There is a risk of overbooking.
+* `sessions_over_capacity.course_label` — Course:
+* `sessions_over_capacity.options_label` — Your options:
+* `sessions_over_capacity.option_1` — Decrease the number of participants or remove this product to avoid overbooking when you cannot increase the capacity of those sessions.
+* `sessions_over_capacity.option_2` — Increase the capacity of those sessions.
+* `sessions_over_capacity.understood_button` — OK, understood
+
+## label — 279 strings
+
+* `label` — Label
+* `instructions` — Instructions
+* `field_type` — Field Type
+* `form` — Form
+* `client` — Client
+* `staff` — Staff
+* `activities` — Activities
+* `rental` — Rental
+* `accommodation` — Accommodation
+* `product_details` — Product Details
+* `dates` — Dates
+* `course_list_options` — Options - define the list of options offered to the client
+* `additional_info` — Additional information
+* `checkout` — Checkout
+* `demo_eCommerce` — ECommerce
+* `ecommerce_settings` — Ecommerce Settings
+* `settings` — Settings
+* `organization` — Organization
+* `legal_text` — Legal text
+* `activity_settings` — Activity Settings
+* `general_settings` — General Settings
+* `meeting_spot` — Meeting Spot
+* `meeting_spots` — Meeting Spots
+* `add_meeting_spot` — Add Meeting Spot
+* `dive_site` — Dive Site
+* `dive_sites` — Dive Sites
+* `add_dive_site` — Add New Dive Site
+* `site_name` — Site name
+* `last_update` — Last update
+* `location` — Location
+* `payments` — Payment Integration
+* `integrations` — Integration
+* `management_integration` — Management
+* `default_currency` — Default currency
+* `billing_portal` — Billing Portal
+* `user` — user
+* `payment_gateway_information` — Payment gateways (Credit Card)
+* `payment_gateway_stripe` — Stripe
+* `payment_gateway_paypal` — Paypal
+* `payment_gateway_six` — Six
+* `payment_gateway_redsys` — RedSys
+* `enable_stripe_payment` — Enable Stripe Payment Gateway
+* `show_secrets` — Show Secrets Keys
+* `stripe_live_secret_key` — Live Secret Key
+* `stripe_live_publishable_key` — Live Publishable Key
+* `stripe_endpoint_secret` — Endpoint Secret
+* `stripe_accepted_methods` — Payment Method Accepted
+* `stripe_credit_card` — Credit Card Payments
+* `stripe_ideal` — iDeal Payments
+* `stripe_bancontact` — Bancontact Payments
+* `payment_are_you_sure` — Are you sure you want to delete?
+* `stripe_remove_title` — Remove Stripe for this school?
+* `paypal_test_key` — Test Key
+* `paypal_live_key` — Live Key
+* `paypal_test_secret_key` — Test Secret Key
+* `paypal_test_publishable_key` — Test Publishable Key
+* `six_payment` — Six Payment
+* `six_customer_id` — Customer ID
+* `six_terminal_id` — Terminal ID
+* `six_api_user_name` — Username
+* `six_api_password` — Password
+* `series` — Series
+* `number` — Number
+* `redsys_payment` — RedSys Payment
+* `redsys_customer_id` — Merchant Number
+* `redsys_terminal_id` — Terminal Number
+* `redsys_secret_key` — Secret Key
+* `redsys_is_test_key` — Those keys are test keys (not used for real payment)
+* `redsys_is_live_key` — Those keys are live/production keys (used for real payment)
+* `paypal_live_secret_key` — Live Secret Key
+* `paypal_live_publishable_key` — Live Publishable Key
+* `school_hours` — School Hours
+* `of` — of
+* `choose` — Choose
+* `Beginner` — Beginner
+* `Intermediate` — Intermediate
+* `Pro` — Advanced
+* `full` — Full
+* `birthdate` — Birthdate
+* `org_info` — Organization Information
+* `official_name` — Official Name
+* `tax_id` — Tax ID
+* `vat_number` — VAT Number
+* `activity_code` — Activity Code
+* `address1` — Address1
+* `address2` — Address2
+* `city` — City
+* `zip_code` — ZipCode
+* `contact_details` — Contact Details
+* `phone` — Telephone
+* `email` — Email
+* `emails` — Emails
+* `confirmation_emails` — Confirmation Emails
+* `emails_body_paragraphe` — Email body paragraphe
+* `emails_english_version` — ENGLISH VERSION
+* `emails_frensh_version` — FRENCH VERSION
+* `emails_spanish_version` — SPANISH VERSION
+* `show_info_in_emails` — Show sessions dates and hours in emails
+* `show_info_in_participants` — Show participants names in emails
+* `show_participants_name_in_invoice` — Show participants name in invoice
+* `email_partner_minisite_confirmation` — Send a booking summary email to the partner each time a booking associated with the partner is created.
+* `invoice_footer_note` — Invoice footer note (300 characters maximum)
+* `show_info_email_meeting_spot` — Show product meeting spot in emails
+* `show_info_session_instructors` — Show Instructor name in emails
+* `website` — Website
+* `language` — Language
+* `commercial_info` — Commercial Information
+* `commercial_name` — Commercial Name
+* `add_logo` — Logo
+* `opening_hours` — Opening Hours
+* `from` — From
+* `to` — To
+* `trips_forms_to` — TO
+* `payment_date` — Payment Date
+* `bookings_date` — Bookings Date
+* `invoices_date` — Invoices Date
+* `tickets_date` — Tickets Date
+* `rentals_date` — Rentals Date
+* `custom_fields` — Customer Fields
+* `order_fields` — Order Fields
+* `select_products` — Select Products
+* `more_filters` — More Filters
+* `gears` — Gears
+* `gear` — Gear
+* `name` — Name
+* `unit` — Unit
+* `quantity` — Quantity
+* `pax` — Pax Max
+* `unit_name` — Unit Name
+* `unit_quantity` — Units Quantity
+* `max_pax_per_unit` — Max Pax /Unit
+* `purchase_date` — Purchase Date
+* `last_check` — Last Check
+* `next_check` — Next Check
+* `note` — Note
+* `gear_name` — Gear Name
+* `description` — Description
+* `define_gear_details` — Define the details for each gear
+* `is_transport_gear` — This is a transport gear
+* `add_gear` — Add Gear
+* `edit_gear` — Edit Gear
+* `date` — Date
+* `staring_hour` — Starting Hour
+* `duration` — Duration
+* `duration_options` — Duration options
+* `gear_units` — Gear
+* `need_help_call_us` — Need help? Call us
+* `safe_secure` — Safe & Secure
+* `instant_confirmation` — Instant Confirmation
+* `receipt_sent_email` — Receipt sent to your email
+* `real_time_availability` — Real-time availability
+* `secure_payment` — Secure Payment
+* `secure_payment_desc` — Latest technology to keep your data safe
+* `country` — Country
+* `timezone` — Timezone
+* `export_payments` — Export Payments
+* `export_bookings` — Export Bookings
+* `export_sessions` — EXPORT MONTHLY SESSION INCOME
+* `export_sessions_file` — session-income
+* `export_tickets` — Export Tickets
+* `export_booking_per_lines` — Export Booking per lines
+* `export_invoices` — Export Invoices
+* `associate_sessions_to_product_option` — Associate Sessions to Product Option
+* `export_payment_fields` — Export Payment Fields
+* `booking_date` — Booking Date
+* `booking_creation_date` — Booking Creation Date
+* `ecommerce` — ECOMMERCE
+* `catalogue_page_info` — CATALOGUE PAGE INFORMATION
+* `product_page_info` — PRODUCT PAGE INFORMATION
+* `remove_constraints_on_assignments` — Remove constraints on assignments
+* `organize_session_cards_by_lines` — Organize session cards by lines (only Details view)
+* `distribute_session_detail_cards_with_one_line_per_staff` — Distribute sessions per staff
+* `distribute_session_detail_cards_with_one_line_per_activity` — Distribute sessions per activity
+* `distribute_session_detail_cards_between_morning_afternoon` — Distribute sessions between morning & afternoon
+* `show_trips_as_opened_by_default` — Show trips as opened by default
+* `next` — next
+* `addon` — Add-on
+* `addons` — Add-ons
+* `set_as_addons` — Set this product as a potential Add-On to other products
+* `associate_addons` — Select Add-Ons to associate to this product
+* `availability_periods` — Availability Periods
+* `availability_starts` — Availability Starts
+* `availability_ends` — Availability Ends
+* `add_availability_period` — ADD AVAILABILITY PERIOD
+* `potential_addons` — This product is a potential Add-On to other products
+* `addons_quantity_options` — Quantity options when booking the AddOn
+* `the_quantity_for_the_addOn_automatically` — Add-on quantity is set to match number of participant in main product
+* `user_specifically_defines` — Client defines add-on quantity
+* `select_an_addon` — Select an Add-on
+* `is_addon` — Is Add-on
+* `show_addon_in_minisite` — Show add-on in eCommerce
+* `check_options` — Check Options
+* `checked_by_default_and_can_be_unchecked` — Checked by default and can be unchecked
+* `checked_by_default_and_cannot_be_unchecked` — Checked by default and cannot be unchecked
+* `unchecked_by_default` — Unchecked by default
+* `create_invoice` — Create Invoice
+* `client_info` — Client Information
+* `create_partner_invoice` — Create Partner Invoice
+* `partner_info` — Partner Information
+* `invoice_info` — Invoice Information
+* `invoiced` — INVOICED
+* `invoice` — Invoice
+* `invoice_to` — Invoice to
+* `invoice_settings_option` — Option
+* `order` — Order
+* `invoice_date` — Invoice Date
+* `payment_info` — Payment Information
+* `display_info` — Information to Display
+* `total` — Total
+* `payment_to_date` — Payment to date
+* `internal_payment` — Internal
+* `amount_due` — Due Balance
+* `due_date` — Due Date
+* `show_assigned_instructors` — Show Instructors Assigned to Sessions
+* `invoice_note` — Invoice Note
+* `invoice_labels.fullname` — Fullname
+* `invoice_labels.age` — Age
+* `invoice_labels.telephone` — Telephone
+* `invoice_labels.balance` — Balance
+* `archived` — archived
+* `fore` — Fore
+* `done` — Done
+* `done_session_time` — done
+* `new_season` — NEW SEASON
+* `rules` — Rules
+* `trip` — TRIP
+* `assign_sessions_to_the_trip` — Assign Sessions to the Trip
+* `same_booking_date` — same as Booking Creation Date
+* `invoice_created_successfully` — Invoice created successfully
+* `invoice_created` — Invoice created
+* `add_captain` — Add Captain
+* `export_booking_fields` — EXPORT BOOKING DATA
+* `export_customer_fields` — EXPORT CUSTOMER DATA
+* `export_participant_only_option` — Export participant data
+* `export_customer_only_option` — Export customer data
+* `export_ccustomer_and_participant_option` — Export participant and customer data
+* `staff_fees` — Staff Fees
+* `invoice_settings_tab_title` — Invoices
+* `sales_templates` — Sales Templates
+* `legal_information` — Legal Information
+* `order_total` — Booking Total
+* `action_logs` — Action Logs
+* `no_payment` — No Payment
+* `fields_mandatory` — Fields marked with <span class="c-red">*</span> are mandatory
+* `print_list` — Print List
+* `print_table` — Print Table
+* `contact_information` — Contact Information
+* `customer_data` — Customer DATA
+* `select_activity` — Select an activity
+* `select_accommodation` — Select an accommodation
+* `select_gear` — Select a gear
+* `days` — Day(s)
+* `hours` — Hour(s)
+* `minutes` — min
+* `week` — week
+* `weeks` — weeks
+* `day_by_closing` — day (by closing)
+* `days_by_closing` — days (by closing)
+* `times_shown_in_timezone` — Times shown in {{timezone}}
+* `fiscal_administration` — Fiscal Administration
+* `payment_text` — Payment
+* `remove_payment` — Remove Payment
+* `not_available` — Not <br/> Available
+* `gear_unit` — Gear unit
+* `select_specific_days` — Select specific days
+* `day_abbrev` — d
+* `emails_sent_correctly` — Emails have been sent correctly.
+* `field_is_mandatory` — Field is mandatory
+* `are_you_sure_you_want_to_delete_this_trip` — Are you sure you want to delete this trip?
+* `refresh` — Refresh
+* `payment_methods` — Payment Methods
+* `add_new_payment_method` — Add New Payment Method
+* `add_payment_method` — Add Payment Method
+* `payment_method_name` — Payment Method Name
+* `all_required_fields_filled` — All required fields must be filled
+* `activity_calenders` — Activity Calendars
+
+## products — 202 strings
+
+* `details` — Details
+* `client_info` — Client profile
+* `title` — Products
+* `max_attendants` — Maximum attendants
+* `verbose_name` — Verbose name
+* `select_category` — Select category
+* `select_activity` — Select activity
+* `select_type` — Select Type
+* `info` — Product Information
+* `price` — Product Pricing
+* `public_price` — Public price (displayed in online catalog)
+* `associated_products` — Add - Ons Associated Products
+* `item_price` — + ADD PER ITEM PRICING
+* `order` — Position in product's list
+* `product_class` — Product Category
+* `account_number` — Account number
+* `code` — Product Code
+* `placeholder.name` — Product name here...
+* `placeholder.code` — Enter Product Code
+* `placeholder.description` — Product description here...
+* `placeholder.order` — Define position here...
+* `placeholder.select_tax_value` — Select tax value
+* `placeholder.select_tax_note` — Select tax note
+* `placeholder.insert_price` — Insert price
+* `placeholder.account_number` — Insert code
+* `delete-product` — Are you sure you want to delete the product?
+* `archive-product` — Are you sure you want to archive this product?
+* `delete-category` — Are your sure you want to delete the activity?
+* `advance` — Advance
+* `payment.unique` — This product has a unique payment
+* `payment.advance` — This product has a payment in advance
+* `payment.fixed` — Fixed
+* `payment.percentaje` — Percentaje
+* `payment.F` — Fixed
+* `payment.P` — Percentaje
+* `button.new` — NEW PRODUCT
+* `button.add` — ADD PRODUCT
+* `button.add2` — Add Product
+* `button.edit` — EDIT PRODUCT
+* `button.edit_product_categories` — Edit product categories
+* `online_booking_session_options.full_sessions_number` — Client must have number of session defined in product selected (100% sessions selected) when he books online
+* `online_booking_session_options.at_least_one_session` — Client must have selected at least one session when he books online
+* `online_booking_session_options.zero_session` — Client does not have to select any session (0 session selected) when he books online
+* `private_session.title` — Client Can Create Sessions on E-Commerce
+* `pricing.how_is` — How is the activity priced?
+* `pricing.unique` — Unique fixed price
+* `pricing.person` — Per number of person
+* `pricing.item` — Per number of item (session, etc.)
+* `pricing.delete` — delete
+* `table.texts.formatLoadingMessage` — Loading, please waitâ€¦
+* `table.texts.formatRecordsPerPage` — %s Rows per page
+* `table.texts.formatShowingRows` — Showing %f to %t of %T rows
+* `table.texts.formatSearch` — Search
+* `table.texts.formatNoMatches` — No result found
+* `table.texts.formatRefresh` — Refresh
+* `table.texts.formatToggle` — Toggle
+* `table.texts.formatColumns` — Columns
+* `limited_availability` — This product has a limited availability
+* `av_max` — Availability Max
+* `define_week_days` — Define days of week
+* `define_hour` — Define hour
+* `define_dates` — Define the dates
+* `begin_session_time` — Hour session beginning
+* `week_days` — Days of week
+* `all` — All
+* `short_mon` — M
+* `short_tue` — T
+* `short_wed` — W
+* `short_thu` — T
+* `short_fri` — F
+* `short_sat` — S
+* `short_sun` — S
+* `activity` — Please select Activity
+* `accommodation` — Accommodation
+* `next` — NEXT
+* `intro_sub_products` — Introduce sub products
+* `booking_defind` — Number of sessions is defined during booking
+* `setup_message` — Select a Product Type
+* `no_types` — No Product Types yet
+* `info_tab` — information
+* `price_tab` — price
+* `calender_tab` — calendar
+* `general` — General
+* `name` — Name
+* `description` — Description
+* `online_sell` — Online Sale
+* `online_payment_management` — Online payment management
+* `session_selection_options` — SESSION SELECTION OPTIONS
+* `full_amount` — Customer pays full amount (100%) in online booking
+* `percentage_partial_amount` — Customer pay partial amount (%) in online booking
+* `deposit_percentage` — Deposit percentage
+* `enter_percentage` — Enter a percentage
+* `fixed_partial_amount` — Customer pays fixed partial amount in online bookings
+* `deposit_amount` — Deposit amount
+* `deposit` — Deposit
+* `only_validate` — Customer only validates online (0% of payment)
+* `type.class` — CLASS (FLEXIBLE)
+* `type.course` — COURSE ON SPECIFIC PERIODS
+* `type.tour` — Tour
+* `type.camp` — Camp
+* `type.accommodation` — Accommodation
+* `type.rental` — Rental
+* `type.item` — Item
+* `type.membership` — Membership
+* `type_actions.add_category` — Add a category
+* `type_actions.add_sub_category` — Add a sub-category
+* `type_actions.title_of_category` — Title of the category
+* `type_actions.enter_title` — Enter title
+* `type_actions.edit_category` — Edit Category
+* `type_actions.edit_categories` — Edit Categories
+* `error.Name is Required!` — Name is required!
+* `error.Description is Required!` — Description is required!
+* `error.Product Description in Email is required` — Product Description in Email is required
+* `error.Category is Required!` — Product’s activity is mandatory.
+* `error.Rental is Required!` — Product's accommodation is mandatory.
+* `error.Accommodation is Required!` — Product's accommodation is mandatory.
+* `error.Price is Required!` — Price is Required!
+* `error.Product position must be a valid number greater than 0` — Product position must be a valid number greater than 0
+* `error.Invalid amount: Product pricing advanced amount should be greater than 0 & less than 101.` — Invalid amount: Product pricing advanced amount should be greater than 0 & less than 101.
+* `error.Please enter value below product price` — Please enter value below product price
+* `error.Valid price is required for each group.` — Valid price is required for each group.
+* `error.variant_sold` — You can not edit the price for this date option as it has already been booked.
+* `error.product_stock` — Stock must be a positive number
+* `error.Please select a tax value` — Please select a tax value
+* `error.Please select a tax note` — Please select a tax note
+* `error.please_select_meeting_spot` — Please select meeting spot.
+* `error.product_gear_mandatory` — Product's gear is mandatory.
+* `error.product_price_mandatory` — Product price is mandatory.
+* `error.product_tax_mandatory` — Tax is mandatory
+* `error.product_name_mandatory` — Product name is mandatory.
+* `error.product_subproduct_error` — You must create at least 2 product variants
+* `online_sell_text` — Sell this Product Online on Booking Site
+* `product_email_settings` — Product Description in Email
+* `display_product_email_settings` — Display Product Description in Email
+* `email_description` — Product Description in Email
+* `long_description` — Description - Long (e-commerce site)
+* `dates` — Dates
+* `course_list_options` — Options - define the list of options offered to the client
+* `course_list_warning` — Warning : this is not the school opening dates !
+* `dates_def` — Dates are closed and defined in advance
+* `dates_from` — From
+* `start_date` — Start date
+* `end_date` — End date
+* `sessions_associated` — Sessions associated
+* `assign_sessions_to_course` — Assign sessions to this course option
+* `dates_to` — To
+* `dates_add` — + Add other dates for this product (ie. creating a list of sub-products )
+* `stock` — Stock
+* `stock_message` — This Product has a limited stock
+* `proposes_different_combination` — My product proposes different combination of week days and it will be defined below in the options table
+* `continue` — Continue
+* `cancel` — Cancel
+* `back` — Back
+* `save` — Save
+* `activity_details` — Activity Details
+* `sessions_settings` — Setting the sessions for the Product
+* `sessions_type` — Select the type of sessions for this specific product
+* `num_sessions_mes` — Number of sessions is chosen with client at the time of booking
+* `num_sessions` — Number of Sessions
+* `private_session_label` — This is a product for private sessions
+* `sessions_setting_mes` — Setting for general or private lessons
+* `private_course` — This is a Private course (ie. only one booking is allowed in the classes)
+* `setting_specific_days` — Setting specific days
+* `setting_trips_for_product` — Setting Trips for the Product
+* `display_trips_for_this_product` — Display Trips for this Product
+* `setting_specific_days_week` — Setting specific week days
+* `setting_starting_hour` — Setting the starting hours
+* `setting_availability_period` — Setting availability period(s)
+* `setting_number_of_sessions` — Setting the number of sessions
+* `setting_meeting_spots` — Setting the meeting spot
+* `hour` — Hour
+* `add_starting_hour` — + Add another starting hour for this product
+* `accom_details` — Accommodation Details
+* `rental_details` — Rental Details
+* `accom_settings` — Setting the accommodations for the product
+* `accom_select` — Select Accommodation
+* `rental_select` — Select Gear
+* `accom_nights` — Number of nights defined during booking
+* `accom_number` — Number of nights
+* `fixed_price` — Fixed Price
+* `static_price` — Static Price
+* `price_people` — Price according to number of people
+* `price_with_session` — Price with number of sessions discount
+* `price_with_group` — Price with group discount
+* `price_tax_included` — Price (tax included)
+* `seasonal_price` — This Product has a seasonal price
+* `product_has_variants` — This product has variants
+* `short_description` — Short Description
+* `create_subproduct_variants` — Create product variants to allow different options or product categories
+* `tax` — Tax
+* `tax_note` — TAX NOTE
+* `see_option_variant_prices_label` — Set different price per options
+* `catalog_file_label` — Image Catalogue eCommerce (max 500KB) - image must be square (we recommend 250x250 pixels)
+* `product_file_label` — Image Product eCommerce (max 1MB)
+* `customer_assign_instructor` — The customer can filter sessions by instructor from Ecommerce.
+* `create_sessions_on_ecommerce` — Client can create sessions on eCommerce
+* `specific_days` — Specific days
+* `price_update_new_version` — By Updating the price value, a new version of this product will be created.
+* `tax_update_new_version` — By Updating the Tax value, a new version of this product will be created.
+* `option_is_deleted_has_bookings` — The option from %a to %b has been successfully archived, because it includes bookings.
+* `option_is_deleted` — The option from %a to %b has been successfully deleted.
+
+## fields — 188 strings
+
+* `balance` — Balance
+* `color` — Color
+* `phone` — Telephone
+* `phone_country` — Phone Country Code
+* `email` — Email
+* `website` — Website
+* `name` — Name
+* `description` — Description
+* `type` — Type
+* `photo` — Photo
+* `language` — Language
+* `languages` — Languages
+* `activity` — Activity Calendar
+* `activities` — Activities
+* `is_main` — This customer is Main client
+* `is_participant` — This customer is a Participant
+* `num_sessions` — Sessions
+* `priority` — Position in the staff list
+* `staff_priority` — Define position
+* `position` — Pos
+* `first_name` — First Name
+* `first_name_required` — First Name *
+* `last_name` — Last Name
+* `username` — Username
+* `age` — Age
+* `level` — Level
+* `levels` — Levels
+* `licence_number` — License Number
+* `gear_type` — Gear type
+* `title` — Title
+* `starting_time` — Starting time
+* `starting_time_required` — Starting time *
+* `ending_time` — Ending time
+* `ending_time_required` — Ending time *
+* `spot` — Spot
+* `events` — Events
+* `price` — Price
+* `age_min` — Minimum age
+* `age_max` — Maximum age
+* `date` — Date
+* `creation_date` — Creation Date
+* `starting_date` — Starting Date
+* `time` — Time
+* `category` — Category
+* `min_cap` — Minimum capacity
+* `max_cap` — Maximum capacity
+* `hour_start_min` — Start minimum hour
+* `hour_start_max` — Start maximum hour
+* `hour_start_min_tide` — Tide start minimum hour
+* `hour_start_max_tide` — Tide start maximum hour
+* `tide_ref` — Tide
+* `min` — Min
+* `max` — Max
+* `hours` — Hours
+* `hour` — Hour
+* `minutes` — Minutes
+* `mins` — Mins
+* `telephone` — Telephone
+* `product` — Product
+* `products` — Products
+* `gender` — Gender
+* `capacity` — Capacity
+* `max_capacity_for_otas.label` — Max capacity for OTAs
+* `max_capacity_for_otas.help` — Set to 0 to hide this session from OTAs
+* `role` — Role
+* `working_season_from` — Working Season From
+* `working_season_to` — Working Season To
+* `week_calendar` — Week Calendar
+* `cansell` — Can Sell
+* `availabletoday` — Available Today
+* `hours_month` — Hours this month
+* `not_schedule_regular` — My product doesn't have a clear periodic schedule
+* `schedule_regular` — My product occurs at regular intervals (f.e. surfcamp with specific dates or course with specific hours)
+* `predefined_number_sessions` — This product has a pre-defined number of sessions
+* `not_predefined_number_sessions` — The customer decides the number of classes he wants when booking
+* `repeated_num_sessions` — Unique number of session
+* `variants_title` — Subproduct title
+* `subproducts` — Sub Products
+* `add_subproduct` — + ADD SUBPRODUCT
+* `to_do` — To Do
+* `session` — Session
+* `today` — Today
+* `more` — More
+* `tomorrow` — Tomorrow
+* `available` — Available
+* `full` — Full
+* `option` — Option
+* `settings` — Settings
+* `item` — Item
+* `children` — Sub-Products
+* `number_classes` — Number of classes
+* `host_name` — Contact
+* `activity_start_from_tide` — Delay From Tide
+* `position_from_tide` — Before / after Tide
+* `round_closest` — Rounding starting time to closest
+* `no_sessions_available` — No sessions available for the selected criteria
+* `show_sessions` — ASSIGN SESSIONS
+* `define_number_sessions` — DEFINE IF NUMBER OF SESSIONS IS SET IN THE PRODUCT OR CUSTOMERS DECIDE
+* `define_periodic` — DEFINE IF PRODUCT HAS A PERIODIC SCHEDULE
+* `is_periodic` — My product occurs at regular intervals (f.e. surfcamp with specific dates or course with specific hours)
+* `not_periodic` — My product doesn't have a clear periodic schedule
+* `amount` — Amount
+* `select_accomm` — Select Accommodation
+* `num_nights` — No nights
+* `accommodation` — Accommodation
+* `accommodation_unit` — Accommodation Unit
+* `from` — From
+* `to` — To
+* `pax` — PAX
+* `instructor` — Instructor
+* `trans_id` — ID
+* `order` — Order
+* `payment_date` — Payment Date
+* `tax` — Taxes
+* `method` — Method
+* `city` — City
+* `address` — Address
+* `country` — Country
+* `signin` — Sign in
+* `signin_email` — Please use your email
+* `signin_password` — Password
+* `signin_submit` — Login
+* `signin_footer` — © Bloowatch All rights reserved
+* `zip_code` — Zip code
+* `id` — id
+* `customer` — Customer
+* `order_number` — Order Number
+* `order_products` — Products
+* `date_created` — Date Created
+* `payment_method` — Payment Method
+* `payment_note` — Payment Note
+* `payment_recipient` — Recipient
+* `clients_number` — Clients number
+* `price_per_client` — Price per client
+* `abc_membership_number` — ABC Membership
+* `emergency_contact_person` — Emergency Contact
+* `emergency_telephone_number` — Emergency Telephone
+* `medical_information` — Medical information
+* `is_order_invoiced` — Invoiced
+* `account_number` — Account number
+* `account_number_placeholder` — Insert code
+* `online_note` — Note
+* `online_note_hint` — Add a comment for the team
+* `backoffice_online_note_hint` — Online booking client note
+* `trip_information` — Trip information
+* `diveـsites` — Dive Sites
+* `select_site` — Select Site
+* `captain` — Captain
+* `pilote` — Pilote
+* `add_pilote` — Add Pilote
+* `recurring_trips` — Recurring Trips
+* `total` — Total
+* `confirmed` — CONFIRMED
+* `canceled` — CANCELED
+* `no_payments` — No payment.
+* `no_messages` — No message.
+* `payment` — Payment
+* `payment_type` — Payment Type
+* `percentage` — Percentage
+* `net_price` — Net Price
+* `validity_period` — Validity Period
+* `activity_name` — Activity Name
+* `license_number` — License Number
+* `birthdate` — Birthdate
+* `reference` — Reference
+* `credit` — Credit
+* `debit` — Debit
+* `purchase_date` — Purchase Date
+* `last_check` — Last Check
+* `next_check` — Next Check
+* `note` — Note
+* `staff` — Staff
+* `logtype` — Log Type
+* `logmessage` — Log Message
+* `birth_name` — Birth name
+* `birth_place_city` — Birthplace City
+* `position_the_meeting_spot` — Position the meeting spot
+* `position_the_meeting_spot_helper` — Position the cursor as precisely as possible using the zoom function to the meeting spot.
+* `position_the_dive_site` — Position of the dive Site
+* `position_the_dive_site_helper` — Position the cursor as precisely as possible using the zoom function to the dive site.
+* `additional_information` — Additional Information
+* `additional_information_helper` — Add any additional information that could help your client to find the meeting spot
+* `additional_information_helper_dive` — Add any additional information that could help your client to find the dive site
+* `enter_your_email` — Enter your email
+* `amount_per_hr` — Amount per hour
+* `amount_per_session` — Amount per session
+* `commission_per_session` — Commission per session %
+* `activity_calendar` — Activity Calendar
+
+## agenda — 130 strings
+
+* `name` — Planning
+* `firstDay` — 0
+* `dragdrog` — Drag & Drop Items
+* `short_days` — Mon,Tue,Wed,Thu,Fri,Sat,Sun
+* `week_days` — Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday
+* `month_names` — January,February,March,April,May,June,July,August,September,October,November,December
+* `select_event` — Select Event
+* `attendants` — Attendants
+* `info` — Info
+* `mines` — Mines
+* `calendar` — Calendar
+* `scheduler` — Scheduler
+* `client_list` — Client List
+* `session_list` — Session Participant List
+* `trip_list` — Trip List
+* `settings` — Agenda Settings
+* `filters.by_activity` — By Activity
+* `filters.by_level` — By Level
+* `filters.by_monitor` — By Monitor
+* `filters.by_status` — Status
+* `filters.by_date` — Date
+* `filters.by_sessions` — Sessions
+* `filters.by_staff` — Staff
+* `filters.by_num_participant` — Num. Participants
+* `print_subproduct` — print subproduct
+* `views.compact` — Compact
+* `views.simple` — Simple
+* `views.details` — Details
+* `views.accommodation` — Accommodation
+* `event.add` — Add Event
+* `event.ADD` — ADD EVENT
+* `event.EDIT` — EDIT EVENT
+* `event.type` — Type of event
+* `event.date_init` — Date Init
+* `event.time_init` — Time Init
+* `event.date_end` — Date End
+* `event.time_end` — Time End
+* `event.age_from` — Age from
+* `event.age_to` — Age to
+* `event.level` — Level
+* `event.wetsuit_size` — Wetsuit size
+* `event.insurance` — Insurance
+* `event.notes` — Notes
+* `event.dates` — Dates
+* `event.capacity` — Capacity
+* `event.offer` — Offer
+* `event.price` — Price
+* `event.location` — Location
+* `placeholder.name` — Event name here...
+* `placeholder.description` — Event description here...
+* `placeholder.age_from` — minimum Age of event...
+* `placeholder.age_to` — maximum age of event...
+* `placeholder.wetsuit_size` — Wetsuit size...
+* `placeholder.insurance` — Insurance size...
+* `placeholder.notes` — Notes of event...
+* `placeholder.capacity` — Capacity of event...
+* `placeholder.offer` — Offer for event...
+* `placeholder.price` — Price of event...
+* `spots.there_is_not` — No spot selected
+* `spots.there_isnt` — No spots available
+* `trip.clone_trip_modal_dates` — Clone the trip on these dates
+* `trip.clone_trip_modal_weekdays_required_msg` — You must select one week day as a minimum
+* `buttons.add_new_client` — Add new client
+* `buttons.select_location` — Select Location
+* `buttons.select_image` — Select Image
+* `buttons.view_details` — View details
+* `buttons.add_client` — Add client
+* `buttons.edit_session` — Edit Session
+* `buttons.open_client_list` — Open Participants List
+* `buttons.open_session` — Open Session
+* `buttons.print_list` — Print List
+* `buttons.duplicate_session` — Duplicate Session
+* `buttons.print_table` — Print Table
+* `buttons.export_boat_list` — Boat List XLS
+* `buttons.boat_list_pdf` — Boat List PDF
+* `buttons.clone_trip` — Clone Trip
+* `buttons.edit_trip` — Edit Trip
+* `buttons.delete_trip` — Delete Trip
+* `buttons.delete_session` — Delete Session
+* `buttons.send_mail` — Send Email
+* `buttons.sessions_list` — Sessions List
+* `buttons.export_rentals` — Export Rentals
+* `buttons.trips_list` — Trips List
+* `buttons.print` — Print
+* `buttons.send_email` — Send Email
+* `buttons.send_sms` — Send SMS
+* `buttons.send_sms_disabled` — Send SMS (not activated)
+* `buttons.send_multi_email` — Send Email
+* `buttons.delete_timeoff` — Delete Time Off
+* `buttons.delete_unavailability` — Delete Unavailability
+* `table.title.clients` — Clients
+* `table.title.events` — Events
+* `table.title.staff` — Staff
+* `table.title.gears` — Gears
+* `table.title.spots` — Spots
+* `table.texts.formatLoadingMessage` — Loading, please waitâ€¦
+* `table.texts.formatRecordsPerPage` — %s Rows per page
+* `table.texts.formatShowingRows` — Showing %f to %t of %T rows
+* `table.texts.formatSearch` — Search
+* `table.texts.formatNoMatches` — No result found
+* `table.texts.formatRefresh` — Refresh
+* `table.texts.formatToggle` — Toggle
+* `table.texts.formatColumns` — Columns
+* `search_for_customer` — Search customer
+* `search_for_participants` — Search participants
+* `search_for_client` — Search client name
+* `search_for_booking` — Search booking code
+* `category_skip_validation_confirmation_msg` — This session has participants assigned to it. Do you confirm you want to change the activity?
+* `all_day` — All Day
+* `start_time` — Start Time
+* `end_time` — End Time
+* `time_off_success_msg` — Time off has been created successfully for %a
+* `daily_view` — Daily View
+* `14days_view` — 14 Days View
+* `rental_unavailability_success_msg` — Unavailability has been created successfully for %a
+* `create_rental_unavailability_error_msg` — An error occurred while trying to create unavailability for  %a, please try again.
+* `morning` — Morning (before 13:00)
+* `afternoon` — Afternoon (after 13:00)
+* `access_has_been_sent` — Access has been sent to  %a's email.
+* `trips` — Trips
+* `no_session_assigned` — No sessions assigned to this trip yet
+* `no_participants_assigned` — No Participants assigned to this trip yet
+* `no_participants_assigned_yet` — No participants assigned yet
+* `sessions` — Sessions
+* `show_participants_data` — Show Participants Data
+* `open_bookings` — Open Bookings
+* `unassign_confirm` — Do you want to unassign %a from %b?
+* `participant_data` — Participant Data
+* `no_staff_assigned` — No staff assigned
+
+## sessions — 99 strings
+
+* `title` — Sessions
+* `there_isnt` — There are not sessions
+* `staff` — Staff
+* `gear` — Gear
+* `edit_settings` — Edit Sessions Settings
+* `public_access` — Public Access
+* `is_public` — This session is public and will be shown in eCommerce
+* `is_private` — This session is private and will not be shown in eCommerce
+* `public_title` — Public Sessions Title
+* `show_hour` — Show the hour of session in eCommerce
+* `show_title` — Show the title of session in eCommerce
+* `show_hour_title` — Show hour and title of session in eCommerce
+* `placeholder.name` — Session name...
+* `placeholder.description` — Session description...
+* `fields.participant` — Participant
+* `fields.participants` — Participants
+* `fields.telephone` — Telephone
+* `fields.age` — Age
+* `fields.level` — Level
+* `fields.due` — Due
+* `fields.attendant_ammount` — Attendants ammount
+* `fields.duration` — Duration
+* `fields.session_duration` — Session Duration
+* `fields.product` — Product
+* `fields.type` — Type
+* `fields.category` — Activity Calendar
+* `fields.capacity` — Session Capacity
+* `fields.capacity_max` — Maximun capacity
+* `fields.capacity_min` — Minimum capacity
+* `fields.allday` — All day Event
+* `fields.recurringsession` — Recurring Session
+* `fields.monday_s` — M
+* `fields.tuesday_s` — T
+* `fields.wednesday_s` — W
+* `fields.thursday_s` — T
+* `fields.friday_s` — F
+* `fields.saturday_s` — S
+* `fields.sunday_s` — S
+* `fields.repeat` — Repeat
+* `fields.date_init` — From Date
+* `fields.date_end` — To Date
+* `fields.color_category` — Category color
+* `fields.specific_color` — Apply specific colour to this session
+* `fields.add_new_spot` — Add a new spot
+* `fields.same_hour` — Same Hour
+* `fields.hour_from_tide_ref` — Hour Start from TideRef
+* `fields.hour_start_from_tide_ref` — Hour Start from TideRef
+* `fields.hightide` — HighTide
+* `fields.lowtide` — LowTide
+* `fields.tidereference` — Tide Reference
+* `fields.fixed_hour` — Fixed Hour
+* `fields.hour_on_tide` — Hour depends on tide
+* `fields.assigned` — Assigned
+* `table.texts.formatLoadingMessage` — Loading, please waitâ€¦
+* `table.texts.formatRecordsPerPage` — %s Rows per page
+* `table.texts.formatShowingRows` — Showing %f to %t of %T rows
+* `table.texts.formatSearch` — Search
+* `table.texts.formatNoMatches` — No result found
+* `table.texts.formatRefresh` — Refresh
+* `table.texts.formatToggle` — Toggle
+* `table.texts.formatColumns` — Columns
+* `bulk_modal.edit_header` — Bulk Edit Sessions
+* `bulk_modal.property_label` — Property to Update
+* `bulk_modal.property` — Property
+* `bulk_modal.session_placeholder` — Session Title
+* `bulk_modal.session_name` — Session Name
+* `bulk_modal.session_instructor` — Session Instructor
+* `bulk_modal.session_category` — Session Category
+* `bulk_modal.session_starting_hour` — Session Category
+* `bulk_modal.sessions_saved` — Session Saved
+* `bulk_modal.participants_confirm` — Participants are assigned to sessions
+* `bulk_modal.are_you_sure_edit_activity` — Are you sure you want to edit sessions activity?
+* `propertyOptions.starting_hour` — Starting Hour
+* `propertyOptions.name` — Title
+* `propertyOptions.category` — Activity
+* `propertyOptions.staff` — Instructor
+* `button.add` — ADD SESSION
+* `button.new` — + SESSION
+* `button.edit` — EDIT SESSION
+* `button.add_staff` — Add staff
+* `button.add_gear` — Add gear
+* `delete-session` — If the participants of the session are not assigned to another session of this trip, they will be unassign from the trip also.
+* `messages.select_at_least` — Please select at least one session.
+* `messages.select_remaining_sessions` — Please select the remaining sessions.
+* `messages.select_more_sessions` — You can select more sessions or continue to checkout.
+* `messages.select_out_of_sessions` — You have selected %c out of %d sessions.
+* `messages.select_n_session` — You have selected %c sessions.
+* `messages.select_zero_session` — You can proceed to checkout without selecting any session.
+* `messages.not_find_sessions` — Not finding the session that you want?
+* `messages.contact_us` — Contact us
+* `messages.to_find_more` — to find more.
+* `messages.edit_sessions` — Do you want to edit sessions ?
+* `messages.delete_sessions` — Do  you want to delete sessions ?
+* `visibility.now_visible` — Session is now visible to clients on eCommerce.
+* `visibility.now_hidden` — The session is now hidden from eCommerce clients.
+* `visibility.update_failed` — Failed to update session visibility
+* `tooltip.visible_on_ecommerce` — Visible on eCommerce
+* `tooltip.hidden_from_ecommerce` — Hidden from eCommerce
+* `all_day` — All Day
+
+## minisite — 95 strings
+
+* `from` — From
+* `title` — ONLINE BOOKING
+* `shopping_cart` — CART
+* `catalogue` — CATALOG
+* `products.class` — classes
+* `products.course` — courses
+* `products.accommodation` — accommodation
+* `products.camp` — camp
+* `products.item` — item
+* `products.rental` — Rental
+* `class` — class
+* `classes` — classes
+* `book_now` — BOOK NOW
+* `select_quantity` — NUMBER OF PARTICIPANTS
+* `check_availability` — check availability
+* `date_from` — Search from
+* `add_to_cart` — ADD TO CART
+* `continue` — continue
+* `continue_shopping` — CONTINUE SHOPPING
+* `order_summary` — Order Summary
+* `quantity` — Quantity
+* `rate` — Rate
+* `price` — Price
+* `billing_info` — Billing Information
+* `secured_encrypted_payment` — This is a secured 128-bit SSL Encrypted payment. You are safe
+* `select_payment_method` — Select your payment method
+* `payment_method_credit_card` — Credit Card
+* `payment_method_paypal` — Paypal
+* `payment_method_ideal` — iDeal
+* `payment_method_bancontact` — Bancontact
+* `payment_method_six` — Six
+* `payment_method_redsys` — RedSys
+* `validation_payment` — Validation & Payment
+* `agree_one` — I agree to the standard
+* `agree_two` — Terms of Sales
+* `agree_three` — of
+* `preauth_banner` — <strong>No payment now.</strong> We'll take you to Stripe's secure page to store your card for later charges per the Terms & Conditions.
+* `receive` — I'm interested in receiving communications from
+* `book_pay_later` — BOOK & PAY LATER
+* `delete` — Delete
+* `edit_product` — Edit dates
+* `product_long_description` — Description
+* `edit_options` — Edit information
+* `edit_info` — Edit info
+* `confirmation` — CONFIRMATION
+* `thanks_one` — Thank you
+* `thanks_two_payment` — Your payment has been processed and a confirmation email was sent to
+* `thanks_two_booking` — Your booking has been processed and a confirmation email was sent to
+* `thanks_three` — The team of
+* `order_number` — ORDER NUMBER:
+* `date` — Date:
+* `total` — TOTAL:
+* `total_paid` — TOTAL PAID:
+* `payment_method` — PAYMENT METHOD:
+* `checkout` — Checkout
+* `stripe` — PAY WITH CREDIT CARD
+* `stripe_with_preauth` — CONFIRM BOOKING
+* `six_payment_btn` — CONFIRM AND PAY
+* `payplug_payment_btn` — CONFIRM AND PAY
+* `lyra_payment_btn` — CONFIRM AND PAY
+* `stripe_ideal` — PAY WITH IDEAL
+* `stripe_bancontact` — PAY WITH BANCONTACT
+* `redsys_payment_btn` — CONFIRM AND PAY
+* `cmi_payment_btn` — CONFIRM AND PAY
+* `deposit` — Deposit to pay now
+* `deposit_paid` — Deposit paid for this product (tax included)
+* `total_deposit_paid` — Total paid <br/>(tax included)
+* `due_today` — Due Today
+* `remaining_amount` — Remaining Balance
+* `concept` — Concept
+* `review_product` — Review product
+* `payment_seperate` — or
+* `process_booking` — Please wait, booking process may take few seconds.
+* `calendar` — Calendar
+* `selected_session` — You have selected %a out of %b sessions.
+* `num_of_selected_session` — You have selected %a session(s).
+* `thank_you_for_your_purchase` — Thank you for your purchase !
+* `licence.The_licence_for` — The licence for
+* `licence.is_valid_for` — is valid for year
+* `licence.so_product_signal_participant` — So the passport product was removed from the cart
+* `licence.who_dont` — who do not have licence to proceed with their booking
+* `select_date` — Click a date to browse availability
+* `you_have_selecting_the_following_sessions` — You have selecting the following sessions :
+* `do_you_confirm_you_want_to_book_those_sessions` — Do you confirm you want to book those sessions ?
+* `confirm_sessions` — CONFIRM SESSIONS
+* `product_message.date_define` — Dates to be defined
+* `product_message.duration_define` — Duration to be defined
+* `product_message.num_sessions` — %n session%p of %d
+* `product_message.nights` — night%p
+* `booking_has_been_cancelled` — This booking has been cancelled.
+* `please` — Please
+* `contact_us` — contact us
+* `for_details` — for details
+* `currently_no_further_online_payments` — Currently no further online payments can be entered for this booking.
+
+## report — 85 strings
+
+* `payments_title` — Payments
+* `last_payment` — Last Payment
+* `bookings_title` — Bookings
+* `payment_methods_title` — Payment Methods
+* `top_products_title` — Top Products
+* `sales` — Sales
+* `net` — Net
+* `gross_sales` — Gross Sales
+* `discounts` — Discounts
+* `net_sales` — Net Sales
+* `tax` — Tax
+* `categories-revenue` — Categories Revenue
+* `products-revenue` — Products Revenue
+* `payment-methods` — Payment Methods
+* `tax-distribution` — Tax Distribution
+* `category-revenue` — Category Revenue
+* `no_result` — No result found
+* `close_register` — Close Register
+* `close_month` — Close Month
+* `print_month` — Print Month
+* `start_of_register` — Start of Register
+* `status` — Status
+* `end_date` — End Date
+* `starting_cash` — Starting Cash
+* `cash_sales` — Cash Sales
+* `cash_refunds` — Cash Refunds
+* `paid_in_register` — Paid In Register
+* `paid_out_register` — Paid Out Register
+* `paid_inout` — Paid In/Out
+* `expected_in_register` — Expected in Register
+* `actual_in_register` — Actual in Register
+* `difference` — Difference
+* `register.title` — REGISTER
+* `register.register_opening` — Register opening
+* `register.register_closure` — Register closure
+* `register.starting_cash` — Starting cash
+* `register.cash_payments` — Cash Payments
+* `register.cash_refunds` — Cash Refunds
+* `register.expected_register` — Expected in register
+* `register.actual_register` — Actual in register
+* `register.show_tickets` — Show Tickets
+* `register.table.staff` — Staff
+* `register.table.status` — Status
+* `register.table.date` — Date
+* `register.table.cash_payments` — Cash Payments
+* `register.table.cash_refunds` — Cash Refunds
+* `register.table.cash_balance` — Cash Balance
+* `register.table.total` — Total
+* `register.table.total_payments` — Total Payments
+* `register.table.total_refunds` — Total Refunds
+* `register.table.balance` — Balance
+* `register.table.month` — Month
+* `register.table.year` — Year
+* `register.table.opened` — Opened
+* `register.table.closed` — Closed
+* `register.table.grand_total` — Grand Total
+* `register.nav.shifts` — SHIFTS
+* `register.nav.days` — DAYS
+* `register.nav.months` — MONTHS
+* `register.nav.years` — YEARS
+* `register.nav.open_pay_in_pay_out` — OPEN PAY-IN / PAY-OUT
+* `register.actions.print_yearly_closure` — Print Yearly Closure
+* `register.actions.print_monthly_closure` — Print Monthly Closure
+* `register.actions.print_daily_closure` — Print Daily Closure
+* `ticket.table.amount` — Amount
+* `ticket.table.ticket_number` — Ticket Number
+* `ticket.table.ticket_type` — Ticket Type
+* `ticket.table.client` — Client
+* `ticket.table.order` — Order
+* `ticket.table.ticket_date` — Ticket Date
+* `ticket.table.staff` — Staff
+* `ticket.table.status` — Status
+* `ticket.refund_ticket` — REFUND TICKET
+* `ticket.print_ticket` — Print Ticket
+* `ticket.ticket_refunded` — Ticket was correctly refunded
+* `pay_in_out.table.operation_type` — Operation type
+* `pay_in_out.table.operation_date` — Operation Date
+* `pay_in_out.table.amount` — Amount
+* `pay_in_out.table.staff` — Staff
+* `pay_in_out.table.note` — Note
+* `export.ticket_export_sales` — Export Sales (ticket)
+* `export.ticket_export_payments` — Export Payments (ticket)
+* `export.tickets_sales` — tickets-sales
+* `export.tickets_spayments` — tickets-payments
+* `export.select_dates` — Select Dates
+
+## actions — 81 strings
+
+* `add` — Add
+* `archive` — Archive
+* `create` — Create
+* `edit` — Edit
+* `update` — Update
+* `delete` — Delete
+* `clone_duplicate` — Duplicate
+* `remove` — Remove
+* `refresh` — Refresh
+* `filters` — Filters
+* `reset` — Reset
+* `search` — Search
+* `done` — Done
+* `select` — Select
+* `select_all` — Select All
+* `selected` — Selected
+* `send` — Send
+* `load_more` — Load More
+* `accept` — Accept
+* `cancel` — Cancel
+* `close` — Close
+* `filter` — Filter
+* `filter_by` — Filter by
+* `without_filter` — No filter
+* `info` — Information
+* `all` — All
+* `home` — Home
+* `watch` — Watch
+* `confirm` — Confirm
+* `confirm_and_refund` — Confirm and Refund
+* `confirm_only` — Confirm Only
+* `load_file` — Load File
+* `open` — Open
+* `add_option` — + add new option
+* `open_profile` — Open Profile
+* `export_as_csv` — EXPORT CSV
+* `export_as_xlsx` — EXPORT XLSX
+* `export_report` — Export Report
+* `export_table` — Export Table
+* `daily_report` — Daily Report
+* `monthly_report` — Monthly Report
+* `new_gear` — New Gear
+* `add_unit` — Add Unit
+* `save` — Save
+* `add_an_addon` — + Add an Add-on
+* `create_and_print` — Create & Print
+* `bulk_create_invoice` — Bulk Create Invoice
+* `bulk_create_and_print` — CREATE INVOICES & PRINT
+* `print` — Print
+* `next` — Next
+* `back` — Back
+* `create_invoice` — Create Invoice
+* `create_quote` — Create Quote
+* `create_partner_invoice` — Create Partner Invoice
+* `show_invoice` — Show Invoice
+* `print_invoice` — Print Invoice
+* `new_booking` — New Booking
+* `add_booking` — Add Booking
+* `new_session` — New Session
+* `add_session` — Add Session
+* `check_all` — Check all
+* `uncheck_all` — Uncheck all
+* `add_trip` — Add Trip
+* `add_a_trip` — ADD A TRIP
+* `create_trips` — Create Trip(s)
+* `update_trips` — Update Trip
+* `add_payment` — ADD A PAYMENT
+* `cancel_booking_and_refund` — Cancel Booking and Refund
+* `cancel_booking` — Cancel Booking
+* `copy_code` — Copy Code
+* `add_time_off` — Add Time-Off
+* `new_time_off` — New TimeOff
+* `export_rentals` — Export Rentals
+* `add_select_sessions` — ADD & SELECT SESSION
+* `add_unavailability` — ADD UNAVAILABILITY
+* `unavailability_list` — Unavailability List
+* `send_email` — SEND EMAIL
+* `send_access_by_email` — Send access by email
+* `unassign_from_trip` — Unassign from Trip
+* `session_history` — Session History
+* `add_course_variants` — Add Course Variants
+
+## errors — 60 strings
+
+* `required` — Required fields:
+* `email_required` — Email is required
+* `name_required` — Name is required
+* `accomodation_name_required` — Accomodation name is required
+* `accomodation_unit_is_required` — Unit name is required
+* `gear_name_required` — Gear Name is required
+* `gear_unit_is_required` — Unit Name is required
+* `unit_quantity_must_greater` — Unit quantity must be greater than or equal to 1
+* `pax_quantity_must_greater` — Max Pax quantity must be greater than or equal to 1
+* `title_required` — Title is required
+* `first_name_required` — First name is required
+* `last_name_required` — Last name is required
+* `role_required` — Role is required
+* `profile_error` — Error to update profile.
+* `create_gear` — Error to create gear
+* `update_gear` — Error to update gear
+* `gear_type` — Something has gone wrong on the server to list the gears types
+* `basic` — It has ocurred a error.
+* `payment_error` — It was not possible to cancel the payment
+* `user_assigned_to_date` — User already assigned for that date
+* `gear_assigned_to_date` — Gear already assigned for that date
+* `init_date_bigger` — Init date is bigger than ending date
+* `first_name_short` — First name is too short, less than 2 characters
+* `last_name_short` — Last name is too short, less than 2 characters
+* `invalid_email` — Incorrect email address
+* `invalid_order` — Not a valid number for position
+* `invalid_variant` — Valid inputs are required for each variant!
+* `product_stock` — Stock must be a positive number
+* `is_required` — is required!
+* `rental_hours_are_outside` — Rental hours are outside of school opening hours
+* `number_of_persons_require_more_units` — The number of persons requires more units
+* `agenda_capacity_full` — %a could not be assigned to %b on %c at %d because it is full.
+* `agenda_category_not_same` — %a could not be assigned to %b on %c at %d because activity is different.
+* `participant_already_in_session` — %a could not be assigned to %b on %c at %d because he is already in it.
+* `dropped_in_the_same_session` — Dropped in the same session
+* `invalid_drop` — You cannot drop the participant in that area
+* `destination_required` — Destination is required
+* `validate_ending_time` — Ending time is required
+* `validate_starting_time` — Starting time is required
+* `validate_starting_date` — Date is required
+* `max_capacity_required` — Max Capacity is required
+* `price_must_greater_zero` — Price must be greater or equal to 0 !
+* `invalid_drop_session` — You can not drop the session in that area
+* `open_register_to_print_temporal_closure` — Please open Register to print Temporal Closure
+* `field_required_with_min` — %a is required!  (min. %b characters)
+* `promo_code_required` — Promo code is required
+* `discount_value_required` — Promo Code Value is required
+* `discount_value_type_required` — Promo Code value type is required
+* `products_required` — Please select at least one product.
+* `title_max_100` — Title field must have maximum 100 characters. Please update it.
+* `promocode_min_5` — Promo code is required (5 characters min.)
+* `promocode_formats` — Promo Code can only contain letters, numbers, and underscores.
+* `discount_value_positive_only` — Value cannot be negative. Please update it.
+* `year_range` — Archive date range must be one year maximum
+* `end_date_before` — Date To must be after Date From
+* `date_to_in_future` — Date To must be today or before
+* `usage_limit_positive_only` — Usage Limit cannot be negative. Please update it.
+* `staff_is_required` — staff is required!
+* `unabled_to_send_email_online_cancelled_order` — Unable to send an Email Online Payment to the client as the booking has been canceled
+* `missing_order_id_before_print` — Missing order id before printing POS ticket
+
+## selects — 57 strings
+
+* `level.all` — All
+* `level.normal` — Level 2
+* `level.advanced` — Level 3
+* `level.beginner` — Level 1
+* `level.Beginner` — Level 1
+* `level.Intermediate` — Level 2
+* `level.Pro` — Level 3
+* `level.M` — Level 2
+* `level.P` — Level 3
+* `level.R` — Level 1
+* `gender.boy` — Boy
+* `gender.girl` — Girl
+* `gender.male` — Male
+* `gender.M` — Male
+* `gender.female` — Female
+* `gender.F` — Female
+* `gender.both` — Both
+* `gender.B` — Both
+* `roles.assistant` — Assistant
+* `roles.instructor` — Instructor
+* `roles.manager` — Manager
+* `roles.pilot` — Pilot
+* `yesno.yes` — Yes
+* `yesno.no` — No
+* `languages.spanish` — Spanish
+* `languages.english` — English
+* `languages.french` — French
+* `languages.portuguese` — Portuguese
+* `languages.russian` — Russian
+* `languages.italian` — Italian
+* `languages.german` — German
+* `languages.basque` — Basque
+* `languages.greek` — Greek
+* `languages.arabic` — Arabic
+* `languages.dutch` — Dutch
+* `languages.polish` — Polish
+* `languages.georgian` — Georgian
+* `languages.catalan` — Catalan
+* `languages.turkish` — Turkish
+* `languages.mandarin` — Mandarin
+* `languages.japanese` — Japanese
+* `languages.croatian` — Croatian
+* `languages.swedish` — Swedish
+* `languages.ukrainian` — Ukrainian
+* `languages.czech` — Czech
+* `languages.slovak` — Slovak
+* `languages.indonesian` — Indonesian
+* `languages.korean` — Korean
+* `languages.vietnamese` — Vietnamese
+* `languages.romanian` — Romanian
+* `languages.serbian` — Serbian
+* `languages.slovenian` — Slovenian
+* `languages.thai` — Thai
+* `languages.hungarian` — Hungarian
+* `languages.bulgarian` — Bulgarian
+* `times.before` — Before
+* `times.after` — After
+
+## home — 53 strings
+
+* `name` — Home
+* `allcomments` — View all {{count}} Comments
+* `morecomments` — View more Comments
+* `comment` — Comment
+* `write_comment` — Write a comment
+* `title_write_comment` — Add a comment
+* `commentone` — Comment
+* `comments` — Comments
+* `recommendations` — Recommendations
+* `sessions` — Sessions
+* `bookings` — Bookings
+* `report` — Report
+* `partners` — Partners
+* `accommodations` — Accommodations
+* `no_recomendations` — Currently there are not any recommendations
+* `High Tide` — High
+* `Low Tide` — Low
+* `meteo.name` — Weather
+* `meteo.no_data` — No meteo data avilable
+* `meteo.short_weekdays.monday` — Mon
+* `meteo.short_weekdays.tuesday` — Tue
+* `meteo.short_weekdays.wednesday` — Wed
+* `meteo.short_weekdays.thursday` — Thu
+* `meteo.short_weekdays.friday` — Fri
+* `meteo.short_weekdays.saturday` — Sat
+* `meteo.short_weekdays.sunday` — Sun
+* `meteo.weekdays.monday` — Monday
+* `meteo.weekdays.tuesday` — Tuesday
+* `meteo.weekdays.wednesday` — Wednesday
+* `meteo.weekdays.thursday` — Thursday
+* `meteo.weekdays.friday` — Friday
+* `meteo.weekdays.saturday` — Saturday
+* `meteo.weekdays.sunday` — Sunday
+* `print` — Print
+* `help` — Help
+* `employees.no_employees` — No employees!
+* `open_register` — Open register
+* `pay_in_out_register` — Pay-in/out
+* `close_register` — Close Register
+* `starting_cash` — Starting Cash
+* `counter_cash_in_drawer` — Counted cash in drawer
+* `print_temporal_closure` — Print Temporal Closure
+* `print_closure_report` — Print Closure Report
+* `pos_is_currently_closed` — The POS is currently closed. Do you want to open it to be able to perform this action?
+* `sales` — Sales
+* `quotes` — Quotes
+* `available_only_in_the_gold_plan` — Available only in the Gold plan.
+* `manifests` — Manifests
+* `forms` — Forms
+* `resources` — Resources
+* `payment_overdue_title` — Payment Overdue: Your Subscription Needs Attention.
+* `payment_overdue_message` — Your payment is overdue. To avoid service interruption, please log in to the billing portal with user %s and complete your payment.
+* `payment_overdue_btn_pay_now` — Pay Now
+
+## fiscal — 53 strings
+
+* `tickets` — Tickets
+* `duplicates` — Duplicates
+* `archive` — Archive
+* `actions.check_integrity` — CHECK TICKETS INTEGRITY FOR SELECTED DATES
+* `actions.check_duplicates` — CHECK DUPLICATES INTEGRITY FOR SELECTED DATE
+* `actions.check_archives` — CHECK ARCHIVES INTEGRITY
+* `ticket.tickets_date` — Tickets Date (max. 1 month) :
+* `ticket.sale` — Sale
+* `ticket.deposit` — Deposit
+* `ticket.refund` — Refund
+* `ticket.cash` — Cash
+* `ticket.check` — Check
+* `ticket.credit_card` — Credit Card
+* `ticket.payment_gateway` — Payment Gateway
+* `ticket.money_transfer` — Money Transfer
+* `ticket.ancv` — ANCV
+* `ticket.etransaction` — eTransaction
+* `ticket.stripe` — Stripe
+* `ticket.redsys` — Redsys
+* `ticket.paypal` — PayPal
+* `ticket.six` — Six
+* `ticket.table.date` — Date
+* `ticket.table.seq_nb` — Seq. Nb.
+* `ticket.table.register_id` — Register ID
+* `ticket.table.staff` — Staff
+* `ticket.table.type` — Type
+* `ticket.table.total_tax_incl` — Total Tax Incl.
+* `ticket.table.tax` — Tax
+* `ticket.table.payment_methods` — Payment Methods
+* `ticket.table.integrity` — Integrity
+* `ticket.table.reprint_num` — Reprint Num.
+* `errors.date_range_one_month` — Date range cannot exceed 1 month duration. Please update dates.
+* `errors.date_not_before` — End date cannot be before start date.
+* `archives.export_archive_file` — EXPORT ARCHIVE FILE
+* `archives.date_from` — Archive data from
+* `archives.date_to` — Archive data to
+* `archives.please_select_period` — Please select the period for Archive File data (1 year max.)
+* `archives.archive_data_from` — Archive data from
+* `archives.archive_data_to` — Archive data to
+* `archives.select_date` — Select date
+* `archives.export_file` — EXPORT FILE
+* `archives.validations.year_range` — Archive date range must be one year maximum
+* `archives.validations.end_date_before` — Date To must be after Date From
+* `archives.validations.date_to_in_future` — Date To must be today or before
+* `archives.check_archive_integrity` — CHECK ARCHIVE INTEGRITY
+* `archives.check_archive_file_integrity` — CHECK ARCHIVE FILE INTEGRITY
+* `archives.please_select_archive_file` — Please select Archive File to chek (ZIP format) :
+* `archives.select_file` — Select File
+* `archives.no_file_selected` — No file selected
+* `archives.check_integrity` — CHECK INTEGRITY
+* `archives.checking_archive_zip_integrity` — Checking archive ZIP integrity
+* `archives.the_archive_zip_file_integrity_was_checked_and_validated` — The Archive ZIP file integrity was checked and validated.
+* `archives.the_archive_zip_file_integrity_was_checked_and_failed` — The Archive ZIP file integrity was checked and failed.
+
+## trip — 46 strings
+
+* `title` — Title
+* `capacity` — Capacity
+* `pilot` — Pilot
+* `date` — Date
+* `delete_tip` — Delete Trip
+* `boat_list` — BOAT LIST
+* `please_select_trip` — Please Select a trip
+* `select_trip` — Select Trip(s)
+* `print.trip` — Trip
+* `print.date` — Date
+* `print.pilote` — Pilote
+* `print.trip_spot` — Trip spot
+* `print.people_on_board` — People on Board
+* `print.safety` — Safety
+* `print.clients` — Clients
+* `print.notes` — Notes
+* `print.table.last_name` — Last name
+* `print.table.first_name` — First name
+* `print.table.level` — Level
+* `print.table.aptitude` — Aptitude
+* `print.table.sessions` — Sessions
+* `print.table.phone` — Phone
+* `print.table.predic` — Predic
+* `print.table.real` — Real
+* `print.table.deco` — Deco
+* `print.table.duration` — Duration
+* `print.table.depth` — Depth
+* `print.table.time_in` — Time in
+* `print.table.time_out` — Time out
+* `messages.edit_trips` — Do you want to edit trips ?
+* `messages.delete_trips` — Do  you want to delete trips ?
+* `propertyOptions.starting_hour` — Starting Hour
+* `propertyOptions.name` — Title
+* `bulk_modal.edit_header` — Bulk Edit Trips
+* `bulk_modal.property_label` — Property to Update
+* `bulk_modal.property` — Property
+* `bulk_modal.trip_placeholder` — Trip Title
+* `bulk_modal.trip_name` — Trip Name
+* `bulk_modal.trip_instructor` — Trip Instructor
+* `bulk_modal.trip_category` — Trip Category
+* `bulk_modal.trip_starting_hour` — Trip Category
+* `bulk_modal.trips_saved` — Trip Saved
+* `bulk_modal.participants_confirm` — Participants are assigned to trips
+* `bulk_modal.are_you_sure_edit_activity` — Are you sure you want to edit trips activity?
+* `list` — LIST
+* `see_details` — See Details
+
+## profile — 43 strings
+
+* `name` — Profile
+* `username` — Username
+* `last_name` — Last Name
+* `age` — Age
+* `city` — City
+* `about` — About Me
+* `favorites_spots` — Favorites spots
+* `favoritesSpots` — FAVORITES SPOTS
+* `address` — Address
+* `gender` — Gender
+* `birthday` — Birthday
+* `activity` — Activity
+* `level` — Level
+* `there_is_not` — There aren't favorites spots
+* `future_sessions` — FUTURE SESSIONS
+* `past_sessions` — PAST SESSIONS
+* `click_for_avatar` — Click to change user avatar
+* `delete-user` — Are you sure to delete the staff?
+* `buttons.edit_spots` — EDIT SPOTS
+* `buttons.edit` — EDIT STAFF
+* `buttons.new` — NEW STAFF
+* `buttons.add` — ADD STAFF
+* `buttons.cancel` — CANCEL
+* `buttons.save` — SAVE
+* `buttons.click_change` — Click to change the image
+* `buttons.add_order` — Add a booking to this customer
+* `buttons.confirm` — CONFIRM
+* `placeholder.email` — Put your email here...
+* `placeholder.username` — Put your username here...
+* `placeholder.name` — Put your name here...
+* `placeholder.last_name` — Put your last name here...
+* `placeholder.about` — Put your description here...
+* `placeholder.address` — Put your address here...
+* `placeholder.city` — Put your city here...
+* `placeholder.birthday` — Put your birthday here...
+* `placeholder.phone` — Put your phone here...
+* `spots.add_title` — Add your favorites spots
+* `spots.delete` — Remove favorite spot
+* `spots.add` — Add favorite spot
+* `spots.confirm_add` — Are you sure to add this spot to your favorite spot list?
+* `spots.confirm_delete` — Are you sure to delete this favorite spot?
+* `spots.there_is_not` — No spots available
+* `delete-error` — You cannot delete your own profile or other Manager profiles
+
+## tooltip_info_text — 41 strings
+
+* `manager.product.create.select_product_type` — Products are divided into different categories to assist you in the setup. For more information please consult this {{{link}}}.
+* `manager.product.create.page` — page
+* `manager.product.create.has_bookings` — has bookings
+* `manager.product.create.class.activity` — If the Activity for the Product is not available, please define it first from the Activity tab.
+* `manager.product.create.class.fixed_price` — Fixed price that will be multiplied by the number of people booking the product at the time of purchase.
+* `manager.product.create.class.static_price` — The price will not change with the quantity selected for the product.
+* `manager.product.create.class.class_static_price` — The price will not change with the number of pax selected for the product.
+* `manager.product.create.class.class_flexible_booking_sessions_static_price` — Price is static for number of pax but multiplied by the number of sessions chosen.
+* `manager.product.create.class.price_with_group` — The price is set per person and depends on the number of persons booked by the client for this product.
+* `manager.product.create.class.price_with_session` — This price is set per person and depends on the number of sessions booked by the client for this product.
+* `manager.product.create.class.info_customer_assign_instructor` — Let the customer filter sessions by instructor when booking a private class online.
+* `manager.product.create.class.sub_products_short_description_info` — Describe the product variant in a few words for the customers to understand better the variation (max. 50 characters).
+* `manager.staff.create.select_activities` — Associate a staff to one or more activities. You can create new activities in the Activity tab or see more info {{{link}}}.
+* `manager.staff.create.select_role` — Define the access rights for this staff. See more information {{{link}}}.
+* `manager.staff.create.here` — here
+* `manager.staff.create.legal_information` — This information will be displayed on Fee Statement.
+* `manager.categories.create.select_level` — The level is informative only and not mandatory.
+* `manager.categories.create.select_color` — The chosen color for the Activity helps to identify Sessions on the agenda, and the Products associated to this Activity in the Point-Of-Sale.
+* `manager.categories.create.here` — here
+* `manager.reports.export_payment_takes_time` — Export loading might take some time if too much data is used. Please define a shorter period if this is the case
+* `manager.reports.export_tickets_takes_time` — Export loading might take some time if too much data is used. Please define a shorter period if this is the case
+* `manager.general.upgrade_to_pro_gold_plan` — This feature is limited to the PRO or GOLD plans.
+* `manager.general.upgrade_to_large_plan` — Upgrade your plan to GOLD to have access to this feature !
+* `manager.general.available_only_gold_plan` — Available only in the Gold plan.
+* `promocode.lvf_maximum_usage_info` — If you activate this option, the promo code can be used until the counter reaches 0.
+* `sessions.export_info` — Exports session income for the selected month. Change the month above to export past sessions.
+
+## error — 40 strings
+
+* `Legal text is Required!` — Legal text is Required!
+* `Working end hour is Required!` — Working end hour is Required!
+* `Working start hour is Required!` — Working start hour is Required!
+* `Invalid Zip code!` — Invalid Zip code!
+* `Invalid Phone!` — Invalid Phone!
+* `Invalid Website!` — Invalid Website!
+* `Invalid Email!` — Invalid Email!
+* `Invalid age!` — Invalid age!
+* `From date is Required!` — Date 'from' is mandatory
+* `To date is Required!` — Date 'To' is mandatory
+* `At least one field is Required!` — At least one field is Required!
+* `Name is Required!` — Name is Required!
+* `Unit is Required!` — Unit is Required!
+* `Must be greater than or equal to 1!` — Must be greater than or equal to 1!
+* `Timezone is Required!` — Timezone is Required!
+* `Country is Required!` — Country is Required!
+* `Add-on is Required!` — Add-on is Required!
+* `Invalid Emergency Contact Person!` — Invalid Emergency Contact Person!
+* `Emergency Contact Person is Required!` — Emergency Contact Person is Required!
+* `Invalid Emergency Telephone Number!` — Invalid Emergency Telephone Number!
+* `Emergency Telephone Number is Required!` — Emergency Telephone Number is Required!
+* `Invalid ABC Membership Number!` — Invalid ABC Membership Number!
+* `cannotBeTheSameDate` — Date to cannot be the same or before date from.
+* `rental_is_outside_of_school_hours` — The rental is outside ot school working hours
+* `Please select a minimum one unit` — Please select a minimum one unit
+* `live_publishable_key_required` — Live Publishable Key is Required
+* `live_secret_key_required` — live Secret Key is Required
+* `endpoint_secret_required` — Endpoint Secret Required
+* `production_client_id_required` — Live Publishable key is Required
+* `production_secret_required` — live Secret Key is Required
+* `sandbox_client_id_required` — Test Publishable key is Required
+* `sandbox_secret_required` — Test Secret Key is Required
+* `terminal_id_required` — Terminal ID is Required
+* `customer_id_required` — Customer ID is Required
+* `api_password_required` — Password is Required
+* `api_user_name_required` — User name is Required
+* `secret_key_required` — Secret Key is Required
+* `gear_select` — The number of participant requires more unit. Please select correct number of units.
+* `passwords_do_not_match` — Passwords do not match.
+* `password_validation_criteria` — Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.
+
+## client_documents — 40 strings
+
+* `title` — Documents
+* `button.upload` — UPLOAD
+* `button.new_custom` — + CUSTOM UPLOAD DOCUMENT
+* `button.open` — Visualize
+* `button.delete` — DELETE
+* `button.deleteCustomField` — Remove button
+* `button.deleteBtnTitle` — Remove predefined document upload button
+* `labels.misc_button` — Miscellaneous Document Upload
+* `labels.custom_button` — Pre-defined Document Upload
+* `labels.table.name` — Name
+* `labels.table.category` — Category
+* `labels.table.type` — Type
+* `labels.table.date` — Date
+* `labels.table.expiration_date` — Expiration
+* `labels.table.status` — Status
+* `fields.name` — Document Name
+* `fields.type` — Document Type
+* `fields.exp_date` — Expiration Date
+* `fields.label` — Label
+* `fields.file` — File
+* `fields.help_text` — Help Text
+* `fields.exp_date_required` — Document requires to fill expiration date
+* `fields.minisite` — Show button on eCommerce
+* `fields.minisite_required` — Upload is mandatory in eCommerce
+* `fields.show_customer` — Show in customer form
+* `fields.show_participant` — Show in participant form
+* `messages.name_required` — Document name is required
+* `messages.exp_date_required` — Expiration date is required
+* `messages.file_required` — You need to select a file to upload
+* `messages.label_required` — Label is required
+* `messages.file_delete_confirm` — Are you sure you want to delete this file?
+* `messages.file_uploaded` — File uploaded successfully
+* `messages.file_deleted` — File deleted successfully
+* `messages.field_delete_confirm` — Are you sure you want to delete this button?
+* `messages.field_deleted` — Button deleted successfully
+* `document_types.misc` — Miscellaneous
+* `document_types.custom` — Predefined
+* `document_status.valid` — VALID
+* `document_status.expired` — EXPIRED
+* `document_status.missing` — Missing
+
+## promocode — 37 strings
+
+* `general` — General
+* `validity_rules` — Validity Rules
+* `all_products` — All products
+* `name` — Promo Code
+* `title` — Title
+* `type` — Type
+* `value` — Value
+* `apply_on` — Apply On
+* `status` — Status
+* `new_promo_code` — NEW PROMO CODE
+* `usage_count` — Usage Count
+* `edit_promo_code` — Edit Promo Code
+* `fields_mandatory` — Fields marked with * are mandatory.
+* `active` — Active
+* `deactivated` — Deactivated
+* `plan_message` — This feature is limited to GOLD plan.
+* `lvf_booking_creation_date` — Limited Validity from Booking Creation Date
+* `date_booking_creation` — Date of booking creation
+* `from` — From
+* `to` — To
+* `lvf_sessio_date` — Limited Validity from Session Date
+* `date_of_activity` — Date of activity (session, rental, accommodation)
+* `lvf_maximum_usage` — Limited Validity from Maximum Usage
+* `usage_limit` — Usage Limit
+* `success_message` — Promo Code created successfully.
+* `enter_promo_code` — ENTER PROMO CODE HERE
+* `apply_promo_code` — APPLY PROMO CODE
+* `code_applied` — CODE APPLIED !
+* `code_not_valid` — CODE NOT VALID
+* `fixed` — Fixed
+* `percentage` — Percentage
+* `validate_date` — Date is required
+* `clear_promo_code` — The product you are trying to edit has promo code applied
+* `clear_promo_code_title` — CLEAR PROMO CODE
+* `confirm_clear_popup_modal` — CONFIRM AND CLEAR PROMO CODE
+
+## custom_fields — 35 strings
+
+* `title` — Custom Fields
+* `client_information_form` — Client Information Form
+* `client_information` — Client Information
+* `form_selection` — Form selection
+* `product_form` — Product Form
+* `product_forms` — Product Forms
+* `product_list` — Product List
+* `show` — Show
+* `mandatory` — Mandatory
+* `apply_to` — Apply to
+* `all_products` — All Products
+* `limit_to_some_products` — Limit to some products
+* `additional_information` — Additional Information
+* `selected` — selected
+* `questions` — Questions
+* `types.text` — Text
+* `types.integer` — Integer
+* `types.float` — Float
+* `types.decimal` — Decimal
+* `types.radio_buttons` — Radio buttons
+* `types.dropdown_list` — Dropdown list
+* `types.checkbox` — Checkbox
+* `types.date` — Date
+* `types.birthday` — Birthday
+* `actions.open` — Open Custom Field
+* `actions.edit` — Edit Custom Field
+* `actions.delete` — Delete Custom Field
+* `button.new` — New Field
+* `button.add` — Add Field
+* `button.edit` — Edit Field
+* `form.participant` — Participant Form
+* `form.question` — Question Form
+* `form.customer` — Customer Form
+* `errors.name_can_not_be_bigger` — Name can not have length more than 50
+* `errors.label_can_not_be_blank` — Label can not be blank
+
+## partner — 33 strings
+
+* `partner` — Partner
+* `partners` — Partners
+* `commission` — Commission
+* `company_name` — Company Name
+* `partner_code` — Partner Code
+* `commission_group` — Commission Group
+* `select_commission_group` — Select a Commission Group
+* `full_payment_to_reseller` — Payment to Partner
+* `full_payment_to_school` — Payment to School
+* `sure_delete_partner` — Are you sure you want to delete this partner ?
+* `upgrade_to_pro_plan` — To create a partner, register to plan PRO
+* `upgrade_to_gold_plan` — To create more than 2 partners, register to plan GOLD
+* `partner_created` — The new partner was correctly registered.
+* `invoice_display_public_price` — Display Public Price (Commission not subtracted)
+* `invoice_apply_commission` — Apply Commission to invoice
+* `buttons.add_new_partner` — New Partner
+* `table.title.partner_name` — Partner Name
+* `table.title.commission_group` — Commission Group
+* `table.title.telephone` — Telephone
+* `table.texts.formatLoadingMessage` — Loading, please wait
+* `table.texts.formatRecordsPerPage` — %s Rows per page
+* `table.texts.formatShowingRows` — Showing %f to %t of %T rows
+* `table.texts.formatSearch` — Search
+* `table.texts.formatNoMatches` — No result found
+* `table.texts.formatRefresh` — Refresh
+* `table.texts.formatToggle` — Toggle
+* `table.texts.formatColumns` — Columns
+* `error.name` — Company Name is required
+* `error.code` — Partner Code is required
+* `error.email` — Email is required
+* `error.invalid_email` — Invalid email
+* `error.commission_group` — Commission group is required
+* `error.invalid_phone` — Invalid phone
+
+## icalendar — 32 strings
+
+* `title` — Online calendar integration feed (iCal)
+* `there_isnt` — There are no urls generated
+* `add_setting` — Add New Url
+* `button.new` — NEW URL
+* `button.add` — ADD URL
+* `button.edit` — EDIT URL SETTINGS
+* `button.copy` — COPY
+* `options` — Options
+* `select_staff` — Select staff to share
+* `select_activities` — Select activities to share
+* `select_custom_fields` — Select participant custom fields to share
+* `session_fields` — Session Fields
+* `client_fields` — Client Fields
+* `custom_fields` — Custom Fields
+* `fields.help_text` — Please select which fields to import within your calendar feed
+* `fields.title` — Title
+* `fields.date` — Date
+* `fields.starting_time` — Starting time
+* `fields.duration` — Duration
+* `fields.instructors` — Assigned Staff
+* `fields.note` — Note
+* `fields.host_name` — Customer name
+* `fields.phone` — Telephone
+* `fields.guest_name` — Participants' names
+* `fields.due_balance` — Due Balance
+* `fields.order_total` — Booking Total
+* `messages.confirm_delete` — Are you sure you want to delete this url?
+* `messages.deleted` — iCal feed url deleted
+* `messages.deleted_reminder` — Please remove the feed url from integrated calendars (Google Calendar, Apple, etc.)
+* `messages.saved` — iCal feed saved successfully
+* `messages.copied` — Copied
+
+## new_profile — 28 strings
+
+* `name` — Profile
+* `username` — Username
+* `last_name` — Last Name
+* `age` — Age
+* `city` — City
+* `about` — About client
+* `favorites_spots` — Favorites spots
+* `favoritesSpots` — FAVORITES SPOTS
+* `address` — Address
+* `gender` — Gender
+* `birthday` — Birthday
+* `activity` — Activity
+* `level` — Level
+* `there_is_not` — There aren't favorites spots
+* `future_sessions` — FUTURE SESSIONS
+* `past_sessions` — PAST SESSIONS
+* `buttons.edit_spots` — EDIT SPOTS
+* `buttons.edit` — EDIT PROFILE
+* `buttons.click_change` — Click to change the image
+* `placeholder.email` — Email here...
+* `placeholder.username` — Username here...
+* `placeholder.name` — Name here...
+* `placeholder.last_name` — Last name here...
+* `placeholder.about` — Description here...
+* `placeholder.address` — Address here...
+* `placeholder.city` — City here...
+* `placeholder.birthday` — Birthday here...
+* `placeholder.phone` — Phone here...
+
+## fees_management — 25 strings
+
+* `tab` — Fees
+* `fees` — Fees
+* `fee_statement` — Fee Statement
+* `fee_statement_period` — Fee statement period
+* `payment_date` — Payment Date
+* `buttons.add_new_fee_statement` — Create A Fee Statement
+* `buttons.generate_pdf` — Generate PDF
+* `buttons.send_email` — Email PDF to staff
+* `buttons.remove_session` — Remove session
+* `table.title.staff` — Staff
+* `table.title.code` — Code
+* `table.title.from_date` — From
+* `table.title.to_date` — To
+* `table.title.total` — Total
+* `table.title.status` — Status
+* `table.title.statement_code` — Statement code
+* `filter.title.starting_date` — Starting date
+* `filter.title.from_date` — From
+* `filter.title.to_date` — To
+* `show_all_statement` — Also show sessions assigned in other statements
+* `sure_delete_statement` — Are you sure you want to delete this fee statement?
+* `sure_delete_statements` — Are you sure you want to delete selected fees statements?
+* `fees_statement_created` — The fees Statement was correctly generated.
+* `selecte_all_sessions` — Select all %s sessions
+* `all_sessions_selected` — All %s sessions selected
+
+## accommodations — 22 strings
+
+* `title` — ACCOMMODATION
+* `there_isnt` — There is not accommodations
+* `define_details` — Define the details for each accommodation
+* `are_you_sure` — Are you sure you want to delete this accommodation?
+* `columns.unit` — Unit
+* `columns.quantity` — Quantity
+* `columns.pax` — Pax Max
+* `placeholder.name` — Input name
+* `placeholder.description` — Input description
+* `placeholder.item` — Input unit name
+* `placeholder.pax` — Input quantity
+* `placeholder.quantity` — Input quantity
+* `fields.accommodation_name` — Accommodation Name
+* `fields.unit_name` — Unit Name
+* `fields.unit_quantity` — Units Quantity
+* `fields.pax_max_per_unit` — Maximum pax per unit
+* `fields.shared` — This is a shared accommodation
+* `fields.item` — Unit
+* `button.new` — NEW ACCOMMODATION
+* `button.add` — ADD ACCOMMODATION
+* `button.edit` — EDIT ACCOMMODATION
+* `button.add_unit` — Add New Unit
+
+## time_off — 21 strings
+
+* `title` — Time Off
+* `starting_date` — Starting Date
+* `time_off_duration` — Time off Duration
+* `all_day_timeoff` — All-Day Time Off
+* `all_day` — All Day
+* `recurring_time_offs` — Recurring Time Offs
+* `recurring_unavailability` — Recurring Unavailability
+* `table.staff` — Staff
+* `table.time_off_starts` — Time Off Starts
+* `table.time_off_ends` — Time Off Ends
+* `table.note` — Note
+* `filter.from` — From
+* `filter.to` — To
+* `messages.delete_confirm` — Are you sure you want to delete this time off ?
+* `messages.do_you_want_delete_time_off` — Do you want to delete
+* `messages.time_off_for` — time off for
+* `messages.instructor_will_be_available` — will be available again for that period if you confirm.
+* `messages.time_off_deleted_successfully` — Time off has been deleted successfully
+* `messages.deleted_error_occured` — An error occurred while trying to remove the time off
+* `error.time_off_is_outside_of_school_hours` — Time off is outside the school working hours
+* `error.time_off_duration_is_required` — Time Off duration is required
+
+## pricing — 21 strings
+
+* `add_group_pricing` — + ADD GROUP PRICING
+* `add_item_pricing` — + ADD ITEM PRICING
+* `add_pricing` — + ADD PRICING
+* `add_session_pricing` — + ADD SESSION PRICING
+* `setup_group_pricing` — Setup group pricing
+* `setup_item_pricing` — Setup item pricing
+* `setup_session_pricing` — Setup session pricing
+* `item_number` — NÂº Items
+* `session_number` — Number of sessions
+* `participant_number` — Price per participant
+* `minimum_item_number` — Enter the minimum number of items for this new item pricing.
+* `minimum_session_number` — Enter the minimum number of session for this new session pricing.
+* `minimum_number` — Enter the minimum number of people for this new group pricing.
+* `the_duration_is` — The duration is
+* `duration_number` — Invalid duration!
+* `unit_is_required` — Unit is required!
+* `duration` — Duration
+* `days` — Days
+* `hours` — Hours
+* `from_pickup` — From pickup (min)
+* `by_closing_time` — By closing (days)
+
+## pos — 20 strings
+
+* `register_open` — Register open
+* `register_close` — Register close
+* `cash_payment` — Cash Payment
+* `cash_refund` — Cash Refund
+* `starting_cash` — Starting Cash
+* `expected_in_register` — Expected in register
+* `paid_in_register` — Paid-In
+* `paid_out_register` — Paid-Out
+* `paid_in_out_register` — Paid In/Out
+* `actual_in_register` — Actual in register
+* `difference` — Difference
+* `select_move_type` — Select Operation Type
+* `operation_registered_successfully` — Operation registered successfully
+* `pay_in_option` — Pay-In
+* `pay_out_option` — Pay-Out
+* `cash_to_bank_option` — Cash->Bank
+* `bank_to_cash_option` — Bank->Cash
+* `error.Operation type is required` — Operation type is required
+* `error.Amount cannot be negative nor 0` — Amount cannot be negative nor 0
+* `error.closed_pos` — POS is closed. Please open POS to perfom this action.
+
+## commission_groups — 19 strings
+
+* `commission` — Commission
+* `commission_group` — Commission Group
+* `name_commission_group` — Enter Name for Commission Group
+* `product_name` — Product Name
+* `sure_delete_commission_group` — Are you sure you want to delete this commission group ?
+* `commission_group_created` — Commission group was correctly registered.
+* `buttons.add_new_commission_group` — New Commission Group
+* `buttons.add_products_to_group` — ADD PRODUCTS TO THE GROUP
+* `table.title.name` — Name
+* `table.title.associated_partners` — Associated Partners
+* `table.texts.formatLoadingMessage` — Loading, please wait
+* `table.texts.formatRecordsPerPage` — %s Rows per page
+* `table.texts.formatShowingRows` — Showing %f to %t of %T rows
+* `table.texts.formatSearch` — Search
+* `table.texts.formatNoMatches` — No result found
+* `table.texts.formatRefresh` — Refresh
+* `table.texts.formatToggle` — Toggle
+* `table.texts.formatColumns` — Columns
+* `error.name` — Commission Group Name is required
+
+## auth — 18 strings
+
+* `reset_password` — Reset Password
+* `set_password` — Set Password
+* `create_a_new_password` — Create a new password for your Bloowatch account by filling out the form below.
+* `new_password` — New Password
+* `confirm_password` — Confirm Password
+* `passwords_do_not_match` — Passwords do not match
+* `passwords_validation` — Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.
+* `your_password_has_been_reset` — Your password has been reset.
+* `your_password_has_been_set` — Your password has been set.
+* `back_to_login` — Back to log in
+* `sign_in_to_bloowatch` — Login to Bloowatch
+* `use_your_email_address` — Use your email address and password to log in to your account.
+* `forgot_password` — Forgot Password?
+* `forgot_your_password` — Forgot Your Password?
+* `enter_your_email_and_we_will` — Enter your email and we'll send you a link to reset your password.
+* `send_password_reset_link` — Send Link
+* `link_send_check_your_inbox` — Link Sent, Check Your Inbox!
+* `forget_password_confirmation` — We'll send a reset password link to %a if it exists in our system.
+
+## messages — 17 strings
+
+* `no_gears` — There is no gears
+* `define_details_for_gear` — Define the details for each gear
+* `confirm_gear_delete` — Are you sure you want to delete this gear?
+* `confirm_meeting_spot_archive` — Are you sure you want to archive this Spot?
+* `confirm_dive_site_archive` — Are you sure you want to archive this site?
+* `ecommerce_copycode` — To embed your product catalog on your site, copy this iframe code and paste it anywhere you want to display it in your website's HTML.
+* `update_school_hour` — Updating the working hours may affect the sessions & time-offs view that are cross with it in the planning view
+* `confirm_source_type_archive` — Are you sure you want to delete this method?
+* `account_access_limited` — Account Access Limited
+* `renewal_exceeded` — We notice that your account has exceeded the deadline for renewal.
+* `contact_support_part1` — Please contact our customer success team at
+* `contact_support_part2` — so we can assist you in restoring full access to your account.
+* `temporarily_unavailable` — Temporarily Unavailable
+* `apology_message` — We apologize for the inconvenience.
+* `service_unavailable` — Service Unavailable
+* `booking_unavailable` — The online booking system is temporary unavailable due to an account issue.
+* `contact_provider` — Please contact the activity provider directly to make a booking or enquire about availability.
+
+## categories — 17 strings
+
+* `title` — Activities
+* `there_isnt` — There are no activities
+* `add_activity` — Add New Activty
+* `attendants_profile` — Attendants Profile
+* `session_characeristics` — Session Characteristics
+* `max_attendants_capacity_per_instructor` — Maximum Capacity per instructor assigned to session. This value will be multiplied by number of instructors.
+* `max_attendants_capacity_max_capacity` — Maximum Capacity of the session, regardless of number of instructors assigned
+* `placeholder.name` — Activity name here...
+* `placeholder.description` — This will be session default description and will be displayed on all Printed List for sessions’ activity
+* `placeholder.caution` — If no instructor is assigned, the session will follow capacity set for one instructor.
+* `button.new` — NEW ACTIVITY CALENDAR
+* `button.add` — ADD ACTIVITY CALENDAR
+* `button.edit` — EDIT ACTIVITY CALENDAR
+* `color` — Activity Calendar Color
+* `banner_title` — Important: Activity Management Update
+* `learn_more` — Learn More
+
+## fees_groups — 17 strings
+
+* `enter_name` — Enter name for fee group
+* `fees_group_created` — Fees group was correctly registered.
+* `fees_group_deleted` — Group deleted
+* `fees_groups_notassigned` — No fees group assigned
+* `activityـflexible_compensation` — Activity Flexible Compensation
+* `buttons.add_activity_to_group` — Add Activities to the Group
+* `buttons.select_activity` — Select Activities
+* `buttons.new_fee_group` — New Fee Group
+* `error.name` — Fee group name is required
+* `bonus.bonus` — Bonus
+* `bonus.name` — Label
+* `bonus.type` — Bonus Type
+* `bonus.amount` — Amount
+* `bonus.add_bonus_title` — Add a bonus
+* `bonus.buttons.add_bonus` — Add a Bonus Option
+* `bonus.error.name_required` — Name required
+* `bonus.error.amount_required` — Amount required
+
+## wind_direction — 16 strings
+
+* `N` — N
+* `NNE` — NNE
+* `NE` — NE
+* `ENE` — ENE
+* `E` — E
+* `ESE` — ESE
+* `SE` — SE
+* `SSE` — SSE
+* `S` — S
+* `SSW` — SSW
+* `SW` — SW
+* `WSW` — WSW
+* `W` — W
+* `WNW` — WNW
+* `NW` — NW
+* `NNW` — NNW
+
+## availability — 15 strings
+
+* `name` — Availability
+* `date_spec` — Date Specification
+* `from` — From
+* `to` — To
+* `hour_spec` — Filter by Hour
+* `hour_from` — Hour From
+* `hour_to` — Hour To
+* `all` — ALL
+* `mon` — Mon
+* `tue` — Tue
+* `wed` — Wed
+* `thu` — Thu
+* `fri` — Fri
+* `sat` — Sat
+* `sun` — Sun
+
+## buttons — 15 strings
+
+* `close` — CLOSE
+* `clone` — CLONE
+* `edit` — Edit
+* `delete` — Delete
+* `archive` — Archive
+* `logout` — Logout
+* `accept` — ACCEPT
+* `cancel` — CANCEL
+* `assign` — Assign
+* `browse` — Browse
+* `following_dates` — Following dates
+* `prev_dates` — Previous dates
+* `confirm_payment_solutions` — Confirm Payment Solution
+* `delete_payment_solutions` — Remove Payment Solution
+* `continue` — Continue
+
+## gear — 14 strings
+
+* `name` — Gears
+* `title.add` — Add Gear
+* `title.edit` — Update Gear
+* `placeholder.title` — Put the name gear here...
+* `placeholder.description` — Put description gear here...
+* `placeholder.upload` — Click to upload image...
+* `placeholder.upload_other` — Click to upload other image...
+* `buttons.edit` — EDIT GEAR
+* `buttons.add` — ADD GEAR
+* `buttons.assign` — ASSIGN GEAR
+* `there_is_not` — No gears created
+* `conflict` — Gear in use, cannot be deleted
+* `confirm.title` — Delete gear
+* `confirm.text` — Are you sure to delete this gear?
+
+## tax_notes — 14 strings
+
+* `title` — Tax Notes
+* `there_isnt` — No existing tax notes
+* `define_details` — Define the details for each tax note
+* `delete_confirm` — Are you sure you want to delete this tax note?
+* `columns.title` — Label
+* `columns.description` — Text to display on Invoice
+* `placeholder.title` — Input label
+* `placeholder.description` — Input text
+* `fields.title` — Tax note label
+* `fields.description` — Tax note description
+* `button.new` — NEW TAX NOTE
+* `button.add` — ADD TAX NOTE
+* `button.edit` — EDIT TAX NOTE
+* `messages.saved` — Tax Note Saved Successfully.
+
+## school — 13 strings
+
+* `surfclub_short` — Watersports School
+* `surfclub` — Watersports School
+* `name` — Watersports School Name
+* `information` — Watersports School Informations
+* `contact_social` — Contact & Social
+* `placeholder.name` — Put the name school here...
+* `placeholder.phone` — Put the phone phone here...
+* `placeholder.email` — Put the school email here...
+* `placeholder.website` — Put the website here...
+* `placeholder.twitter` — Put the twitter here...
+* `placeholder.facebook` — Put the facebook here...
+* `placeholder.instagram` — Put the instagram here...
+* `buttons.edit` — EDIT SCHOOL
+
+## success — 13 strings
+
+* `profile_update` — The profile updated successfully.
+* `profile_create` — The profile has been created successfully.
+* `school_update` — The school has changed succesfully.
+* `basic_update` — Changes has been saved successfully."
+* `payment_update` — Payment was successfully updated
+* `accommodation_saved` — Accommodation saved successfully.
+* `gear_saved` — Gear saved successfully
+* `participant_assigned_in_session` — %a has been successfully assigned to %b Session on %c at %d.
+* `assign_instructor` — %a %b has been assigned to session %c successfully.
+* `unassign_instructor` — %a %b has been unassigned from session %c successfully.
+* `assign_participant_session` — %a has been successfully assigned to %b Session on %c.
+* `unassign_participant_session` — %a has been successfully unassigned from %b Session on %c.
+* `unassign_participant_trip` — %a has been successfully unassigned from %b trip on %c.
+
+## image_editor — 13 strings
+
+* `show_image` — Image
+* `edit_image` — Edit image
+* `preview` — Preview
+* `add_sticker` — Add sticker
+* `add_text` — Add text
+* `color` — Color
+* `size` — Size
+* `enter_text` — Enter text
+* `invalid_text` — Invalid text
+* `very_big` — Very big
+* `big` — Big
+* `normal` — Normal
+* `small` — Small
+
+## staff — 12 strings
+
+* `availability` — Staff Availability
+* `breaks.add_break` — Add Break
+* `breaks.break_init` — Break Init
+* `breaks.break_end` — Break End
+* `showInAgenda` — This staff member will be shown on the planning
+* `fees_group.fee_group` — Fee Group
+* `fees_group.validity_period` — Validity Period
+* `fees_group.add_group` — Add a Group
+* `fees_group.modal.add_title` — ADD FEE GROUP
+* `fees_group.modal.fee_groups` — Fee Groups
+* `fees_group.modal.select` — Select
+* `fees_group.error.group_overlap` — Make sure the validity period does not overlap with another group
+
+## order_status_filter_dropdown — 11 strings
+
+* `All` — All
+* `Active Bookings` — Active Bookings
+* `Draft` — Draft
+* `Pending` — Pending
+* `Confirmed` — Confirmed
+* `Assigned` — Assigned
+* `Unassigned` — Unassigned
+* `Completed` — Completed
+* `Canceled` — Canceled
+* `Reserved` — Reserved
+* `Abandoned` — Abandoned
+
+## local — 10 strings
+
+* `name` — Local
+* `Show_navigation` — Show navigation
+* `Meteo` — Meteo
+* `DESCRIPTION` — DESCRIPTION
+* `SEND` — SEND
+* `My_ranking` — My ranking
+* `People_ranking` — People ranking
+* `Safety` — Safety
+* `Wave_quality` — Wave quality
+* `RECOMMENDATIONS` — RECOMMENDATIONS
+
+## colors — 9 strings
+
+* `blue` — Blue
+* `black` — Black
+* `red` — Red
+* `green` — Green
+* `brown` — Brown
+* `white` — White
+* `grey` — Grey
+* `purple` — Purple
+* `yellow` — Yellow
+
+## sections — 9 strings
+
+* `details` — Details
+* `general` — General
+* `organisation` — Organisation
+* `calendar` — Calendar
+* `profile_info` — Personal Information
+* `act_avail` — Activities
+* `orders` — Orders
+* `duration_of_sessions` — Standard duration of sessions
+* `fees_groups` — Fee Groups
+
+## placeholder — 8 strings
+
+* `input_name` — Input name
+* `input_description` — Input description
+* `input_unit_name` — Input unit name
+* `input_quantity` — Input quantity
+* `default_daily_report` — Live Date with format DD-MM-YYYY
+* `default_monthly_report` — Present Month
+* `time` — time
+* `depth` — depth
+
+## gallery — 8 strings
+
+* `name` — Gallery
+* `select_img` — Select Image
+* `upload_image` — Upload image
+* `invalid_image` — Invalid file.
+* `there_is_not` — No images uploaded
+* `conflict` — Image in use, cannot be deleted
+* `confirm.title` — Delete the image?
+* `confirm.text` — Are you sure that you want to delete the image?
+
+## send_sms — 8 strings
+
+* `title` — Send SMS
+* `sms_body` — Fill the SMS text
+* `credit` — SMS Credits Left :
+* `sms_to_label` — Send SMS to <b>{} participant(s)</b>
+* `sms_count_message` — You reached the maximum length for 1 SMS. Therefore {} SMS will be sent and credited.
+* `table.name` — Name
+* `table.phone` — Telephone
+* `messages.no_quota` — You need to purchase more SMS credit to be able to send more SMS
+
+## pagination — 8 strings
+
+* `texts.formatLoadingMessage` — Loading, please waitâ€¦
+* `texts.formatRecordsPerPage` — %s Rows per page
+* `texts.formatShowingRows` — Showing %f to %t of %T rows
+* `texts.formatSearch` — Search
+* `texts.formatNoMatches` — No result found
+* `texts.formatRefresh` — Refresh
+* `texts.formatToggle` — Toggle
+* `texts.formatColumns` — Columns
+
+## timeline — 6 strings
+
+* `name` — Timeline
+* `create_post` — New Post
+* `bookingSaved` — Booking saved
+* `required_fields` — Name and description required
+* `error` — Something went wrong
+* `placeholder.title` — Write title here...
+
+## usercsv — 6 strings
+
+* `select_file` — Select CSV file to create users
+* `users_not_created` — But some users cannot be created
+* `nofile` — No file sent
+* `emptyfile` — The file is empty
+* `wrongformat` — Invalid format
+* `invalidfile` — Invalid file
+
+## payment_events — 6 strings
+
+* `valid_amount` — Enter a valid amount
+* `no_payment_method` — Please introduce payment method
+* `title` — Charge
+* `past` — Past Payments
+* `now` — Charge
+* `see` — See payment events for this booking
+
+## unavailability — 5 strings
+
+* `rental.messages.do_you_want_to_remove` — Do you want to remove
+* `rental.messages.unavailability_for` — unavailability for
+* `rental.messages.instructor_will_be_available` — will be available for that period if you confirm.
+* `rental.messages.deleted_successfully` — Unavailability has been deleted successfully for %a
+* `rental.messages.deleted_error_occured` — An error occurred while trying to remove unavailability for %a, please try again.
+
+## payment_status_booking_dropdown — 5 strings
+
+* `PENDING` — PENDING
+* `DEPOSIT` — DEPOSIT
+* `PAID` — PAID
+* `REFUNDED` — REFUNDED
+* `FAILED` — FAILED
+
+## send_email — 5 strings
+
+* `title` — Send Email
+* `email_title` — Email Title
+* `email_body` — Email Body
+* `past` — Past Messages
+* `email_sent` — Email Sent
+
+## manager — 4 strings
+
+* `title` — Manager
+* `contact` — Contact
+* `staff` — Staff
+* `gear` — Gear
+
+## manage — 4 strings
+
+* `title` — Manage
+* `contact` — Contacto
+* `staff` — Personal
+* `gear` — Material
+
+## type_card — 4 strings
+
+* `school_pack` — School Pack
+* `school_pack_singular` — School Pack
+* `school_session` — School Session
+* `free_session` — Free Session
+
+## clients — 4 strings
+
+* `name` — Customers
+* `profile` — Profile
+* `credit` — Credit
+* `total_store_credit` — TOTAL STORE CREDIT
+
+## spot-modal — 4 strings
+
+* `selectspot` — Select Spot
+* `selectspots` — Select Spots
+* `spot` — Spot
+* `spots` — Spots
+
+## tides — 4 strings
+
+* `L` — Low
+* `H` — High
+* `low` — Low
+* `high` — High
+
+## applications — 4 strings
+
+* `toggle_navigation` — Toggle Navigation
+* `preferences` — My preferences
+* `password` — Password
+* `report` — Report Problem
+
