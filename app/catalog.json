@@ -43,7 +43,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -88,7 +89,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -133,7 +135,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -178,7 +181,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -223,7 +227,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -268,7 +273,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard"
+   "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -313,7 +319,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": true,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -358,7 +365,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard"
+   "description": "2 Private Surf Lesson of 1 hour EACH including lycra and Surfboard",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -389,7 +397,8 @@
    "tax": 0,
    "color": "#5fa641",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -420,7 +429,8 @@
    "tax": 0,
    "color": "#d32b1e",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "00:30:00"
   },
   {
    "prices": [
@@ -451,7 +461,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -496,7 +507,8 @@
    "tax": 0,
    "color": "#463397",
    "private": true,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:30:00"
   },
   {
    "prices": [
@@ -541,7 +553,8 @@
    "tax": 0,
    "color": "#463397",
    "private": true,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:30:00"
   },
   {
    "prices": [
@@ -782,7 +795,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -813,7 +827,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1054,7 +1069,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1127,7 +1143,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1158,7 +1175,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1189,7 +1207,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1430,7 +1449,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1461,7 +1481,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1492,7 +1513,8 @@
    "tax": 0,
    "color": "#d43df3",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -1523,7 +1545,8 @@
    "tax": 0,
    "color": "#db6917",
    "private": false,
-   "description": "Private Photo Session of 1 hour"
+   "description": "Private Photo Session of 1 hour",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -1554,7 +1577,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -1795,7 +1819,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -2036,7 +2061,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -2067,7 +2093,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -2119,7 +2146,8 @@
    "tax": 10.0,
    "color": "#ebce2b",
    "private": false,
-   "description": "1 Private Sup Lesson of 1 hour including lycra and Surfboard"
+   "description": "1 Private Sup Lesson of 1 hour including lycra and Surfboard",
+   "categoryDuration": "01:30:00"
   },
   {
    "prices": [
@@ -2171,7 +2199,8 @@
    "tax": 0,
    "color": "#ebce2b",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:30:00"
   },
   {
    "prices": [
@@ -2300,7 +2329,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -2338,7 +2368,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -2369,7 +2400,8 @@
    "tax": 0,
    "color": "",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": ""
   },
   {
    "prices": [
@@ -2400,7 +2432,8 @@
    "tax": 0,
    "color": "#d43df3",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -2431,7 +2464,8 @@
    "tax": 0,
    "color": "#d43df3",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   },
   {
    "prices": [
@@ -2462,7 +2496,8 @@
    "tax": 0,
    "color": "#ba1c30",
    "private": false,
-   "description": ""
+   "description": "",
+   "categoryDuration": "01:00:00"
   }
  ],
  "gear": [

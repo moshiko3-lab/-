@@ -1998,17 +1998,39 @@ function sessionForm(existing,preset){
   function syncTitle(){
     var v=titlePick.value;
     title.hidden = v!=="__own";
+    var mins=0;
     if(v.slice(0,2)==="a:"){
       title.value=v.slice(2);
       cat.value=v.slice(2);
+      mins=kindMins(cat.value);
     } else if(v.slice(0,2)==="p:"){
       var p=product(v.slice(2));
-      if(p){ title.value=p.name; if(p.category) cat.value=p.category; }
+      if(p){
+        title.value=p.name;
+        if(p.category) cat.value=p.category;
+        mins=productMins(p);
+      }
     } else if(v===""){ title.value=""; }
+    /* the length follows what was chosen, until somebody types their own */
+    if(mins && dur && !durTouched){ dur.value=mins; paintDurWhy(); }
   }
   var date=input("date",s.date);
   var time=input("time",s.time);
   var dur=input("number",s.duration,{step:"15",min:"15"});
+  var durWhy=el("div","hint");
+  var durTouched=!!existing;   /* an existing session keeps the length it has */
+  dur.addEventListener("input",function(){ durTouched=true; durWhy.textContent=""; });
+  function paintDurWhy(){
+    var v=titlePick.value, src="";
+    if(v.slice(0,2)==="p:"){
+      var pr=product(v.slice(2));
+      src = pr && namedMins(pr.name) ? ("what "+pr.name+" says")
+          : (pr && pr.category ? (pr.category+"'s own length") : "");
+    } else if(v.slice(0,2)==="a:" && kindMins(v.slice(2))){
+      src = v.slice(2)+"'s own length";
+    }
+    durWhy.textContent = src ? ("From "+src+" — change it and it stays changed.") : "";
+  }
   var cap=input("number",s.capacity,{step:"1",min:"1"});
   var chosen=staffIdsOf(s).slice();
   var spotOpts=DB.spots.map(function(x){return {v:x.name,l:x.name};});
@@ -2020,7 +2042,8 @@ function sessionForm(existing,preset){
   b.appendChild(g1);
   var minCap=input("number",s.minCapacity==null?1:s.minCapacity,{min:"0",step:"1"});
   var g2=el("div","grid2");
-  g2.appendChild(field("Duration (min)",dur)); g2.appendChild(field("Max capacity",cap));
+  var durF=field("Duration (min)",dur); durF.appendChild(durWhy);
+  g2.appendChild(durF); g2.appendChild(field("Max capacity",cap));
   b.appendChild(g2);
   var lvl=select([{v:"",l:"Any level"},{v:"beginner",l:"Beginner"},
     {v:"intermediate",l:"Intermediate"},{v:"advanced",l:"Advanced"}],s.level||"");
@@ -2104,7 +2127,12 @@ function sessionForm(existing,preset){
         ", so they are not offered."));
     }
   }
-  cat.addEventListener("change",function(){ drawStaff(); checkOff(); });
+  cat.addEventListener("change",function(){
+    /* the calendar carries how long one of its sessions runs */
+    var m=kindMins(cat.value);
+    if(m && !durTouched){ dur.value=m; paintDurWhy(); }
+    drawStaff(); checkOff();
+  });
   titlePick.addEventListener("change",function(){
     syncTitle(); drawStaff(); checkOff();});
   syncTitle();
@@ -3408,6 +3436,34 @@ function minsOf(hhmmStr){
 function toHHMM(mins){
   mins=Math.max(0,Math.min(24*60-1,Math.round(mins)));
   return String(Math.floor(mins/60)).padStart(2,"0")+":"+String(mins%60).padStart(2,"0");
+}
+/* their durations arrive as "01:30:00" */
+function hhmmMins(str){
+  if(!str) return 0;
+  var p=String(str).split(":");
+  return (+p[0]||0)*60+(+p[1]||0);
+}
+/* How long a session runs, in their order of authority: the activity calendar
+   says how long one of its sessions is, and that is where Bloowatch takes it
+   from. A product whose name states the hours -- "2 HOUR FOIL TOW", "SUP
+   LESSON 1.5 HOUR" -- is more specific than the calendar it runs on, and this
+   reads that too. Theirs does not: their calendar is the only source, which is
+   why a two-hour tow opens as an hour and a half over there. */
+function kindMins(label){
+  var k=(cfg().kinds||[]).filter(function(x){return x.l===label;})[0];
+  return (k&&Number(k.mins))||0;
+}
+function namedMins(name){
+  var s=String(name||"").toUpperCase();
+  var m=s.match(/(\d+(?:[.,]\d+)?)\s*(?:-|\s)?\s*HOURS?\b/);
+  if(m) return Math.round(parseFloat(m[1].replace(",","."))*60);
+  m=s.match(/(\d+)\s*(?:MIN|MINUTES?)\b/);
+  if(m) return parseInt(m[1],10);
+  return 0;
+}
+function productMins(p){
+  if(!p) return 0;
+  return namedMins(p.name) || kindMins(p.category||"");
 }
 function boardRows(){
   if(boardGroup==="staff"){
@@ -9948,7 +10004,11 @@ function importCatalog(){
     if(!c.name) return;
     var code=c.name.toLowerCase().replace(/[^a-z0-9]+/g,"_");
     if(cfg().kinds.some(function(k){return k.k===code||k.l===c.name;})) return;
-    cfg().kinds.push({k:code,l:c.name,color:c.color||""});
+    /* their calendar carries how long a session on it runs -- SURF PACK an
+       hour, FOIL FREE TOW an hour and a half. Dropping it left every new
+       session on a hardcoded 90 minutes whatever it was for. */
+    cfg().kinds.push({k:code,l:c.name,color:c.color||"",
+                      mins:hhmmMins(c.duration)});
     added.cats++;
   });
   (d.staff||[]).forEach(function(st){

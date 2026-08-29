@@ -115,6 +115,11 @@ def build():
             "kind": kind_of(p),
             "ptype": ptype_of(p),
             "category": p.get("category_name") or "",
+            # how long a session on that calendar runs -- SURF PACK an hour,
+            # FOIL FREE TOW an hour and a half. It is where Bloowatch takes a
+            # new session's length from, so without it every session opened on
+            # a hardcoded number instead of theirs.
+            "categoryDuration": p.get("category_session_duration") or "",
             "shopCategory": (p.get("product_categories") or [None])[0] or "",
             "pos": p.get("order"),
             # is_public is their SOLD ONLINE column: only two of the 35 are on
