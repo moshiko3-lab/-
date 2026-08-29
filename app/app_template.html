@@ -133,6 +133,72 @@ td.strong{font-weight:700}
 .chip.ok{background:var(--good-soft);color:var(--good)}
 .chip.warnc{background:var(--warn-soft);color:var(--warn)}
 .chip.bad{background:var(--crit-soft);color:var(--crit)}
+/* the till: tiles on the left, the booking building up on the right */
+.pos{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.pos-tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+  margin-bottom:12px}
+.pos-tabs button{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+  font-weight:600;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;
+  padding:10px 14px 11px;border-bottom:2px solid transparent;white-space:nowrap;
+  color:var(--text-3)}
+.pos-tabs button:hover{color:var(--text-2)}
+.pos-tabs button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:11px}
+.pos-tile{appearance:none;border:0;background:none;padding:0;cursor:pointer;font:inherit;
+  text-align:left;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);
+  transition:transform .08s}
+.pos-tile:hover{transform:translateY(-1px)}
+.pos-tile:active{transform:translateY(1px)}
+.pos-tile .face{height:96px;position:relative}
+.pos-tile .px{position:absolute;right:7px;top:9px;background:var(--panel);
+  color:var(--text);font-size:12px;font-weight:600;padding:2px 7px;border-radius:3px;
+  font-variant-numeric:tabular-nums}
+.pos-tile .nm{background:var(--panel);padding:9px 10px;font-size:12.5px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-side{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;
+  position:sticky;top:calc(var(--topbar) + 14px);max-height:calc(100vh - var(--topbar) - 40px)}
+.pos-sh{display:flex;align-items:center;gap:8px;padding:13px 15px;
+  border-bottom:1px solid var(--line);font-size:14px}
+.pos-cust{appearance:none;width:100%;border:0;border-bottom:1px solid var(--line);
+  background:none;cursor:pointer;font:inherit;padding:15px;text-align:center;
+  color:var(--accent);font-weight:700;font-size:14px;display:flex;flex-direction:column;
+  gap:2px;align-items:center}
+.pos-cust:hover{background:var(--panel-2)}
+.pos-cust .sub{font-size:12px;font-weight:500;color:var(--text-3)}
+.pos-lines{flex:1;overflow-y:auto;min-height:120px}
+.pos-empty{padding:40px 16px;text-align:center;color:var(--text-3);font-size:13.5px}
+.pos-line{display:grid;grid-template-columns:minmax(0,1fr) auto auto 26px;gap:9px;
+  align-items:center;padding:10px 14px;border-bottom:1px solid var(--line-soft)}
+.pos-line .nm{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.pos-line .sub{font-size:11.5px;color:var(--text-3)}
+.pos-line .amt{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.pos-line .qty{display:inline-flex;align-items:center;border:1px solid var(--line);
+  border-radius:7px;overflow:hidden}
+.pos-line .qty button{appearance:none;border:0;background:var(--panel-2);cursor:pointer;
+  font:inherit;font-size:14px;line-height:1;padding:4px 8px;color:var(--text-2)}
+.pos-line .qty button:hover{background:var(--panel-3);color:var(--text)}
+.pos-line .qty span{padding:0 9px;font-size:12.5px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.pos-line .del{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+  font-size:17px;line-height:1;color:var(--text-3);padding:2px 4px;border-radius:5px}
+.pos-line .del:hover{color:var(--crit);background:var(--crit-soft)}
+.pos-foot{border-top:1px solid var(--line);padding:13px 15px}
+.pos-tot{display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);
+  padding:3px 0}
+.pos-tot.grand{font-size:15px;font-weight:800;color:var(--text);
+  border-top:1px solid var(--line-soft);margin-top:6px;padding-top:8px}
+.pick-row{appearance:none;width:100%;border:1px solid var(--line-soft);background:var(--panel-2);
+  border-radius:9px;padding:9px 12px;margin-bottom:6px;cursor:pointer;font:inherit;
+  text-align:left;display:flex;flex-direction:column;gap:2px}
+.pick-row:hover{border-color:var(--accent)}
+.pick-row .t{font-weight:600;font-size:13.5px}
+.pick-row .s{font-size:12px;color:var(--text-3)}
+@media (max-width:900px){
+  .pos{grid-template-columns:1fr}
+  .pos-side{position:static;max-height:none}
+}
 .lanebtn{appearance:none;border:0;background:var(--panel);cursor:pointer;color:var(--text-3);
   padding:2px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:2px;
   font:inherit;box-shadow:0 0 0 1px var(--line-soft)}
@@ -474,6 +540,33 @@ document.addEventListener("click",function(e){
   if(openMenu && !openMenu.contains(e.target)) closeRowMenu();
 });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeRowMenu(); });
+/* Drop a menu under any element. A second click on the same anchor closes it,
+   which is what a menu button is expected to do. */
+function rowMenuAt(anchor,items){
+  var wasMine=openMenu && openMenu.dataset.owner===String(anchor.dataset.mid);
+  closeRowMenu();
+  if(wasMine) return;
+  anchor.dataset.mid=anchor.dataset.mid||String(Math.random());
+  var m=el("div","rowmenu");
+  m.dataset.owner=anchor.dataset.mid;
+  items.forEach(function(it){
+    if(!it) return;
+    var mb=el("button",it.danger?"danger":null,it.l);
+    mb.type="button";
+    mb.addEventListener("click",function(ev2){
+      ev2.stopPropagation(); closeRowMenu(); it.on();
+    });
+    m.appendChild(mb);
+  });
+  document.body.appendChild(m);
+  var r=anchor.getBoundingClientRect();
+  var top=r.bottom+4, left=r.right-172;
+  if(top+m.offsetHeight>window.innerHeight-8) top=r.top-m.offsetHeight-4;
+  if(left+m.offsetWidth>window.innerWidth-8) left=window.innerWidth-m.offsetWidth-8;
+  m.style.top=Math.max(8,top)+"px";
+  m.style.left=Math.max(8,left)+"px";
+  openMenu=m;
+}
 function rowMenu(items){
   var b=el("button","kebab");
   b.type="button"; b.title="More"; b.setAttribute("aria-label","More actions");
@@ -482,28 +575,7 @@ function rowMenu(items){
     '<circle cx="12" cy="19" r="1.9"/></svg>';
   b.addEventListener("click",function(ev){
     ev.stopPropagation();
-    var wasMine=openMenu && openMenu.dataset.owner===String(b.dataset.mid);
-    closeRowMenu();
-    if(wasMine) return;
-    b.dataset.mid=b.dataset.mid||String(Math.random());
-    var m=el("div","rowmenu");
-    m.dataset.owner=b.dataset.mid;
-    items.forEach(function(it){
-      if(!it) return;
-      var mb=el("button",it.danger?"danger":null,it.l);
-      mb.type="button";
-      mb.addEventListener("click",function(ev2){
-        ev2.stopPropagation(); closeRowMenu(); it.on();
-      });
-      m.appendChild(mb);
-    });
-    document.body.appendChild(m);
-    var r=b.getBoundingClientRect();
-    var top=r.bottom+4, left=r.right-172;
-    if(top+m.offsetHeight>window.innerHeight-8) top=r.top-m.offsetHeight-4;
-    m.style.top=Math.max(8,top)+"px";
-    m.style.left=Math.max(8,left)+"px";
-    openMenu=m;
+    rowMenuAt(b,items);
   });
   return b;
 }
@@ -4071,6 +4143,470 @@ function bookingForm(existing){
     }}
   ]);
 }
+/* Taking the money, straight after confirming. Their till goes here next, and
+   a booking that is never paid is the one thing a school notices. */
+function payForm(bk){
+  var due=bookingDue(bk);
+  var b=el("div");
+  b.appendChild(el("p","hint",clientName(bk.clientId)+" — "+sym0()+money(bookingTotal(bk),2)+
+    " total, "+sym0()+money(due,2)+" outstanding."));
+  var amt=input("number",Math.round(due*100)/100,{min:"0",step:"0.01"});
+  var mth=select(METHODS().map(function(m){return {v:m,l:m};}),METHODS()[0]||"Cash");
+  var when=input("date",todayISO());
+  var g=el("div","grid2");
+  g.appendChild(field("Amount",amt)); g.appendChild(field("Method",mth));
+  b.appendChild(g);
+  b.appendChild(field("Date",when));
+
+  /* the deposit their products carry, offered rather than typed out */
+  var dep=0,all=(bk.lines||[]).length>0;
+  (bk.lines||[]).forEach(function(l){
+    var pr=product(l.productId);
+    var v=(Number(l.price)||0)*(Number(l.qty)||0);
+    if(pr&&pr.depositType&&pr.depositValue){
+      dep += pr.depositType==="percent" ? v*pr.depositValue/100 : Number(pr.depositValue);
+    } else all=false;
+  });
+  if(all&&dep>0&&dep<due-0.004){
+    var db=el("button","btn sm","Take the deposit, "+sym0()+money(dep,2));
+    db.type="button";
+    db.addEventListener("click",function(){ amt.value=Math.round(dep*100)/100; });
+    b.appendChild(db);
+  }
+
+  openModal("Payment",b,[
+    {label:"Pay later",on:closeModal},
+    {label:"Record payment",cls:"primary",on:function(){
+      var v=Number(amt.value)||0;
+      if(v<=0){ toast("Enter an amount."); amt.focus(); return; }
+      if(v>due+0.004){ toast("That is more than is outstanding."); return; }
+      bk.payments=bk.payments||[];
+      bk.payments.push({method:mth.value,amount:v,date:when.value||todayISO()});
+      syncTickets();
+      save(); closeModal(); render();
+      toast(bookingDue(bk)<=0.004 ? "Paid in full" : (sym0()+money(v,2)+" taken"));
+    }}
+  ]);
+}
+
+var bkView="list";
+/* ============================ the till ============================
+   Their new booking is not a dialog with an "add product" button behind it: it
+   is a whole screen laid out like a till. Categories across the top, every
+   product a tile you press, and the booking building up in a panel on the
+   right with the total at the bottom. Six presses instead of six dialogs, and
+   that is the difference the school actually feels on a busy morning. */
+var posBooking=null, posCat="", posEditing=null;
+
+function posStart(existing){
+  if(!DB.products.length){ show("catalog"); toast("Add a product first."); return; }
+  posEditing=existing||null;
+  posBooking = existing ? JSON.parse(JSON.stringify(existing)) : {
+    date:todayISO(),clientId:"",lines:[],payments:[],refunds:[],
+    participants:[],partnerId:"",notes:"",custom:{}};
+  posBooking.lines=posBooking.lines||[];
+  posCat="";
+  bkView="pos";
+  show("bookings");
+  renderBookings();
+}
+function posClose(){
+  posBooking=null; posEditing=null; bkView="list"; renderBookings();
+}
+
+/* the categories their tabs use: the activity calendars, in their own order */
+function posCats(){
+  var out=[{v:"",l:"Home"}];
+  var seen={};
+  (cfg().kinds||[]).forEach(function(k){
+    if(seen[k.l]) return; seen[k.l]=1;
+    var n=DB.products.filter(function(p){
+      return !p.archived && (p.category===k.l || p.kind===k.k);}).length;
+    if(n) out.push({v:k.l,l:k.l,color:k.color||""});
+  });
+  return out;
+}
+function posProducts(){
+  return DB.products.filter(function(p){
+    if(p.archived) return false;
+    if(!posCat) return true;
+    var k=(cfg().kinds||[]).filter(function(x){return x.l===posCat;})[0];
+    return p.category===posCat || (k && p.kind===k.k);
+  }).sort(function(a,b){
+    return (Number(a.position)||999)-(Number(b.position)||999) ||
+           a.name.localeCompare(b.name);
+  });
+}
+function posTileColour(p){
+  var k=(cfg().kinds||[]).filter(function(x){
+    return x.l===p.category || x.k===p.kind;})[0];
+  return (p.color||(k&&k.color))||"var(--accent-hot)";
+}
+
+function posTotals(){
+  var sub=0,tax=0;
+  (posBooking.lines||[]).forEach(function(l){
+    var p=product(l.productId);
+    var v=(Number(l.price)||0)*(Number(l.qty)||0);
+    var rate=(p&&Number(p.tax))||0;
+    sub+=v; tax+=v-v/(1+rate/100);
+  });
+  return {gross:sub,tax:tax,net:sub-tax};
+}
+
+function renderPos(host){
+  var shell=el("div","pos");
+  /* ---------------- left: the tiles ---------------- */
+  var left=el("div","pos-left");
+  var tabs=el("div","pos-tabs");
+  var cats=posCats();
+  /* their strip shows five and folds the rest into MORE. With a dozen imported
+     activity calendars, a strip that wraps to three rows pushes the tiles off
+     the screen -- which is the one thing a till must not do. */
+  var SHOWN=6;
+  var head=cats.slice(0,SHOWN), rest=cats.slice(SHOWN);
+  if(posCat && rest.some(function(c){return c.v===posCat;})){
+    var pick=rest.filter(function(c){return c.v===posCat;})[0];
+    rest=rest.filter(function(c){return c.v!==posCat;});
+    rest.unshift(head[head.length-1]);
+    head[head.length-1]=pick;
+  }
+  head.forEach(function(c){
+    var b=el("button",null,c.l);
+    b.setAttribute("aria-pressed",posCat===c.v?"true":"false");
+    b.addEventListener("click",function(){posCat=c.v;renderBookings();});
+    tabs.appendChild(b);
+  });
+  if(rest.length){
+    var more=el("button",null,"More ▾");
+    more.setAttribute("aria-pressed","false");
+    more.addEventListener("click",function(ev){
+      ev.stopPropagation();
+      rowMenuAt(more,rest.map(function(c){
+        return {l:c.l,on:function(){posCat=c.v;renderBookings();}};}));
+    });
+    tabs.appendChild(more);
+  }
+  left.appendChild(tabs);
+
+  var rows=posProducts();
+  if(!rows.length){
+    left.appendChild(el("div","note","Nothing in this category yet."));
+  }
+  var grid=el("div","pos-grid");
+  rows.forEach(function(p){
+    var colour=posTileColour(p);
+    var tile=el("button","pos-tile");
+    tile.type="button";
+    var top=el("div","face");
+    top.style.background=softColour(colour);
+    top.style.borderTop="5px solid "+colour;
+    /* what one press actually adds -- a "from" price on a till is a price the
+       customer will not be charged, and the till is where that gets noticed */
+    var price=el("span","px",money(priceFor(p,1,hasHourTiers(p)?1:null),2)+sym0());
+    top.appendChild(price);
+    tile.appendChild(top);
+    var nm=el("div","nm",p.name);
+    nm.style.borderBottom="2px solid "+colour;
+    tile.appendChild(nm);
+    tile.title=p.name+(priceSummary(p)?(" · "+priceSummary(p)):"");
+    tile.addEventListener("click",function(){ posAdd(p); });
+    grid.appendChild(tile);
+  });
+  left.appendChild(grid);
+  shell.appendChild(left);
+
+  /* ---------------- right: the booking ---------------- */
+  var side=el("div","pos-side");
+  var sh=el("div","pos-sh");
+  sh.appendChild(el("strong",null,posEditing?"Booking":"Booking"));
+  sh.appendChild(el("span","spacer"));
+  sh.appendChild(rowMenu([
+    {l:"Booking date",on:posDateForm},
+    {l:"Participants",on:posParticipantsForm},
+    {l:"Booked through a partner",on:posPartnerForm},
+    {l:"Note",on:posNoteForm},
+    {l:"Clear the booking",danger:true,on:function(){
+      confirmish("Clear this booking?","Everything on it is discarded.",function(){
+        posBooking.lines=[]; posBooking.clientId=""; posBooking.participants=[];
+        posBooking.notes=""; renderBookings();
+      },"Clear");
+    }}
+  ]));
+  side.appendChild(sh);
+
+  var cust=el("button","pos-cust");
+  cust.type="button";
+  if(posBooking.clientId){
+    var c=by(posBooking.clientId,DB.clients)||{};
+    cust.appendChild(el("strong",null,c.name||"—"));
+    var sub=[c.phone,c.email].filter(Boolean).join(" · ");
+    if(sub) cust.appendChild(el("span","sub",sub));
+  } else {
+    cust.appendChild(el("span",null,"+ Add customer"));
+  }
+  cust.addEventListener("click",posCustomerForm);
+  side.appendChild(cust);
+
+  var body=el("div","pos-lines");
+  if(!posBooking.lines.length){
+    var e=el("div","pos-empty","Select a product");
+    body.appendChild(e);
+  }
+  posBooking.lines.forEach(function(l,i){
+    var p=product(l.productId);
+    var row=el("div","pos-line");
+    var main=el("div");
+    main.appendChild(el("div","nm",p?p.name:"Item"));
+    var bits=[];
+    if(hasPaxTiers(p)&&(Number(l.pax)||1)>1) bits.push((Number(l.pax)||1)+" people");
+    if(l.hours) bits.push(l.hours+"h");
+    if(l.discount!=null) bits.push("discount "+(l.discountType==="percent"
+      ? l.discount+"%" : sym0()+money(l.discount,2)));
+    if(l.manual) bits.push("price set by hand");
+    main.appendChild(el("div","sub",bits.join(" · ")||(sym0()+money(l.price,2)+" each")));
+    main.style.cursor="pointer";
+    main.addEventListener("click",function(){
+      priceEditForm(l,function(){renderBookings();});
+    });
+    row.appendChild(main);
+
+    var qty=el("div","qty");
+    var minus=el("button",null,"−"); minus.type="button";
+    minus.addEventListener("click",function(){
+      l.qty=Math.max(1,(Number(l.qty)||1)-1); renderBookings();});
+    var n=el("span",null,String(Number(l.qty)||1));
+    var plus=el("button",null,"+"); plus.type="button";
+    plus.addEventListener("click",function(){
+      l.qty=(Number(l.qty)||1)+1; renderBookings();});
+    qty.appendChild(minus); qty.appendChild(n); qty.appendChild(plus);
+    row.appendChild(qty);
+
+    row.appendChild(el("div","amt mono",
+      money((Number(l.price)||0)*(Number(l.qty)||0),2)+sym0()));
+    var del=el("button","del","×"); del.type="button";
+    del.title="Remove";
+    del.addEventListener("click",function(){
+      posBooking.lines.splice(i,1); renderBookings();});
+    row.appendChild(del);
+    body.appendChild(row);
+  });
+  side.appendChild(body);
+
+  var t=posTotals();
+  var foot=el("div","pos-foot");
+  [["Subtotal",t.net],["Tax",t.tax],["Total",t.gross]].forEach(function(x,i){
+    var r=el("div","pos-tot"+(i===2?" grand":""));
+    r.appendChild(el("span",null,x[0]));
+    r.appendChild(el("span","mono",money(x[1],2)+" "+sym0()));
+    foot.appendChild(r);
+  });
+  var go=el("button","btn primary big block","Confirm "+money(t.gross,2)+" "+sym0());
+  go.disabled=!posBooking.lines.length;
+  if(go.disabled) go.style.opacity=".55";
+  go.addEventListener("click",posConfirm);
+  foot.appendChild(go);
+  var cancel=el("button","btn block","Cancel");
+  cancel.style.marginTop="7px";
+  cancel.addEventListener("click",function(){
+    if(!posBooking.lines.length){ posClose(); return; }
+    confirmish("Leave this booking?","Nothing on it has been saved yet.",
+      posClose,"Leave");
+  });
+  foot.appendChild(cancel);
+  side.appendChild(foot);
+  shell.appendChild(side);
+  host.appendChild(shell);
+}
+
+/* the "from" price a tile shows: the cheapest the ladder goes */
+function posFrom(p){
+  var t=ladderTiers(p);
+  if(!t.length) return Number(p.price)||0;
+  return t.reduce(function(a,x){
+    var v=Number(x.price)||0; return (a==null||v<a)?v:a;},null)||0;
+}
+function sym0(){
+  var c=CUR(); return c==="EUR"?"€":c==="GBP"?"£":"$";
+}
+
+function posAdd(p){
+  /* a second press of the same tile is another one of the same thing, which is
+     how a till behaves and saves a trip to the quantity stepper */
+  for(var i=0;i<posBooking.lines.length;i++){
+    var l=posBooking.lines[i];
+    if(l.productId===p.id && l.discount==null && !l.manual &&
+       (Number(l.pax)||1)===1 && !l.hours){
+      l.qty=(Number(l.qty)||1)+1;
+      renderBookings();
+      return;
+    }
+  }
+  posBooking.lines.push({lid:uid("ln"),productId:p.id,qty:1,pax:1,
+    hours:hasHourTiers(p)?1:null,
+    price:priceFor(p,1,hasHourTiers(p)?1:null)});
+  renderBookings();
+}
+
+function posConfirm(){
+  if(!posBooking.lines.length){ toast("Add a product first."); return; }
+  if(!posBooking.clientId){ toast("Add a customer to the booking."); posCustomerForm(); return; }
+  var rec=posEditing||{id:uid("b")};
+  rec.date=posBooking.date||todayISO();
+  rec.clientId=posBooking.clientId;
+  rec.lines=posBooking.lines.slice();
+  rec.payments=posBooking.payments||[];
+  rec.refunds=posBooking.refunds||[];
+  rec.participants=posBooking.participants||[];
+  rec.partnerId=posBooking.partnerId||"";
+  rec.notes=posBooking.notes||"";
+  rec.custom=posBooking.custom||{};
+  if(!posEditing) DB.bookings.push(rec);
+  syncTickets();
+  save();
+  var saved=rec;
+  posClose();
+  toast(posEditing?"Booking updated":"Booking saved");
+  /* straight to taking the money, which is what happens next at a till */
+  if(bookingDue(saved)>0.004) payForm(saved);
+}
+
+/* ---- the customer dialog: search what exists, or fill in someone new ---- */
+function posCustomerForm(){
+  var b=el("div");
+  var q=input("search","",{placeholder:"Search a customer by name, phone or email"});
+  b.appendChild(field("Search",q));
+  var listHost=el("div");
+  listHost.style.cssText="max-height:210px;overflow:auto;margin-bottom:12px";
+  b.appendChild(listHost);
+  function draw(){
+    listHost.textContent="";
+    var term=q.value.trim().toLowerCase();
+    var rows=DB.clients.filter(function(c){
+      if(!term) return true;
+      return [c.name,c.phone,c.email].join(" ").toLowerCase().indexOf(term)>=0;
+    }).slice(0,40);
+    if(!rows.length){
+      listHost.appendChild(el("div","hint",
+        DB.clients.length?"No result found.":"No customers yet — fill one in below."));
+      return;
+    }
+    rows.forEach(function(c){
+      var row=el("button","pick-row");
+      row.type="button";
+      row.appendChild(el("span","t",c.name));
+      row.appendChild(el("span","s",[c.phone,c.email].filter(Boolean).join(" · ")));
+      row.addEventListener("click",function(){
+        posBooking.clientId=c.id; closeModal(); renderBookings();
+      });
+      listHost.appendChild(row);
+    });
+  }
+  q.addEventListener("input",draw);
+  draw();
+
+  var h=el("div","lines-h"); h.appendChild(el("h4",null,"Or a new customer"));
+  b.appendChild(h);
+  var first=input("text","",{placeholder:"First name"});
+  var last=input("text","",{placeholder:"Last name"});
+  var g=el("div","grid2");
+  g.appendChild(field("First name",first)); g.appendChild(field("Last name",last));
+  b.appendChild(g);
+  var phone=input("tel","",{placeholder:"+507 …"});
+  var email=input("email","",{placeholder:"name@example.com"});
+  var g2=el("div","grid2");
+  g2.appendChild(field("Telephone",phone)); g2.appendChild(field("Email",email));
+  b.appendChild(g2);
+  var city=input("text","",{placeholder:"City"});
+  var country=input("text","",{placeholder:"Country"});
+  var g3=el("div","grid2");
+  g3.appendChild(field("City",city)); g3.appendChild(field("Country",country));
+  b.appendChild(g3);
+  var kind=select([{v:"individual",l:"Individual"},{v:"business",l:"Business"}],"individual");
+  var partner=select([{v:"",l:"— none —"}].concat(DB.partners.map(function(p){
+    return {v:p.id,l:p.company};})),"");
+  var g4=el("div","grid2");
+  g4.appendChild(field("Client profile",kind));
+  g4.appendChild(field("Partner",partner,"Who sent them, if anyone."));
+  b.appendChild(g4);
+  var note=input("text","",{placeholder:"Anything worth remembering"});
+  b.appendChild(field("Note",note));
+
+  openModal("Customer info",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Confirm",cls:"primary",on:function(){
+      var name=[first.value.trim(),last.value.trim()].filter(Boolean).join(" ");
+      if(!name){ toast("A first name is required."); first.focus(); return; }
+      var c={id:uid("c"),name:name,email:email.value.trim(),phone:phone.value.trim(),
+             city:city.value.trim(),country:country.value.trim(),
+             profile:kind.value,partnerId:partner.value,
+             notes:note.value.trim(),custom:{}};
+      DB.clients.push(c);
+      posBooking.clientId=c.id;
+      if(partner.value) posBooking.partnerId=partner.value;
+      save(); closeModal(); renderBookings(); toast("Customer added");
+    }}
+  ]);
+}
+
+function posDateForm(){
+  var b=el("div");
+  var d=input("date",posBooking.date||todayISO());
+  b.appendChild(field("Booking date",d,
+    "Sales are counted on this date; payments on the day the money arrives."));
+  openModal("Booking date",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      posBooking.date=d.value||todayISO(); closeModal(); renderBookings();
+    }}
+  ]);
+}
+function posNoteForm(){
+  var b=el("div");
+  var n=el("textarea"); n.value=posBooking.notes||"";
+  n.placeholder="Anything the crew should know about this booking";
+  b.appendChild(field("Note",n));
+  openModal("Booking note",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      posBooking.notes=n.value.trim(); closeModal(); renderBookings(); toast("Saved");
+    }}
+  ]);
+}
+function posPartnerForm(){
+  if(!DB.partners.length){
+    toast("No partners yet. Add hotels and agencies in the back office.");
+    return;
+  }
+  var b=el("div");
+  var sel=select([{v:"",l:"— direct —"}].concat(DB.partners.map(function(p){
+    return {v:p.id,l:p.company+(p.commission?" ("+p.commission+"%)":"")};})),
+    posBooking.partnerId||"");
+  b.appendChild(field("Booked through",sel,
+    "Their commission is worked out on the crew pay screen."));
+  openModal("Partner",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      posBooking.partnerId=sel.value; closeModal(); renderBookings(); toast("Saved");
+    }}
+  ]);
+}
+function posParticipantsForm(){
+  var b=el("div");
+  function seats(){
+    return posBooking.lines.reduce(function(a,l){
+      var p=product(l.productId);
+      var per=(p&&hasPaxTiers(p))?(Number(l.pax)||1):1;
+      return a+per*(Number(l.qty)||1);
+    },0);
+  }
+  var blk=participantsBlock(posBooking,seats,function(){});
+  b.appendChild(blk.node);
+  openModal("Participants",b,[
+    {label:"Done",cls:"primary",on:function(){ closeModal(); renderBookings(); }}
+  ]);
+}
+
 var bkFilter={q:"",status:"all",from:"",to:""};
 var box2Invoice=null, box2Cancel=null;
 function bookingStatus(b){
@@ -4080,16 +4616,17 @@ function bookingStatus(b){
 }
 function renderBookings(){
   var host=document.getElementById("p-bookings"); host.textContent="";
+  if(bkView==="pos" && posBooking){ renderPos(host); return; }
   var due=DB.bookings.reduce(function(a,b){return a+Math.max(0,bookingDue(b));},0);
   secHeader(host,"Bookings",
     DB.bookings.length?(DB.bookings.length+" total"+(due?" · $"+money(due,0)+" outstanding":"")):"",
-    "New booking",function(){bookingForm(null);});
+    "New booking",function(){posStart(null);});
   if(!DB.bookings.length){
     host.appendChild(emptyState("🧾","No bookings yet",
       DB.products.length? "Record a sale: pick a client, add what they bought, and log how they paid."
         : "Add a client and a product or two first, then you can record your first booking.",
       DB.products.length?"Record a booking":"Go to the catalog",
-      function(){ DB.products.length? bookingForm(null) : show("catalog"); }));
+      function(){ DB.products.length? posStart(null) : show("catalog"); }));
     return;
   }
   /* filter bar */
@@ -7341,8 +7878,7 @@ function backupForm(){
 }
 document.getElementById("btn-backup").addEventListener("click",backupForm);
 document.getElementById("btn-newbooking").addEventListener("click",function(){
-  if(!DB.products.length){ show("catalog"); toast("Add a product first."); return; }
-  show("bookings"); bookingForm(null);
+  posStart(null);
 });
 
 /* ============================ tabs ============================ */
