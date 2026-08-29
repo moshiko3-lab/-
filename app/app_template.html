@@ -1967,7 +1967,45 @@ function sessionForm(existing,preset){
     isPublic:true,
     participants:[],tideRef:"",tidePos:"before",tideHours:2};
   var b=el("div");
+  /* the activity calendar is built first, because both the title and the
+     instructors are chosen against it */
+  var catOpts=[{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){return {v:k.l,l:k.l};}));
+  var cat=select(catOpts,s.category||"");
+
+  /* A session is named after what it is. The title is picked from the
+     activities the school runs and the products it sells -- picking one names
+     the session and files it under the right calendar in the same move --
+     and anything else is still possible, one option down. */
+  var titleOpts=[{v:"",l:"— choose the activity —"}];
+  (cfg().kinds||[]).forEach(function(k){ titleOpts.push({v:"a:"+k.l,l:k.l}); });
+  DB.products.filter(function(p){return !p.archived;})
+    .slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+    .forEach(function(p){
+      titleOpts.push({v:"p:"+p.id,l:p.name+(p.category?(" · "+p.category):"")});
+    });
+  titleOpts.push({v:"__own",l:"Something else…"});
+  var startPick="";
+  if(s.title){
+    var asKind=(cfg().kinds||[]).filter(function(k){return k.l===s.title;})[0];
+    var asProd=DB.products.filter(function(p){return p.name===s.title;})[0];
+    startPick = asKind ? ("a:"+asKind.l) : (asProd ? ("p:"+asProd.id) : "__own");
+  }
+  var titlePick=select(titleOpts,startPick);
   var title=input("text",s.title,{placeholder:"e.g. Beginner surf lesson"});
+  title.style.marginTop="7px";
+  var titleBox=el("div");
+  titleBox.appendChild(titlePick); titleBox.appendChild(title);
+  function syncTitle(){
+    var v=titlePick.value;
+    title.hidden = v!=="__own";
+    if(v.slice(0,2)==="a:"){
+      title.value=v.slice(2);
+      cat.value=v.slice(2);
+    } else if(v.slice(0,2)==="p:"){
+      var p=product(v.slice(2));
+      if(p){ title.value=p.name; if(p.category) cat.value=p.category; }
+    } else if(v===""){ title.value=""; }
+  }
   var date=input("date",s.date);
   var time=input("time",s.time);
   var dur=input("number",s.duration,{step:"15",min:"15"});
@@ -1975,7 +2013,8 @@ function sessionForm(existing,preset){
   var chosen=staffIdsOf(s).slice();
   var spotOpts=DB.spots.map(function(x){return {v:x.name,l:x.name};});
   var spot=select(spotOpts.length?spotOpts:[{v:"",l:"— add a spot in Settings —"}],s.spot);
-  b.appendChild(field("Title",title));
+  b.appendChild(field("Title",titleBox,
+    "Named after the activity or the product it runs; anything else is the last option."));
   var g1=el("div","grid2");
   g1.appendChild(field("Date",date)); g1.appendChild(field("Start time",time));
   b.appendChild(g1);
@@ -2000,33 +2039,41 @@ function sessionForm(existing,preset){
   g2d.appendChild(field("All-day event",allDay));
   g2d.appendChild(field("Public",isPub,"Shown to clients booking online."));
   b.appendChild(g2d);
-  /* the activity calendar comes before the instructors, because it decides
-     which of them are offered */
-  var catOpts=[{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){return {v:k.l,l:k.l};}));
-  var cat=select(catOpts,s.category||"");
+  /* the activity calendar was built at the top, because it decides both the
+     title and which instructors are offered */
   b.appendChild(field("Activity calendar",cat));
 
   var staffHost=el("div"), staffHint=el("div","hint");
-  /* Their rule, in their words: only staff carrying the activity are proposed
-     for the session. Ours proposes them and keeps the rest one click away --
-     the person on the counter has to be able to put anyone on when it comes to
-     it, and a hidden instructor is worse than an unlikely one. */
-  var showAllStaff=false;
+  /* Their rule, and now ours without a way round it: only crew who carry the
+     activity can take the session. A foil tow does not go to someone whose
+     card does not say foil -- the fix for that is on their card in Crew, not
+     a button here. Somebody already on the session who does not carry it is
+     shown anyway, marked, so it can be seen and taken off rather than hidden
+     and kept. */
   function drawStaff(){
     staffHost.textContent="";
     if(!DB.staff.length){ staffHost.appendChild(el("div","hint","Add crew first.")); return; }
     var wanted=cat?cat.value:"";
     var pool=DB.staff.filter(function(x){
-      return showAllStaff || staffDoes(x,wanted) || chosen.indexOf(x.id)>=0;});
+      return staffDoes(x,wanted) || chosen.indexOf(x.id)>=0;});
     var hidden=DB.staff.length-pool.length;
     pool.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
       .forEach(function(x){
+        var fits=staffDoes(x,wanted);
         var lab=el("label"); lab.style.display="inline-flex"; lab.style.alignItems="center";
         lab.style.gap="6px"; lab.style.marginRight="12px"; lab.style.marginBottom="6px";
-        lab.style.fontSize="13.5px"; lab.style.cursor="pointer";
+        lab.style.fontSize="13.5px"; lab.style.cursor=fits?"pointer":"default";
         var cb=input("checkbox"); cb.checked=chosen.indexOf(x.id)>=0; cb.style.width="auto";
         cb.addEventListener("change",function(){
-          if(cb.checked){ if(chosen.indexOf(x.id)<0) chosen.push(x.id); }
+          if(cb.checked){
+            if(!fits){
+              cb.checked=false;
+              toast(x.name+" is not set up for "+(wanted||"this activity")+
+                    ". Add it on their card in Crew.");
+              return;
+            }
+            if(chosen.indexOf(x.id)<0) chosen.push(x.id);
+          }
           else chosen=chosen.filter(function(y){return y!==x.id;});
           checkOff();
         });
@@ -2038,19 +2085,29 @@ function sessionForm(existing,preset){
           sm.style.marginLeft="-2px";
           lab.appendChild(sm);
         }
+        if(!fits){
+          lab.style.opacity=".7";
+          var bad=el("span","chip critc","not "+(wanted||"this activity"));
+          bad.style.marginLeft="-2px";
+          lab.appendChild(bad);
+        }
         staffHost.appendChild(lab);
       });
-    if(hidden>0 || showAllStaff){
-      var more=el("button","btn sm",showAllStaff
-        ? "Only crew for this activity"
-        : ("Show all crew ("+hidden+" more)"));
-      more.type="button";
-      more.style.marginTop="4px";
-      more.addEventListener("click",function(){ showAllStaff=!showAllStaff; drawStaff(); });
-      staffHost.appendChild(el("div")).appendChild(more);
+    if(!pool.length){
+      staffHost.appendChild(el("div","hint",
+        wanted ? ("Nobody on the crew is set up for "+wanted+
+                  ". Open Crew and add the activity to whoever teaches it.")
+               : "Choose an activity calendar first."));
+    } else if(hidden>0){
+      staffHost.appendChild(el("div","hint",
+        hidden+" more on the crew do not carry "+(wanted||"this activity")+
+        ", so they are not offered."));
     }
   }
   cat.addEventListener("change",function(){ drawStaff(); checkOff(); });
+  titlePick.addEventListener("change",function(){
+    syncTitle(); drawStaff(); checkOff();});
+  syncTitle();
   function checkOff(){
     var off=chosen.filter(function(id){return isOff(id,date.value);}).map(staffName);
     var away=chosen.filter(function(id){return outOfSeason(id,date.value);}).map(staffName);
@@ -2114,7 +2171,21 @@ function sessionForm(existing,preset){
 
   var acts=[{label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
-      if(!title.value.trim()){ toast("A title is required."); title.focus(); return; }
+      if(!title.value.trim()){
+        toast("A title is required.");
+        (title.hidden?titlePick:title).focus();
+        return;
+      }
+      /* an instructor who does not carry the activity cannot be saved onto it,
+         however they got here -- an import, a changed calendar, a drag */
+      var wrong=chosen.filter(function(id){
+        return !staffDoes(by(id,DB.staff),cat.value);}).map(staffName);
+      if(wrong.length){
+        toast(wrong.join(", ")+(wrong.length>1?" are":" is")+" not set up for "+
+              (cat.value||"this activity")+". Take "+
+              (wrong.length>1?"them":"them")+" off, or add it in Crew.");
+        return;
+      }
       var rec=existing||{id:uid("se"),participants:[]};
       rec.title=title.value.trim(); rec.date=date.value||todayISO(); rec.time=time.value||"09:00";
       rec.duration=Number(dur.value)||60; rec.capacity=Number(cap.value)||1;
@@ -3866,10 +3937,13 @@ function sessionPop(anchor,se){
   meta.appendChild(cap);
 
   /* the instructor, changed here rather than in the form */
+  /* only crew who carry the activity, and whoever is already on it. When
+     nobody carries it the list stays empty rather than quietly offering the
+     whole crew -- the activity belongs on somebody's card in Crew first. */
   var pool=DB.staff.filter(function(x){
     return staffDoes(x,se.category) || staffIdsOf(se).indexOf(x.id)>=0;});
-  if(!pool.length) pool=DB.staff.slice();
-  var who=select([{v:"",l:"Unassigned"}].concat(pool.sort(crewOrder)
+  var who=select([{v:"",l:pool.length?"Unassigned"
+      :("Nobody set up for "+(se.category||"this"))}].concat(pool.sort(crewOrder)
     .map(function(x){return {v:x.id,l:x.name};})),staffIdsOf(se)[0]||"");
   who.className="sp-who";
   who.addEventListener("change",function(){
@@ -4507,6 +4581,16 @@ function boardDay(dayISO){
             if(rows[i] && String(i)===String(d.targetRi)) destRow=rows[i].row;
         }
         if(!destRow) destRow=rec.row;
+        /* dropping a session on somebody's row is assigning it to them, so
+           the same rule the form keeps applies here: a foil tow does not land
+           on an instructor whose card does not carry foil */
+        if(boardGroup==="staff" && destRow.key &&
+           !staffDoes(by(destRow.key,DB.staff),x.category)){
+          renderBoard();
+          toast(destRow.label+" is not set up for "+
+                (x.category||"this activity")+".");
+          return;
+        }
         x.time=d.time||x.time;
         if(boardGroup==="staff"){
           x.staffIds=destRow.key?[destRow.key]:[]; delete x.staffId;

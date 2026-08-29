@@ -116,16 +116,14 @@ def main():
         check("the crew for this activity are offered", "ana surfs" in dlg, dlg[:300])
         check("the ones who do not do it are not", "beto shoots" not in dlg,
               dlg[:300])
-        check("with a way to reach the rest", "show all crew" in dlg, dlg[:400])
-
-        pg.click('.modal button:has-text("Show all crew")')
-        pg.wait_for_timeout(600)
-        dlg = low(pg, ".modal")
-        check("which brings them back", "beto shoots" in dlg, dlg[:400])
+        # and there is no way round it: the fix for a missing instructor is
+        # the activity on their card in Crew, not a button here
+        check("with no way to reach the rest", "show all crew" not in dlg,
+              dlg[:400])
+        check("it says how many are not offered", "do not carry" in dlg,
+              dlg[:400])
 
         # switching the calendar re-reads the rule
-        pg.click('.modal button:has-text("Only crew for this activity")')
-        pg.wait_for_timeout(500)
         pg.select_option('.modal select:below(:text("Activity calendar"))',
                          label=seeded["b"])
         pg.wait_for_timeout(700)

@@ -57,6 +57,10 @@ def plan_text(pg):
 def add_session(pg, title, time_):
     pg.click('#p-schedule button:has-text("New session")')
     pg.wait_for_timeout(600)
+    # the title is picked from the activities and the products; a name of your
+    # own is the last option, and it is what these sessions are given
+    pg.select_option("#modal select >> nth=0", label="Something else…")
+    pg.wait_for_timeout(250)
     pg.fill('#modal input[type=text]:visible >> nth=0', title)
     pg.fill('#modal input[type=time]:visible >> nth=0', time_)
     modal_button(pg, "Save")
