@@ -26,6 +26,10 @@ def render(template=None):
     # arrive at the same number for the same product
     with open(os.path.join(HERE, "pricing.js"), encoding="utf-8") as f:
         out = out.replace("/*__PRICING__*/", f.read())
+    # the shared book: the same file is inlined, so the manager and anything
+    # else that talks to it speak to one implementation
+    with open(os.path.join(HERE, "cloud.js"), encoding="utf-8") as f:
+        out = out.replace("/*__CLOUD__*/", f.read())
     cat = os.path.join(HERE, "catalog.json")
     if os.path.exists(cat):
         with open(cat, encoding="utf-8") as f:
@@ -54,7 +58,8 @@ def render(template=None):
     if os.path.exists(logo):
         with open(logo, "rb") as f:
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
-    for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/", "/*__PEOPLE__*/"):
+    for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/",
+                  "/*__PEOPLE__*/", "/*__CLOUD__*/"):
         if token in out:
             raise RuntimeError(f"template placeholder {token} was not replaced")
     return out

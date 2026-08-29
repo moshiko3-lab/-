@@ -42,6 +42,8 @@ jobs:
           mkdir -p site
           python3 app/build.py --out site/index.html
           python3 app/build.py --minisite --out site/book.html
+          # the address the school actually uses; Pages reads this file
+          cp CNAME site/CNAME
           ls -l site
       - name: Refuse to publish anything carrying real people
         run: python3 .github/no_pii.py site

@@ -474,6 +474,7 @@ td.strong{font-weight:700}
 <header class="top">
   <span class="title">Shokogi <small id="screen-name">Today</small></span>
   <span class="spacer"></span>
+  <button class="tbtn" id="btn-cloud" title="The shared book">Offline</button>
   <button class="tbtn" id="btn-backup">Backup</button>
   <button class="tbtn solid" id="btn-newbooking">+ Booking</button>
 </header>
@@ -551,6 +552,8 @@ function load(){
 function save(){
   try{ localStorage.setItem(KEY,JSON.stringify(DB)); }
   catch(e){ toast("Could not save. Browser storage may be full or blocked."); }
+  /* this browser is still the working copy; the shared book is told after */
+  try{ cloudMark(); cloudSoon(); }catch(e){}
 }
 function uid(p){ return p+(DB.seq++); }
 
@@ -1563,6 +1566,7 @@ function renderCrew(){
 
 
 /*__PRICING__*/
+/*__CLOUD__*/
 
 /* ============================ catalog ============================ */
 /* Their price_unit values. A tier means a different thing under each, so the
@@ -10508,6 +10512,140 @@ function backupForm(){
     }}
   ]);
 }
+/* ============================ the shared book ============================
+   cloud.js speaks to Supabase; this is the part that knows about the app:
+   what changed since the last save, when to hand it over, and what the button
+   in the corner says about it. */
+var cloudShadow=null, cloudTimer=null, cloudBusy=false, cloudLast=null,
+    cloudError=null;
+/* What changed, worked out by comparing this save with the last one. Doing it
+   here rather than at every one of the hundreds of places that write a record
+   means no write can quietly escape the outbox. */
+function cloudMark(){
+  if(!cloudConfigured()) return;
+  var next={};
+  CLOUD_TABLES.forEach(function(spec){
+    var now={}, id;
+    (DB[spec.k]||[]).forEach(function(r){
+      if(r&&r.id) now[r.id]=JSON.stringify(r); });
+    if(cloudShadow){
+      var was=cloudShadow[spec.k]||{};
+      for(id in now) if(was[id]!==now[id]) cloudDirty(spec.k,id);
+      for(id in was) if(!(id in now)) cloudDirty(spec.k,id);   /* deleted */
+    }
+    next[spec.k]=now;
+  });
+  cloudShadow=next;
+}
+/* Everything, on purpose: the first hand-over of a book that was kept in one
+   browser until now. */
+function cloudMarkEverything(){
+  CLOUD_TABLES.forEach(function(spec){ cloudDirtyAll(spec.k,DB[spec.k]); });
+}
+function cloudPaint(){
+  var b=document.getElementById("btn-cloud");
+  if(!b) return;
+  var n=cloudConfigured()?outboxCount():0;
+  var txt,title;
+  if(!cloudConfigured()){ txt="Offline"; title="No shared book is set up."; }
+  else if(!cloudSignedIn()){ txt="Sign in"; title="This browser is not signed in to the shared book."; }
+  else if(cloudBusy){ txt="Syncing…"; title="Handing over what changed."; }
+  else if(cloudError){ txt="Sync error"; title=cloudError; }
+  else if(n){ txt=n+" to send"; title=n+" change"+(n===1?"":"s")+" waiting for a network."; }
+  else { txt="Synced"; title=cloudLast?("Last synced "+cloudLast):"Up to date."; }
+  b.textContent=txt;
+  b.style.opacity=(cloudError||(!cloudSignedIn()&&cloudConfigured()))?"1":".9";
+}
+function cloudRun(loud){
+  if(!cloudConfigured()||!cloudSignedIn()||cloudBusy) { cloudPaint(); return; }
+  cloudBusy=true; cloudError=null; cloudPaint();
+  cloudSync(DB,function(err,info){
+    cloudBusy=false;
+    if(err){
+      cloudError=err.message||"Sync failed";
+      if(loud) toast("Sync: "+cloudError);
+    } else {
+      cloudLast=new Date().toTimeString().slice(0,5);
+      if(info && info.got){
+        /* somebody else's work arrived: keep it and show it */
+        try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){}
+        cloudShadow=null; cloudMark();
+        render();
+      }
+      if(loud) toast(info&&info.skipped?"Not signed in":
+        ("Sent "+((info&&info.sent)||0)+", received "+((info&&info.got)||0)));
+    }
+    cloudPaint();
+  });
+}
+/* a burst of edits is one hand-over, not twenty */
+function cloudSoon(){
+  cloudPaint();
+  if(!cloudConfigured()||!cloudSignedIn()) return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(function(){ cloudRun(false); },2500);
+}
+function cloudSignInForm(){
+  var b=el("div");
+  b.appendChild(el("p","hint",
+    "The shared book keeps every device on the same day. Sign in with the "+
+    "address the school gave you."));
+  var em=input("email",cloudWho(),{placeholder:"you@shokogi.com"});
+  var pw=input("password","",{placeholder:"Password"});
+  b.appendChild(field("Email",em));
+  b.appendChild(field("Password",pw));
+  var err=el("div","hint"); err.style.color="var(--crit)";
+  b.appendChild(err);
+  openModal("Sign in to the shared book",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Sign in",cls:"primary",on:function(){
+      err.textContent="Signing in…";
+      cloudSignIn(em.value.trim(),pw.value).then(function(){
+        closeModal(); toast("Signed in as "+cloudWho());
+        cloudRun(true); render();
+      }).catch(function(e){
+        err.textContent=(e&&e.message)||"Sign-in failed";
+      });
+    }}
+  ]);
+}
+function cloudMenu(){
+  if(!cloudConfigured()){ toast("No shared book is set up in this build."); return; }
+  if(!cloudSignedIn()){ cloudSignInForm(); return; }
+  var b=el("div");
+  var n=outboxCount();
+  [["Signed in as",cloudWho()],
+   ["Waiting to send",n?(n+" change"+(n===1?"":"s")):"nothing"],
+   ["Last sync",cloudLast||"not yet"],
+   ["Trouble",cloudError||"none"]].forEach(function(r){
+    var row=el("div","slot"); row.style.gridTemplateColumns="150px 1fr";
+    row.appendChild(el("div","t",r[0]));
+    row.appendChild(el("div",r[1]?null:"muted",r[1]||"—"));
+    b.appendChild(row);
+  });
+  b.appendChild(el("div","hint",
+    "Everything is written here first and handed over after, so the till keeps "+
+    "working with no signal. Send everything re-uploads this browser's whole "+
+    "book — use it once, when a school starts sharing."));
+  openModal("The shared book",b,[
+    {label:"Close",on:closeModal},
+    {label:"Sign out",on:function(){
+      cloudSignOut(); closeModal(); cloudPaint(); toast("Signed out"); }},
+    {label:"Send everything",on:function(){
+      cloudMarkEverything(); closeModal(); cloudRun(true); }},
+    {label:"Sync now",cls:"primary",on:function(){ closeModal(); cloudRun(true); }}
+  ]);
+}
+document.getElementById("btn-cloud").addEventListener("click",cloudMenu);
+cloudMark();            /* the baseline: what this browser already had */
+cloudPaint();
+/* take what other people did, on a quiet loop, only while the tab is looked at */
+setInterval(function(){
+  if(document.hidden) return;
+  cloudRun(false);
+},20000);
+addEventListener("online",function(){ cloudRun(false); });
+
 document.getElementById("btn-backup").addEventListener("click",backupForm);
 document.getElementById("btn-newbooking").addEventListener("click",function(){
   posStart(null);
