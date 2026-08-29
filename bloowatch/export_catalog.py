@@ -49,6 +49,15 @@ def ptype_of(p):
     return "class"
 
 
+# their tide rows come back as 2026-8-29, which is not an ISO date
+def _tide_date(v):
+    try:
+        y, m, d = (v or "").split("-")
+        return f"{int(y):04d}-{int(m):02d}-{int(d):02d}"
+    except (ValueError, AttributeError):
+        return None
+
+
 def num(v):
     try:
         return round(float(v), 2)
@@ -140,10 +149,58 @@ def build():
         staff.append({"name": name, "role": role[:1].upper() + role[1:]})
 
     spots = []
+    spot_ids = []
     for sp in _rows(_get(s, base, f"/schools/{sid}/spots/")):
         loc = (sp.get("location") or {}).get("coordinates") or [None, None]
         spots.append({"name": sp.get("name"), "lat": loc[1], "lon": loc[0],
                       "notes": (sp.get("description") or "").strip()})
+        if sp.get("id"):
+            spot_ids.append((sp["id"], sp.get("name")))
+
+    # The tide table their agenda draws its curve from. The app is a static
+    # page and cannot call anything at runtime, so a year of it is carried
+    # across with everything else. Heights included: a 3.08 m high and a 0.15 m
+    # low is a different day's surf from 2.1 and 0.9.
+    tides = []
+    if spot_ids:
+        sp_id, sp_name = spot_ids[-1]
+        start = dt.date.today() - dt.timedelta(days=14)
+        # a month at a time; their endpoint refuses a whole year in one go
+        for chunk in range(13):
+            a = start + dt.timedelta(days=chunk * 30)
+            b = a + dt.timedelta(days=30)
+            try:
+                got = _get(s, base, f"/spots/{sp_id}/tide/", school_id=sid,
+                           **{"from": f"{a.year}-{a.month}-{a.day}",
+                              "to": f"{b.year}-{b.month}-{b.day}"})
+            except Exception:
+                continue
+            for block in (got or []):
+                for day in (block.get("forecast") or []):
+                    iso_day = _tide_date(day.get("date"))
+                    if not iso_day:
+                        continue
+                    highs, lows = [], []
+                    for when in ("morning", "evening"):
+                        t = (day.get(f"high-tide {when} time") or "").strip()
+                        h = (day.get(f"high-tide {when} height") or "").strip()
+                        if t:
+                            highs.append({"t": t, "m": h})
+                        t = (day.get(f"low-tide {when} time") or "").strip()
+                        h = (day.get(f"low-tide {when} height") or "").strip()
+                        if t:
+                            lows.append({"t": t, "m": h})
+                    if highs or lows:
+                        tides.append({"date": iso_day, "spot": sp_name,
+                                      "highs": highs, "lows": lows})
+        seen = set()
+        uniq = []
+        for row in sorted(tides, key=lambda r: r["date"]):
+            if row["date"] in seen:
+                continue
+            seen.add(row["date"])
+            uniq.append(row)
+        tides = uniq
 
     # The schedule as it stands: sessions from a week back to a month ahead.
     # Participants are dropped -- they point at clients, which stay behind.
@@ -179,7 +236,7 @@ def build():
             })
 
     return {"products": products, "gear": gear, "categories": cats,
-            "spots": spots, "staff": staff, "sessions": sessions}
+            "spots": spots, "staff": staff, "sessions": sessions, "tides": tides}
 
 
 def main():
@@ -199,7 +256,7 @@ def main():
           f"{len(data['gear'])} gear types "
           f"({units} individual units), {len(data['staff'])} crew, "
           f"{len(data['categories'])} categories, {len(data['spots'])} spots, "
-          f"{len(data['sessions'])} sessions")
+          f"{len(data['sessions'])} sessions, {len(data['tides'])} days of tide")
     return 0
 
 

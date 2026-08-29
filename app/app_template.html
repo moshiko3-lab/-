@@ -1883,6 +1883,44 @@ function sessionForm(existing,presetDate){
     }}];
   openModal(existing?"Edit session":"New session",b,acts);
 }
+/* What the tide is doing at the hour a session runs. For a surf school that is
+   the column: a 07:30 lesson three hours after a 3.08 m high is a different
+   lesson from the same hour on a dropping low. */
+function tideEvents(dateStr){
+  var t=tideFor(dateStr);
+  if(!t) return [];
+  var out=[];
+  var hh=(t.heights&&t.heights.high)||[], lh=(t.heights&&t.heights.low)||[];
+  (t.highs||[]).forEach(function(x,i){
+    out.push({m:minsOf(x),t:x,high:true,h:hh[i]||""});});
+  (t.lows||[]).forEach(function(x,i){
+    out.push({m:minsOf(x),t:x,high:false,h:lh[i]||""});});
+  return out.sort(function(a,b){return a.m-b.m;});
+}
+function tideAt(dateStr,hhmm){
+  var ev=tideEvents(dateStr);
+  if(!ev.length) return null;
+  var m=minsOf(hhmm||"09:00");
+  var next=null,prev=null;
+  for(var i=0;i<ev.length;i++){
+    if(ev[i].m>=m){ next=ev[i]; break; }
+    prev=ev[i];
+  }
+  /* before the first event the run is toward it; after the last, away from it */
+  var rising = next ? next.high : !(prev&&prev.high);
+  var near = next && prev ? ((next.m-m)<=(m-prev.m) ? next : prev) : (next||prev);
+  return {rising:rising,next:next,prev:prev,near:near,
+          mins:next?(next.m-m):null};
+}
+function tideText(dateStr,hhmm){
+  var a=tideAt(dateStr,hhmm);
+  if(!a) return "";
+  var dir=a.rising?"rising":"dropping";
+  if(!a.next) return dir;
+  var d=a.mins, when = d<60 ? (d+"m") : (Math.floor(d/60)+"h"+(d%60?String(d%60).padStart(2,"0"):""));
+  return dir+" · "+(a.next.high?"high":"low")+" "+a.next.t+
+         (a.next.h?(" "+a.next.h+"m"):"")+" in "+when;
+}
 function tideLabel(s){
   if(!s.tideRef) return "";
   return s.tideHours+"h "+s.tidePos+" "+(s.tideRef==="high"?"high":"low")+" tide";
@@ -2008,7 +2046,7 @@ var PLAN_COLS=[
   {k:"duration",l:"Duration"},
   {k:"participants",l:"Participants"},
   {k:"spot",l:"Spot",off:true},
-  {k:"tide",l:"Tide",off:true}
+  {k:"tide",l:"Tide"}
 ];
 var planShow=(function(){
   var d={};
@@ -2123,8 +2161,12 @@ function renderSchedule(){
     "gap:12px;flex-wrap:wrap";
   tb0.appendChild(el("span","eyebrow","Tide"));
   if(tideP&&((tideP.highs||[]).length||(tideP.lows||[]).length)){
-    (tideP.highs||[]).forEach(function(h){tb0.appendChild(el("span","chip pink","High "+h));});
-    (tideP.lows||[]).forEach(function(l){tb0.appendChild(el("span","chip neutral","Low "+l));});
+    tideChips(tb0,tideP);
+    if(tideP.spot){
+      var sp=el("span","hint",tideP.spot);
+      sp.style.marginLeft="4px";
+      tb0.appendChild(sp);
+    }
   } else {
     tb0.appendChild(el("span","hint","Not set for this day"));
   }
@@ -2406,8 +2448,20 @@ function planTable(day){
     cell.duration=function(){ return el("td","n r",hhmm(x.duration||0)); };
     cell.spot=function(){ return el("td",x.spot?"muted":"muted",x.spot||"—"); };
     cell.tide=function(){
+      var c=el("td");
+      var live=tideText(x.date,x.time);
+      if(live){
+        var a=tideAt(x.date,x.time);
+        var chip=el("span","chip "+(a&&a.rising?"pink":"neutral"),live);
+        c.appendChild(chip);
+      } else c.appendChild(el("span","muted","—"));
       var tl=tideLabel(x);
-      return el("td",tl?null:"muted",tl||"—");
+      if(tl){
+        var r=el("div","hint",tl);
+        r.style.marginTop="2px";
+        c.appendChild(r);
+      }
+      return c;
     };
     cell.participants=function(){
       var c=el("td","n r");
@@ -2950,6 +3004,21 @@ function parseTimes(str){
     .map(function(x){var p=x.split(":");
       return String(+p[0]).padStart(2,"0")+":"+p[1];});
 }
+/* A high tide at 3.08 m is a different day's surf from one at 2.1, so the
+   height goes next to the time wherever the table has it. */
+function tideChips(host,t){
+  var hh=(t.heights&&t.heights.high)||[];
+  (t.highs||[]).forEach(function(x,i){
+    host.appendChild(el("span","chip pink",
+      "High "+x+(hh[i]?("  "+hh[i]+" m"):"")));
+  });
+  var lh=(t.heights&&t.heights.low)||[];
+  (t.lows||[]).forEach(function(x,i){
+    host.appendChild(el("span","chip neutral",
+      "Low "+x+(lh[i]?("  "+lh[i]+" m"):"")));
+  });
+}
+
 function tideForm(dateStr){
   var t=tideFor(dateStr)||{date:dateStr,highs:[],lows:[]};
   var b=el("div");
@@ -8558,7 +8627,7 @@ function seedData(){
 function importCatalog(){
   var d=seedData();
   if(!d){ toast("No catalog is bundled with this build."); return; }
-  var added={products:0,gear:0,units:0,spots:0,kinds:0,crew:0,sessions:0,cats:0};
+  var added={products:0,gear:0,units:0,spots:0,kinds:0,crew:0,sessions:0,cats:0,tides:0};
 
   /* gear first: a product carries the id of the gear its hire goes out with */
   var gearBySrc={};
@@ -8604,6 +8673,18 @@ function importCatalog(){
     added.crew++;
     if(cfg().roles.indexOf(st.role)<0 && st.role) cfg().roles.push(st.role);
   });
+  /* The tide table, straight from their spot. The app is a static page and
+     cannot call anything at runtime, so the year travels with the catalog. */
+  (d.tides||[]).forEach(function(t){
+    if(DB.tides.some(function(x){return x.date===t.date;})) return;
+    DB.tides.push({date:t.date,
+      highs:(t.highs||[]).map(function(x){return x.t;}),
+      lows:(t.lows||[]).map(function(x){return x.t;}),
+      heights:{high:(t.highs||[]).map(function(x){return x.m;}),
+               low:(t.lows||[]).map(function(x){return x.m;})},
+      spot:t.spot||""});
+    added.tides=(added.tides||0)+1;
+  });
   (d.spots||[]).forEach(function(sp){
     if(DB.spots.some(function(x){return x.name===sp.name;})) return;
     DB.spots.push({id:uid("sp"),name:sp.name,lat:sp.lat,lon:sp.lon,notes:sp.notes||""});
@@ -8630,7 +8711,8 @@ function importCatalog(){
   save();
   if(typeof cur!=="undefined" && cur) render();
   toast("Loaded "+added.products+" products, "+added.crew+" crew, "+
-        added.units+" gear items and "+added.sessions+" sessions");
+        added.units+" gear items, "+added.sessions+" sessions and "+
+        added.tides+" days of tide");
 }
 function importPrompt(){
   var d=seedData();
@@ -8785,6 +8867,26 @@ if(!DB.seeded && !DB.products.length && !DB.staff.length && seedData()){
   DB.seeded=true;
   importCatalog();
 }
+/* A database seeded before the tide table existed has none. It is a forecast,
+   not something anyone typed, so filling it in is a refresh rather than an
+   import -- and it leaves any day the school entered by hand alone. */
+(function(){
+  var d=seedData();
+  if(!d || !(d.tides||[]).length) return;
+  var have={}, added=0;
+  DB.tides.forEach(function(t){ have[t.date]=true; });
+  d.tides.forEach(function(t){
+    if(have[t.date]) return;
+    DB.tides.push({date:t.date,
+      highs:(t.highs||[]).map(function(x){return x.t;}),
+      lows:(t.lows||[]).map(function(x){return x.t;}),
+      heights:{high:(t.highs||[]).map(function(x){return x.m;}),
+               low:(t.lows||[]).map(function(x){return x.m;})},
+      spot:t.spot||""});
+    added++;
+  });
+  if(added) save();
+})();
 
 /* the agenda hours are a setting, so the board must start where it was left */
 if(cfg().boardFrom!=null) BOARD_FROM=Number(cfg().boardFrom);
