@@ -33,13 +33,31 @@ writing them down in the first place.
 
 Then, with the three variables set:
 
-    cd app && python3 build.py --out index.html      # the management app
+    cd app && python3 build.py --out index.html            # the management app
+    cd app && python3 build.py --minisite --out booking.html  # the public site
     cd bloowatch && python3 export_catalog.py        # refresh from Bloowatch
     cd bloowatch && python3 daily_report.py 2026-08-28
 
-`build.py` refuses to write a page whose script does not parse, and opens it in
-a browser and clicks every screen first. Two silent breakages got through
-before that existed.
+Both pages must be hosted on the **same domain**. They share one browser store,
+which is how a booking taken on the public site reaches the manager; on two
+domains they are two stores and the bookings go nowhere.
+
+`build.py` refuses to write a page whose script does not parse, then opens it in
+a browser, clicks every screen and opens some thirty dialogs. Two silent
+breakages got through before that existed. Beyond it there are three suites that
+drive the built pages the way a person would:
+
+    cd app && python3 test_pos.py       # register, tickets, integrity, archive
+    cd app && python3 test_agenda.py    # the planning's views and fortnight
+    cd app && python3 test_booking.py   # pricing rule, and the booking site
+
+`test_booking.py` is the one to keep. It checks the shared pricing file against
+the real exported catalogue: nine products mix `price_unit` values, and the
+earlier rule would have hired a surfboard for a fortnight for ten dollars.
+
+One trap when writing more of these: the stylesheet uppercases chips, headings
+and buttons, and `inner_text` returns the transformed text. Compare
+case-insensitively or the test measures the CSS instead of the app.
 
 ## One thing the sandbox gets wrong
 
