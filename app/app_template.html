@@ -203,6 +203,9 @@ td.strong{font-weight:700}
   padding:2px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:2px;
   font:inherit;box-shadow:0 0 0 1px var(--line-soft)}
 .lanebtn:hover{color:var(--text);background:var(--panel-2)}
+.btn.block{width:100%;display:block;text-align:center}
+.btn.big{padding:12px 18px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;
+  font-weight:800}
 .kebab{appearance:none;border:0;background:none;cursor:pointer;color:var(--text-3);
   padding:4px 6px;border-radius:7px;line-height:0;display:inline-flex}
 .kebab:hover{background:var(--panel-3);color:var(--text)}
@@ -387,7 +390,7 @@ var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
     roles:["Instructor","Assistant","Photographer","Manager","Owner"],
     kinds:[{k:"lesson",l:"Lesson"},{k:"course",l:"Course / pack"},{k:"rental",l:"Rental"},
            {k:"photo",l:"Photography"},{k:"other",l:"Other"}],
-    customFields:[],boardFrom:6,boardTo:19
+    customFields:[],boardFrom:6,boardTo:20
   },
   boardCollapsed:{},
   seq:1};
@@ -1984,6 +1987,10 @@ function renderSchedule(){
   });
   if(!listMode) host.appendChild(tabs);
 
+  /* the list is every session, so it is not a view of the day's tabs -- it has
+     to come before them or the rental branch swallows it and there is no way back */
+  if(listMode){ sessionsList(host); return; }
+
   if(planTab==="rental"){
     if(!rentalsOut){ host.appendChild(el("div","note","No gear is out of service on "+dm(schedDate)+".")); return; }
     var wr=el("div","panel tbl-wrap"),tr0=el("table"),hr=el("thead"),rr=el("tr");
@@ -2085,8 +2092,6 @@ function renderSchedule(){
     fb.appendChild(clr);
   }
   if(!listMode) host.appendChild(fb);
-
-  if(planRange==="list"){ sessionsList(host); return; }
 
   if(planFilterActive() && allDay.length){
     host.appendChild(el("div","note",
@@ -2523,9 +2528,13 @@ function sessionsList(host){
     });
   }
 
+  var PAGE=300;
   function draw(){
     main.textContent="";
-    var list=rows();
+    var all=rows();
+    /* only what is on screen: ticking rows nobody can see, then pressing
+       Delete, removes sessions the user never laid eyes on */
+    var list=all.slice(0,PAGE);
     var picked=list.filter(function(x){return planPicked[x.id];});
 
     /* ---- toolbar: greyed until something is ticked, as theirs is ---- */
@@ -2609,7 +2618,7 @@ function sessionsList(host){
     tr.appendChild(el("th",null,""));
     th.appendChild(tr); t.appendChild(th);
     var tb=el("tbody");
-    list.slice(0,300).forEach(function(x){
+    list.forEach(function(x){
       var r=el("tr");
       var cb=input("checkbox"); cb.style.width="auto";
       cb.checked=!!planPicked[x.id];
@@ -2648,8 +2657,9 @@ function sessionsList(host){
       tb.appendChild(r);
     });
     t.appendChild(tb); w.appendChild(t); main.appendChild(w);
-    if(list.length>300) main.appendChild(el("div","note",
-      "Showing the first 300 of "+list.length+". Narrow the dates to see the rest."));
+    if(all.length>PAGE) main.appendChild(el("div","note",
+      "Showing the first "+PAGE+" of "+all.length+
+      ". Select all covers these only — narrow the dates to reach the rest."));
     else main.appendChild(el("div","note",
       "Showing "+list.length+" session"+(list.length===1?"":"s")+"."));
   }
@@ -2784,7 +2794,7 @@ var boardDate=todayISO(), boardGroup="category";
 /* Their scheduler shows a week at a time, each day with its own axis and its
    own tide, stacked. One day is the exception, not the default. */
 var boardSpan=7, boardTab="activities";
-var BOARD_FROM=6, BOARD_TO=19;
+var BOARD_FROM=6, BOARD_TO=20;
 function minsOf(hhmmStr){
   var p=String(hhmmStr||"09:00").split(":");
   return (+p[0])*60+(+p[1]||0);
@@ -3179,8 +3189,9 @@ function boardDay(dayISO){
   }
 
   rows.forEach(function(rec,ri){
-    /* an empty activity lane on a seven-day board is just noise */
-    if(boardSpan>1 && !rec.items.length) return;
+    /* On a seven-day board empty activity lanes are noise -- but an empty
+       instructor lane is the whole point: it is where you drop the session. */
+    if(boardSpan>1 && !rec.items.length && boardGroup!=="staff") return;
     var r=el("div");
     r.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
       "border-bottom:1px solid var(--line-soft);min-height:26px";
@@ -3195,10 +3206,22 @@ function boardDay(dayISO){
     dot.style.cssText="width:9px;height:9px;border-radius:3px;flex:none;background:"+
       (rec.row.color||"var(--text-3)");
     lab.appendChild(dot);
-    var lt=el("span",null,rec.items.length?(rec.items[0].title||rec.row.label)
-                                            :rec.row.label);
-    lt.style.cssText="overflow:hidden;text-overflow:ellipsis";
-    lab.appendChild(lt);
+    /* the title names the session, but a drag rewrites the group -- so the
+       group has to stay legible or you cannot see what you are dropping into */
+    var title=rec.items.length?(rec.items[0].title||rec.row.label):rec.row.label;
+    var box=el("div");
+    box.style.cssText="overflow:hidden;min-width:0";
+    var lt=el("div",null,title);
+    lt.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    box.appendChild(lt);
+    if(rec.items.length && rec.row.label && rec.row.label!==title){
+      var gl=el("div",null,rec.row.label);
+      gl.style.cssText="font-size:10px;font-weight:500;color:var(--text-3);"+
+        "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+      box.appendChild(gl);
+    }
+    lab.appendChild(box);
+    lab.title=title+(rec.row.label?(" · "+rec.row.label):"");
     r.appendChild(lab);
 
     var lane=el("div");
@@ -3222,8 +3245,11 @@ function boardDay(dayISO){
     rec.items.forEach(function(x){
       var st=minsOf(x.time)-BOARD_FROM*60;
       var dur=Math.max(15,x.duration||60);
-      var left=Math.max(0,st/span*100);
-      var width=Math.min(100-left,dur/span*100);
+      var left=Math.max(0,Math.min(97,st/span*100));
+      /* a session outside the hours the board is drawn between still has to be
+         visible and draggable: pin it to the edge rather than off the lane */
+      var width=Math.max(3,Math.min(100-left,dur/span*100));
+      var outside=(st<0)||(st/span*100>100);
       var colour=catColor(x.category)||"var(--accent-hot)";
       var blk=el("div");
       blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:3px;bottom:3px;"+
@@ -3233,7 +3259,9 @@ function boardDay(dayISO){
         "display:flex;align-items:center;gap:6px;touch-action:none;min-width:26px";
       blk.dataset.sessionId=x.id;
       blk.title=x.time+" · "+x.title+" · "+instructorNames(x)+
-        " · "+x.participants.length+"/"+x.capacity;
+        " · "+x.participants.length+"/"+x.capacity+
+        (outside?" (outside the hours the board is drawn between)":"");
+      if(outside) blk.style.outline="2px dashed "+colour;
       var t=el("span",null,x.title);
       t.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1";
       blk.appendChild(t);
@@ -4419,13 +4447,6 @@ function renderPos(host){
   host.appendChild(shell);
 }
 
-/* the "from" price a tile shows: the cheapest the ladder goes */
-function posFrom(p){
-  var t=ladderTiers(p);
-  if(!t.length) return Number(p.price)||0;
-  return t.reduce(function(a,x){
-    var v=Number(x.price)||0; return (a==null||v<a)?v:a;},null)||0;
-}
 function sym0(){
   var c=CUR(); return c==="EUR"?"€":c==="GBP"?"£":"$";
 }
@@ -4433,10 +4454,14 @@ function sym0(){
 function posAdd(p){
   /* a second press of the same tile is another one of the same thing, which is
      how a till behaves and saves a trip to the quantity stepper */
+  var baseHours=hasHourTiers(p)?1:null;
   for(var i=0;i<posBooking.lines.length;i++){
     var l=posBooking.lines[i];
+    /* an untouched line for the same product: same one person, same duration,
+       no discount and no hand-set price. posAdd sets hours on hour-tier
+       products, so comparing against "no hours" never matched them. */
     if(l.productId===p.id && l.discount==null && !l.manual &&
-       (Number(l.pax)||1)===1 && !l.hours){
+       (Number(l.pax)||1)===1 && (l.hours||null)===baseHours){
       l.qty=(Number(l.qty)||1)+1;
       renderBookings();
       return;
@@ -4461,12 +4486,13 @@ function posConfirm(){
   rec.partnerId=posBooking.partnerId||"";
   rec.notes=posBooking.notes||"";
   rec.custom=posBooking.custom||{};
-  if(!posEditing) DB.bookings.push(rec);
+  var wasEdit=!!posEditing;
+  if(!wasEdit) DB.bookings.push(rec);
   syncTickets();
   save();
   var saved=rec;
-  posClose();
-  toast(posEditing?"Booking updated":"Booking saved");
+  posClose();                       /* this clears posEditing, so read it first */
+  toast(wasEdit?"Booking updated":"Booking saved");
   /* straight to taking the money, which is what happens next at a till */
   if(bookingDue(saved)>0.004) payForm(saved);
 }
@@ -6131,15 +6157,21 @@ function salesIn(prefix){
     var d=bk.date||"";
     if(!d || d.indexOf(prefix)!==0) return;
     (bk.lines||[]).forEach(function(l){
-      var p=product(l.productId); if(!p) return;
+      var p=product(l.productId);
       var qty=Number(l.qty)||0;
       var net=(Number(l.price)||0)*qty;
+      /* A deleted product must not make its sales disappear: the money was
+         taken and the payments report still counts it, so this has to too. */
+      if(!p) p={name:"(deleted product)",category:"",kind:"other",tax:0,gone:true};
       /* the list price is what the tier matrix says; the difference is the
          discount, however it was entered */
-      var list=priceFor(p,l.pax,l.hours)*qty;
+      var list=p.gone?net:priceFor(p,l.pax,l.hours)*qty;
       var rate=Number(p.tax)||0;
       rows.push({booking:bk,line:l,product:p,qty:qty,
-        list:list, net:net, discount:Math.max(0,list-net),
+        list:list, net:net,
+        /* a price raised by hand is not a negative discount: it lifts the
+           list side, so gross never comes out under net */
+        discount:Math.max(0,list-net), uplift:Math.max(0,net-list),
         rate:rate, tax:net-net/(1+rate/100), date:d});
     });
   });
@@ -6260,7 +6292,9 @@ function salesReport(host){
     host.appendChild(el("div","note","Nothing was sold in "+periodLabel()+"."));
     return;
   }
-  var gross=rows.reduce(function(a,r){return a+r.list;},0);
+  /* gross − discounts = net, always: a price set above the list price counts
+     into gross rather than as a negative discount */
+  var gross=rows.reduce(function(a,r){return a+r.list+r.uplift;},0);
   var disc=rows.reduce(function(a,r){return a+r.discount;},0);
   var net=rows.reduce(function(a,r){return a+r.net;},0);
   var tax=rows.reduce(function(a,r){return a+r.tax;},0);
@@ -6363,7 +6397,7 @@ function registerLine(dateStr){
     expected:start+cashIn-cashOut+d.in-d.out,
     actual:s&&s.counted!=null?Number(s.counted):null,
     difference:s&&s.counted!=null?(Number(s.counted)-(start+cashIn-cashOut+d.in-d.out)):null,
-    totalPayments:c.total>0?c.total:c.total, count:c.count};
+    takings:c.total, count:c.count};
 }
 function registerReport(host){
   var nav=el("div","range"); nav.style.marginBottom="10px";

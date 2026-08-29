@@ -136,7 +136,7 @@ def main():
         pg.wait_for_timeout(400)
         check("a board hire is not sold as a night stay",
               "night" not in low(pg, "#wrap"), low(pg, "#wrap")[:300])
-        pg.click('.filters button:has-text("Everything")')
+        pg.click('.filters button:has-text("Home")')
         pg.wait_for_timeout(400)
 
         pg.click(".card button")

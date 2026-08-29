@@ -105,13 +105,14 @@ def main():
         check("and it opens the customer dialog",
               "customer info" in low(pg, "#modal"), low(pg, "#modal")[:120])
 
-        pg.fill('#modal input[type=text] >> nth=1', "Nuria")
-        pg.fill('#modal input[type=text] >> nth=2', "Campos")
+        # the search box is type=search, so the text inputs start at the name
+        pg.fill('#modal input[type=text] >> nth=0', "Nuria")
+        pg.fill('#modal input[type=text] >> nth=1', "Campos")
         pg.fill('#modal input[type=email]', "nuria@example.com")
         pg.click('#modal button:has-text("Confirm")')
         pg.wait_for_timeout(900)
-        check("the customer lands on the booking",
-              "nuria" in low(pg, ".pos-cust"), pg.inner_text(".pos-cust"))
+        check("the customer lands on the booking, both names",
+              "nuria campos" in low(pg, ".pos-cust"), pg.inner_text(".pos-cust"))
 
         pg.locator('.pos-foot button:has-text("Confirm")').click()
         pg.wait_for_timeout(1100)
@@ -130,7 +131,7 @@ def main():
         check("it carries the payment", len(bk.get("payments") or []) == 1)
         check("the payment left a ticket", len(after.get("tickets") or []) >= 1)
         check("back on the bookings list",
-              "campos" in low(pg, "#p-bookings") or "nuria" in low(pg, "#p-bookings"),
+              "nuria campos" in low(pg, "#p-bookings"),
               pg.inner_text("#p-bookings")[:200])
 
         check("no uncaught errors", not errs, "; ".join(errs[:3]))

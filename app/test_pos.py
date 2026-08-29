@@ -117,25 +117,31 @@ def main():
         modal_button(pg, "Save")
         check("client saved", "Ana Torres" in pg.inner_text("#p-clients"))
 
+        # a booking is taken at the till now, not in a dialog
         tab(pg, "bookings")
         pg.click('#p-bookings button:has-text("New booking")')
-        pg.wait_for_timeout(600)
-        pg.click('#modal button:has-text("Add product")')
-        pg.wait_for_timeout(700)
-        # rows in the picker are focusable divs, not buttons
-        rows = pg.query_selector_all('#modal [tabindex="0"]')
-        check("picker lists the product", any("Group lesson" in (r.inner_text() or "") for r in rows),
-              str(len(rows)) + " rows")
-        for r in rows:
-            if "Group lesson" in (r.inner_text() or ""):
-                r.click()
+        pg.wait_for_timeout(1200)
+        tiles = pg.locator(".pos-tile")
+        check("the till lists the product", tiles.count() > 0, str(tiles.count()) + " tiles")
+        picked = False
+        for i in range(tiles.count()):
+            if "Group lesson" in (tiles.nth(i).inner_text() or ""):
+                tiles.nth(i).click()
+                picked = True
                 break
+        check("the product is on the booking", picked and
+              "group lesson" in (pg.inner_text(".pos-lines") or "").lower(),
+              pg.inner_text(".pos-lines")[:160])
+        pg.wait_for_timeout(400)
+        pg.click(".pos-cust")
         pg.wait_for_timeout(700)
-        check("line added to the booking", "Group lesson" in pg.inner_text("#modal"),
-              pg.inner_text("#modal")[:200])
-        pg.click('#modal button:has-text("Add payment")')
-        pg.wait_for_timeout(500)
-        modal_button(pg, "Save")
+        # pick the client made a moment ago rather than filling in a new one
+        pg.click('#modal .pick-row >> nth=0')
+        pg.wait_for_timeout(700)
+        pg.locator('.pos-foot button:has-text("Confirm")').click()
+        pg.wait_for_timeout(1100)
+        pg.click('#modal button:has-text("Record payment")')
+        pg.wait_for_timeout(900)
         check("booking saved", "Ana Torres" in pg.inner_text("#p-bookings"), toast(pg))
 
         tab(pg, "register")
