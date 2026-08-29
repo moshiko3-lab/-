@@ -111,11 +111,20 @@ def main():
         card = low(pg, ".sess-pop")
         check("the card names the session", "surf pack" in card, card[:200])
         check("it shows the hour", "09:00" in card or "13:00" in card, card[:200])
-        check("it shows how full it is", "/6" in card, card[:200])
+        # Theirs shows the headcount alone -- "1", not "1/6". The capacity is
+        # a setting, and it lives in the tooltip.
+        check("it shows the headcount", "1" in card, card[:200])
+        check("and not the capacity", "/6" not in card, card[:200])
+        check("which the tooltip spells out",
+              "of 6" in (pg.get_attribute(".sess-pop .sp-cap", "title") or ""),
+              pg.get_attribute(".sess-pop .sp-cap", "title") or "")
         check("it names who is in it", "roei" in card, card[:200])
         check("with which lesson of their course this is",
               ("1/" + str(seeded["sessions"])) in card or
               ("2/" + str(seeded["sessions"])) in card, card[:200])
+        # the day is the day you are looking at, so theirs leaves it out
+        check("and no date repeating the day you are on",
+              dt.date.today().strftime("%d/%m") not in card, card[:200])
 
         # the instructor changes from the card
         sel = pg.locator(".sess-pop select.sp-who")
