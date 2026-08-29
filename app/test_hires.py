@@ -61,6 +61,11 @@ def main():
           const d = JSON.parse(localStorage.getItem(k));
           const gear = d.gear.find(g => (g.units||[]).length >= 3);
           if (!gear) return null;
+          // This test counts: one overdue board, and none once it is back. A
+          // build made with a clients file arrives carrying seventy-six real
+          // hires, plenty of them long past their hour, so the day has to be
+          // this test's own before any of the counting means anything.
+          d.bookings = [];
           const client = {id:"cHire", name:"Hire Tester", email:"", phone:"",
                           custom:{}};
           d.clients.push(client);
