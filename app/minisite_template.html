@@ -207,12 +207,23 @@ if(DB){
 }
 if(!products.length){
   var sd=seedCatalog();
-  if(sd) products=sd.products.map(function(p,i){
+  /* the catalogue's own SOLD ONLINE flag decides what a visitor may see, the
+     same way it does in the manager */
+  if(sd) products=sd.products.filter(function(p){
+    return p.soldOnline==null || p.soldOnline;
+  }).map(function(p,i){
     return {id:"seed"+i,name:p.name,kind:p.kind,ptype:p.ptype||"class",
       price:p.price||0,publicPrice:p.publicPrice,prices:p.prices||[],
       description:p.description||"",sessions:p.sessions||1,nights:p.nights,
-      category:p.category||"",tax:p.tax||0};});
+      category:p.category||"",shopCategory:p.shopCategory||"",tax:p.tax||0};});
   readOnly=true;
+}
+
+/* Which heading a product sits under on the shop: the shop's own category
+   where the school set one, otherwise the activity calendar, otherwise the
+   kind of thing it is. */
+function shopGroup(p){
+  return p.shopCategory || p.category || typeLabel(p.ptype);
 }
 
 /*__PRICING__*/
@@ -328,12 +339,18 @@ function renderCatalog(host){
     "Pick what you would like to do with us, choose your day, and we will hold it for you. "+
     "You settle up with the school — nothing is charged on this page."));
 
-  /* their tab strip: square tabs, the active one filled, no counts */
+  /* Their tab strip is the shop's own categories -- HOME, LESSONS, PACKAGES --
+     not the product types. Two lessons and one package is exactly what their
+     public page shows, because those are the products marked sold online. */
   var f=el("div","filters");
-  PTYPES.forEach(function(t){
-    var n=t.v?products.filter(function(p){return (p.ptype||"class")===t.v;}).length
-            :products.length;
-    if(t.v&&!n) return;
+  var shopCats=[];
+  products.forEach(function(p){
+    var g=shopGroup(p);
+    if(shopCats.indexOf(g)<0) shopCats.push(g);
+  });
+  shopCats.sort();
+  [{v:"",l:"Home"}].concat(shopCats.map(function(c){return {v:c,l:c};}))
+  .forEach(function(t){
     var b=el("button",null,t.l);
     b.setAttribute("aria-pressed",filterType===t.v?"true":"false");
     b.addEventListener("click",function(){filterType=t.v;draw();});
@@ -342,7 +359,7 @@ function renderCatalog(host){
   host.appendChild(f);
 
   var rows=products.filter(function(p){
-    return !filterType||(p.ptype||"class")===filterType;});
+    return !filterType||shopGroup(p)===filterType;});
   if(!rows.length){
     var e=el("div","panel empty");
     e.appendChild(el("div","ico","🏄"));
@@ -354,7 +371,7 @@ function renderCatalog(host){
   }
   var byCat={};
   rows.forEach(function(p){
-    var g=p.category||typeLabel(p.ptype);
+    var g=shopGroup(p);
     (byCat[g]=byCat[g]||[]).push(p);
   });
   Object.keys(byCat).sort().forEach(function(g){

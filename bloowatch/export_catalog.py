@@ -96,6 +96,10 @@ def build():
             })
         prices.sort(key=lambda x: (x["hours"] or 0, x["minPax"]))
 
+        # Two different categories, which their own list keeps in two columns:
+        # category_name is the ACTIVITY CALENDAR the sessions land on (SURF
+        # PACK), product_categories is the shop's own grouping (PACKAGES).
+        # Collapsing them, as this export used to, loses the shop side.
         products.append({
             "prices": prices,
             "rental": p.get("rental"),      # which gear the hire actually goes out with
@@ -103,6 +107,16 @@ def build():
             "kind": kind_of(p),
             "ptype": ptype_of(p),
             "category": p.get("category_name") or "",
+            "shopCategory": (p.get("product_categories") or [None])[0] or "",
+            "pos": p.get("order"),
+            # is_public is their SOLD ONLINE column: only two of the 35 are on
+            # the public site, so a booking page that lists everything is wrong.
+            "soldOnline": bool(p.get("is_public")),
+            "startHours": p.get("start_hours") or [],
+            "stock": (p.get("available_stock")
+                      if p.get("has_limited_stock") else None),
+            "subProducts": bool(p.get("has_sub_products")),
+            "clientPicksInstructor": bool(p.get("customer_assign_instructor")),
             "price": num(p.get("price")) or 0,
             "publicPrice": num(p.get("public_price")),
             "sessions": p.get("num_sessions") or 1,

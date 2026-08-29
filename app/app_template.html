@@ -1131,6 +1131,57 @@ function clientDocsView(c){
 }
 
 /* ============================ crew ============================ */
+/* The languages their profile offers. A school in Panama that takes Israeli
+   and European guests needs to know who can teach in what. */
+var LANGS=["English","Spanish","Hebrew","French","Portuguese","German","Italian"];
+/* Every box on a crew member's card, ticked. */
+function chipChecks(host,options,chosen,onChange){
+  host.textContent="";
+  if(!options.length){ host.appendChild(el("div","hint","Nothing to choose from yet.")); return; }
+  options.forEach(function(o){
+    var lab=el("label");
+    lab.style.cssText="display:inline-flex;align-items:center;gap:6px;margin:0 12px 6px 0;"+
+      "font-size:13.5px;cursor:pointer";
+    var cb=input("checkbox"); cb.style.width="auto";
+    cb.checked=chosen.indexOf(o)>=0;
+    cb.addEventListener("change",function(){
+      if(cb.checked){ if(chosen.indexOf(o)<0) chosen.push(o); }
+      else { var i=chosen.indexOf(o); if(i>=0) chosen.splice(i,1); }
+      if(onChange) onChange();
+    });
+    lab.appendChild(cb); lab.appendChild(el("span",null,o));
+    host.appendChild(lab);
+  });
+}
+/* Which activity calendars a person is cleared for. Bloowatch words the rule
+   plainly: only staff carrying the activity are proposed for the session. */
+function staffActivities(s){
+  return Array.isArray(s&&s.activities)?s.activities:[];
+}
+function staffDoes(s,category){
+  if(!category) return true;
+  var a=staffActivities(s);
+  return !a.length || a.indexOf(category)>=0;   /* nobody set = everybody */
+}
+/* Their staff list is hand-ordered: a position on the card puts the people you
+   roster every day at the top, and everyone else falls back to alphabetical. */
+function crewOrder(a,b){
+  var pa=(a.pos==null||a.pos==="")?Infinity:Number(a.pos),
+      pb=(b.pos==null||b.pos==="")?Infinity:Number(b.pos);
+  if(pa!==pb) return pa-pb;
+  return String(a.name||"").localeCompare(String(b.name||""));
+}
+/* Hours rostered this calendar month, the figure their staff list carries. */
+function staffHoursThisMonth(id){
+  var now=new Date(), pre=iso(now).slice(0,7);
+  var mins=0;
+  DB.sessions.forEach(function(se){
+    if(se.date.slice(0,7)!==pre) return;
+    if(staffIdsOf(se).indexOf(id)<0) return;
+    mins+=Math.max(0,Number(se.duration)||0);
+  });
+  return mins;
+}
 function staffForm(existing){
   var s=existing||{name:"",role:(ROLES()[0]||"Instructor"),phone:"",email:""};
   var b=el("div");
@@ -1143,6 +1194,41 @@ function staffForm(existing){
   var g=el("div","grid2");
   g.appendChild(field("Phone",phone)); g.appendChild(field("Email",email));
   b.appendChild(g);
+
+  var addr=input("text",s.address||"",{placeholder:"Street"});
+  var city=input("text",s.city||"",{placeholder:"Playa Venao"});
+  var g2=el("div","grid2");
+  g2.appendChild(field("Address",addr)); g2.appendChild(field("City",city));
+  b.appendChild(g2);
+  var bday=input("date",s.birthday||"");
+  var pos=input("number",s.pos==null?"":s.pos,{step:"1",min:"0",placeholder:"order"});
+  var g3=el("div","grid2");
+  g3.appendChild(field("Birthday",bday));
+  g3.appendChild(field("Position in the staff list",pos,
+    "Where they sit on the board. Blank sorts by name."));
+  b.appendChild(g3);
+
+  var acts=staffActivities(s).slice();
+  var actHost=el("div");
+  chipChecks(actHost,(cfg().kinds||[]).map(function(k){return k.l;}),acts);
+  b.appendChild(field("Activities",actHost,
+    "Only crew carrying the activity are offered when you build that session. "+
+    "Tick none and they are offered for everything."));
+
+  var langs=(Array.isArray(s.langs)?s.langs:[]).slice();
+  var langHost=el("div");
+  chipChecks(langHost,LANGS,langs);
+  b.appendChild(field("Languages",langHost));
+
+  var onPlan=input("checkbox"); onPlan.style.width="auto";
+  onPlan.checked=s.onPlanning!==false;
+  b.appendChild(field("Show on the planning",onPlan,
+    "Off keeps them in the crew list but off the board."));
+  var legal=el("textarea"); legal.value=s.legal||"";
+  legal.setAttribute("rows","2");
+  b.appendChild(field("Legal information",legal,
+    "Licence, insurance, ID — whatever the school has to keep."));
+
   openModal(existing?"Edit crew member":"New crew member",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
@@ -1150,6 +1236,11 @@ function staffForm(existing){
       var rec=existing||{id:uid("s")};
       rec.name=name.value.trim(); rec.role=role.value;
       rec.phone=phone.value.trim(); rec.email=email.value.trim();
+      rec.address=addr.value.trim(); rec.city=city.value.trim();
+      rec.birthday=bday.value||""; rec.legal=legal.value.trim();
+      rec.pos=pos.value===""?null:Number(pos.value);
+      rec.activities=acts.slice(); rec.langs=langs.slice();
+      rec.onPlanning=!!onPlan.checked;
       if(!existing) DB.staff.push(rec);
       save(); closeModal(); render(); toast(existing?"Crew updated":"Crew member added");
     }}
@@ -1166,17 +1257,34 @@ function renderCrew(){
     return;
   }
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
-  ["Name","Role","Contact","Sessions",""].forEach(function(h,i){
-    tr.appendChild(el("th",i===3?"r":null,h));
+  ["Name","Role","Contact","Activities","Languages","Hours this month","Sessions",""]
+  .forEach(function(h,i){
+    tr.appendChild(el("th",(i===5||i===6)?"r":null,h));
   });
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
-  DB.staff.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(s){
+  DB.staff.slice().sort(crewOrder).forEach(function(s){
     var n=DB.sessions.filter(function(x){return staffIdsOf(x).indexOf(s.id)>=0;}).length;
     var r=el("tr");
-    r.appendChild(el("td","strong",s.name));
+    var nc=el("td","strong",s.name);
+    if(s.onPlanning===false){
+      var offb=el("span","chip neutral","off the board");
+      offb.style.marginLeft="7px";
+      nc.appendChild(offb);
+    }
+    r.appendChild(nc);
     var rt=el("td"); rt.appendChild(el("span","chip pink",s.role)); r.appendChild(rt);
     r.appendChild(el("td","muted",[s.phone,s.email].filter(Boolean).join(" · ")||"—"));
+    var ac=el("td");
+    var acts=staffActivities(s);
+    if(!acts.length) ac.appendChild(el("span","muted","all"));
+    else acts.slice(0,3).forEach(function(a){ac.appendChild(el("span","chip neutral",a));});
+    if(acts.length>3) ac.appendChild(el("span","hint"," +"+(acts.length-3)));
+    r.appendChild(ac);
+    r.appendChild(el("td","muted",(Array.isArray(s.langs)&&s.langs.length)
+      ? s.langs.join(", ") : "—"));
+    var mins=staffHoursThisMonth(s.id);
+    r.appendChild(el("td","n r"+(mins?"":" muted"),mins?hhmm(mins):"—"));
     r.appendChild(el("td","n r",String(n)));
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){staffForm(s);});
@@ -1236,7 +1344,7 @@ function renderCrew(){
 var PRICE_UNITS=[{v:"",l:"—"},{v:"by_closing_time",l:"Until closing"},
   {v:"from_pickup",l:"From pickup"},{v:"hourly",l:"Per hour"}];
 var PRODUCT_TYPES=[
-  {v:"class",l:"Class (flexible)"},{v:"course",l:"Course on specific periods"},
+  {v:"class",l:"Flexible Sessions"},{v:"course",l:"Course on specific periods"},
   {v:"tour",l:"Tour"},{v:"camp",l:"Camp"},{v:"accommodation",l:"Accommodation"},
   {v:"rental",l:"Rental"},{v:"item",l:"Item"},{v:"membership",l:"Membership"}
 ];
@@ -1717,6 +1825,8 @@ function renderCatalog(){
     var tags=el("div","tags");
     tags.appendChild(el("span","chip neutral",ptypeLabel(x.ptype)));
     if(x.kind) tags.appendChild(el("span","chip pink",kindLabel(x.kind)));
+    /* the shop's own grouping, which their list keeps beside the calendar */
+    if(x.shopCategory) tags.appendChild(el("span","chip neutral",x.shopCategory));
     if(x.sessionsAtBooking) tags.appendChild(el("span","chip neutral","sessions at booking"));
     else if(x.sessions>1) tags.appendChild(el("span","chip neutral",x.sessions+" sessions"));
     if(x.privateSession) tags.appendChild(el("span","chip neutral","private"));
@@ -1814,11 +1924,26 @@ function sessionForm(existing,presetDate){
   g2d.appendChild(field("All-day event",allDay));
   g2d.appendChild(field("Public",isPub,"Shown to clients booking online."));
   b.appendChild(g2d);
+  /* the activity calendar comes before the instructors, because it decides
+     which of them are offered */
+  var catOpts=[{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){return {v:k.l,l:k.l};}));
+  var cat=select(catOpts,s.category||"");
+  b.appendChild(field("Activity calendar",cat));
+
   var staffHost=el("div"), staffHint=el("div","hint");
+  /* Their rule, in their words: only staff carrying the activity are proposed
+     for the session. Ours proposes them and keeps the rest one click away --
+     the person on the counter has to be able to put anyone on when it comes to
+     it, and a hidden instructor is worse than an unlikely one. */
+  var showAllStaff=false;
   function drawStaff(){
     staffHost.textContent="";
     if(!DB.staff.length){ staffHost.appendChild(el("div","hint","Add crew first.")); return; }
-    DB.staff.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+    var wanted=cat?cat.value:"";
+    var pool=DB.staff.filter(function(x){
+      return showAllStaff || staffDoes(x,wanted) || chosen.indexOf(x.id)>=0;});
+    var hidden=DB.staff.length-pool.length;
+    pool.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
       .forEach(function(x){
         var lab=el("label"); lab.style.display="inline-flex"; lab.style.alignItems="center";
         lab.style.gap="6px"; lab.style.marginRight="12px"; lab.style.marginBottom="6px";
@@ -1830,9 +1955,26 @@ function sessionForm(existing,presetDate){
           checkOff();
         });
         lab.appendChild(cb); lab.appendChild(el("span",null,x.name));
+        var lg=(Array.isArray(x.langs)?x.langs:[]);
+        if(lg.length){
+          var sm=el("span","hint",lg.map(function(l){return l.slice(0,2).toUpperCase();})
+            .join("/"));
+          sm.style.marginLeft="-2px";
+          lab.appendChild(sm);
+        }
         staffHost.appendChild(lab);
       });
+    if(hidden>0 || showAllStaff){
+      var more=el("button","btn sm",showAllStaff
+        ? "Only crew for this activity"
+        : ("Show all crew ("+hidden+" more)"));
+      more.type="button";
+      more.style.marginTop="4px";
+      more.addEventListener("click",function(){ showAllStaff=!showAllStaff; drawStaff(); });
+      staffHost.appendChild(el("div")).appendChild(more);
+    }
   }
+  cat.addEventListener("change",function(){ drawStaff(); checkOff(); });
   function checkOff(){
     var off=chosen.filter(function(id){return isOff(id,date.value);}).map(staffName);
     staffHint.textContent=off.length
@@ -1844,9 +1986,6 @@ function sessionForm(existing,presetDate){
   var sf=field("Instructors",staffHost); sf.appendChild(staffHint);
   b.appendChild(sf); drawStaff(); checkOff();
 
-  var catOpts=[{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){return {v:k.l,l:k.l};}));
-  var cat=select(catOpts,s.category||"");
-  b.appendChild(field("Activity calendar",cat));
   var note=input("text",s.note,{placeholder:"Optional note shown on the planning row"});
   b.appendChild(field("Note",note));
   b.appendChild(field("Spot",spot));
@@ -3047,11 +3186,28 @@ function tideFor(dateStr){
   for(var i=0;i<DB.tides.length;i++) if(DB.tides[i].date===dateStr) return DB.tides[i];
   return null;
 }
-function parseTimes(str){
-  return String(str||"").split(/[,\s]+/).map(function(x){return x.trim();})
-    .filter(function(x){return /^\d{1,2}:\d{2}$/.test(x);})
-    .map(function(x){var p=x.split(":");
-      return String(+p[0]).padStart(2,"0")+":"+p[1];});
+/* "09:52 3.4, 22:14 3.08" -- the height is optional and comes after the time.
+   Commas separate the turns; a space separates a turn from its height. */
+function parseTideList(str){
+  var times=[], heights=[];
+  String(str||"").split(",").forEach(function(part){
+    var bits=part.trim().split(/\s+/).filter(Boolean);
+    if(!bits.length) return;
+    if(!/^\d{1,2}:\d{2}$/.test(bits[0])) return;
+    var p=bits[0].split(":");
+    times.push(String(+p[0]).padStart(2,"0")+":"+p[1]);
+    var h=bits[1]!=null ? parseFloat(String(bits[1]).replace("m","")) : NaN;
+    heights.push(isFinite(h)?String(h):"");
+  });
+  return {times:times,heights:heights};
+}
+function parseTimes(str){ return parseTideList(str).times; }
+/* The other way round, for the box: "09:52 3.4, 22:14 3.08". */
+function tideListText(times,heights){
+  return (times||[]).map(function(t,i){
+    var h=(heights||[])[i];
+    return t+(h?(" "+h):"");
+  }).join(", ");
 }
 /* A high tide at 3.08 m is a different day's surf from one at 2.1, so the
    height goes next to the time wherever the table has it. */
@@ -3072,9 +3228,13 @@ function tideForm(dateStr){
   var t=tideFor(dateStr)||{date:dateStr,highs:[],lows:[]};
   var b=el("div");
   b.appendChild(el("p","hint",
-    "Tide times for "+dowOf(dateStr)+", "+dm(dateStr)+". Enter them as 24-hour times separated by commas, for example 09:52, 22:14."));
-  var hi=input("text",(t.highs||[]).join(", "),{placeholder:"09:52, 22:14"});
-  var lo=input("text",(t.lows||[]).join(", "),{placeholder:"03:40, 16:08"});
+    "Tide for "+dowOf(dateStr)+", "+dm(dateStr)+". 24-hour times separated by "+
+    "commas, with the height in metres after each one: 09:52 3.4, 22:14 3.08. "+
+    "The height is what sizes the curve on the board, so it is worth typing."));
+  var hi=input("text",tideListText(t.highs,(t.heights||{}).high),
+    {placeholder:"09:52 3.4, 22:14 3.08"});
+  var lo=input("text",tideListText(t.lows,(t.heights||{}).low),
+    {placeholder:"03:40 0.2, 16:08 -0.1"});
   b.appendChild(field("High tide",hi));
   b.appendChild(field("Low tide",lo));
   openModal("Tides",b,[
@@ -3082,7 +3242,9 @@ function tideForm(dateStr){
     {label:"Save",cls:"primary",on:function(){
       var rec=tideFor(dateStr);
       if(!rec){ rec={date:dateStr}; DB.tides.push(rec); }
-      rec.highs=parseTimes(hi.value); rec.lows=parseTimes(lo.value);
+      var H=parseTideList(hi.value), L=parseTideList(lo.value);
+      rec.highs=H.times; rec.lows=L.times;
+      rec.heights={high:H.heights,low:L.heights};
       save(); closeModal(); render(); toast("Tides saved");
     }}
   ]);
@@ -3108,8 +3270,13 @@ function boardRows(){
   if(boardGroup==="staff"){
     /* unassigned sits at the top: it is the pile you are trying to clear */
     var rows=[{key:"",label:"Unassigned",color:""}];
-    return rows.concat(DB.staff.slice()
-      .sort(function(a,b){return a.name.localeCompare(b.name);})
+    /* A crew member taken off the planning keeps a lane only while something
+       of theirs is still on it -- otherwise the board fills with people the
+       school has already parked. */
+    return rows.concat(DB.staff.filter(function(x){
+        return x.onPlanning!==false ||
+          DB.sessions.some(function(se){return staffIdsOf(se).indexOf(x.id)>=0;});
+      }).sort(crewOrder)
       .map(function(x){return {key:x.id,label:x.name,color:""};}));
   }
   var seen={},out=[];
@@ -3486,48 +3653,94 @@ function laneRows(dayISO){
   });
   return out;
 }
-function tideCurve(width,height,tide){
-  /* the wave their agenda draws: high points peak, low points trough */
+/* One day's highs and lows in the order they happen, heights parsed. */
+function tidePoints(tide){
+  if(!tide) return [];
+  var hh=(tide.heights&&tide.heights.high)||[],
+      lh=(tide.heights&&tide.heights.low)||[];
+  var pts=[];
+  (tide.highs||[]).forEach(function(t,i){
+    pts.push({m:minsOf(t),t:t,high:true,h:parseFloat(hh[i])});});
+  (tide.lows||[]).forEach(function(t,i){
+    pts.push({m:minsOf(t),t:t,high:false,h:parseFloat(lh[i])});});
+  return pts.sort(function(a,b){return a.m-b.m;});
+}
+/* The tide across the day, drawn to the heights rather than to a fixed wave: a
+   3.4 m high stands well above a 2.1 m one, which is the whole reason anyone
+   looks. Each turn is labelled with its time and height, because "rising" on
+   its own does not tell you whether the beach is there. */
+function tideCurve(width,height,tide,nowMins){
   var NS="http://www.w3.org/2000/svg";
   var g=document.createElementNS(NS,"g");
-  if(!tide) return g;
-  var pts=[];
-  (tide.highs||[]).forEach(function(t){pts.push({m:minsOf(t),high:true,t:t});});
-  (tide.lows||[]).forEach(function(t){pts.push({m:minsOf(t),high:false,t:t});});
-  pts.sort(function(a,b){return a.m-b.m;});
+  var pts=tidePoints(tide);
   if(!pts.length) return g;
+  var TOP=13, BOT=height-26;
+  var hs=pts.map(function(p){return p.h;})
+            .filter(function(v){return isFinite(v);});
+  var hi=hs.length?Math.max.apply(null,hs):1,
+      lo=hs.length?Math.min.apply(null,hs):0;
+  var pad=(hi-lo)*0.2 || 0.3;
+  function Y(p){
+    if(!isFinite(p.h)) return p.high?TOP:BOT;
+    return BOT-((p.h-(lo-pad))/((hi+pad)-(lo-pad)))*(BOT-TOP);
+  }
   var span=(BOARD_TO-BOARD_FROM)*60;
   function X(m){ return ((m-BOARD_FROM*60)/span)*width; }
-  var d="", prev=null;
-  pts.forEach(function(p,i){
-    var x=X(p.m), y=p.high?height*0.25:height*0.8;
-    if(i===0){ d="M "+(x-140)+" "+(p.high?height*0.8:height*0.25)+" "; }
-    if(prev){
-      var mx=(prev.x+x)/2;
-      d+="C "+mx+" "+prev.y+" "+mx+" "+y+" "+x+" "+y+" ";
-    } else d+="L "+x+" "+y+" ";
-    prev={x:x,y:y};
-  });
-  d+="L "+(prev.x+160)+" "+(pts[pts.length-1].high?height*0.8:height*0.25);
+
+  /* the run in and the run out: the curve carries on past both edges, because
+     a 05:35 high still explains what 06:00 looks like */
+  var xy=pts.map(function(p){return {x:X(p.m),y:Y(p),p:p};});
+  var first=xy[0], last=xy[xy.length-1];
+  var lead={x:first.x-150,y:first.p.high?BOT:TOP},
+      tail={x:last.x+150,y:last.p.high?BOT:TOP};
+  var all=[lead].concat(xy,[tail]);
+  var d="M "+all[0].x+" "+all[0].y+" ";
+  for(var i=1;i<all.length;i++){
+    var a=all[i-1], b=all[i], mx=(a.x+b.x)/2;
+    d+="C "+mx+" "+a.y+" "+mx+" "+b.y+" "+b.x+" "+b.y+" ";
+  }
+  var area=document.createElementNS(NS,"path");
+  area.setAttribute("d",d+"L "+tail.x+" "+height+" L "+lead.x+" "+height+" Z");
+  area.setAttribute("fill","var(--accent)");
+  area.setAttribute("opacity",".13");
+  g.appendChild(area);
   var path=document.createElementNS(NS,"path");
   path.setAttribute("d",d);
   path.setAttribute("fill","none");
   path.setAttribute("stroke","var(--accent-hot)");
-  path.setAttribute("stroke-width","1.6");
-  path.setAttribute("opacity",".45");
+  path.setAttribute("stroke-width","1.7");
+  path.setAttribute("opacity",".85");
   g.appendChild(path);
-  pts.forEach(function(p){
-    var x=X(p.m);
-    if(x<0||x>width) return;
+
+  xy.forEach(function(q){
+    if(q.x<-6||q.x>width+6) return;
+    var dot=document.createElementNS(NS,"circle");
+    dot.setAttribute("cx",q.x); dot.setAttribute("cy",q.y); dot.setAttribute("r","2.6");
+    dot.setAttribute("fill","var(--accent-hot)");
+    g.appendChild(dot);
     var lab=document.createElementNS(NS,"text");
-    lab.setAttribute("x",x); lab.setAttribute("y",p.high?height*0.25-6:height*0.8+13);
+    lab.setAttribute("x",Math.min(width-34,Math.max(34,q.x)));
+    lab.setAttribute("y",q.p.high?Math.max(9,q.y-7):Math.min(BOT+11,q.y+12));
     lab.setAttribute("text-anchor","middle");
     lab.setAttribute("font-size","9.5");
+    lab.setAttribute("font-weight","600");
     lab.setAttribute("font-family","IBM Plex Mono, monospace");
-    lab.setAttribute("fill","var(--text-3)");
-    lab.textContent=p.t;
+    lab.setAttribute("fill","var(--text-2)");
+    lab.textContent=(q.p.high?"▲ ":"▼ ")+q.p.t+
+      (isFinite(q.p.h)?("  "+q.p.h.toFixed(1)+"m"):"");
     g.appendChild(lab);
   });
+
+  if(nowMins!=null && nowMins>=BOARD_FROM*60 && nowMins<=BOARD_TO*60){
+    var nx=X(nowMins);
+    var now=document.createElementNS(NS,"line");
+    now.setAttribute("x1",nx); now.setAttribute("x2",nx);
+    now.setAttribute("y1","0"); now.setAttribute("y2",height);
+    now.setAttribute("stroke","var(--accent-hot)");
+    now.setAttribute("stroke-width","1");
+    now.setAttribute("opacity",".55");
+    g.appendChild(now);
+  }
   return g;
 }
 function renderBoard(){
@@ -3661,10 +3874,10 @@ function boardDay(dayISO){
   head.appendChild(dayLab);
 
   var hoursCell=el("div");
-  hoursCell.style.cssText="position:relative;height:44px";
+  hoursCell.style.cssText="position:relative;height:58px";
   var NS="http://www.w3.org/2000/svg";
   var svg=document.createElementNS(NS,"svg");
-  svg.setAttribute("width","100%"); svg.setAttribute("height","44");
+  svg.setAttribute("width","100%"); svg.setAttribute("height","58");
   svg.style.cssText="position:absolute;inset:0;overflow:visible";
   hoursCell.appendChild(svg);
   for(var h=BOARD_FROM;h<=BOARD_TO;h++){
@@ -3683,8 +3896,23 @@ function boardDay(dayISO){
   requestAnimationFrame(function(){
     var w=hoursCell.clientWidth||900;
     while(svg.firstChild) svg.removeChild(svg.firstChild);
-    svg.appendChild(tideCurve(w,44,tide));
+    var nowM=null;
+    if(dayISO===todayISO()){
+      var n=new Date(); nowM=n.getHours()*60+n.getMinutes();
+    }
+    svg.appendChild(tideCurve(w,58,tide,nowM));
   });
+  /* the tide is edited where it is read, rather than on another screen */
+  hoursCell.title=tide ? "Tide for "+dm(dayISO)+" — click to edit"
+                       : "No tide for this day — click to enter it";
+  hoursCell.style.cursor="pointer";
+  hoursCell.addEventListener("click",function(){ tideForm(dayISO); });
+  if(!tide){
+    var none=el("div",null,"tide not set");
+    none.style.cssText="position:absolute;left:10px;top:8px;font-size:10.5px;"+
+      "color:var(--text-3);font-style:italic";
+    hoursCell.appendChild(none);
+  }
 
   if(collapsed) return box;
 
@@ -7914,6 +8142,31 @@ function renderToday(){
   });
   host.appendChild(k);
 
+  /* The tide belongs on the first screen of the day: whether the beach is
+     there at 09:00 decides where the lesson goes. */
+  var tideT=tideFor(t);
+  var tp=el("div","panel");
+  tp.style.cssText="margin-top:12px;padding:12px 14px;display:flex;"+
+    "align-items:center;gap:10px;flex-wrap:wrap";
+  tp.appendChild(el("span","eyebrow","Tide"));
+  if(tideT){
+    tideChips(tp,tideT);
+    var nowT=new Date();
+    var live=tideText(t,String(nowT.getHours()).padStart(2,"0")+":"+
+      String(nowT.getMinutes()).padStart(2,"0"));
+    if(live){
+      var st=tideAt(t,toHHMM(nowT.getHours()*60+nowT.getMinutes()))||{};
+      tp.appendChild(el("span","chip "+(st.rising?"pink":"neutral"),"Now: "+live));
+    }
+    if(tideT.spot) tp.appendChild(el("span","hint",tideT.spot));
+  } else {
+    tp.appendChild(el("span","hint","Not set for today."));
+  }
+  var te=el("button","btn sm","Edit"); te.style.marginLeft="auto";
+  te.addEventListener("click",function(){tideForm(t);});
+  tp.appendChild(te);
+  host.appendChild(tp);
+
   var h=el("div","sec-h"); h.appendChild(el("h2",null,"On the water today"));
   var sp=el("span","spacer"); h.appendChild(sp);
   var add=el("button","btn","New session");
@@ -7966,6 +8219,9 @@ function gearForm(existing){
     host.textContent="";
     if(!working.length){ host.appendChild(el("div","hint","No items yet.")); return; }
     working.forEach(function(u,i){
+      var wrapU=el("div");
+      wrapU.style.cssText="border:1px solid var(--line-soft);border-radius:9px;"+
+        "padding:8px 9px;margin-bottom:7px";
       var row=el("div","line"); row.style.gridTemplateColumns="1fr 62px auto";
       var n=input("text",u.name,{placeholder:"Board name or number"});
       n.addEventListener("input",function(){u.name=n.value;});
@@ -7974,11 +8230,35 @@ function gearForm(existing){
       var rm=el("button","btn sm danger","×");
       rm.addEventListener("click",function(){working.splice(i,1);draw();});
       row.appendChild(n); row.appendChild(mp); row.appendChild(rm);
-      host.appendChild(row);
+      wrapU.appendChild(row);
+      /* their gear list keeps these three against every unit: when it was
+         bought, when it was last checked and when it is due again */
+      var row2=el("div","line");
+      row2.style.cssText="grid-template-columns:repeat(3,1fr);margin-top:6px";
+      [["purchased","Purchased"],["lastCheck","Last check"],["nextCheck","Next check"]]
+      .forEach(function(f){
+        var w2=el("div");
+        var lb=el("div","hint",f[1]); lb.style.marginBottom="2px";
+        var d=input("date",u[f[0]]||"");
+        d.addEventListener("input",function(){u[f[0]]=d.value;});
+        w2.appendChild(lb); w2.appendChild(d);
+        row2.appendChild(w2);
+      });
+      wrapU.appendChild(row2);
+      var nt=input("text",u.note||"",{placeholder:"Note — ding, repair, whose board it is"});
+      nt.style.marginTop="6px";
+      nt.addEventListener("input",function(){u.note=nt.value;});
+      wrapU.appendChild(nt);
+      if(u.nextCheck && u.nextCheck<todayISO()){
+        var due=el("div","hint","Check overdue since "+dm(u.nextCheck)+".");
+        due.style.color="var(--crit)"; due.style.marginTop="5px";
+        wrapU.appendChild(due);
+      }
+      host.appendChild(wrapU);
     });
   }
   var lh=el("div","lines-h");
-  lh.appendChild(el("h4",null,"Individual items — name / max pax"));
+  lh.appendChild(el("h4",null,"Individual items — name, max pax and service dates"));
   var add=el("button","btn sm","Add item");
   add.addEventListener("click",function(){
     working.push({id:uid("u"),name:"",maxPax:1}); draw();});
@@ -8004,7 +8284,7 @@ function gearUnitsView(g){
   var out=gearOutOn(g.id,todayISO());
   b.appendChild(el("p","hint",unitCount(g)+" items, "+out+" out of service today."));
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
-  ["Item","Max pax","Last check","Next check"].forEach(function(h,i){
+  ["Item","Max pax","Purchased","Last check","Next check","Note"].forEach(function(h,i){
     tr.appendChild(el("th",i===1?"r":null,h));});
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
@@ -8012,8 +8292,14 @@ function gearUnitsView(g){
     var r=el("tr");
     r.appendChild(el("td","strong",u.name));
     r.appendChild(el("td","n r",String(u.maxPax||1)));
-    r.appendChild(el("td",u.lastCheck?null:"muted",u.lastCheck||"—"));
-    r.appendChild(el("td",u.nextCheck?null:"muted",u.nextCheck||"—"));
+    r.appendChild(el("td",u.purchased?null:"muted",u.purchased?dm(u.purchased):"—"));
+    r.appendChild(el("td",u.lastCheck?null:"muted",u.lastCheck?dm(u.lastCheck):"—"));
+    var nx=el("td");
+    if(!u.nextCheck) nx.appendChild(el("span","muted","—"));
+    else nx.appendChild(el("span","chip "+(u.nextCheck<todayISO()?"critc":"neutral"),
+      dm(u.nextCheck)));
+    r.appendChild(nx);
+    r.appendChild(el("td",u.note?"muted":"muted",u.note||"—"));
     tb.appendChild(r);
   });
   t.appendChild(tb); w.appendChild(t); b.appendChild(w);
@@ -8064,12 +8350,14 @@ function renderGear(){
   }
   var t=todayISO();
   var w=el("div","panel tbl-wrap"),tb0=el("table"),th=el("thead"),tr=el("tr");
-  ["Gear","Items","Out today","Available today",""].forEach(function(h,i){
-    tr.appendChild(el("th",(i>=1&&i<=3)?"r":null,h));});
+  ["Gear","Items","Out today","Available today","Service due",""].forEach(function(h,i){
+    tr.appendChild(el("th",(i>=1&&i<=4)?"r":null,h));});
   th.appendChild(tr); tb0.appendChild(th);
   var tb=el("tbody");
   DB.gear.forEach(function(g){
     var out=gearOutOn(g.id,t), avail=unitCount(g)-out;
+    var overdue=(g.units||[]).filter(function(u){
+      return u.nextCheck && u.nextCheck<t;}).length;
     var r=el("tr");
     var nc=el("td","strong",g.name);
     if(unitCount(g)){
@@ -8083,6 +8371,12 @@ function renderGear(){
     var av=el("td","n r");
     av.appendChild(el("span","chip "+(avail<=0?"critc":(out?"warnc":"ok")),String(avail)));
     r.appendChild(av);
+    var sd=el("td","n r");
+    if(overdue) sd.appendChild(el("span","chip warnc",String(overdue)));
+    else sd.appendChild(el("span","muted","—"));
+    sd.title=overdue?(overdue+" item"+(overdue>1?"s are":" is")+" past its check date")
+                    :"Nothing overdue";
+    r.appendChild(sd);
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){gearForm(g);});
     var d=el("button","btn sm danger","Del");
@@ -8431,29 +8725,52 @@ function listEditor(title,hint,items,opts){
   return wrap;
 }
 
+/* Their Organization Information, field for field: the official name is what
+   goes on a receipt, and it is not always the name over the door. */
 function businessForm(){
   var bz=cfg().business;
   var b=el("div");
   var name=input("text",bz.name,{placeholder:"Shokogi Surf School"});
+  var official=input("text",bz.officialName||"",{placeholder:"As registered"});
   var tax=input("text",bz.taxId,{placeholder:"Tax / registration number"});
+  var vat=input("text",bz.vat||"",{placeholder:"VAT number"});
+  var code=input("text",bz.activityCode||"",{placeholder:"Activity code"});
   var addr=el("textarea"); addr.value=bz.address||"";
+  var addr2=input("text",bz.address2||"",{placeholder:"Address line 2"});
+  var city=input("text",bz.city||"",{placeholder:"Playa Venao"});
+  var zip=input("text",bz.zip||"",{placeholder:"ZIP / postcode"});
+  var country=input("text",bz.country||"",{placeholder:"Panama"});
   var phone=input("tel",bz.phone); var mail=input("email",bz.email);
   var cur=input("text",bz.currency,{maxlength:"4",placeholder:"USD"});
   b.appendChild(field("Business name",name));
+  b.appendChild(field("Official name",official,"What the receipt has to say."));
   var g=el("div","grid2");
-  g.appendChild(field("Tax number",tax)); g.appendChild(field("Currency code",cur));
+  g.appendChild(field("Tax ID",tax)); g.appendChild(field("VAT number",vat));
   b.appendChild(g);
+  var g0=el("div","grid2");
+  g0.appendChild(field("Activity code",code));
+  g0.appendChild(field("Currency code",cur));
+  b.appendChild(g0);
   var g2=el("div","grid2");
   g2.appendChild(field("Phone",phone)); g2.appendChild(field("Email",mail));
   b.appendChild(g2);
   b.appendChild(field("Address",addr));
-  openModal("Business details",b,[
+  b.appendChild(field("Address line 2",addr2));
+  var g3=el("div","grid2");
+  g3.appendChild(field("City",city)); g3.appendChild(field("ZIP code",zip));
+  b.appendChild(g3);
+  b.appendChild(field("Country",country));
+  openModal("Organization information",b,[
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       bz.name=name.value.trim(); bz.taxId=tax.value.trim(); bz.address=addr.value.trim();
+      bz.officialName=official.value.trim(); bz.vat=vat.value.trim();
+      bz.activityCode=code.value.trim(); bz.address2=addr2.value.trim();
+      bz.city=city.value.trim(); bz.zip=zip.value.trim();
+      bz.country=country.value.trim();
       bz.phone=phone.value.trim(); bz.email=mail.value.trim();
       bz.currency=(cur.value.trim()||"USD").toUpperCase();
-      save(); closeModal(); render(); toast("Business details saved");
+      save(); closeModal(); render(); toast("Organization details saved");
     }}
   ]);
 }
@@ -8560,12 +8877,15 @@ function renderSettings(){
   var bz=cfg().business;
   var biz=el("div","panel");
   var bh=el("div","day-h");
-  bh.appendChild(el("h3",null,"Business details"));
+  bh.appendChild(el("h3",null,"Organization information"));
   var be=el("button","btn sm","Edit"); be.style.marginLeft="auto";
   be.addEventListener("click",businessForm);
   bh.appendChild(be); biz.appendChild(bh);
-  [["Name",bz.name],["Tax number",bz.taxId],["Currency",bz.currency],
-   ["Phone",bz.phone],["Email",bz.email],["Address",bz.address]].forEach(function(p){
+  [["Name",bz.name],["Official name",bz.officialName],["Tax ID",bz.taxId],
+   ["VAT number",bz.vat],["Activity code",bz.activityCode],["Currency",bz.currency],
+   ["Phone",bz.phone],["Email",bz.email],["Address",bz.address],
+   ["City",[bz.zip,bz.city].filter(Boolean).join(" ")],["Country",bz.country]]
+  .forEach(function(p){
     var r=el("div","slot"); r.style.gridTemplateColumns="150px 1fr";
     r.appendChild(el("div","t",p[0]));
     r.appendChild(el("div",p[1]?null:"muted",p[1]||"—"));
@@ -8994,9 +9314,18 @@ function importCatalog(){
       priceMode:(p.prices&&p.prices.some(function(t){return t.hours;}))?"item":
                 ((p.prices&&p.prices.some(function(t){return (t.minPax||1)>1;}))?"person":"fixed"),
       gearId:(p.rental!=null&&gearBySrc[p.rental])||"",
+      shopCategory:p.shopCategory||"",
+      pos:(p.pos==null?null:Number(p.pos)),
+      limitedStock:p.stock!=null,
+      stock:(p.stock==null?"":Number(p.stock)),
+      clientPicksInstructor:!!p.clientPicksInstructor,
+      subProducts:!!p.subProducts,
       code:"",maxAttendants:"",depositType:"",depositValue:"",
-      onlineSale:true,onlinePay:"full",sessionChoice:"full",
-      weekDays:[],startHours:[],archived:false});
+      /* SOLD ONLINE is their column, and only two of the thirty-five carry it.
+         A booking page that lists the lot is not the school's shop. */
+      onlineSale:(p.soldOnline==null?true:!!p.soldOnline),
+      onlinePay:"full",sessionChoice:"full",
+      weekDays:[],startHours:(p.startHours||[]),archived:false});
     added.products++;
   });
 
