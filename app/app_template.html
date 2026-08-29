@@ -1207,6 +1207,14 @@ function staffForm(existing){
   g3.appendChild(field("Position in the staff list",pos,
     "Where they sit on the board. Blank sorts by name."));
   b.appendChild(g3);
+  var sFrom=input("date",s.seasonFrom||""), sTo=input("date",s.seasonTo||"");
+  var g3b=el("div","grid2");
+  g3b.appendChild(field("Working season from",sFrom));
+  g3b.appendChild(field("until",sTo));
+  b.appendChild(g3b);
+  b.appendChild(el("div","hint",
+    "Leave both blank for crew who are here all year. Put a season on a "+
+    "freelancer and the session form says so before you save it."));
 
   var acts=staffActivities(s).slice();
   var actHost=el("div");
@@ -1238,6 +1246,7 @@ function staffForm(existing){
       rec.phone=phone.value.trim(); rec.email=email.value.trim();
       rec.address=addr.value.trim(); rec.city=city.value.trim();
       rec.birthday=bday.value||""; rec.legal=legal.value.trim();
+      rec.seasonFrom=sFrom.value||""; rec.seasonTo=sTo.value||"";
       rec.pos=pos.value===""?null:Number(pos.value);
       rec.activities=acts.slice(); rec.langs=langs.slice();
       rec.onPlanning=!!onPlan.checked;
@@ -1271,6 +1280,13 @@ function renderCrew(){
       var offb=el("span","chip neutral","off the board");
       offb.style.marginLeft="7px";
       nc.appendChild(offb);
+    }
+    if(outOfSeason(s.id,todayISO())){
+      var sea=el("span","chip warnc","out of season");
+      sea.style.marginLeft="7px";
+      sea.title="Working season "+(s.seasonFrom?dm(s.seasonFrom):"…")+" — "+
+        (s.seasonTo?dm(s.seasonTo):"…");
+      nc.appendChild(sea);
     }
     r.appendChild(nc);
     var rt=el("td"); rt.appendChild(el("span","chip pink",s.role)); r.appendChild(rt);
@@ -1977,10 +1993,14 @@ function sessionForm(existing,presetDate){
   cat.addEventListener("change",function(){ drawStaff(); checkOff(); });
   function checkOff(){
     var off=chosen.filter(function(id){return isOff(id,date.value);}).map(staffName);
-    staffHint.textContent=off.length
-      ? off.join(", ")+(off.length>1?" are":" is")+" booked off on "+dm(date.value)+"."
-      : "";
-    staffHint.style.color=off.length?"var(--crit)":"";
+    var away=chosen.filter(function(id){return outOfSeason(id,date.value);}).map(staffName);
+    var lines=[];
+    if(off.length) lines.push(off.join(", ")+(off.length>1?" are":" is")+
+      " booked off on "+dm(date.value)+".");
+    if(away.length) lines.push(away.join(", ")+(away.length>1?" are":" is")+
+      " outside their working season on "+dm(date.value)+".");
+    staffHint.textContent=lines.join(" ");
+    staffHint.style.color=lines.length?"var(--crit)":"";
   }
   date.addEventListener("change",checkOff);
   var sf=field("Instructors",staffHost); sf.appendChild(staffHint);
@@ -3212,15 +3232,11 @@ function tideListText(times,heights){
 /* A high tide at 3.08 m is a different day's surf from one at 2.1, so the
    height goes next to the time wherever the table has it. */
 function tideChips(host,t){
-  var hh=(t.heights&&t.heights.high)||[];
-  (t.highs||[]).forEach(function(x,i){
-    host.appendChild(el("span","chip pink",
-      "High "+x+(hh[i]?("  "+hh[i]+" m"):"")));
-  });
-  var lh=(t.heights&&t.heights.low)||[];
-  (t.lows||[]).forEach(function(x,i){
-    host.appendChild(el("span","chip neutral",
-      "Low "+x+(lh[i]?("  "+lh[i]+" m"):"")));
+  /* in the order the day runs them, not highs then lows: the school reads this
+     forwards from now */
+  tidePoints(t).forEach(function(p){
+    host.appendChild(el("span","chip "+(p.high?"pink":"neutral"),
+      (p.high?"High ":"Low ")+p.t+(isFinite(p.h)?("  "+p.h+" m"):"")));
   });
 }
 
@@ -3878,7 +3894,9 @@ function boardDay(dayISO){
   var NS="http://www.w3.org/2000/svg";
   var svg=document.createElementNS(NS,"svg");
   svg.setAttribute("width","100%"); svg.setAttribute("height","58");
-  svg.style.cssText="position:absolute;inset:0;overflow:visible";
+  /* clipped, not visible: the curve runs on past both edges of the day so the
+     shape is right at 06:00, and without this it paints over the day above */
+  svg.style.cssText="position:absolute;inset:0;overflow:hidden";
   hoursCell.appendChild(svg);
   for(var h=BOARD_FROM;h<=BOARD_TO;h++){
     (function(hh){
@@ -8185,6 +8203,8 @@ function renderToday(){
       txt.appendChild(el("b",null,s.title));
       var m2=instructorNames(s)+(s.spot?" · "+s.spot:"");
       var t2=tideLabel(s); if(t2) m2+=" · "+t2;
+      /* what the water is doing at the hour this one runs */
+      var t3=tideText(s.date,s.time); if(t3) m2+=" · "+t3;
       txt.appendChild(el("em",null,m2));
       nm.appendChild(txt); r.appendChild(nm);
       var cap=el("div","cap");
@@ -8448,6 +8468,16 @@ function isOff(staffId,dateStr){
   return DB.timeOff.some(function(t){
     return t.staffId===staffId && (!t.from||t.from<=dateStr) && (!t.to||t.to>=dateStr);
   });
+}
+/* A freelancer with a season on their card is simply not here outside it, and
+   the school should be told before the session is saved, not after they call.
+   No season set means always available -- most of the crew are. */
+function outOfSeason(staffId,dateStr){
+  var s=by(staffId,DB.staff);
+  if(!s||!dateStr) return false;
+  if(s.seasonFrom && dateStr<s.seasonFrom) return true;
+  if(s.seasonTo && dateStr>s.seasonTo) return true;
+  return false;
 }
 
 /* ============================ fee groups ============================ */
@@ -9339,7 +9369,12 @@ function importCatalog(){
   });
   (d.staff||[]).forEach(function(st){
     if(DB.staff.some(function(x){return x.name===st.name;})) return;
-    DB.staff.push({id:uid("s"),name:st.name,role:st.role||"Instructor",phone:"",email:""});
+    DB.staff.push({id:uid("s"),name:st.name,role:st.role||"Instructor",
+      phone:"",email:"",
+      activities:(st.activities||[]),langs:(st.langs||[]),
+      pos:(st.pos==null?null:Number(st.pos)),
+      seasonFrom:st.seasonFrom||"",seasonTo:st.seasonTo||"",
+      onPlanning:st.onPlanning!==false});
     added.crew++;
     if(cfg().roles.indexOf(st.role)<0 && st.role) cfg().roles.push(st.role);
   });
@@ -9368,13 +9403,23 @@ function importCatalog(){
     }
   });
   /* the schedule, without participants -- those point at clients, which stay put */
+  /* the crew are imported above, so a session's instructors can be matched by
+     name now -- without this the board's staff view arrives empty, and that is
+     the view the school rosters from */
+  var staffByName={};
+  DB.staff.forEach(function(st){ staffByName[(st.name||"").toUpperCase()]=st.id; });
   (d.sessions||[]).forEach(function(x){
     if(DB.sessions.some(function(y){
       return y.date===x.date && y.time===x.time && y.title===x.title;})) return;
+    var ids=(x.staff||[]).map(function(n){
+      return staffByName[(n||"").toUpperCase()];}).filter(Boolean);
     DB.sessions.push({id:uid("se"),title:x.title,date:x.date,time:x.time,
       duration:x.duration||60,capacity:x.capacity||1,
-      spot:(DB.spots[0]||{}).name||"",tideRef:"",tidePos:"before",tideHours:0,
-      participants:[],category:x.category||"",note:"",staffIds:[]});
+      minCapacity:x.minCapacity||0,
+      spot:x.spot||(DB.spots[0]||{}).name||"",
+      tideRef:"",tidePos:"before",tideHours:0,
+      level:"",allDay:!!x.allDay,isPublic:x.isPublic!==false,
+      participants:[],category:x.category||"",note:x.note||"",staffIds:ids});
     added.sessions++;
   });
 

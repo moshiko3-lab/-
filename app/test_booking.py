@@ -130,12 +130,23 @@ def main():
 
         txt = low(pg, "#wrap")
         check("the catalogue is offered", "book now" in txt)
+
+        # The tabs are the shop's own categories -- HOME, LESSONS, PACKAGES --
+        # the way their public page groups them, not the product types. They
+        # used to be types, which is why this walk once clicked "Rental".
+        tabs = [t.strip().lower()
+                for t in pg.locator(".filters button").all_inner_texts()]
+        check("the tabs are the shop's categories",
+              bool(tabs) and tabs[0] == "home" and len(tabs) > 1, str(tabs))
+
+        # Only what the school marks sold online is here, so a board hire
+        # should not be on the page at all.
+        check("hires are not on the public page",
+              "rental" not in txt and "rentals" not in txt, txt[:300])
         # their export puts num_nights=1 on plenty of day products; a camp may
-        # legitimately show nights, a board hire may not
-        pg.click('.filters button:has-text("Rental")')
-        pg.wait_for_timeout(400)
-        check("a board hire is not sold as a night stay",
-              "night" not in low(pg, "#wrap"), low(pg, "#wrap")[:300])
+        # legitimately show nights, a lesson may not
+        check("a day product is not sold as a night stay",
+              "night" not in txt or "camp" in txt, txt[:300])
         pg.click('.filters button:has-text("Home")')
         pg.wait_for_timeout(400)
 

@@ -57,6 +57,31 @@ is ever dropped silently.
   `--ssl-version-max=tls1.2` if you need a browser. This module uses plain HTTP
   requests and is unaffected.
 
+## Field names that are not what they look like
+
+Four of these were exported wrong, or not at all, until someone opened the page
+next to the JSON and compared them column by column.
+
+* **`is_public` on a product is the SOLD ONLINE column**, not "visible to
+  staff". Two of Shokogi's thirty-five products carry it. A booking page built
+  without reading it offers board hire and staff-only lines to the public.
+* **A product has two categories.** `category_name` is the ACTIVITY CALENDAR
+  the sessions land on (`SURF PACK`); `product_categories` is the shop's own
+  grouping (`PACKAGES`, `LESSONS`) and is what their public site tabs by.
+  `order` is the POS column.
+* **A session's instructor is `assigned`**, a list of `{id, first_name,
+  last_name}`. Nothing in the session record is called `staff` or `instructor`.
+* **A staff member's `categories` are the activities they may teach.** Their
+  own staff page states the rule: only staff carrying the activity are proposed
+  when the session is built. `languages` are two-letter codes, `order` is the
+  hand position in the list, `show_in_agenda` keeps someone off the board
+  without deleting them, and `hours_worked_this_month` arrives as `"27:30:00"`.
+
+Half the app also lives under `/_new/en/…` — Resources → Staff is
+`/_new/en/resources/staff`, not `/manager/staff/list`. A guessed route returns
+a white page rather than a 404, so a crawl of invented routes looks like a
+crawl of empty screens. Read the routes off their own navigation.
+
 ## Reference
 
 `/api/payments/daily-report?from_date=YYYY/MM/DD` returns a BIFF8 `.xls`

@@ -58,6 +58,14 @@ def _tide_date(v):
         return None
 
 
+# Their staff records carry two-letter codes; the app shows people the word.
+LANG_NAMES = {
+    "en": "English", "es": "Spanish", "he": "Hebrew", "fr": "French",
+    "pt": "Portuguese", "de": "German", "it": "Italian", "nl": "Dutch",
+    "ru": "Russian",
+}
+
+
 def num(v):
     try:
         return round(float(v), 2)
@@ -151,16 +159,32 @@ def build():
             "description": (r.get("description") or "").strip(),
         })
 
-    # Names and roles only. Personal phone numbers and email addresses are
-    # deliberately left out: this file gets inlined into a page that can be
-    # shared by URL, and a staff contact list should not travel that way.
+    # What the board needs, and no more. Phone numbers, email addresses, home
+    # addresses and birthdays are deliberately left out: this file gets inlined
+    # into a page that can be shared by URL, and a staff contact list should
+    # not travel that way. Activities and languages are not personal in that
+    # sense -- they are what decides who can be put on a session.
+    cat_name_by_id = {c["id"]: c["name"] for c in cats if c.get("id")}
     staff = []
     for st in _rows(_get(s, base, f"/schools/{sid}/staff/", show_archived="false")):
         name = " ".join(x for x in (st.get("first_name"), st.get("last_name")) if x).strip()
         if not name:
             continue
         role = (st.get("role") or "staff").strip()
-        staff.append({"name": name, "role": role[:1].upper() + role[1:]})
+        staff.append({
+            "name": name,
+            "role": role[:1].upper() + role[1:],
+            # the activity calendars this person is cleared for: their staff
+            # page says only these are proposed when the session is built
+            "activities": [cat_name_by_id[c] for c in (st.get("categories") or [])
+                           if c in cat_name_by_id],
+            "langs": [LANG_NAMES.get(l, l) for l in (st.get("languages") or [])],
+            "pos": st.get("order"),
+            "onPlanning": st.get("show_in_agenda") is not False,
+            # freelancers here for a season, which is most of the instructors
+            "seasonFrom": st.get("working_season_starting_day") or "",
+            "seasonTo": st.get("working_season_ending_day") or "",
+        })
 
     spots = []
     spot_ids = []
@@ -170,6 +194,7 @@ def build():
                       "notes": (sp.get("description") or "").strip()})
         if sp.get("id"):
             spot_ids.append((sp["id"], sp.get("name")))
+    spot_name_by_id = {i: n for i, n in spot_ids}
 
     # The tide table their agenda draws its curve from. The app is a static
     # page and cannot call anything at runtime, so a year of it is carried
@@ -241,12 +266,29 @@ def build():
                 mins = int(dur[0]) * 60 + int(dur[1])
             except (ValueError, IndexError):
                 mins = 60
+            # who is teaching it, by name -- the board's staff view is empty
+            # without this, which is the view the school actually rosters from
+            crew = []
+            for a in (x.get("assigned") or []):
+                nm = " ".join(y for y in (a.get("first_name"), a.get("last_name"))
+                              if y).strip()
+                if nm:
+                    crew.append(nm)
             sessions.append({
                 "date": d, "time": hhmm,
                 "title": x.get("name") or cat.get("name") or "Session",
                 "category": cat.get("name") or "",
                 "duration": mins,
                 "capacity": x.get("max_attendants") or x.get("allowed_attendants") or 1,
+                "staff": crew,
+                "spot": spot_name_by_id.get(x.get("spot"), ""),
+                # their level is an id into a list this export does not fetch,
+                # so it is left out rather than written down as a number the
+                # app would read as a word
+                "minCapacity": x.get("min_attendants") or 0,
+                "allDay": bool(x.get("all_day_event")),
+                "isPublic": x.get("public") is not False,
+                "note": (x.get("description") or "").strip(),
             })
 
     return {"products": products, "gear": gear, "categories": cats,
