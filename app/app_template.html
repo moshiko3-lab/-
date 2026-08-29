@@ -2230,6 +2230,11 @@ function participantsForm(sess){
         if(cb.checked){
           if(sess.participants.length>=sess.capacity){
             cb.checked=false; toast("Session is at capacity ("+sess.capacity+")."); return; }
+          if(!seatFitsSession(x.ref,sess)){
+            cb.checked=false;
+            toast(x.name+" has "+seatActivities(x.ref).join(", ")+" to place, not "+
+              (sess.category||"this")+".");
+            return; }
           sess.participants.push(x.ref);
         } else {
           sess.participants=sess.participants.filter(function(r){return r!==x.ref;});
@@ -3429,6 +3434,48 @@ function lineSeats(bk,line){
   }
   return bookingSeats(bk);
 }
+/* A foil tow is not a surf lesson. A slot belongs to the product it was sold
+   on, and that product names the activity calendar it runs under, so it only
+   drops on a session running that same activity. Either side may leave the
+   calendar unsaid -- a product without one, a session put in the diary before
+   it was decided -- and an unsaid activity is not a mismatch, so it goes
+   anywhere rather than nowhere. */
+function lineActivity(line){
+  var p=line&&product(line.productId);
+  return (p&&p.category)||"";
+}
+function slotFitsSession(line,se){
+  var want=lineActivity(line), got=(se&&se.category)||"";
+  if(!want||!got) return true;
+  return got===want;
+}
+/* The same rule from the other direction: the participants list seats a person,
+   not a slot, so ask what that person still owes. Somebody with nothing booked
+   is a walk-in and goes wherever they are put. */
+function seatActivities(ref){
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    activityLines(bk).forEach(function(l){
+      var a=lineActivity(l);
+      if(!a || out.indexOf(a)>=0) return;
+      lineSlots(bk,l).forEach(function(s){
+        if(s.ref===ref && !s.session && out.indexOf(a)<0) out.push(a);
+      });
+    });
+  });
+  return out;
+}
+function seatFitsSession(ref,se){
+  var owed=seatActivities(ref), got=(se&&se.category)||"";
+  if(!owed.length || !got) return true;
+  return owed.indexOf(got)>=0;
+}
+function clearFitMarks(){
+  [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
+    n.style.outline=""; n.style.opacity="";
+  });
+}
 /* Where this session sits in one person's course: their second of three. The
    session remembers the lines it was filled from, so the answer is found by
    asking each of those lines where this session falls for that seat. */
@@ -3849,22 +3896,36 @@ function slotRow(s){
     ghost.style.top=(e.clientY-14)+"px";
     var under=document.elementFromPoint(e.clientX,e.clientY);
     var blk=under&&under.closest?under.closest("[data-session-id]"):null;
+    /* while it is in the air, every session says whether it would take it:
+       the ones running this activity go solid, the rest go dashed and red */
     [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
-      n.style.outline="";});
-    if(blk) blk.style.outline="2px solid var(--text)";
+      var t=by(n.dataset.sessionId,DB.sessions);
+      n.style.outline = (t && !slotFitsSession(s.line,t))
+        ? "1px dashed var(--crit)" : "";
+      n.style.opacity = (t && !slotFitsSession(s.line,t)) ? ".45" : "";
+    });
+    if(blk){
+      var over=by(blk.dataset.sessionId,DB.sessions);
+      blk.style.outline = (over && !slotFitsSession(s.line,over))
+        ? "2px dashed var(--crit)" : "2px solid var(--text)";
+    }
   });
   function drop(e){
     if(!ghost) return;
     ghost.remove(); ghost=null;
     row.style.opacity="";
-    [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
-      n.style.outline="";});
+    clearFitMarks();
     if(!moved) return;
     var under=document.elementFromPoint(e.clientX,e.clientY);
     var blk=under&&under.closest?under.closest("[data-session-id]"):null;
     if(!blk) return;
     var se=by(blk.dataset.sessionId,DB.sessions);
     if(!se) return;
+    if(!slotFitsSession(s.line,se)){
+      toast(lineActivity(s.line)+" only goes in a "+lineActivity(s.line)+
+            " session"+(se.category?(" -- that one is "+se.category+"."):"."));
+      return;
+    }
     if(se.participants.indexOf(s.ref)>=0){
       toast(s.seat.name+" is already in that session.");
       return;
@@ -3882,6 +3943,7 @@ function slotRow(s){
   row.addEventListener("pointerup",drop);
   row.addEventListener("pointercancel",function(){
     if(ghost){ ghost.remove(); ghost=null; row.style.opacity=""; }
+    clearFitMarks();
   });
   return row;
 }
@@ -4985,11 +5047,13 @@ function assignSessionsForm(bk,line,onDone){
     var end=iso(new Date(new Date(start+"T12:00:00").getTime()+
       (Number(days.value)||30)*864e5));
     var rows=DB.sessions.filter(function(se){
-      return se.date>=start && se.date<=end;
+      return se.date>=start && se.date<=end && slotFitsSession(line,se);
     }).sort(function(a,b2){
       return a.date===b2.date ? (a.time<b2.time?-1:1) : (a.date<b2.date?-1:1);});
     if(!rows.length){
-      listHost.appendChild(el("div","note","No sessions scheduled in that window."));
+      listHost.appendChild(el("div","note",lineActivity(line)
+        ? ("No "+lineActivity(line)+" sessions scheduled in that window.")
+        : "No sessions scheduled in that window."));
       return;
     }
     var lastDate="";
@@ -5674,7 +5738,8 @@ function courseFields(body,l,p){
 
   var sh=el("div","lines-h");
   sh.appendChild(el("h4",null,"Sessions ("+((l.sessionIds||[]).length)+" of "+want+")"));
-  sh.appendChild(el("span","hint","optional now"));
+  sh.appendChild(el("span","hint",
+    lineActivity(l)?(lineActivity(l)+" only · optional now"):"optional now"));
   var clr=el("button","btn sm","Clear all");
   clr.addEventListener("click",function(){l.sessionIds=[];renderBookings();});
   sh.appendChild(clr);
@@ -5701,7 +5766,10 @@ function courseFields(body,l,p){
       var d=addDays(start,off);
       var col=el("div","cfg-day");
       col.appendChild(el("div","h",dowOf(d)+" "+dm(d)));
-      var rows=DB.sessions.filter(function(x){return x.date===d;})
+      /* only the sessions this product actually runs under: a foil tow does
+         not belong on a surf lesson, so it is not offered one */
+      var rows=DB.sessions.filter(function(x){
+          return x.date===d && slotFitsSession(l,x);})
         .sort(function(a,b){return a.time<b.time?-1:1;});
       if(!rows.length) col.appendChild(el("div","none","—"));
       rows.forEach(function(se){

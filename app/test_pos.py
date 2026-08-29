@@ -135,8 +135,12 @@ def main():
         pg.wait_for_timeout(400)
         pg.click(".pos-cust")
         pg.wait_for_timeout(700)
-        # pick the client made a moment ago rather than filling in a new one
-        pg.click('#modal .pick-row >> nth=0')
+        # pick the client made a moment ago rather than filling in a new one.
+        # A build carrying the school's own clients has a hundred of them, so
+        # search for her rather than trusting whoever sorts first.
+        pg.fill('#modal input[type=search]', "Ana Torres")
+        pg.wait_for_timeout(500)
+        pg.locator('#modal .pick-row').filter(has_text="Ana Torres").first.click()
         pg.wait_for_timeout(700)
         pg.locator('.pos-foot button:has-text("Confirm")').click()
         pg.wait_for_timeout(1100)

@@ -77,6 +77,14 @@ who was never a client — the seating dialog, the board's rail, the trip
 manifests and the day's client list all resolve both, and say which a person
 came from.
 
+A slot only goes in a session of its own activity. A product names the activity
+calendar it runs under, so a foil tow cannot be dropped on a surf lesson: while
+a slot is in the air the board dashes every session that would refuse it, the
+drop is turned away with a line saying which activity each side is, the
+participants list refuses the tick, and neither session picker — the till's nor
+the booking form's — offers a session of the wrong activity in the first place.
+A product with no calendar set is not being fussy and goes anywhere.
+
 Sessions can be pinned to the tide rather than the clock — "2h before high
 tide" — which is why a spot carries coordinates. Tide times are entered per
 day; a day without them says so rather than drawing a curve that would be
