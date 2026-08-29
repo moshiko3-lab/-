@@ -165,6 +165,10 @@ td.strong{font-weight:700}
   padding:18px 16px}
 .cfg-foot{background:var(--panel);border:1px solid var(--line);border-top:0;
   border-radius:0 0 8px 8px;padding:12px 16px}
+.pt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;
+  align-items:center;margin-bottom:8px}
+.pt-extra{background:var(--panel-2);border-radius:9px;padding:12px 13px 2px;
+  margin:-2px 0 10px}
 .cfg-days{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
 .cfg-day .h{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--text-3);
   padding:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1988,6 +1992,9 @@ function renderSchedule(){
   var day=applyPlanFilter(allDay);
   var rentalsOut=DB.gearBlocks.filter(function(b){
     return (!b.from||b.from<=schedDate)&&(!b.to||b.to>=schedDate);}).length;
+  /* the tab counts what is actually on the tab: boards out on hire as well as
+     gear out of service */
+  var rentalCount=rentalsOut+hiresOn(schedDate).length;
   var bookingsToday=DB.bookings.filter(function(b){return b.date===schedDate;}).length;
   var accom=DB.accommodations.length;
 
@@ -1995,7 +2002,7 @@ function renderSchedule(){
   var tabs=el("div"); tabs.style.display="flex"; tabs.style.gap="2px";
   tabs.style.borderBottom="1px solid var(--line)"; tabs.style.marginTop="14px";
   tabs.style.overflowX="auto";
-  [["sessions","Sessions",day.length],["rental","Rental",rentalsOut],
+  [["sessions","Sessions",day.length],["rental","Rental",rentalCount],
    ["accom","Accommodations",accom],["bookings","Bookings",bookingsToday]]
   .forEach(function(t){
     var b=el("button"); b.className="";
@@ -2016,7 +2023,13 @@ function renderSchedule(){
   if(listMode){ sessionsList(host); return; }
 
   if(planTab==="rental"){
-    if(!rentalsOut){ host.appendChild(el("div","note","No gear is out of service on "+dm(schedDate)+".")); return; }
+    rentalsOutTable(host,schedDate);
+    if(!rentalsOut){
+      host.appendChild(el("div","note",
+        "No gear is out of service on "+dm(schedDate)+"."));
+      return;
+    }
+    host.appendChild(el("div","sec-h").appendChild(el("h2",null,"Out of service")).parentNode);
     var wr=el("div","panel tbl-wrap"),tr0=el("table"),hr=el("thead"),rr=el("tr");
     ["Gear","Units","From","Until","Note"].forEach(function(h,i){
       rr.appendChild(el("th",i===1?"r":null,h));});
@@ -3412,8 +3425,135 @@ function softColour(c){
 }
 
 /* the board's rental tab: what is out of service across the shown days */
+/* ============================ boards out on hire ============================
+   A hire is a booking line with a board attached to it, a start and a duration.
+   What the shop actually needs to know is when it comes back -- a board that is
+   an hour late is a board somebody else is waiting for, and until now nothing
+   anywhere in the app could answer that. */
+function hireDue(l,bk){
+  var d=l.wanted||bk.date;
+  var t=l.time||"09:00";
+  var start=new Date(d+"T"+(t.length===5?t:"09:00")+":00");
+  var hours=Number(l.hours)||1;
+  return {start:start,due:new Date(start.getTime()+hours*36e5),hours:hours};
+}
+/* out / due soon / overdue / back, judged against the clock on today and
+   against the end of the day on any other */
+function hireState(h,dateStr){
+  if(h.returnedAt) return "back";
+  var now=new Date();
+  var ref=(dateStr===todayISO()) ? now : new Date(dateStr+"T23:59:00");
+  var mins=(h.due-ref)/6e4;
+  if(mins<0) return "late";
+  if(mins<=30) return "soon";
+  return "out";
+}
+function hiresOn(dateStr){
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    (bk.lines||[]).forEach(function(l){
+      if(!l.unitId) return;
+      if((l.wanted||bk.date)!==dateStr) return;
+      var g=null,u=null;
+      DB.gear.forEach(function(x){
+        (x.units||[]).forEach(function(y){ if(y.id===l.unitId){ g=x; u=y; } });
+      });
+      var w=hireDue(l,bk);
+      out.push({booking:bk,line:l,gear:g,unit:u,
+                start:w.start,due:w.due,hours:w.hours,
+                returnedAt:l.returnedAt||""});
+    });
+  });
+  return out.sort(function(a,b){return a.due-b.due;});
+}
+function hhmmOf(d){
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+/* how late, or how long left, in words a person reads at a glance */
+function hireWhen(h,dateStr){
+  var ref=(dateStr===todayISO()) ? new Date() : new Date(dateStr+"T23:59:00");
+  var mins=Math.round((h.due-ref)/6e4);
+  var late=mins<0;
+  var m=Math.abs(mins);
+  var txt = m<60 ? (m+" min") : (Math.floor(m/60)+"h"+(m%60?" "+(m%60)+"m":""));
+  return late ? (txt+" late") : (txt+" left");
+}
+
+function rentalsOutTable(host,dateStr){
+  var rows=hiresOn(dateStr);
+  var h=el("div","sec-h");
+  h.appendChild(el("h2",null,"Out on hire"));
+  h.appendChild(el("span","spacer"));
+  var late=rows.filter(function(x){return hireState(x,dateStr)==="late";}).length;
+  var soon=rows.filter(function(x){return hireState(x,dateStr)==="soon";}).length;
+  if(late) h.appendChild(el("span","chip bad",late+" overdue"));
+  if(soon) h.appendChild(el("span","chip warnc",soon+" due soon"));
+  host.appendChild(h);
+
+  if(!rows.length){
+    host.appendChild(el("div","note",
+      "No boards are out on "+dm(dateStr)+
+      ". A hire appears here as soon as a booking has a board attached to it."));
+    return;
+  }
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Gear","Board","Client","Out at","Due back","","",""].forEach(function(x,i){
+    tr.appendChild(el("th",(i===3||i===4)?"r":null,x));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  rows.forEach(function(x){
+    var st=hireState(x,dateStr);
+    var r=el("tr");
+    if(st==="back") r.style.opacity=".55";
+    r.appendChild(el("td","strong",x.gear?x.gear.name:"—"));
+    r.appendChild(el("td",x.unit?null:"muted",x.unit?x.unit.name:"unit no longer listed"));
+    var cl=el("td");
+    var link=el("button","btn sm",clientName(x.booking.clientId));
+    link.style.cssText+=";border:0;background:none;padding:0;color:var(--accent);font-weight:600";
+    link.addEventListener("click",function(){posStart(x.booking);});
+    cl.appendChild(link);
+    cl.appendChild(el("div","hint",bookingCode(x.booking)));
+    r.appendChild(cl);
+    r.appendChild(el("td","n r",hhmmOf(x.start)));
+    var dc=el("td","n r strong",hhmmOf(x.due));
+    if(st==="late") dc.style.color="var(--crit)";
+    else if(st==="soon") dc.style.color="var(--warn)";
+    r.appendChild(dc);
+    var sc=el("td");
+    sc.appendChild(el("span","chip "+
+      (st==="late"?"bad":st==="soon"?"warnc":st==="back"?"ok":"neutral"),
+      st==="late"?"Overdue":st==="soon"?"Due soon":st==="back"?"Back":"Out"));
+    r.appendChild(sc);
+    r.appendChild(el("td","muted",st==="back"
+      ? ("returned "+x.returnedAt.slice(11,16)) : hireWhen(x,dateStr)));
+    var act=el("td"),box=el("div","rowbtns");
+    if(st==="back"){
+      var undo=el("button","btn sm","Undo");
+      undo.addEventListener("click",function(){
+        delete x.line.returnedAt; save(); render(); toast("Marked back out");
+      });
+      box.appendChild(undo);
+    } else {
+      var back=el("button","btn sm primary","Returned");
+      back.addEventListener("click",function(){
+        x.line.returnedAt=new Date().toISOString();
+        save(); render(); toast((x.unit?x.unit.name:"Board")+" is back");
+      });
+      box.appendChild(back);
+    }
+    act.appendChild(box); r.appendChild(act);
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+  host.appendChild(el("div","note",
+    "Due back is the hire's starting hour plus the duration it was sold at. "+
+    "Marking a board back frees it — the next booking stops seeing it as already out."));
+}
+
 function boardRentalTab(){
   var box=el("div");
+  rentalsOutTable(box,boardDate);
   var to=addDays(boardDate,boardSpan-1);
   var rows=DB.gearBlocks.filter(function(b){
     return (!b.from||b.from<=to)&&(!b.to||b.to>=boardDate);});
@@ -3421,6 +3561,8 @@ function boardRentalTab(){
     box.appendChild(el("div","note","No gear is out of service in this period."));
     return box;
   }
+  var oh=el("div","sec-h"); oh.appendChild(el("h2",null,"Out of service"));
+  box.appendChild(oh);
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
   ["Gear","Units","From","Until","Note"].forEach(function(h,i){
     tr.appendChild(el("th",i===1?"r":null,h));});
@@ -4336,6 +4478,53 @@ function lineSummary(l){
   return "";
 }
 
+/* One row per seat: the name inline, the rest a click away but still on this
+   page. Typing does not redraw, or the field would lose the cursor mid-word. */
+function participantRows(n){
+  posBooking.participants=posBooking.participants||[];
+  while(posBooking.participants.length<n){
+    posBooking.participants.push({pid:uid("pt"),name:"",age:"",level:"",wetsuit:"",
+      height:"",weight:"",clientId:"",insurance:false,notes:"",custom:{}});
+  }
+  var host=el("div");
+  host.style.marginBottom="14px";
+  for(var i=0;i<n;i++){
+    (function(idx){
+      var pp=posBooking.participants[idx];
+      var row=el("div","pt-row");
+      var nm=input("text",pp.name,{placeholder:"Participant "+(idx+1)});
+      nm.addEventListener("input",function(){ pp.name=nm.value; });
+      row.appendChild(nm);
+      var more=el("button","btn sm","▾"); more.type="button";
+      more.title="Age, level, wetsuit";
+      row.appendChild(more);
+      host.appendChild(row);
+
+      var extra=el("div","pt-extra"); extra.hidden=true;
+      var g=el("div","grid2");
+      var age=input("number",pp.age,{min:"0",max:"120",step:"1",placeholder:"Age"});
+      age.addEventListener("input",function(){ pp.age=age.value; });
+      var lvl=select(LEVELS,pp.level||"");
+      lvl.addEventListener("change",function(){ pp.level=lvl.value; });
+      g.appendChild(field("Age",age)); g.appendChild(field("Level",lvl));
+      extra.appendChild(g);
+      var g2=el("div","grid2");
+      var wet=input("text",pp.wetsuit,{placeholder:"e.g. M, L, XL"});
+      wet.addEventListener("input",function(){ pp.wetsuit=wet.value; });
+      var note=input("text",pp.notes,{placeholder:"Anything the instructor should know"});
+      note.addEventListener("input",function(){ pp.notes=note.value; });
+      g2.appendChild(field("Wetsuit size",wet)); g2.appendChild(field("Note",note));
+      extra.appendChild(g2);
+      host.appendChild(extra);
+      more.addEventListener("click",function(){
+        extra.hidden=!extra.hidden;
+        more.textContent=extra.hidden?"▾":"▴";
+      });
+    })(i);
+  }
+  return host;
+}
+
 function posConfigPane(l){
   var p=product(l.productId);
   var box=el("div");
@@ -4432,6 +4621,7 @@ function unitsOutOn(dateStr,exceptLid){
     (bk.lines||[]).forEach(function(x){
       if(!x.unitId || x.lid===exceptLid) return;
       if((x.wanted||bk.date)!==dateStr) return;
+      if(x.returnedAt) return;            /* back on the rack, so free again */
       out[x.unitId]=true;
     });
   });
@@ -4454,19 +4644,12 @@ function courseFields(body,l,p){
   g.appendChild(field("Date from",from));
   body.appendChild(g);
 
+  /* The names belong here, not behind a button that opens a dialog. One less
+     place to go, and the field is next to the count that says how many. */
   var ph=el("div","lines-h");
-  ph.appendChild(el("h4",null,"Details of participants"));
-  var pe=el("button","btn sm","Edit names");
-  pe.addEventListener("click",posParticipantsForm);
-  ph.appendChild(pe);
+  ph.appendChild(el("h4",null,"Details of participants ("+(Number(l.pax)||1)+")"));
   body.appendChild(ph);
-  var named=(posBooking.participants||[]).filter(function(x){return x.name;});
-  var chips=el("div");
-  chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px";
-  if(!named.length) chips.appendChild(el("span","hint",
-    "No names yet — the instructor will want them, but they can wait."));
-  named.forEach(function(x){ chips.appendChild(el("span","chip neutral",x.name)); });
-  body.appendChild(chips);
+  body.appendChild(participantRows(Number(l.pax)||1));
 
   var sh=el("div","lines-h");
   sh.appendChild(el("h4",null,"Sessions ("+((l.sessionIds||[]).length)+" of "+want+")"));
@@ -4630,7 +4813,6 @@ function renderPos(host){
   sh.appendChild(el("span","spacer"));
   sh.appendChild(rowMenu([
     {l:"Booking date",on:posDateForm},
-    {l:"Participants",on:posParticipantsForm},
     {l:"Booked through a partner",on:posPartnerForm},
     {l:"Note",on:posNoteForm},
     {l:"Clear the booking",danger:true,on:function(){
@@ -4918,27 +5100,6 @@ function posPartnerForm(){
     }}
   ]);
 }
-function posParticipantsForm(){
-  var b=el("div");
-  function seats(){
-    return posBooking.lines.reduce(function(a,l){
-      var p=product(l.productId);
-      var per=(p&&hasPaxTiers(p))?(Number(l.pax)||1):1;
-      return a+per*(Number(l.qty)||1);
-    },0);
-  }
-  var blk=participantsBlock(posBooking,seats,function(){});
-  b.appendChild(blk.node);
-  openModal("Participants",b,[
-    {label:"Done",cls:"primary",on:function(){ closeModal(); renderBookings(); }}
-  ]);
-}
-
-var bkFilter={q:"",status:"all",from:"",to:""};
-var box2Invoice=null, box2Cancel=null;
-/* Their booking carries a five-letter code -- YFGIM, ABQLY -- because "the
-   booking from Friday" is not something you can say down a phone. Derived from
-   the id so old bookings get one too, and stored once it exists. */
 function bookingCode(b){
   if(b.code) return b.code;
   var A="ABCDEFGHJKLMNPQRSTUVWXYZ", n=0, src=String(b.id||"");
