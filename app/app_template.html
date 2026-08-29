@@ -153,6 +153,16 @@ td.strong{font-weight:700}
 .daybar .d{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .daybar .n{font-size:16px;font-weight:700;font-family:"IBM Plex Mono",monospace}
 .daybar .c{font-size:9.5px;opacity:.7}
+/* segmented control: the view and grouping switches on the planning and the
+   board. It was in the markup long before it had a look. */
+.range{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:9px;
+  overflow:hidden;background:var(--panel)}
+.range button{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+  font-size:12px;font-weight:600;padding:7px 11px;color:var(--text-2);white-space:nowrap;
+  border-right:1px solid var(--line);transition:background .14s,color .14s}
+.range button:last-child{border-right:0}
+.range button:hover{background:var(--panel-2)}
+.range button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .slot{display:grid;grid-template-columns:66px 1fr auto auto;gap:13px;align-items:center;
   padding:12px 16px;border-bottom:1px solid var(--line-soft)}
 .slot:last-child{border-bottom:0}
@@ -1690,6 +1700,7 @@ function participantsForm(sess){
 
 var planTab="sessions";
 var planFilter={cat:"",staff:"",level:"",fill:""};
+var planView="details", planRange="day";
 function planFilterActive(){
   return !!(planFilter.cat||planFilter.staff||planFilter.level||planFilter.fill);
 }
@@ -1778,6 +1789,22 @@ function renderSchedule(){
   var today=el("button","btn sm","Today");
   today.addEventListener("click",function(){schedDate=todayISO();renderSchedule();});
   top.appendChild(today);
+  var seg=el("div","range");
+  PLAN_VIEWS.forEach(function(v){
+    var b=el("button",null,v.l);
+    b.setAttribute("aria-pressed",planView===v.v?"true":"false");
+    b.addEventListener("click",function(){planView=v.v;renderSchedule();});
+    seg.appendChild(b);
+  });
+  top.appendChild(seg);
+  var rng=el("div","range");
+  [{v:"day",l:"Daily"},{v:"14",l:"14 days"}].forEach(function(v){
+    var b=el("button",null,v.l);
+    b.setAttribute("aria-pressed",planRange===v.v?"true":"false");
+    b.addEventListener("click",function(){planRange=v.v;renderSchedule();});
+    rng.appendChild(b);
+  });
+  top.appendChild(rng);
   var colsBtn=el("button","btn sm","Columns");
   colsBtn.addEventListener("click",columnsPicker);
   top.appendChild(colsBtn);
@@ -1969,7 +1996,40 @@ function renderSchedule(){
     return;
   }
 
-  var shown=PLAN_COLS.filter(function(c){return planShow[c.k];});
+  if(planRange==="14"){
+    host.appendChild(fortnight());
+  } else {
+    host.appendChild(planTable(day));
+  }
+
+  var xs=el("div","searchbar"); xs.style.marginTop="12px";
+  var clb=el("button","btn sm","Client list");
+  clb.addEventListener("click",function(){clientListFor(schedDate);});
+  xs.appendChild(clb);
+  var pl=el("button","btn sm","Print list");
+  pl.addEventListener("click",function(){window.print();});
+  xs.appendChild(pl);
+  var xb=el("button","btn sm","Export table");
+  xb.addEventListener("click",function(){
+    exportCsv("planning-"+schedDate,
+      ["Hour","Activity Calendar","Instructor","Title","Note","Duration","Participants","Capacity"],
+      day.map(function(x){return [x.time,x.category||"",instructorNames(x),x.title,
+        x.note||"",hhmm(x.duration||0),x.participants.length,x.capacity];}));
+  });
+  xs.appendChild(xb); host.appendChild(xs);
+}
+
+/* Their agenda offers the same day at four densities. Compact is the glance
+   before a shift; details is the one you work from. */
+var PLAN_VIEWS=[{v:"compact",l:"Compact"},{v:"simple",l:"Simple"},
+                {v:"details",l:"Details"},{v:"accom",l:"Accommodation"}];
+/* Compact drops to the four things you read at a glance, whatever columns
+   are otherwise switched on. */
+var COMPACT_COLS=["hour","title","instructor","participants"];
+function planTable(day){
+  if(planView==="accom") return accomBoard(schedDate);
+  var shown=PLAN_COLS.filter(function(c){
+    return planView==="compact" ? COMPACT_COLS.indexOf(c.k)>=0 : planShow[c.k];});
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
   shown.forEach(function(c){
     tr.appendChild(el("th",(c.k==="duration"||c.k==="participants")?"r":null,c.l));
@@ -1977,7 +2037,19 @@ function renderSchedule(){
   tr.appendChild(el("th",null,""));
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
+  /* their agenda splits the day at one o'clock, and so does the crew */
+  var half="";
   day.forEach(function(x){
+    var isPM=(x.time||"00:00")>="13:00";
+    var band=isPM?"Afternoon (after 13:00)":"Morning (before 13:00)";
+    if(band!==half){
+      half=band;
+      var hr=el("tr"),hc=el("td");
+      hc.colSpan=shown.length+1;
+      hc.style.cssText="background:var(--panel-2);padding:7px 13px";
+      hc.appendChild(el("span","eyebrow",band));
+      hr.appendChild(hc); tb.appendChild(hr);
+    }
     var r=el("tr");
     var colour=catColor(x.category)||"var(--accent-hot)";
     var cell={};
@@ -2032,11 +2104,12 @@ function renderSchedule(){
     act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
 
-    /* the people in this session, shown under it rather than hidden in a dialog */
-    if(x.participants.length){
+    /* the people in this session, shown under it rather than hidden in a dialog.
+       Compact and simple keep the row count down and leave them out. */
+    if(planView==="details" && x.participants.length){
       var sub=el("tr");
-      var cell=el("td"); cell.colSpan=shown.length+1;
-      cell.style.cssText="padding:0 13px 10px 17px;background:var(--panel-2)";
+      var subCell=el("td"); subCell.colSpan=shown.length+1;
+      subCell.style.cssText="padding:0 13px 10px 17px;background:var(--panel-2)";
       var chips=el("div");
       chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center";
       chips.appendChild(el("span","eyebrow","In this session"));
@@ -2050,23 +2123,108 @@ function renderSchedule(){
         }
         chips.appendChild(ch);
       });
-      cell.appendChild(chips); sub.appendChild(cell); tb.appendChild(sub);
+      subCell.appendChild(chips); sub.appendChild(subCell); tb.appendChild(sub);
     }
   });
-  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+  t.appendChild(tb); w.appendChild(t);
+  return w;
+}
 
-  var xs=el("div","searchbar"); xs.style.marginTop="12px";
-  var clb=el("button","btn sm","Client list");
-  clb.addEventListener("click",function(){clientListFor(schedDate);});
-  xs.appendChild(clb);
-  var xb=el("button","btn sm","Export table");
-  xb.addEventListener("click",function(){
-    exportCsv("planning-"+schedDate,
-      ["Hour","Activity Calendar","Instructor","Title","Note","Duration","Participants","Capacity"],
-      day.map(function(x){return [x.time,x.category||"",instructorNames(x),x.title,
-        x.note||"",hhmm(x.duration||0),x.participants.length,x.capacity];}));
+/* Fourteen days at a glance: the same rows, day by day, so a week's shape is
+   visible without stepping through it. */
+function fortnight(){
+  var box=el("div");
+  var base=new Date(schedDate+"T12:00:00");
+  var empty=0;
+  for(var i=0;i<14;i++){
+    (function(off){
+      var d=new Date(base.getTime()+off*864e5), k=iso(d);
+      var rows=applyPlanFilter(DB.sessions.filter(function(x){return x.date===k;})
+        .sort(function(a,b){return a.time<b.time?-1:1;}));
+      if(!rows.length){ empty++; return; }
+      var h=el("div","day-h"); h.style.marginTop=off?"16px":"12px";
+      var t=el("h3",null,dowOf(k)+" "+dm(k));
+      h.appendChild(t);
+      h.appendChild(el("span","chip neutral",rows.length+" session"+(rows.length===1?"":"s")));
+      var go=el("button","btn sm","Open day"); go.style.marginLeft="auto";
+      go.addEventListener("click",function(){schedDate=k;planRange="day";renderSchedule();});
+      h.appendChild(go);
+      box.appendChild(h);
+      var save2=schedDate; schedDate=k;
+      box.appendChild(planTable(rows));
+      schedDate=save2;
+    })(i);
+  }
+  if(empty===14) box.appendChild(el("div","note",
+    "Nothing scheduled in the fortnight from "+dm(schedDate)+"."));
+  else if(empty) box.appendChild(el("div","note",
+    empty+" of the 14 days have nothing on them."));
+  return box;
+}
+
+/* Who is sleeping where. Beds come from bookings whose products carry
+   accommodation and nights, so this is read off the bookings rather than
+   kept as a second set of numbers that can drift. */
+function staysOn(dateStr){
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    (bk.lines||[]).forEach(function(l){
+      var p=product(l.productId);
+      if(!p||!p.accomId) return;
+      var nights=Number(l.nights)||Number(p.nights)||0;
+      if(nights<=0) return;
+      var from=bk.checkIn||bk.date;
+      if(!from) return;
+      var end=iso(new Date(new Date(from+"T12:00:00").getTime()+nights*864e5));
+      if(dateStr<from||dateStr>=end) return;
+      out.push({accomId:p.accomId,booking:bk,product:p,
+                pax:(Number(l.pax)||1)*(Number(l.qty)||1),from:from,to:end});
+    });
   });
-  xs.appendChild(xb); host.appendChild(xs);
+  return out;
+}
+function accomBoard(dateStr){
+  var box=el("div");
+  if(!DB.accommodations.length){
+    box.appendChild(el("div","note",
+      "No accommodation is set up. Add beds in the back office and put them on a product, and who is staying shows here."));
+    return box;
+  }
+  var stays=staysOn(dateStr);
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Accommodation","Capacity","Occupied","Free","Staying"].forEach(function(h,i){
+    tr.appendChild(el("th",(i>=1&&i<=3)?"r":null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  DB.accommodations.forEach(function(a){
+    var mine=stays.filter(function(s){return s.accomId===a.id;});
+    var used=mine.reduce(function(x,s){return x+s.pax;},0);
+    var cap=(Number(a.units)||0)*(Number(a.maxPax)||1);
+    var r=el("tr");
+    r.appendChild(el("td","strong",a.name));
+    r.appendChild(el("td","n r",String(cap)));
+    r.appendChild(el("td","n r",String(used)));
+    var free=el("td","n r",String(Math.max(0,cap-used)));
+    if(used>cap){ free.textContent="over by "+(used-cap); free.style.color="var(--crit)"; }
+    r.appendChild(free);
+    var who=el("td");
+    if(!mine.length) who.appendChild(el("span","muted","nobody"));
+    mine.forEach(function(s){
+      var ch=el("span","chip neutral",clientName(s.booking.clientId)+
+        (s.pax>1?" ×"+s.pax:""));
+      ch.style.cssText+=";margin:0 5px 4px 0;cursor:pointer";
+      ch.title="Until "+dm(s.to);
+      ch.addEventListener("click",function(){bookingForm(s.booking);});
+      who.appendChild(ch);
+    });
+    r.appendChild(who);
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t); box.appendChild(w);
+  box.appendChild(el("div","note",
+    "A guest occupies a bed from the booking date for as many nights as the product carries. Nothing is assigned to a particular room — this is the headcount against what you have."));
+  return box;
 }
 function clientListFor(dateStr){
   var day=DB.sessions.filter(function(x){return x.date===dateStr;})
