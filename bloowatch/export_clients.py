@@ -111,6 +111,19 @@ def build(count):
                         hours = None
                 rents = [r.get("unit_name") for r in (l.get("rents") or [])
                          if r.get("unit_name")]
+                # Who is on the water for this line, and it is per line rather
+                # than per order: oria group's four people are on the course,
+                # a fifth is on a single lesson and a sixth on the photo shoot.
+                # "P1 oria group" is Bloowatch's own placeholder for a seat
+                # nobody named, so it is kept as the name it is.
+                people = []
+                for c in (l.get("customers") or []):
+                    cc = c.get("customer") or {}
+                    nm = " ".join(x for x in ((cc.get("first_name") or "").strip(),
+                                              (cc.get("last_name") or "").strip())
+                                  if x).strip()
+                    if nm:
+                        people.append(nm)
                 lines.append({
                     "product": p.get("name") or p.get("title") or "",
                     "qty": l.get("quantity") or 1,
@@ -121,6 +134,7 @@ def build(count):
                     "date": sd, "time": st, "until": ed,
                     "hours": hours,
                     "units": rents,
+                    "people": people,
                     "promo": l.get("promo_code") or "",
                 })
             pays = []

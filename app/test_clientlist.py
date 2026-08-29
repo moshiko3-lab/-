@@ -110,10 +110,17 @@ def main():
         # a day with nothing says so in the right words
         pg.click('#p-board button:has-text("Activities")')
         pg.wait_for_timeout(900)
+        # Every activity goes, not just this test's own: a build made with a
+        # clients file carries a hundred real bookings, and "empty" has to mean
+        # empty. The hire stays, because the point is that it is not counted.
         pg.evaluate("""() => {
           const k = "shokogi.manager.v1";
           const d = JSON.parse(localStorage.getItem(k));
-          d.bookings = d.bookings.filter(b => b.id !== "bLesson");
+          const hire = new Set(d.products
+            .filter(p => p.ptype === "rental" || p.gearId)
+            .map(p => p.id));
+          d.bookings = d.bookings.filter(b =>
+            (b.lines || []).length && (b.lines || []).every(l => hire.has(l.productId)));
           localStorage.setItem(k, JSON.stringify(d));
         }""")
         pg.reload()
