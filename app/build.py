@@ -82,15 +82,56 @@ def check_runtime(path):
         pg.goto("file://" + os.path.abspath(path))
         pg.wait_for_timeout(2500)
         tabs = pg.query_selector_all("nav.tabs button")
-        # click through every screen; a render that throws only shows up here
-        for i in range(len(tabs)):
+        n = len(tabs)
+        dialogs = 0
+        # Clicking through the screens only proves they render. Most of the app
+        # lives in dialogs, and a missing function there stays invisible until
+        # somebody opens one -- which is how a deleted block shipped twice.
+        for i in range(n):
             pg.query_selector_all("nav.tabs button")[i].click()
             pg.wait_for_timeout(700)
-        n = len(tabs)
+            opened = 0
+            for btn in pg.query_selector_all("section:not([hidden]) button"):
+                if opened >= 4:
+                    break
+                try:
+                    label = (btn.inner_text() or "").strip().lower()
+                except Exception:
+                    continue
+                # openers only: nothing that saves, deletes or wipes
+                if not label or len(label) > 34:
+                    continue
+                if any(w in label for w in ("del", "wipe", "archive", "clear",
+                                            "restore", "export", "import",
+                                            "backup", "cancel", "remove")):
+                    continue
+                if not any(w in label for w in ("new", "add", "edit", "record",
+                                                "assign", "price", "docs",
+                                                "columns", "tides", "manifest",
+                                                "breakdown", "open", "client list")):
+                    continue
+                try:
+                    btn.click(timeout=2500)
+                    pg.wait_for_timeout(650)
+                    if not pg.get_attribute("#scrim", "hidden") is None:
+                        continue
+                    dialogs += 1
+                    opened += 1
+                    pg.keyboard.press("Escape")
+                    pg.wait_for_timeout(350)
+                    while pg.get_attribute("#scrim", "hidden") is None:
+                        pg.keyboard.press("Escape")
+                        pg.wait_for_timeout(250)
+                except Exception:
+                    try:
+                        pg.keyboard.press("Escape")
+                        pg.wait_for_timeout(250)
+                    except Exception:
+                        pass
         b.close()
     if errors:
         raise RuntimeError("the page throws at runtime:\n  " + "\n  ".join(errors[:6]))
-    return f"{n} screens render clean"
+    return f"{n} screens and {dialogs} dialogs render clean"
 
 
 def main():

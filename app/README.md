@@ -28,9 +28,10 @@ the rest of the app never touches storage directly.
 | --- | --- |
 | Today | Takings so far, sessions on the water, outstanding balances |
 | Planning | The day's table: hour, activity calendar, instructors, title, note, duration, participants, with counts for sessions, rental, accommodation and bookings. Filter by activity, instructor, level or how full a session is; choose which columns show |
-| Board | Sessions as blocks on an hourly timeline, grouped by activity or by instructor; drag one to another row or another hour. A side rail lists everyone booked that day who is not yet in a session — drag a name onto a block to seat them. Tide times sit above the grid |
+| Board | Sessions as blocks on an hourly timeline, in lanes so overlapping ones never hide each other. Drag a block to another lane or hour, or drag a name from the side rail onto a block to seat them. The tide is drawn as a curve across the hours |
+| Crew pay | What each instructor is owed for a period, worked out from the sessions taught and their fee group, with a breakdown per session |
 | Trips | A boat or van going out: departure, skipper, seats, and a manifest that flags who has no waiver on file |
-| Bookings | Products chosen from the catalogue rather than a dropdown, priced by tier, with discounts that keep the original price visible. Named participants with age, level and wetsuit size. Payments, deposits, balance, cancellation and refunds; search and filter by status or date |
+| Bookings | Sessions assigned from the booking, so a three-lesson course is three seats and the list says how many are still owed. Products chosen from the catalogue rather than a dropdown, priced by tier, with discounts that keep the original price visible. Named participants with age, level and wetsuit size. Payments, deposits, balance, cancellation and refunds; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend, documents and when they expire |
 | Catalog | Every product setting Bloowatch has, across four tabs: information, price, calendar, online sale. Eight product types, tiered pricing, deposits, tax, stock, weekdays and start hours, availability window, meeting spot. Search, filter and archive |
 | Gear | Each board and suit by name, with service dates, what is out and until when |
