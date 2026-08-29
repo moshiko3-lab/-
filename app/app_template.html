@@ -813,21 +813,177 @@ function csvText(headers,rows){
   return [headers.map(csvCell).join(",")]
     .concat(rows.map(function(r){return r.map(csvCell).join(",");})).join("\n");
 }
+/* ---------------------------- Excel ----------------------------
+   An .xlsx is a zip of XML parts, and writing one by hand is worth it: a
+   report that opens in Excel with its numbers as numbers is a report somebody
+   can sum, sort and send to the accountant, and it needs no library, no
+   network and no server -- all three of which this app does without.
+   Entries are stored rather than deflated: a few hundred rows of a day's
+   takings are small, and stored entries keep this to arithmetic. */
+var CRC_T=null;
+function crc32(bytes){
+  if(!CRC_T){
+    CRC_T=new Int32Array(256);
+    for(var n=0;n<256;n++){
+      var c=n;
+      for(var k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);
+      CRC_T[n]=c;
+    }
+  }
+  var crc=-1;
+  for(var i=0;i<bytes.length;i++) crc=(crc>>>8)^CRC_T[(crc^bytes[i])&0xFF];
+  return (crc^-1)>>>0;
+}
+function utf8(str){
+  var out=[],s=unescape(encodeURIComponent(String(str)));
+  for(var i=0;i<s.length;i++) out.push(s.charCodeAt(i)&0xFF);
+  return out;
+}
+function zipStore(files){
+  /* files: [{name, bytes}] -> one Uint8Array holding the archive */
+  var parts=[],central=[],offset=0;
+  function u16(n){ return [n&0xFF,(n>>8)&0xFF]; }
+  function u32(n){ return [n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>>24)&0xFF]; }
+  files.forEach(function(f){
+    var nm=utf8(f.name), crc=crc32(f.bytes), len=f.bytes.length;
+    var head=[].concat([0x50,0x4B,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(len),u32(len),u16(nm.length),u16(0),nm);
+    parts.push(head,f.bytes);
+    central.push([].concat([0x50,0x4B,0x01,0x02],u16(20),u16(20),u16(0),u16(0),
+      u16(0),u16(0),u32(crc),u32(len),u32(len),u16(nm.length),u16(0),u16(0),
+      u16(0),u16(0),u32(0),u32(offset),nm));
+    offset+=head.length+len;
+  });
+  var dir=[].concat.apply([],central);
+  var end=[].concat([0x50,0x4B,0x05,0x06],u16(0),u16(0),u16(files.length),
+    u16(files.length),u32(dir.length),u32(offset),u16(0));
+  var all=[].concat.apply([],parts).concat(dir,end);
+  return new Uint8Array(all);
+}
+function xmlEsc(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
+    /* Excel refuses a file carrying control characters */
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,"");
+}
+function colRef(i){
+  var s="";
+  i=i+1;
+  while(i>0){ var m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-m)/26); }
+  return s;
+}
+function sheetXml(headers,rows){
+  var out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<sheetData>';
+  function row(cells,r){
+    var s='<row r="'+r+'">';
+    cells.forEach(function(v,i){
+      var ref=colRef(i)+r;
+      var num = v!=null && v!=="" && typeof v!=="boolean" &&
+                isFinite(v) && String(v).trim()!=="" && !/^0\d/.test(String(v));
+      if(num) s+='<c r="'+ref+'"><v>'+Number(v)+'</v></c>';
+      else s+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+
+        xmlEsc(v)+'</t></is></c>';
+    });
+    return s+'</row>';
+  }
+  out+=row(headers,1);
+  rows.forEach(function(r,i){ out+=row(r,i+2); });
+  return out+'</sheetData></worksheet>';
+}
+function xlsxBytes(sheets){
+  var names=sheets.map(function(s,i){
+    /* Excel's own limits on a tab name */
+    var n=String(s.name||("Sheet"+(i+1))).replace(/[\\\/\?\*\[\]:]/g,"-").slice(0,31);
+    return n||("Sheet"+(i+1));
+  });
+  var files=[];
+  files.push({name:"[Content_Types].xml",bytes:utf8(
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    sheets.map(function(s,i){
+      return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+    }).join("")+'</Types>')});
+  files.push({name:"_rels/.rels",bytes:utf8(
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+    '</Relationships>')});
+  files.push({name:"xl/workbook.xml",bytes:utf8(
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '+
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+
+    names.map(function(n,i){
+      return '<sheet name="'+xmlEsc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';
+    }).join("")+'</sheets></workbook>')});
+  files.push({name:"xl/_rels/workbook.xml.rels",bytes:utf8(
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    sheets.map(function(s,i){
+      return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>';
+    }).join("")+'</Relationships>')});
+  sheets.forEach(function(s,i){
+    files.push({name:"xl/worksheets/sheet"+(i+1)+".xml",
+                bytes:utf8(sheetXml(s.headers||[],s.rows||[]))});
+  });
+  return zipStore(files);
+}
+/* Hand a file to the browser. On the published site this saves; inside a
+   sandboxed preview the download is blocked with no error, which is why the
+   text is always offered beside it rather than instead of it. */
+function saveFile(name,mime,data){
+  try{
+    var blob=new Blob([data],{type:mime});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url; a.download=name; a.style.display="none";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },800);
+    return true;
+  }catch(e){ return false; }
+}
+function exportBook(name,sheets){
+  saveFile(name+".xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xlsxBytes(sheets));
+  toast(name+".xlsx");
+}
 function exportCsv(name,headers,rows){
   if(!rows.length){ toast("Nothing to export."); return; }
   var text=csvText(headers,rows);
-  /* The viewer sandbox blocks downloads a page starts itself, so the file is
-     handed over as selectable text rather than a link that silently does
-     nothing. */
   var b=el("div");
-  b.appendChild(el("p",null,rows.length+" rows. Copy this and save it as "+name+".csv"));
+  b.appendChild(el("p",null,rows.length+" row"+(rows.length===1?"":"s")+
+    " and "+headers.length+" columns."));
+  var note=el("div","hint",
+    "The spreadsheet opens straight in Excel or Numbers. The CSV is the same "+
+    "data as text, with the mark Excel needs to read accents properly.");
+  b.appendChild(note);
+  /* the text stays available: a preview that blocks downloads gives no error,
+     it simply does nothing, and then there has to be another way out */
   var ta=el("textarea"); ta.value=text; ta.setAttribute("aria-label","CSV data");
-  ta.style.minHeight="230px"; ta.style.fontFamily="'IBM Plex Mono',monospace";
+  ta.style.minHeight="190px"; ta.style.fontFamily="'IBM Plex Mono',monospace";
   ta.style.fontSize="11.5px"; ta.style.whiteSpace="pre";
-  b.appendChild(field("CSV",ta));
+  var more=el("details");
+  var sum=el("summary",null,"…or copy it as text");
+  sum.style.cssText="cursor:pointer;font-size:12.5px;color:var(--text-3);margin:10px 0 6px";
+  more.appendChild(sum);
+  more.appendChild(ta);
+  b.appendChild(more);
   openModal("Export "+name,b,[
     {label:"Close",on:closeModal},
-    {label:"Select all",cls:"primary",on:function(){ta.focus();ta.select();toast("Now copy it");}}
+    {label:"CSV",on:function(){
+      /* the BOM is what makes Excel read it as UTF-8 rather than guessing */
+      saveFile(name+".csv","text/csv;charset=utf-8",
+               new Uint8Array([0xEF,0xBB,0xBF].concat(utf8(text))));
+      toast(name+".csv");
+    }},
+    {label:"Excel",cls:"primary",on:function(){
+      exportBook(name,[{name:name.slice(0,31),headers:headers,rows:rows}]);
+    }}
   ]);
 }
 
@@ -7096,6 +7252,100 @@ function closingFor(dateStr){
   });
   return {date:dateStr,total:total,count:count,byMethod:byMethod,byKind:byKind};
 }
+/* The whole day in one workbook, a sheet at a time: what it came to, how it
+   was paid, what was sold, who was in the water, what went out on hire and
+   what moved through the drawer. One file is what gets sent to an accountant;
+   five downloads is what gets half sent. */
+function dayBook(dateStr){
+  var c=closingFor(dateStr);
+  var L=(typeof registerLine==="function")?registerLine(dateStr):null;
+  var sheets=[];
+
+  var sum=[["Date",dateStr],["Day",dowOf(dateStr)],
+           ["Takings",round2(c.total)],["Payments recorded",c.count]];
+  if(L){
+    sum.push(["Register",L.status],["Opened by",L.staff||""],
+      ["Starting cash",round2(L.starting)],["Cash payments",round2(L.cashPayments)],
+      ["Cash refunds",round2(L.cashRefunds)],["Paid in",round2(L.paidIn)],
+      ["Paid out",round2(L.paidOut)],["Expected in the drawer",round2(L.expected)],
+      ["Counted",L.actual==null?"":round2(L.actual)],
+      ["Difference",L.difference==null?"":round2(L.difference)]);
+  }
+  Object.keys(c.byMethod).forEach(function(m){
+    sum.push(["By method · "+m,round2(c.byMethod[m])]);});
+  Object.keys(c.byKind).forEach(function(k){
+    sum.push(["By activity · "+kindLabel(k),round2(c.byKind[k])]);});
+  sheets.push({name:"Summary",headers:["Item","Value"],rows:sum});
+
+  var pays=[];
+  DB.bookings.forEach(function(bk){
+    (bk.payments||[]).forEach(function(p){
+      if((p.date||bk.date)!==dateStr) return;
+      pays.push([bk.ref||bk.id,clientName(bk.clientId),"Payment",p.method||"",
+                 round2(p.amount),p.note||""]);
+    });
+    (bk.refunds||[]).forEach(function(r){
+      if((r.date||bk.date)!==dateStr) return;
+      pays.push([bk.ref||bk.id,clientName(bk.clientId),"Refund",r.method||"",
+                 -round2(r.amount),r.reason||r.note||""]);
+    });
+  });
+  sheets.push({name:"Payments",
+    headers:["Booking","Client","Kind","Method","Amount","Note"],rows:pays});
+
+  var sold=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.date!==dateStr || bk.status==="cancelled") return;
+    (bk.lines||[]).forEach(function(l){
+      var p=product(l.productId);
+      sold.push([bk.ref||bk.id,clientName(bk.clientId),p?p.name:"Item",
+                 p?(p.category||""):"",Number(l.qty)||0,Number(l.pax)||1,
+                 round2(l.price),round2((Number(l.price)||0)*(Number(l.qty)||0))]);
+    });
+  });
+  sheets.push({name:"Sold",headers:["Booking","Client","Product","Activity",
+    "Qty","People","Unit price","Line total"],rows:sold});
+
+  var ses=[];
+  DB.sessions.filter(function(x){return x.date===dateStr;})
+    .sort(function(a,b){return a.time<b.time?-1:1;})
+    .forEach(function(x){
+      ses.push([x.time,x.title,x.category||"",instructorNames(x),x.spot||"",
+                x.duration||0,x.participants.length,x.capacity||0,
+                x.participants.map(seatName).join(", ")]);
+    });
+  sheets.push({name:"Sessions",headers:["Time","Session","Activity","Instructor",
+    "Spot","Minutes","People","Capacity","Who"],rows:ses});
+
+  var hires=[];
+  DB.bookings.forEach(function(bk){
+    (bk.lines||[]).forEach(function(l){
+      var p=product(l.productId);
+      if(!p||!(p.gearId||p.ptype==="rental")) return;
+      if((l.wanted||bk.date)!==dateStr) return;
+      var d=hireDue(l,bk);
+      hires.push([clientName(bk.clientId),p.name,l.unitName||"",
+                  l.time||"",Number(l.hours)||0,
+                  d.due.toTimeString().slice(0,5),l.returnedAt?"back":"out",
+                  round2(l.price)]);
+    });
+  });
+  sheets.push({name:"Hires",headers:["Client","Product","Board","Out at",
+    "Hours","Due back","State","Price"],rows:hires});
+
+  var moves=[];
+  (DB.cash||[]).filter(function(m){return m.date===dateStr;}).forEach(function(m){
+    var o=opOf(moveOp(m));
+    moves.push([m.time||"",o?o.l:moveOp(m),moveDir(m)==="in"?"in":"out",
+                round2(m.amount),m.reason||m.note||"",staffName(m.staffId)]);
+  });
+  sheets.push({name:"Drawer",headers:["Time","Operation","Direction","Amount",
+    "Reason","Staff"],rows:moves});
+
+  return sheets;
+}
+function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+
 function renderRegister(){
   var host=document.getElementById("p-register"); host.textContent="";
   secHeader(host,"Day closing",null,null,null);
@@ -7119,6 +7369,23 @@ function renderRegister(){
 
   var c=closingFor(regDate);
   registerStrip(host,regDate,c);
+
+  /* the whole day as one spreadsheet, which is what gets sent on */
+  var xbar=el("div","searchbar");
+  var xb=el("button","btn sm primary","Export the day to Excel");
+  xb.id="btn-day-xlsx";
+  xb.addEventListener("click",function(){
+    exportBook("day-closing-"+regDate,dayBook(regDate));
+  });
+  xbar.appendChild(xb);
+  var pb=el("button","btn sm","Print");
+  pb.addEventListener("click",function(){window.print();});
+  xbar.appendChild(pb);
+  xbar.appendChild(el("span","hint",
+    "Summary, payments, what was sold, the sessions, the hires and the drawer "+
+    "— one sheet each, one file."));
+  host.appendChild(xbar);
+
   var k=el("div","kpis");
   [{l:"Takings",v:"$"+money(c.total,2),m:dowOf(regDate)+", "+dm(regDate)},
    {l:"Payments",v:String(c.count),m:c.count?("$"+money(c.total/c.count,2)+" average"):"nothing recorded"}]
