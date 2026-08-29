@@ -62,9 +62,27 @@ def main():
         check("confirm is refused while empty",
               pg.locator('.pos-foot button:has-text("Confirm")').is_disabled())
 
+        # a tile for something that needs no configuring: a rental opens its
+        # own pane, which is a different flow tested further down
+        simple = None
+        for i in range(pg.locator(".pos-tile").count()):
+            pg.locator(".pos-tile").nth(i).click()
+            pg.wait_for_timeout(500)
+            if pg.locator(".cfg-body").count() == 0:
+                simple = i
+                break
+            # back out of the pane and clear the line it added
+            pg.click('.cfg-foot button:has-text("Add another product")')
+            pg.wait_for_timeout(400)
+            pg.locator(".pos-line .del").first.click()
+            pg.wait_for_timeout(300)
+        check("the till has a product that needs no configuring", simple is not None)
+        pg.locator(".pos-line .del").first.click()
+        pg.wait_for_timeout(400)
+
         # the price a tile shows must be the price pressing it charges
-        tile_price = pg.locator(".pos-tile .px").first.inner_text().strip()
-        pg.locator(".pos-tile").first.click()
+        tile_price = pg.locator(".pos-tile .px").nth(simple).inner_text().strip()
+        pg.locator(".pos-tile").nth(simple).click()
         pg.wait_for_timeout(600)
         line_price = pg.locator(".pos-line .amt").first.inner_text().strip()
         check("the tile quotes what it charges",
@@ -72,7 +90,7 @@ def main():
               f"tile {tile_price}, line {line_price}")
 
         # a second press of the same tile is a quantity of two, as a till behaves
-        pg.locator(".pos-tile").first.click()
+        pg.locator(".pos-tile").nth(simple).click()
         pg.wait_for_timeout(600)
         check("pressing the same tile again makes it two",
               pg.locator(".pos-line").count() == 1 and
@@ -80,9 +98,13 @@ def main():
               pg.inner_text(".pos-lines")[:160].replace("\n", " / "))
 
         # a different tile is a second line
-        pg.locator(".pos-tile").nth(2).click()
-        pg.wait_for_timeout(600)
+        other = 0 if simple != 0 else 1
+        pg.locator(".pos-tile").nth(other).click()
+        pg.wait_for_timeout(700)
         check("a different tile is a second line", pg.locator(".pos-line").count() == 2)
+        if pg.locator(".cfg-body").count():
+            pg.click('.cfg-foot button:has-text("Add another product")')
+            pg.wait_for_timeout(500)
 
         # the stepper and the remove button
         pg.locator('.pos-line .qty button:has-text("−")').first.click()
@@ -115,9 +137,10 @@ def main():
               "nuria campos" in low(pg, ".pos-cust"), pg.inner_text(".pos-cust"))
 
         pg.locator('.pos-foot button:has-text("Confirm")').click()
-        pg.wait_for_timeout(1100)
+        pg.wait_for_timeout(1200)
         check("the payment dialog follows the confirm",
-              "payment" in low(pg, "#modal"), low(pg, "#modal")[:150])
+              "payment" in low(pg, "#modal"),
+              "toast=" + (pg.inner_text("#toast") or ""))
         pg.click('#modal button:has-text("Record payment")')
         pg.wait_for_timeout(900)
 
@@ -185,15 +208,26 @@ def main():
             cfg = low(pg, ".cfg-body")
             check("the course pane asks for participants", "participants" in cfg, cfg[:200])
             check("the course pane counts its sessions", "sessions (0 of" in cfg, cfg[:250])
-            check("the panel says sessions are missing",
-                  "please select session" in low(pg, ".pos-lines"),
+            # sessions can wait, so the panel counts them rather than blocking
+            check("the panel says sessions are still to schedule",
+                  "to schedule" in low(pg, ".pos-lines"),
                   pg.inner_text(".pos-lines")[:200])
             cards = pg.locator(".cfg-ses")
             if cards.count():
                 cards.first.click()
                 pg.wait_for_timeout(800)
                 check("choosing a session counts up",
-                      "(1 of" in low(pg, ".pos-lines"), pg.inner_text(".pos-lines")[:200])
+                      "1 of" in low(pg, ".pos-lines"), pg.inner_text(".pos-lines")[:200])
+
+            # and the booking closes without them, because the school schedules later
+            pg.click('.cfg-foot button:has-text("Add another product")')
+            pg.wait_for_timeout(600)
+            pg.locator('.pos-foot button:has-text("Confirm")').click()
+            pg.wait_for_timeout(1200)
+            check("a course with sessions unscheduled still confirms",
+                  "payment" in low(pg, "#modal") or
+                  "booking" in (pg.inner_text("#toast") or "").lower(),
+                  "toast=" + (pg.inner_text("#toast") or ""))
 
         check("no uncaught errors", not errs, "; ".join(errs[:3]))
         b.close()

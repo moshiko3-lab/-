@@ -171,10 +171,46 @@ def check_runtime(path):
                         pg.wait_for_timeout(250)
                     except Exception:
                         pass
+        # Row menus are the one place a missing function hides: the name is
+        # only reached when somebody opens the menu and picks the item, so it
+        # parses fine and throws in front of a user. cancelForm did exactly
+        # that. Open every kebab and take every entry that is not destructive.
+        menus = 0
+        for i in range(n):
+            pg.query_selector_all("#tabs button")[i].click()
+            pg.wait_for_timeout(600)
+            kebabs = pg.query_selector_all("section:not([hidden]) .kebab")
+            for kb in kebabs[:3]:
+                try:
+                    kb.click(timeout=2000)
+                    pg.wait_for_timeout(300)
+                except Exception:
+                    continue
+                items = pg.query_selector_all(".rowmenu button:not(.danger)")
+                for j in range(len(items)):
+                    live = pg.query_selector_all(".rowmenu button:not(.danger)")
+                    if j >= len(live):
+                        break
+                    try:
+                        live[j].click(timeout=2000)
+                        pg.wait_for_timeout(450)
+                        menus += 1
+                    except Exception:
+                        pass
+                    for _ in range(3):
+                        pg.keyboard.press("Escape")
+                        pg.wait_for_timeout(200)
+                    try:
+                        kb.click(timeout=1500)
+                        pg.wait_for_timeout(250)
+                    except Exception:
+                        break
+                pg.keyboard.press("Escape")
+                pg.wait_for_timeout(200)
         b.close()
     if errors:
         raise RuntimeError("the page throws at runtime:\n  " + "\n  ".join(errors[:6]))
-    return f"{n} screens and {dialogs} dialogs render clean"
+    return f"{n} screens, {dialogs} dialogs and {menus} menu actions render clean"
 
 
 def main():
@@ -194,12 +230,19 @@ def main():
         return 1
     with open(a.out, "w", encoding="utf-8") as f:
         f.write(html)
+    names = subprocess.run(
+        [sys.executable, os.path.join(HERE, "check_names.py"), a.out],
+        capture_output=True, text=True)
+    if names.returncode != 0:
+        print("error: " + (names.stderr or names.stdout).strip(), file=sys.stderr)
+        return 1
     try:
         runtime = check_minisite(a.out) if a.minisite else check_runtime(a.out)
     except RuntimeError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
-    print(f"wrote {a.out} ({len(html)//1024} KB) — {note}, {runtime}")
+    print(f"wrote {a.out} ({len(html)//1024} KB) — {note}, "
+          f"{names.stdout.strip()}, {runtime}")
     return 0
 
 

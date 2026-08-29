@@ -729,6 +729,145 @@ function exportCsv(name,headers,rows){
 }
 
 /* ============================ clients ============================ */
+/* ============================ the client card ============================
+   Everything about one customer in one place: what they have bought, what is
+   still owed, which sessions they are in, and what is on file for them. The
+   edit form asks for their details; this answers "who is this person". */
+function clientCard(c){
+  var mine=DB.bookings.filter(function(b){return b.clientId===c.id;})
+    .sort(function(a,b){return a.date<b.date?1:-1;});
+  var spend=mine.reduce(function(a,b){
+    return a+(b.status==="cancelled"?0:bookingTotal(b));},0);
+  var owed=mine.reduce(function(a,b){return a+Math.max(0,bookingDue(b));},0);
+
+  var b=el("div");
+  var head=el("div","tot"); head.style.marginBottom="12px";
+  head.appendChild(el("span","lab",[c.phone,c.email,c.country]
+    .filter(Boolean).join(" · ")||"no contact details"));
+  b.appendChild(head);
+
+  var k=el("div","kpis"); k.style.marginBottom="14px";
+  [{l:"Bookings",v:String(mine.length),m:mine.length?dm(mine[0].date)+" last":"none yet"},
+   {l:"Lifetime spend",v:sym0()+money(spend,0),m:"cancellations excluded"},
+   {l:"Outstanding",v:sym0()+money(owed,0),m:owed>0.004?"still to collect":"nothing owed"}]
+  .forEach(function(it){
+    var p=el("div","panel kpi");
+    p.appendChild(el("div","eyebrow",it.l));
+    p.appendChild(el("span","val mono",it.v));
+    p.appendChild(el("div","meta",it.m));
+    k.appendChild(p);
+  });
+  b.appendChild(k);
+
+  /* ---- everything they have bought, line by line ---- */
+  var lh=el("div","lines-h"); lh.appendChild(el("h4",null,"Products bought"));
+  b.appendChild(lh);
+  var lines=[];
+  mine.forEach(function(bk){
+    (bk.lines||[]).forEach(function(l){ lines.push({bk:bk,l:l}); });
+  });
+  if(!lines.length){
+    b.appendChild(el("div","note","Nothing bought yet."));
+  } else {
+    var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+    ["Date","Product","Qty","Amount","Sessions","Booking"].forEach(function(h,i){
+      tr.appendChild(el("th",(i===2||i===3)?"r":null,h));});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el("tbody");
+    lines.forEach(function(x){
+      var p=product(x.l.productId);
+      var r=el("tr");
+      if(x.bk.status==="cancelled") r.style.opacity=".55";
+      r.appendChild(el("td",null,dm(x.bk.date)));
+      var nm=el("td","strong",p?p.name:"(deleted product)");
+      if(x.l.unitName){
+        nm.appendChild(document.createTextNode(" "));
+        nm.appendChild(el("span","chip neutral",x.l.unitName));
+      }
+      r.appendChild(nm);
+      r.appendChild(el("td","n r",String(x.l.qty||1)));
+      r.appendChild(el("td","n r strong",
+        sym0()+money((Number(x.l.price)||0)*(Number(x.l.qty)||0),2)));
+      var owedN=sessionsOwed(x.l);
+      var sc=el("td");
+      if(!owedN) sc.appendChild(el("span","muted","—"));
+      else{
+        var got=assignedCount(x.bk,x.l);
+        sc.appendChild(el("span","chip "+(got>=owedN?"ok":"warnc"),got+" / "+owedN));
+      }
+      r.appendChild(sc);
+      var bc=el("td");
+      var link=el("button","btn sm",bookingCode(x.bk));
+      link.addEventListener("click",function(){
+        closeModal(); show("bookings"); posStart(x.bk);});
+      bc.appendChild(link); r.appendChild(bc);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  }
+
+  /* ---- the sessions they are actually in ---- */
+  var refs=[seatRef("client",c.id)];
+  mine.forEach(function(bk){
+    (bk.participants||[]).forEach(function(pp){
+      if(pp.pid) refs.push(seatRef("participant",bk.id,pp.pid));
+    });
+  });
+  var inSessions=DB.sessions.filter(function(se){
+    return se.participants.some(function(r){return refs.indexOf(r)>=0;});
+  }).sort(function(a,b){return (a.date+a.time)<(b.date+b.time)?-1:1;});
+  var sh=el("div","lines-h"); sh.appendChild(el("h4",null,"Sessions"));
+  b.appendChild(sh);
+  if(!inSessions.length){
+    b.appendChild(el("div","note",
+      "Not in any session yet. Assign them from the planning, or from the "+
+      "booking that bought the lessons."));
+  } else {
+    var chips=el("div");
+    chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap";
+    inSessions.forEach(function(se){
+      var ch=el("span","chip "+(se.date<todayISO()?"neutral":"pink"),
+        dm(se.date)+" "+se.time+" · "+se.title+
+        (staffIdsOf(se).length?(" · "+instructorNames(se)):""));
+      ch.style.cursor="pointer";
+      ch.addEventListener("click",function(){ closeModal(); sessionForm(se); });
+      chips.appendChild(ch);
+    });
+    b.appendChild(chips);
+  }
+
+  /* ---- what is on file ---- */
+  var docs=docsFor(c.id);
+  var dh=el("div","lines-h"); dh.appendChild(el("h4",null,"Documents"));
+  b.appendChild(dh);
+  if(!docs.length){
+    var warn=el("div","note","Nothing on file — no waiver.");
+    warn.style.borderLeftColor="var(--crit)";
+    b.appendChild(warn);
+  } else {
+    docs.forEach(function(d){
+      var r=el("div","tot"); r.style.marginTop="4px";
+      r.appendChild(el("span","lab",d.kind||"Document"));
+      var v=el("span","v",d.expires?("expires "+dm(d.expires)):"no expiry");
+      if(d.expires && d.expires<todayISO()) v.style.color="var(--crit)";
+      r.appendChild(v);
+      b.appendChild(r);
+    });
+  }
+  if(c.notes) b.appendChild(el("div","note",c.notes));
+
+  openModal(c.name,b,[
+    {label:"Close",on:closeModal},
+    {label:"Edit details",on:function(){ closeModal(); clientForm(c); }},
+    {label:"New booking",cls:"primary",on:function(){
+      closeModal();
+      posStart(null);
+      posBooking.clientId=c.id;
+      renderBookings();
+    }}
+  ]);
+}
+
 function clientForm(existing){
   var c=existing||{name:"",email:"",phone:"",country:"",notes:""};
   var b=el("div");
@@ -807,7 +946,13 @@ function renderClients(){
     var bk=DB.bookings.filter(function(b){return b.clientId===c.id;});
     var spent=bk.reduce(function(a,b){return a+bookingPaid(b);},0);
     var r=el("tr");
-    r.appendChild(el("td","strong",c.name));
+    var nc=el("td","strong");
+    var nb=el("button",null,c.name);
+    nb.style.cssText="appearance:none;border:0;background:none;font:inherit;"+
+      "font-weight:700;color:var(--accent);cursor:pointer;padding:0;text-align:left";
+    nb.addEventListener("click",function(){clientCard(c);});
+    nc.appendChild(nb);
+    r.appendChild(nc);
     var contact=el("td","muted",[c.email,c.phone].filter(Boolean).join(" · ")||"—");
     r.appendChild(contact);
     r.appendChild(el("td","muted",c.country||"—"));
@@ -825,7 +970,8 @@ function renderClients(){
     r.appendChild(el("td","n r",String(bk.length)));
     r.appendChild(el("td","n r",spent?"$"+money(spent,0):"—"));
     var act=el("td"),box=el("div","rowbtns");
-    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){clientForm(c);});
+    var e=el("button","btn sm","Card");
+    e.addEventListener("click",function(){clientCard(c);});
     var dv=el("button","btn sm","Docs");
     dv.addEventListener("click",function(){clientDocsView(c);});
     var d=el("button","btn sm danger","Delete");
@@ -2308,7 +2454,7 @@ function planTable(day){
         if(si.clientId){
           ch.style.cursor="pointer"; ch.title="Open client";
           ch.addEventListener("click",function(){
-            var c=by(si.clientId,DB.clients); if(c) clientForm(c);});
+            var c=by(si.clientId,DB.clients); if(c) clientCard(c);});
         }
         chips.appendChild(ch);
       });
@@ -2863,6 +3009,23 @@ function sessionInRow(x,row){
   }
   return (x.category||"")===row.key;
 }
+/* what their row menu offers against a booking */
+function clientRowMenu(x){
+  var bk=x.bookings[0];
+  return [
+    {l:"Open booking",on:function(){show("bookings");posStart(bk);}},
+    {l:"Add new booking",on:function(){posStart(null);}},
+    {l:"Charge",on:function(){payForm(bk);}},
+    {l:"Refund",on:function(){cancelBookingForm(bk);}},
+    {l:"Cancel booking",danger:true,on:function(){cancelBookingForm(bk);}},
+    {l:"Delete booking",danger:true,on:function(){
+      confirmDelete("this booking",function(){
+        DB.bookings=DB.bookings.filter(function(y){return y.id!==bk.id;});
+        save();render();toast("Booking deleted");
+      });}}
+  ];
+}
+
 function unassignedOn(dateStr){
   /* everyone named on a booking for that day who is not yet in a session */
   var seated={};
@@ -2875,50 +3038,129 @@ function unassignedOn(dateStr){
     if(bk.status==="cancelled" || bk.date!==dateStr) return;
     var items=(bk.lines||[]).map(function(l){
       var p=product(l.productId); return p?p.name:"";}).filter(Boolean);
+    /* a dot per activity on the booking, and how many sessions it bought --
+       both of which their list shows against the name */
+    var colours=[],seen={};
+    (bk.lines||[]).forEach(function(l){
+      var p=product(l.productId); if(!p) return;
+      var c=posTileColour(p);
+      if(!seen[c]){ seen[c]=1; colours.push(c); }
+    });
+    var owed=(bk.lines||[]).reduce(function(a,l){return a+sessionsOwed(l);},0);
+    var pax=bookingPax(bk);
     var named=(bk.participants||[]).filter(function(pp){return pp.pid;});
     if(named.length){
       named.forEach(function(pp){
         var ref=seatRef("participant",bk.id,pp.pid);
         if(seated[ref]) return;
         out.push({ref:ref,name:pp.name,clientId:pp.clientId||"",items:items,
-          level:pp.level,wetsuit:pp.wetsuit});
+          level:pp.level,wetsuit:pp.wetsuit,
+          colours:colours,owed:owed,pax:pax,bookings:[bk]});
       });
     } else if(bk.clientId){
       /* nobody named, so the booking stands for the client who made it */
       var cref=seatRef("client",bk.clientId);
       if(!seated[cref] && !out.some(function(o){return o.ref===cref;}))
-        out.push({ref:cref,name:clientName(bk.clientId),clientId:bk.clientId,items:items});
+        out.push({ref:cref,name:clientName(bk.clientId),clientId:bk.clientId,
+          items:items,colours:colours,owed:owed,pax:pax,bookings:[bk]});
     }
   });
   return out;
 }
+var clientListQ="", clientListMode="customer";
+/* Their people button opens this: everyone who has booked, with the colour of
+   what they booked, how many of them are coming, and the row menu that acts on
+   the booking. Dragging a name onto a session is how it gets assigned. */
 function assignRail(dateStr,onChange){
   var pending=unassignedOn(dateStr);
   var rail=el("div","panel");
-  rail.style.cssText="padding:0;overflow:hidden;align-self:start;position:sticky;top:96px";
+  rail.style.cssText="padding:0;overflow:hidden;align-self:start;position:sticky;"+
+    "top:calc(var(--topbar) + 14px);max-height:calc(100vh - var(--topbar) - 40px);"+
+    "display:flex;flex-direction:column";
   var h=el("div","day-h");
-  h.appendChild(el("h3",null,"To assign"));
+  h.appendChild(el("h3",null,"Client list"));
   h.appendChild(el("span","c",String(pending.length)));
   rail.appendChild(h);
+
+  var sb=el("div");
+  sb.style.cssText="padding:10px 12px 4px;border-bottom:1px solid var(--line-soft)";
+  var q=input("search",clientListQ,{placeholder:"Search"});
+  q.style.cssText="width:100%;padding:7px 10px;border-radius:8px;font:inherit;"+
+    "font-size:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--text)";
+  q.addEventListener("input",function(){clientListQ=q.value;renderBoard();});
+  sb.appendChild(q);
+  var modes=el("div");
+  modes.style.cssText="display:flex;gap:12px;margin-top:7px";
+  [["customer","Search customer"],["participant","Search participants"]]
+  .forEach(function(m){
+    var lab=el("label");
+    lab.style.cssText="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer";
+    var r=el("input"); r.type="radio"; r.name="clq"; r.style.width="auto";
+    r.checked=clientListMode===m[0];
+    r.addEventListener("change",function(){clientListMode=m[0];renderBoard();});
+    lab.appendChild(r); lab.appendChild(el("span",null,m[1]));
+    modes.appendChild(lab);
+  });
+  sb.appendChild(modes);
+  rail.appendChild(sb);
+
+  var body=el("div");
+  body.style.cssText="overflow-y:auto;flex:1";
+  rail.appendChild(body);
+
+  var term=clientListQ.trim().toLowerCase();
+  pending=pending.filter(function(x){
+    if(!term) return true;
+    var who=clientListMode==="customer"
+      ? [x.name,(by(x.clientId,DB.clients)||{}).phone||""].join(" ")
+      : x.name;
+    return who.toLowerCase().indexOf(term)>=0;
+  });
+
   if(!pending.length){
     var e=el("div","hint",
-      DB.bookings.some(function(b){return b.date===dateStr;})
-        ? "Everyone booked today is in a session."
-        : "Nobody has booked for this day yet.");
+      term ? "No result found."
+        : (DB.bookings.some(function(b){return b.date===dateStr;})
+          ? "Everyone booked today is in a session."
+          : "Nobody has booked for this day yet."));
     e.style.padding="14px 16px";
-    rail.appendChild(e);
+    body.appendChild(e);
     return rail;
   }
   var note=el("div","hint","Drag a name onto a session to put them in it.");
   note.style.padding="10px 16px 4px";
-  rail.appendChild(note);
+  body.appendChild(note);
   pending.forEach(function(x){
     var card=el("div");
     card.style.cssText="margin:8px 12px;padding:9px 11px;border:1px solid var(--line);"+
       "border-radius:9px;background:var(--panel-2);cursor:grab;font-size:13px";
     card.style.touchAction="none";
     card.dataset.seatRef=x.ref;
-    card.appendChild(el("div",null,x.name||"—")).style.fontWeight="600";
+    var top=el("div");
+    top.style.cssText="display:flex;align-items:center;gap:6px";
+    var nm=el("div",null,x.name||"—");
+    nm.style.cssText="font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;"+
+      "white-space:nowrap";
+    top.appendChild(nm);
+    /* a dot per activity booked, as their list shows */
+    (x.colours||[]).slice(0,4).forEach(function(c){
+      var d=el("span");
+      d.style.cssText="width:9px;height:9px;border-radius:50%;flex:none;background:"+c;
+      top.appendChild(d);
+    });
+    if(x.bookings&&x.bookings.length){
+      top.appendChild(rowMenu(clientRowMenu(x)));
+    }
+    card.appendChild(top);
+    /* how many are coming on that booking, which is the count they show */
+    var cnt=el("div","hint");
+    cnt.style.cssText="margin-top:3px;display:flex;align-items:center;gap:5px";
+    cnt.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">'+
+      '<circle cx="12" cy="7.5" r="3.6"/>'+
+      '<path d="M4.5 21c0-4.1 3.4-6.8 7.5-6.8s7.5 2.7 7.5 6.8z"/></svg>';
+    cnt.appendChild(el("span",null,String(x.pax||1)+
+      (x.owed?("  ·  "+x.owed+" session"+(x.owed===1?"":"s")+" booked"):"")));
+    card.appendChild(cnt);
     var sub=[];
     if(x.level) sub.push(x.level);
     if(x.wetsuit) sub.push("wetsuit "+x.wetsuit);
@@ -3002,11 +3244,30 @@ function laneRows(dayISO){
       out.push({row:row,lane:0,items:[],first:true});
       return;
     }
-    /* One lane per session, not one per group. Theirs lists SURF PACK six
-       times on a busy Friday because six SURF PACK sessions ran -- each with
-       its own instructor, its own client and its own headcount. Packing the
-       non-overlapping ones onto one line would hide exactly that. */
-    items.forEach(function(x,i){ out.push({row:row,lane:i,items:[x],first:i===0}); });
+    /* Two different answers, because their two views ask different questions.
+       Grouped by activity, a lane is a session: SURF PACK shows six times on a
+       busy Friday because six of them ran, each with its own instructor and
+       headcount, and packing them onto one line would hide exactly that.
+       Grouped by staff, a lane is a person -- their whole day on one line --
+       and a second line only appears when they are double-booked. */
+    if(boardGroup!=="staff"){
+      items.forEach(function(x,i){ out.push({row:row,lane:i,items:[x],first:i===0}); });
+      return;
+    }
+    var lanes=[];
+    items.forEach(function(x){
+      var st=minsOf(x.time), en=st+Math.max(15,x.duration||60);
+      var placed=false;
+      for(var i=0;i<lanes.length;i++){
+        var clash=lanes[i].some(function(y){
+          var ys=minsOf(y.time), ye=ys+Math.max(15,y.duration||60);
+          return st<ye && ys<en;
+        });
+        if(!clash){ lanes[i].push(x); placed=true; break; }
+      }
+      if(!placed) lanes.push([x]);
+    });
+    lanes.forEach(function(l,i){ out.push({row:row,lane:i,items:l,first:i===0}); });
   });
   return out;
 }
@@ -3229,6 +3490,8 @@ function boardDay(dayISO){
     /* On a seven-day board empty activity lanes are noise -- but an empty
        instructor lane is the whole point: it is where you drop the session. */
     if(boardSpan>1 && !rec.items.length && boardGroup!=="staff") return;
+    /* a second lane for a double-booked person only when they are */
+    if(boardGroup==="staff" && !rec.first && !rec.items.length) return;
     var r=el("div");
     r.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
       "border-bottom:1px solid var(--line-soft);min-height:26px";
@@ -3245,13 +3508,15 @@ function boardDay(dayISO){
     lab.appendChild(dot);
     /* the title names the session, but a drag rewrites the group -- so the
        group has to stay legible or you cannot see what you are dropping into */
-    var title=rec.items.length?(rec.items[0].title||rec.row.label):rec.row.label;
+    var title = boardGroup==="staff" ? rec.row.label
+      : (rec.items.length?(rec.items[0].title||rec.row.label):rec.row.label);
     var box=el("div");
     box.style.cssText="overflow:hidden;min-width:0";
     var lt=el("div",null,title);
     lt.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
     box.appendChild(lt);
-    if(rec.items.length && rec.row.label && rec.row.label!==title){
+    if(boardGroup!=="staff" && rec.items.length && rec.row.label &&
+       rec.row.label!==title){
       var gl=el("div",null,rec.row.label);
       gl.style.cssText="font-size:10px;font-weight:500;color:var(--text-3);"+
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
@@ -4384,6 +4649,10 @@ function payForm(bk){
 }
 
 var bkView="list";
+var bkFilter={q:"",status:"all",from:"",to:""};
+/* assigned from inside renderBookings; under "use strict" an undeclared
+   assignment throws rather than quietly making a global */
+var box2Invoice=null, box2Cancel=null;
 /* ============================ the till ============================
    Their new booking is not a dialog with an "add product" button behind it: it
    is a whole screen laid out like a till. Categories across the top, every
@@ -4461,10 +4730,13 @@ function lineNeeds(l){
   if(sessionsOwed(l)>0) return "sessions";
   return null;
 }
+/* A unit has to be picked -- a hire with no board is not a hire. Sessions do
+   not: the school takes the booking at the counter and puts the lessons in the
+   diary later, so an unscheduled course is a normal state, not an error. The
+   bookings list carries the "N to assign" chip until it is done. */
 function lineReady(l){
   var need=lineNeeds(l);
   if(need==="unit") return !!l.unitId;
-  if(need==="sessions") return (l.sessionIds||[]).length>=sessionsOwed(l);
   return true;
 }
 function lineSummary(l){
@@ -4472,7 +4744,8 @@ function lineSummary(l){
   if(need==="unit" && !l.unitId) return "Please select unit!";
   if(need==="sessions"){
     var got=(l.sessionIds||[]).length, want=sessionsOwed(l);
-    if(got<want) return "please select session! ("+got+" of "+want+")";
+    if(!got) return want+" session"+(want===1?"":"s")+" to schedule";
+    if(got<want) return got+" of "+want+" sessions chosen";
     return got+" of "+want+" sessions chosen";
   }
   return "";
@@ -4653,6 +4926,7 @@ function courseFields(body,l,p){
 
   var sh=el("div","lines-h");
   sh.appendChild(el("h4",null,"Sessions ("+((l.sessionIds||[]).length)+" of "+want+")"));
+  sh.appendChild(el("span","hint","optional now"));
   var clr=el("button","btn sm","Clear all");
   clr.addEventListener("click",function(){l.sessionIds=[];renderBookings();});
   sh.appendChild(clr);
@@ -4713,9 +4987,11 @@ function courseFields(body,l,p){
     })(i);
   }
   body.appendChild(cols);
-  if(!any) body.appendChild(el("div","note",
-    "Nothing is scheduled in these six days. Put sessions on the planning first, "+
-    "or step forward to a week that has them."));
+  body.appendChild(el("div","note",
+    "You can close the booking without picking these and schedule them later — "+
+    "the bookings list keeps a \u201cto assign\u201d count until they are done."+
+    (any?"":" Nothing is scheduled in these six days; step forward, or put "+
+         "sessions on the planning first.")));
 }
 
 /* Seat the booking's people into the sessions the line chose. Runs on confirm,
@@ -4857,7 +5133,10 @@ function renderPos(host){
     var warn=lineSummary(l);
     if(warn){
       var wl=el("div","sub",warn);
-      wl.style.color=lineReady(l)?"var(--good)":"var(--crit)";
+      var done=(lineNeeds(l)!=="sessions")
+        ? lineReady(l)
+        : (l.sessionIds||[]).length>=sessionsOwed(l);
+      wl.style.color=lineReady(l)?(done?"var(--good)":"var(--warn)"):"var(--crit)";
       wl.style.fontWeight="600";
       main.appendChild(wl);
     }
