@@ -197,6 +197,7 @@ td.strong{font-weight:700}
 .cl-prod{display:flex;align-items:center;gap:6px;margin:9px 0 5px 28px;
   font-size:11.5px;font-weight:700;color:var(--text-2)}
 .cl-prod .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.cl-prod .cl-when{font-weight:600;color:var(--text-3);font-size:10.5px}
 .cl-slot{display:grid;grid-template-columns:14px minmax(0,1fr) auto auto auto;
   gap:7px;align-items:center;margin:0 0 5px 28px;padding:5px 8px;
   border:1px solid var(--line-soft);border-left:3px solid var(--text-3);
@@ -3358,7 +3359,35 @@ function sessionInRow(x,row){
 }
 /* what their row menu offers against a booking */
 function clientRowMenu(x){
-  var bk=x.bookings[0];
+  var bks=(x.bookings||[]).slice().sort(function(a,b){
+    return a.date<b.date?1:-1;});
+  var bk=bks[0];
+  if(!bk) return [{l:"Add new booking",on:function(){posStart(null);}}];
+  /* One card can carry several bookings, and "Delete booking" then means
+     nothing. Each one is named by its day so every action says what it is
+     about; the money and the deleting stay inside the booking that owns them. */
+  if(bks.length>1){
+    var items=bks.map(function(b2){
+      return {l:"Open booking "+(b2.ref||dmy(b2.date)),
+              on:function(){show("bookings");posStart(b2);}};
+    });
+    items.push({l:"Add new booking",on:function(){posStart(null);}});
+    var sameDay=bks.filter(function(b2){
+      return bks.filter(function(b3){return b3.date===b2.date;}).length>1;});
+    if(sameDay.length>1) items.push({l:"Merge the ones on one day",
+      on:function(){
+        var into=sameDay[sameDay.length-1];
+        confirmish("Merge bookings",
+          sameDay.length+" bookings on "+dmy(into.date)+
+          " become one, keeping every product, payment and note.",
+          function(){
+            sameDay.forEach(function(b2){
+              if(b2!==into && b2.date===into.date) mergeBookings(b2,into);});
+            save(); render(); toast("Merged into one booking");
+          },"Merge");
+      }});
+    return items;
+  }
   return [
     {l:"Open booking",on:function(){show("bookings");posStart(bk);}},
     {l:"Add new booking",on:function(){posStart(null);}},
@@ -3552,7 +3581,7 @@ function assignmentRows(){
     var lines=activityLines(bk);
     if(!lines.length) return;
     var groups=lines.map(function(l){
-      return {line:l,product:product(l.productId),slots:lineSlots(bk,l)};
+      return {booking:bk,line:l,product:product(l.productId),slots:lineSlots(bk,l)};
     });
     var slots=groups.reduce(function(a,g){return a.concat(g.slots);},[]);
     var open=slots.filter(function(s){return !s.session;}).length;
@@ -3573,10 +3602,46 @@ function assignmentRows(){
   });
 }
 
+/* One card per client, not one per booking. moshe levy who bought a foil tow
+   on Monday and two lessons on Tuesday is one person on this panel, with
+   everything he bought inside his card under its own product heading -- not
+   his name three times down the rail. A booking with no client on it keeps a
+   card of its own, since there is nobody to gather it under. */
+function clientCards(){
+  var byKey={}, out=[];
+  assignmentRows().forEach(function(r){
+    var key=r.booking.clientId||("bk:"+r.booking.id);
+    var card=byKey[key];
+    if(!card){
+      card=byKey[key]={key:key,clientId:r.booking.clientId||"",bookings:[],
+        groups:[],slots:[],open:0,pax:0,colours:[],date:""};
+      out.push(card);
+    }
+    card.bookings.push(r.booking);
+    card.groups=card.groups.concat(r.groups);
+    card.slots=card.slots.concat(r.slots);
+    card.open+=r.open;
+    card.pax=Math.max(card.pax,r.pax);
+    r.colours.forEach(function(c){
+      if(card.colours.indexOf(c)<0) card.colours.push(c);});
+    if(r.booking.date>card.date) card.date=r.booking.date;
+  });
+  out.forEach(function(card){
+    /* newest purchase first inside the card, as the rail is ordered outside it */
+    card.groups.sort(function(a,b){
+      return a.booking.date===b.booking.date ? 0
+           : (a.booking.date<b.booking.date?1:-1);});
+  });
+  return out.sort(function(a,b){
+    if((b.open>0)-(a.open>0)) return (b.open>0)-(a.open>0);
+    return a.date<b.date?1:-1;
+  });
+}
+
 var clientListQ="", clientListMode="customer", clientOpen={};
 
 function assignRail(dateStr,onChange){
-  var rows=assignmentRows();
+  var rows=clientCards();
   var rail=el("div","panel");
   rail.style.cssText="padding:0;overflow:hidden;align-self:start;position:sticky;"+
     "top:calc(var(--topbar) + 14px);max-height:calc(100vh - var(--topbar) - 40px);"+
@@ -3617,8 +3682,8 @@ function assignRail(dateStr,onChange){
   rows=rows.filter(function(r){
     if(!term) return true;
     if(clientListMode==="customer"){
-      var c=by(r.booking.clientId,DB.clients)||{};
-      return [clientName(r.booking.clientId),c.phone||"",c.email||""]
+      var c=by(r.clientId,DB.clients)||{};
+      return [clientName(r.clientId),c.phone||"",c.email||""]
         .join(" ").toLowerCase().indexOf(term)>=0;
     }
     return r.slots.some(function(s){
@@ -3635,25 +3700,24 @@ function assignRail(dateStr,onChange){
   }
 
   rows.forEach(function(r){
-    var bk=r.booking;
     var card=el("div","cl-row");
     var head=el("div","cl-head");
-    var caret=el("button","cl-caret",clientOpen[bk.id]?"▾":"▸");
+    var caret=el("button","cl-caret",clientOpen[r.key]?"▾":"▸");
     caret.type="button";
-    caret.setAttribute("aria-expanded",clientOpen[bk.id]?"true":"false");
+    caret.setAttribute("aria-expanded",clientOpen[r.key]?"true":"false");
     caret.addEventListener("click",function(){
-      if(clientOpen[bk.id]) delete clientOpen[bk.id];
-      else clientOpen[bk.id]=true;
+      if(clientOpen[r.key]) delete clientOpen[r.key];
+      else clientOpen[r.key]=true;
       renderBoard();
     });
     head.appendChild(caret);
     var who=el("div","cl-who");
-    var nm=el("button","cl-name",clientName(bk.clientId));
+    var nm=el("button","cl-name",clientName(r.clientId));
     nm.type="button";
     nm.addEventListener("click",function(){
-      var c=by(bk.clientId,DB.clients); if(c) clientCard(c);});
+      var c=by(r.clientId,DB.clients); if(c) clientCard(c);});
     who.appendChild(nm);
-    var c0=by(bk.clientId,DB.clients)||{};
+    var c0=by(r.clientId,DB.clients)||{};
     if(c0.phone) who.appendChild(el("div","cl-sub",c0.phone));
     head.appendChild(who);
 
@@ -3664,13 +3728,17 @@ function assignRail(dateStr,onChange){
     });
     side.appendChild(dots);
     /* their date on this panel is 28/08, not Aug 28 */
-    side.appendChild(el("span","cl-date",dmy(bk.date)));
+    var dt=el("span","cl-date",dmy(r.date));
+    if(r.bookings.length>1)
+      dt.title=r.bookings.length+" bookings: "+r.bookings.map(function(b2){
+        return dmy(b2.date);}).join(", ");
+    side.appendChild(dt);
     /* their two markers: everything placed, or something still to place */
     var mark=el("span","cl-mark "+(r.open?"open":"done"));
     mark.textContent=r.open?"!":"✓✓";
     mark.title=r.open?(r.open+" still to schedule"):"Every session scheduled";
     side.appendChild(mark);
-    side.appendChild(rowMenu(clientRowMenu({bookings:[bk]})));
+    side.appendChild(rowMenu(clientRowMenu(r)));
     head.appendChild(side);
     card.appendChild(head);
 
@@ -3681,15 +3749,19 @@ function assignRail(dateStr,onChange){
     cnt.appendChild(el("span",null," "+r.pax));
     card.appendChild(cnt);
 
-    if(clientOpen[bk.id]){
+    if(clientOpen[r.key]){
       r.groups.forEach(function(g){
         var chip=el("div","cl-prod");
         var d=el("span","dot");
         d.style.background=g.product?posTileColour(g.product):"var(--text-3)";
         chip.appendChild(d);
         chip.appendChild(el("span",null,g.product?g.product.name:"Item"));
+        /* several bookings under one name: say which day each product came
+           from, or two of the same product would read as one purchase */
+        if(r.bookings.length>1)
+          chip.appendChild(el("span","cl-when",dmy(g.booking.date)));
         /* their product row carries the time already spent on it */
-        var mins=lineDone(bk,g.line);
+        var mins=lineDone(g.booking,g.line);
         if(mins){
           var dn=el("span","cl-done",hhmm(mins)+" done");
           chip.appendChild(dn);

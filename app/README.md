@@ -77,6 +77,14 @@ who was never a client — the seating dialog, the board's rail, the trip
 manifests and the day's client list all resolve both, and say which a person
 came from.
 
+The board's client list is a list of people, not of bookings: one card per
+client, with everything they bought inside it under its own product heading and
+the day it was bought beside it, so two of the same product do not read as one
+purchase. A booking with nobody on it keeps a card of its own. Where a card
+carries several bookings the ⋮ names each one rather than offering a "delete
+booking" that could mean any of them, and offers to merge the ones sharing a
+day.
+
 A slot only goes in a session of its own activity. A product names the activity
 calendar it runs under, so a foil tow cannot be dropped on a surf lesson: while
 a slot is in the air the board dashes every session that would refuse it, the
