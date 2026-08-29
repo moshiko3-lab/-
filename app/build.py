@@ -81,14 +81,14 @@ def check_runtime(path):
         pg.on("pageerror", lambda e: errors.append(str(e)[:200]))
         pg.goto("file://" + os.path.abspath(path))
         pg.wait_for_timeout(2500)
-        tabs = pg.query_selector_all("nav.tabs button")
+        tabs = pg.query_selector_all("#tabs button")
         n = len(tabs)
         dialogs = 0
         # Clicking through the screens only proves they render. Most of the app
         # lives in dialogs, and a missing function there stays invisible until
         # somebody opens one -- which is how a deleted block shipped twice.
         for i in range(n):
-            pg.query_selector_all("nav.tabs button")[i].click()
+            pg.query_selector_all("#tabs button")[i].click()
             pg.wait_for_timeout(700)
             opened = 0
             for btn in pg.query_selector_all("section:not([hidden]) button"):

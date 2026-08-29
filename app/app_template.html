@@ -44,25 +44,47 @@ h1,h2,h3{margin:0;letter-spacing:-.02em;font-weight:700;text-wrap:balance}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}
 
-/* header */
-header.top{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
-.top-in{max-width:1240px;margin:0 auto;padding:13px 22px 0;display:flex;align-items:center;
-  gap:14px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
-.brand img{width:34px;height:34px;display:block;flex:none}
-.brand .txt{display:flex;flex-direction:column;line-height:1.15}
-.brand h1{font-size:18px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
-.brand .tag{font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-3)}
-nav.tabs{display:flex;gap:1px;overflow-x:auto;width:100%;margin-top:12px;scrollbar-width:none}
-nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{appearance:none;border:0;background:none;cursor:pointer;font:inherit;white-space:nowrap;
-  font-weight:700;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);
-  padding:10px 14px 12px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
-nav.tabs button:hover{color:var(--text)}
-nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
-nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:4px}
+/* shell: a fixed icon rail and a brand bar, the shape their dashboard uses */
+:root{--rail:56px; --topbar:55px; --slate:#394654; --slate-2:#2f3a46;}
+aside.rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);background:var(--slate);
+  z-index:40;display:flex;flex-direction:column;align-items:center;padding:9px 0;gap:2px;
+  overflow-y:auto;scrollbar-width:none}
+aside.rail::-webkit-scrollbar{display:none}
+aside.rail .mark{width:34px;height:34px;flex:none;margin-bottom:9px;border-radius:8px;
+  background:#fff;display:grid;place-items:center;overflow:hidden}
+aside.rail .mark img{width:28px;height:28px;display:block}
+aside.rail button{appearance:none;border:0;background:none;cursor:pointer;color:#9fb0c0;
+  width:44px;height:42px;border-radius:9px;display:grid;place-items:center;position:relative;
+  transition:background .14s,color .14s}
+aside.rail button svg{width:21px;height:21px;display:block;fill:none;
+  stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+aside.rail button:hover{background:var(--slate-2);color:#fff}
+aside.rail button[aria-selected="true"]{color:#fff;background:var(--slate-2)}
+aside.rail button[aria-selected="true"]::before{content:"";position:absolute;left:-9px;top:9px;
+  bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--accent-hot)}
+aside.rail button:focus-visible{outline:2px solid var(--accent-hot);outline-offset:-2px}
+aside.rail .tip{position:absolute;left:52px;background:var(--slate);color:#fff;font-size:11.5px;
+  font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:5px 10px;border-radius:7px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:50}
+aside.rail button:hover .tip{opacity:1}
 
-.wrap{max-width:1240px;margin:0 auto;padding:0 22px 90px}
+header.top{position:fixed;left:var(--rail);right:0;top:0;height:var(--topbar);
+  background:var(--accent-hot);z-index:35;display:flex;align-items:center;
+  padding:0 18px;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+header.top .title{color:#fff;font-weight:800;font-size:15px;letter-spacing:.09em;
+  text-transform:uppercase;display:flex;align-items:baseline;gap:10px}
+header.top .title small{font-weight:600;font-size:10.5px;letter-spacing:.14em;opacity:.82}
+header.top .spacer{margin-left:auto}
+header.top .tbtn{appearance:none;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);
+  color:#fff;font:inherit;font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:7px 14px;border-radius:8px;cursor:pointer;transition:background .14s}
+header.top .tbtn:hover{background:rgba(255,255,255,.24)}
+header.top .tbtn.solid{background:#fff;color:var(--accent);border-color:#fff}
+header.top .tbtn.solid:hover{background:rgba(255,255,255,.88)}
+header.top .tbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+.wrap{margin-left:var(--rail);padding:calc(var(--topbar) + 18px) 22px 90px;
+  max-width:1400px}
 section[hidden]{display:none!important}
 .panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);box-shadow:var(--shadow)}
 .sec-h{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:26px 0 13px}
@@ -91,10 +113,10 @@ section[hidden]{display:none!important}
 
 /* tables */
 .tbl-wrap{overflow-x:auto;border-radius:var(--r)}
-table{border-collapse:collapse;width:100%;font-size:13.5px}
-th,td{padding:10px 13px;text-align:left;white-space:nowrap}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 12px;text-align:left;white-space:nowrap}
 th.r,td.r{text-align:right}
-thead th{background:var(--panel-2);font-size:10.5px;font-weight:700;letter-spacing:.08em;
+thead th{background:var(--panel-2);font-size:10px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;color:var(--text-3);border-bottom:1px solid var(--line)}
 tbody tr{border-bottom:1px solid var(--line-soft)}
 tbody tr:last-child{border-bottom:0}
@@ -201,8 +223,19 @@ td.strong{font-weight:700}
   #p-board > div[style*="grid-template-columns: 1fr 230px"],
   #p-board > div[style*="1fr 230px"]{grid-template-columns:1fr!important}
 }
+@media (max-width:760px){
+  aside.rail{left:0;right:0;top:auto;bottom:0;width:auto;height:52px;flex-direction:row;
+    justify-content:flex-start;padding:0 6px;gap:0;overflow-x:auto}
+  aside.rail .mark{display:none}
+  aside.rail nav{flex-direction:row!important}
+  aside.rail button[aria-selected="true"]::before{left:9px;right:9px;top:auto;bottom:-1px;
+    width:auto;height:3px;border-radius:3px 3px 0 0}
+  aside.rail .tip{display:none}
+  header.top{left:0}
+  .wrap{margin-left:0;padding-bottom:70px}
+}
 @media (max-width:640px){
-  .wrap{padding:0 13px 70px}
+  .wrap{padding-left:13px;padding-right:13px}
   .top-in{padding:12px 13px 0}
   .grid2{grid-template-columns:1fr}
   .slot{grid-template-columns:58px 1fr;gap:9px}
@@ -212,15 +245,15 @@ td.strong{font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
+<aside class="rail">
+  <span class="mark"><img src="data:image/png;base64,/*__LOGO__*/" alt="Shokogi"></span>
+  <nav role="tablist" id="tabs" style="display:flex;flex-direction:column;gap:2px"></nav>
+</aside>
 <header class="top">
-  <div class="top-in">
-    <div class="brand">
-      <img src="data:image/png;base64,/*__LOGO__*/" alt="Shokogi">
-      <span class="txt"><h1>Shokogi</h1><span class="tag">Manager</span></span>
-    </div>
-    <button class="btn sm" id="btn-backup">Backup</button>
-    <nav class="tabs" role="tablist" id="tabs"></nav>
-  </div>
+  <span class="title">Shokogi <small id="screen-name">Today</small></span>
+  <span class="spacer"></span>
+  <button class="tbtn" id="btn-backup">Backup</button>
+  <button class="tbtn solid" id="btn-newbooking">+ Booking</button>
 </header>
 
 <div class="wrap">
@@ -5338,33 +5371,79 @@ function backupForm(){
   ]);
 }
 document.getElementById("btn-backup").addEventListener("click",backupForm);
+document.getElementById("btn-newbooking").addEventListener("click",function(){
+  if(!DB.products.length){ show("catalog"); toast("Add a product first."); return; }
+  show("bookings"); bookingForm(null);
+});
 
 /* ============================ tabs ============================ */
-var TABS=[{id:"today",l:"Today",r:renderToday},
-  {id:"schedule",l:"Planning",r:renderSchedule},
-  {id:"board",l:"Board",r:renderBoard},
-  {id:"trips",l:"Trips",r:renderTrips},
-  {id:"bookings",l:"Bookings",r:renderBookings},
-  {id:"clients",l:"Clients",r:renderClients},
-  {id:"catalog",l:"Catalog",r:renderCatalog},
-  {id:"gear",l:"Gear",r:renderGear},
-  {id:"crew",l:"Crew",r:renderCrew},
-  {id:"register",l:"Day closing",r:renderRegister},
-  {id:"invoices",l:"Invoices",r:renderInvoices},
-  {id:"fees",l:"Crew pay",r:renderFees},
-  {id:"reports",l:"Reports",r:renderReports},
-  {id:"settings",l:"Back office",r:renderSettings}];
+/* Inline icons rather than an icon font: the font is one network request away
+   from a rail full of spilled ligature text, and this cannot fail. */
+var ICONS={
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1.2"/>'+
+       '<circle cx="3.5" cy="12" r="1.2"/><circle cx="3.5" cy="18" r="1.2"/>',
+  board:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>'+
+        '<path d="M9 9v11M15 9v11"/>',
+  boat:'<path d="M4 17h16l-2 4H6z"/><path d="M6 17V8l6-4 6 4v9"/><path d="M12 4v13"/>',
+  receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/>'+
+         '<path d="M16 6.5a3 3 0 0 1 0 6"/><path d="M18 20c0-2.4-1-4.2-2.5-5.2"/>',
+  tag:'<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4"/>',
+  surf:'<path d="M4 20c4-1 6-4 8-8s4-8 6-9c1 4 0 10-3 14s-7 5-11 3z"/>',
+  badge:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M9 6V4h6v2"/>'+
+        '<circle cx="12" cy="12" r="2.2"/><path d="M8.5 17.5c.8-1.4 2-2.1 3.5-2.1s2.7.7 3.5 2.1"/>',
+  register:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M7 9V5h10v4"/>'+
+           '<path d="M7 14h4M7 17.5h7"/>',
+  doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>',
+  money:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/>'+
+        '<path d="M6 12h.01M18 12h.01"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3'+
+      'M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'
+};
+function icon(name){
+  var NS="http://www.w3.org/2000/svg";
+  var svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 24 24");
+  svg.setAttribute("aria-hidden","true");
+  svg.innerHTML=ICONS[name]||ICONS.list;
+  return svg;
+}
+var TABS=[
+  {id:"today",l:"Today",icon:"home",r:renderToday},
+  {id:"schedule",l:"Planning",icon:"list",r:renderSchedule},
+  {id:"board",l:"Board",icon:"board",r:renderBoard},
+  {id:"trips",l:"Trips",icon:"boat",r:renderTrips},
+  {id:"bookings",l:"Bookings",icon:"receipt",r:renderBookings},
+  {id:"clients",l:"Clients",icon:"people",r:renderClients},
+  {id:"catalog",l:"Catalog",icon:"tag",r:renderCatalog},
+  {id:"gear",l:"Gear",icon:"surf",r:renderGear},
+  {id:"crew",l:"Crew",icon:"badge",r:renderCrew},
+  {id:"register",l:"Day closing",icon:"register",r:renderRegister},
+  {id:"invoices",l:"Invoices",icon:"doc",r:renderInvoices},
+  {id:"fees",l:"Crew pay",icon:"money",r:renderFees},
+  {id:"reports",l:"Reports",icon:"chart",r:renderReports},
+  {id:"settings",l:"Back office",icon:"cog",r:renderSettings}
+];
 var cur="today";
 var tabsBox=document.getElementById("tabs");
 TABS.forEach(function(t){
-  var b=el("button",null,t.l);
+  var b=el("button");
   b.dataset.id=t.id; b.setAttribute("role","tab");
+  b.setAttribute("aria-label",t.l); b.title=t.l;
+  b.appendChild(icon(t.icon));
+  b.appendChild(el("span","tip",t.l));
   b.addEventListener("click",function(){show(t.id);});
   tabsBox.appendChild(b);
 });
+var screenName=document.getElementById("screen-name");
 function show(id){
   cur=id;
-  TABS.forEach(function(t){ document.getElementById("p-"+t.id).hidden = t.id!==id; });
+  TABS.forEach(function(t){
+    document.getElementById("p-"+t.id).hidden = t.id!==id;
+    if(t.id===id && screenName) screenName.textContent=t.l;
+  });
   [].forEach.call(tabsBox.children,function(b){
     b.setAttribute("aria-selected",b.dataset.id===id?"true":"false");});
   try{ localStorage.setItem("shokogi.manager.tab",id); }catch(e){}
