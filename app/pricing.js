@@ -17,8 +17,18 @@ function tiersOf(p){ return (p && p.prices && p.prices.length) ? p.prices : null
    ladder is whichever unit most of the tiers use; the odd ones out are left
    for the school to price deliberately rather than silently undercutting. */
 function tierUnit(x){ return x && x.unit ? x.unit : ""; }
+/* The unit only tells two ladders apart where the tiers are *durations*. On a
+   ladder of head counts it is noise: three of their lessons carry "hourly" on
+   the one-person tier and nothing on the pair and the group, and splitting
+   those apart drops the full price -- a single surfer was quoted the pair's
+   $120 for the 3X course instead of $180. So the split applies to hour tiers
+   only. */
+function durationLadder(p){
+  var t=tiersOf(p);
+  return !!(t && t.some(function(x){return x.hours;}));
+}
 function ladderUnit(p){
-  var t=tiersOf(p); if(!t) return "";
+  var t=tiersOf(p); if(!t || !durationLadder(p)) return "";
   var n={},best="",bn=-1;
   t.forEach(function(x){
     var u=tierUnit(x);
@@ -29,11 +39,12 @@ function ladderUnit(p){
 }
 function ladderTiers(p){
   var t=tiersOf(p); if(!t) return [];
+  if(!durationLadder(p)) return t;
   var u=ladderUnit(p);
   return t.filter(function(x){return tierUnit(x)===u;});
 }
 function oddTiers(p){
-  var t=tiersOf(p); if(!t) return [];
+  var t=tiersOf(p); if(!t || !durationLadder(p)) return [];
   var u=ladderUnit(p);
   return t.filter(function(x){return tierUnit(x)!==u;});
 }

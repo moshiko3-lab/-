@@ -93,6 +93,9 @@ header.top .tbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
 .wrap{margin-left:var(--rail);padding:calc(var(--topbar) + 18px) 22px 90px;
   max-width:1400px}
+/* The board is the one screen that wants the whole window. A measure that
+   keeps a table of text readable only costs the diary hours of the day. */
+.wrap.wide{max-width:none}
 section[hidden]{display:none!important}
 .panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);box-shadow:var(--shadow)}
 .sec-h{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:26px 0 13px}
@@ -1952,10 +1955,16 @@ function catColor(name){
   var k=(cfg().kinds||[]).filter(function(x){return x.l===name;})[0];
   return (k&&k.color)||"";
 }
-function sessionForm(existing,presetDate){
-  var s=existing||{date:presetDate||schedDate,time:"09:00",duration:90,title:"",
-    staffIds:[],spot:DB.spots[0]?DB.spots[0].name:"",capacity:6,minCapacity:1,
-    category:"",note:"",level:"",ageFrom:"",ageTo:"",allDay:false,isPublic:true,
+/* The second argument is either the day, as it always was, or everything an
+   empty cell on the board already knows: its day, its hour and its lane. */
+function sessionForm(existing,preset){
+  var pre=(typeof preset==="string")?{date:preset}:(preset||{});
+  var s=existing||{date:pre.date||schedDate,time:pre.time||"09:00",duration:90,
+    title:pre.title||"",
+    staffIds:(pre.staffIds||[]).slice(),spot:DB.spots[0]?DB.spots[0].name:"",
+    capacity:6,minCapacity:1,
+    category:pre.category||"",note:"",level:"",ageFrom:"",ageTo:"",allDay:false,
+    isPublic:true,
     participants:[],tideRef:"",tidePos:"before",tideHours:2};
   var b=el("div");
   var title=input("text",s.title,{placeholder:"e.g. Beginner surf lesson"});
@@ -4223,11 +4232,11 @@ function renderBoard(){
   if(boardTab==="accommodation"){ host.appendChild(accomBoard(boardDate)); return; }
 
   var shell=el("div");
-  shell.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:12px";
+  shell.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px";
   var wrap=el("div","panel");
   wrap.style.cssText="overflow-x:auto;overflow-y:visible;padding:0";
   var stack=el("div");
-  stack.style.cssText="min-width:1040px";
+  stack.style.cssText="min-width:1100px";
   var any=false;
   for(var i=0;i<boardSpan;i++){
     var day=addDays(boardDate,i);
@@ -4253,7 +4262,7 @@ function addDays(dateStr,n){
    it, and a lane per session. Dragging moves a block within its own day --
    each day has its own axis, so there is nothing to drop onto in another. */
 function boardDay(dayISO){
-  var LABEL=185;
+  var LABEL=205;
   var span=(BOARD_TO-BOARD_FROM)*60;
   var box=el("div");
   box.style.cssText="border-bottom:2px solid var(--line)";
@@ -4293,7 +4302,7 @@ function boardDay(dayISO){
     (function(hh){
       var x=((hh-BOARD_FROM)*60)/span*100;
       var l=el("div",null,String(hh).padStart(2,"0")+":00");
-      l.style.cssText="position:absolute;left:"+x+"%;bottom:2px;font-size:10.5px;"+
+      l.style.cssText="position:absolute;left:"+x+"%;bottom:2px;font-size:11.5px;"+
         "font-family:'IBM Plex Mono',monospace;color:var(--text-3);transform:translateX(-50%)";
       hoursCell.appendChild(l);
     })(h);
@@ -4346,13 +4355,13 @@ function boardDay(dayISO){
     if(boardGroup==="staff" && !rec.first && !rec.items.length) return;
     var r=el("div");
     r.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
-      "border-bottom:1px solid var(--line-soft);min-height:26px";
+      "border-bottom:1px solid var(--line-soft);min-height:36px";
     r.dataset.rowKey=rec.row.key;
     r.dataset.ri=String(ri);
 
     var lab=el("div");
-    lab.style.cssText="display:flex;align-items:center;gap:7px;padding:4px 10px;"+
-      "font-size:12px;font-weight:600;border-right:1px solid var(--line);"+
+    lab.style.cssText="display:flex;align-items:center;gap:7px;padding:6px 12px;"+
+      "font-size:12.5px;font-weight:600;border-right:1px solid var(--line);"+
       "overflow:hidden;white-space:nowrap";
     var dot=el("span");
     dot.style.cssText="width:9px;height:9px;border-radius:3px;flex:none;background:"+
@@ -4379,11 +4388,33 @@ function boardDay(dayISO){
     r.appendChild(lab);
 
     var lane=el("div");
-    lane.style.cssText="position:relative;min-height:26px;background-image:"+
+    lane.style.cssText="position:relative;min-height:36px;background-image:"+
       "repeating-linear-gradient(to right,var(--line-soft) 0 1px,transparent 1px "+
       (100/(BOARD_TO-BOARD_FROM))+"%)";
     r.appendChild(lane);
     lanesHost.appendChild(r);
+
+    /* An empty stretch of a lane is where a session goes: click the hour and
+       the form opens on it, already in this lane -- the activity when the
+       board is grouped by activity, the instructor when it is grouped by
+       staff. Clicking a block, the time-off bar or the lane's buttons is not
+       clicking the lane, so those still do what they did. */
+    lane.style.cursor="cell";
+    lane.title="Click an empty hour to put a session here";
+    lane.addEventListener("click",function(e){
+      if(e.target!==lane) return;
+      var rect=lane.getBoundingClientRect();
+      var frac=Math.max(0,Math.min(0.999,(e.clientX-rect.left)/rect.width));
+      var hour=BOARD_FROM+Math.floor(frac*(BOARD_TO-BOARD_FROM));
+      var pre={date:dayISO,time:toHHMM(hour*60)};
+      if(boardGroup==="staff"){
+        if(rec.row.key) pre.staffIds=[rec.row.key];
+      } else if(rec.row.key){
+        pre.category=rec.row.key;
+        pre.title=rec.row.label||rec.row.key;
+      }
+      sessionForm(null,pre);
+    });
 
     /* time off shows as a hatched bar across the lane, the way theirs does */
     if(boardGroup==="staff" && rec.row.key && rec.first && isOff(rec.row.key,dayISO)){
@@ -4408,9 +4439,9 @@ function boardDay(dayISO){
       var blk=el("div");
       blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:3px;bottom:3px;"+
         "background:"+softColour(colour)+";border-left:3px solid "+colour+";"+
-        "border-radius:3px;padding:2px 5px;overflow:hidden;cursor:grab;"+
-        "color:var(--text);font-size:11px;font-weight:600;line-height:1.2;"+
-        "display:flex;align-items:center;gap:6px;touch-action:none;min-width:26px";
+        "border-radius:4px;padding:3px 8px;overflow:hidden;cursor:grab;"+
+        "color:var(--text);font-size:12.5px;font-weight:600;line-height:1.25;"+
+        "display:flex;align-items:center;gap:7px;touch-action:none;min-width:30px";
       blk.dataset.sessionId=x.id;
       blk.title=x.time+" · "+x.title+" · "+instructorNames(x)+
         " · "+x.participants.length+"/"+x.capacity+
@@ -4420,7 +4451,7 @@ function boardDay(dayISO){
       t.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1";
       blk.appendChild(t);
       var c=el("span",null,String(x.participants.length));
-      c.style.cssText="margin-left:auto;font-size:10.5px;font-weight:700;flex:none;"+
+      c.style.cssText="margin-left:auto;font-size:11.5px;font-weight:700;flex:none;"+
         "color:var(--text-2)";
       blk.appendChild(c);
 
@@ -10135,6 +10166,8 @@ TABS.forEach(function(t){
 var screenName=document.getElementById("screen-name");
 function show(id){
   cur=id;
+  var wrapEl=document.querySelector(".wrap");
+  if(wrapEl) wrapEl.classList.toggle("wide",id==="board");
   TABS.forEach(function(t){
     document.getElementById("p-"+t.id).hidden = t.id!==id;
     if(t.id===id && screenName) screenName.textContent=t.l;
