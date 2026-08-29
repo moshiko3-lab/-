@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- The title has a "·" in it, so this page gets its own name wrong without
+     a charset. A browser opening a file:// path guesses, and guesses badly. -->
+<meta charset="utf-8">
 <title>Shokogi · Book online</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -148,6 +154,8 @@ textarea{min-height:72px;resize:vertical}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header.top,.filters,.btn{display:none!important}}
 </style>
+</head>
+<body>
 
 <header class="top">
   <span class="mark"><img src="data:image/png;base64,/*__LOGO__*/" alt="Shokogi"></span>
@@ -740,3 +748,5 @@ saveCart();
 draw();
 })();
 </script>
+</body>
+</html>

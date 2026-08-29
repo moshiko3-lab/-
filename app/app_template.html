@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Without this the browser guesses, and opened from a file:// path it
+     guesses Latin-1 once the page is big enough: every "·" between an
+     instructor and a spot becomes "Â·", and the tide arrows turn to rubble. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SHOKOGI Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -415,6 +423,8 @@ td.strong{font-weight:700}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <aside class="rail">
   <span class="mark"><img src="data:image/png;base64,/*__LOGO__*/" alt="Shokogi"></span>
@@ -447,6 +457,7 @@ td.strong{font-weight:700}
 <div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script id="seed" type="application/json">/*__SEED__*/</script>
+<script id="people" type="application/json">/*__PEOPLE__*/</script>
 
 <script>
 (function(){
@@ -9429,6 +9440,90 @@ function importCatalog(){
         added.units+" gear items, "+added.sessions+" sessions and "+
         added.tides+" days of tide");
 }
+
+/* ============================ people ============================
+   Real clients and what they actually bought, if this build was made with a
+   clients file beside the catalog. Not everybody has one: the catalog carries
+   no personal data on purpose, and this does, so it travels separately.
+
+   A booking here is rebuilt from one of their orders -- the products by name,
+   the board that went out by its unit name, the dates and what was paid -- so
+   the lines behave like lines the counter made, not like a frozen receipt. */
+function peopleData(){
+  try{
+    var n=document.getElementById("people");
+    if(!n) return null;
+    var d=JSON.parse(n.textContent||"null");
+    return (d&&d.clients&&d.clients.length)?d:null;
+  }catch(e){ return null; }
+}
+function importPeople(){
+  var d=peopleData();
+  if(!d){ toast("No clients are bundled with this build."); return null; }
+  var byName={}, unitByName={};
+  DB.products.forEach(function(p){ byName[(p.name||"").toUpperCase()]=p; });
+  DB.gear.forEach(function(g){
+    (g.units||[]).forEach(function(u){
+      unitByName[(u.name||"").toUpperCase()]={gear:g,unit:u};});
+  });
+
+  var idBySrc={}, added={clients:0,bookings:0,lines:0,unmatched:0};
+  d.clients.forEach(function(c){
+    var exists=DB.clients.filter(function(x){
+      return x.name===c.name && (x.phone||"")===(c.phone||"");})[0];
+    if(exists){ idBySrc[c.srcId]=exists.id; return; }
+    var rec={id:uid("c"),name:c.name,email:c.email||"",phone:c.phone||"",
+      country:c.country||"",notes:c.notes||"",custom:{},
+      language:c.language||"",city:c.city||"",created:todayISO()};
+    DB.clients.push(rec);
+    idBySrc[c.srcId]=rec.id;
+    added.clients++;
+  });
+
+  (d.bookings||[]).forEach(function(b){
+    var cid=idBySrc[b.srcClient];
+    if(!cid) return;
+    if(DB.bookings.some(function(x){return x.ref===b.number;})) return;
+    var lines=[];
+    (b.lines||[]).forEach(function(l){
+      var p=byName[(l.product||"").toUpperCase()];
+      if(!p){ added.unmatched++; return; }
+      var hit=(l.units||[]).map(function(u){return unitByName[(u||"").toUpperCase()];})
+        .filter(Boolean)[0];
+      lines.push({lid:uid("ln"),productId:p.id,
+        qty:Number(l.qty)||1,pax:Number(l.pax)||1,
+        hours:(l.hours==null?null:Number(l.hours)),
+        price:Number(l.price)||0,
+        discount:(Number(l.discount)||0)||null,
+        wanted:l.date||b.date,time:l.time||"",
+        unitId:hit?hit.unit.id:"",
+        sessionIds:[]});
+      added.lines++;
+    });
+    if(!lines.length) return;
+    /* their first client is the first person on the water, unless the order
+       named others -- and these orders do not, so the client stands alone */
+    var rec={id:uid("bk"),ref:b.number||"",date:b.date||todayISO(),
+      clientId:cid,lines:lines,
+      payments:(b.payments||[]).map(function(p){
+        return {id:uid("pay"),date:p.date||b.date,amount:Number(p.amount)||0,
+                method:(p.method||"Cash").toLowerCase().indexOf("card")>=0
+                  ? "card" : "cash",
+                note:p.status||""};
+      }),
+      refunds:[],participants:[],partnerId:"",
+      notes:b.note||"",custom:{},
+      source:(b.origin==="minisite"?"online":"counter"),
+      status:(String(b.status||"").toLowerCase()==="cancelled")?"cancelled":""};
+    DB.bookings.push(rec);
+    added.bookings++;
+  });
+  save();
+  if(typeof cur!=="undefined" && cur) render();
+  toast(added.clients+" clients and "+added.bookings+" bookings loaded"+
+        (added.unmatched?(", "+added.unmatched+" lines skipped — no such product"):""));
+  return added;
+}
 function importPrompt(){
   var d=seedData();
   var b=el("div");
@@ -9454,10 +9549,20 @@ function importPrompt(){
     list.appendChild(r);
   });
   b.appendChild(list);
-  openModal("Import catalog",b,[
-    {label:"Cancel",on:closeModal},
-    {label:"Import",cls:"primary",on:function(){closeModal();importCatalog();}}
-  ]);
+  var ppl=peopleData();
+  var acts=[{label:"Cancel",on:closeModal},
+    {label:"Import",cls:"primary",on:function(){closeModal();importCatalog();}}];
+  if(ppl){
+    var n=ppl.clients.length, nb=(ppl.bookings||[]).length;
+    b.appendChild(el("p","hint",
+      "This build also carries "+n+" real clients and "+nb+" of their bookings, "+
+      "with the products, the boards that went out and what was paid. They load "+
+      "on a fresh database, or with the button below. Keep this file off a public "+
+      "address: it has people's names and phone numbers in it."));
+    acts.splice(1,0,{label:"Clients too",on:function(){
+      closeModal(); importCatalog(); importPeople();}});
+  }
+  openModal("Import catalog",b,acts);
 }
 
 /* ============================ backup ============================ */
@@ -9581,6 +9686,9 @@ function render(){
 if(!DB.seeded && !DB.products.length && !DB.staff.length && seedData()){
   DB.seeded=true;
   importCatalog();
+  /* clients come after the catalog, because their order lines are matched to
+     products by name and to boards by unit name */
+  if(peopleData() && !DB.clients.length) importPeople();
 }
 /* A database seeded before the tide table existed has none. It is a forecast,
    not something anyone typed, so filling it in is a refresh rather than an
@@ -9611,3 +9719,5 @@ var saved=null; try{ saved=localStorage.getItem("shokogi.manager.tab"); }catch(e
 show(TABS.some(function(t){return t.id===saved;})?saved:"today");
 })();
 </script>
+</body>
+</html>

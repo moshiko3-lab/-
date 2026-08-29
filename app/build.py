@@ -34,11 +34,27 @@ def render(template=None):
     else:
         out = out.replace("/*__SEED__*/", "null")
 
+    # Real clients, when a clients.json has been exported beside the catalog.
+    # It is not in the repository and not in every build: it holds names, phone
+    # numbers and email addresses, so a page built with it should not go on a
+    # public address. Build without the file and the page simply has no
+    # clients, which is the state the school starts from.
+    people = os.path.join(HERE, "clients.json")
+    if "/*__PEOPLE__*/" in out:
+        if os.path.exists(people):
+            with open(people, encoding="utf-8") as f:
+                blob = json.dumps(json.load(f), ensure_ascii=False,
+                                  separators=(",", ":"))
+            out = out.replace("/*__PEOPLE__*/",
+                              blob.replace("</script>", "<\\/script>"))
+        else:
+            out = out.replace("/*__PEOPLE__*/", "null")
+
     logo = os.path.join(HERE, "logo.png")
     if os.path.exists(logo):
         with open(logo, "rb") as f:
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
-    for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/"):
+    for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/", "/*__PEOPLE__*/"):
         if token in out:
             raise RuntimeError(f"template placeholder {token} was not replaced")
     return out
