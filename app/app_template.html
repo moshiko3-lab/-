@@ -1720,6 +1720,9 @@ function participantsForm(sess){
 var planTab="sessions";
 var planFilter={cat:"",staff:"",level:"",fill:"",hour:""};
 var planView="details", planRange="day";
+/* Their sessions list lets you tick rows and change one property across all of
+   them -- the instructor called in sick, the whole morning moves an hour. */
+var planPicked={};
 function planFilterActive(){
   return !!(planFilter.cat||planFilter.staff||planFilter.level||planFilter.fill||
            planFilter.hour);
@@ -1815,6 +1818,7 @@ function renderSchedule(){
   today.addEventListener("click",function(){schedDate=todayISO();renderSchedule();});
   top.appendChild(today);
   var seg=el("div","range");
+  if(planRange==="list") seg.style.display="none";
   PLAN_VIEWS.forEach(function(v){
     var b=el("button",null,v.l);
     b.setAttribute("aria-pressed",planView===v.v?"true":"false");
@@ -1823,7 +1827,7 @@ function renderSchedule(){
   });
   top.appendChild(seg);
   var rng=el("div","range");
-  [{v:"day",l:"Daily"},{v:"14",l:"14 days"}].forEach(function(v){
+  [{v:"day",l:"Daily"},{v:"14",l:"14 days"},{v:"list",l:"List"}].forEach(function(v){
     var b=el("button",null,v.l);
     b.setAttribute("aria-pressed",planRange===v.v?"true":"false");
     b.addEventListener("click",function(){planRange=v.v;renderSchedule();});
@@ -1838,6 +1842,7 @@ function renderSchedule(){
   top.appendChild(add);
   host.appendChild(top);
 
+  var listMode=(planRange==="list");
   var bar=el("div","daybar");
   var prev=el("button"); prev.appendChild(el("div","n","‹"));
   prev.addEventListener("click",function(){
@@ -1861,7 +1866,7 @@ function renderSchedule(){
   next.addEventListener("click",function(){
     schedDate=iso(new Date(new Date(schedDate+"T12:00:00").getTime()+864e5));renderSchedule();});
   bar.appendChild(next);
-  host.appendChild(bar);
+  if(!listMode) host.appendChild(bar);
 
   var tideP=tideFor(schedDate);
   var tb0=el("div","panel");
@@ -1877,7 +1882,7 @@ function renderSchedule(){
   var teP=el("button","btn sm","Edit tides"); teP.style.marginLeft="auto";
   teP.addEventListener("click",function(){tideForm(schedDate);});
   tb0.appendChild(teP);
-  host.appendChild(tb0);
+  if(!listMode) host.appendChild(tb0);
 
   var allDay=DB.sessions.filter(function(x){return x.date===schedDate;})
     .sort(function(a,b){return a.time<b.time?-1:1;});
@@ -1905,7 +1910,7 @@ function renderSchedule(){
     b.addEventListener("click",function(){planTab=t[0];renderSchedule();});
     tabs.appendChild(b);
   });
-  host.appendChild(tabs);
+  if(!listMode) host.appendChild(tabs);
 
   if(planTab==="rental"){
     if(!rentalsOut){ host.appendChild(el("div","note","No gear is out of service on "+dm(schedDate)+".")); return; }
@@ -2001,13 +2006,15 @@ function renderSchedule(){
   fHour.addEventListener("change",function(){planFilter.hour=fHour.value;renderSchedule();});
   fb.appendChild(fHour);
 
-  if(planFilterActive()){
+  if(planFilterActive() && !listMode){
     var clr=el("button","btn sm","Clear");
     clr.addEventListener("click",function(){
       planFilter={cat:"",staff:"",level:"",fill:"",hour:""};renderSchedule();});
     fb.appendChild(clr);
   }
-  host.appendChild(fb);
+  if(!listMode) host.appendChild(fb);
+
+  if(planRange==="list"){ sessionsList(host); return; }
 
   if(planFilterActive() && allDay.length){
     host.appendChild(el("div","note",
@@ -2025,6 +2032,30 @@ function renderSchedule(){
         else sessionForm(null,schedDate);
       }));
     return;
+  }
+
+  var picked=day.filter(function(x){return planPicked[x.id];});
+  if(picked.length){
+    var bulk=el("div","searchbar");
+    bulk.style.cssText+=";background:var(--accent-soft);border-radius:10px;padding:9px 12px";
+    bulk.appendChild(el("span","eyebrow",
+      picked.length+" session"+(picked.length===1?"":"s")+" selected"));
+    var be=el("button","btn sm primary","Bulk edit");
+    be.addEventListener("click",function(){bulkEditForm(picked);});
+    bulk.appendChild(be);
+    var bd=el("button","btn sm danger","Delete selected");
+    bd.addEventListener("click",function(){
+      confirmDelete(picked.length+" session"+(picked.length===1?"":"s"),function(){
+        var ids={}; picked.forEach(function(x){ids[x.id]=1;});
+        DB.sessions=DB.sessions.filter(function(y){return !ids[y.id];});
+        planPicked={}; save(); render(); toast("Sessions deleted");
+      });
+    });
+    bulk.appendChild(bd);
+    var bc=el("button","btn sm","Clear selection");
+    bc.addEventListener("click",function(){planPicked={};renderSchedule();});
+    bulk.appendChild(bc);
+    host.appendChild(bulk);
   }
 
   if(planRange==="14"){
@@ -2062,6 +2093,16 @@ function planTable(day){
   var shown=PLAN_COLS.filter(function(c){
     return planView==="compact" ? COMPACT_COLS.indexOf(c.k)>=0 : planShow[c.k];});
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  var allBox=el("input"); allBox.type="checkbox"; allBox.style.width="auto";
+  allBox.title="Select every session shown";
+  allBox.checked=day.length>0 && day.every(function(x){return planPicked[x.id];});
+  allBox.addEventListener("change",function(){
+    day.forEach(function(x){
+      if(allBox.checked) planPicked[x.id]=true; else delete planPicked[x.id];});
+    renderSchedule();
+  });
+  var thc=el("th"); thc.style.width="30px"; thc.appendChild(allBox);
+  tr.appendChild(thc);
   shown.forEach(function(c){
     tr.appendChild(el("th",(c.k==="duration"||c.k==="participants")?"r":null,c.l));
   });
@@ -2070,6 +2111,14 @@ function planTable(day){
   var tb=el("tbody");
   day.forEach(function(x){
     var r=el("tr");
+    var pick=el("input"); pick.type="checkbox"; pick.style.width="auto";
+    pick.checked=!!planPicked[x.id];
+    pick.setAttribute("aria-label","Select "+x.title);
+    pick.addEventListener("change",function(){
+      if(pick.checked) planPicked[x.id]=true; else delete planPicked[x.id];
+      renderSchedule();
+    });
+    var pc=el("td"); pc.appendChild(pick); r.appendChild(pc);
     var colour=catColor(x.category)||"var(--accent-hot)";
     var cell={};
     cell.hour=function(){
@@ -2134,7 +2183,7 @@ function planTable(day){
        Compact and simple keep the row count down and leave them out. */
     if(planView==="details" && x.participants.length){
       var sub=el("tr");
-      var subCell=el("td"); subCell.colSpan=shown.length+1;
+      var subCell=el("td"); subCell.colSpan=shown.length+2;
       subCell.style.cssText="padding:0 13px 10px 17px;background:var(--panel-2)";
       var chips=el("div");
       chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center";
@@ -2252,6 +2301,289 @@ function accomBoard(dateStr){
     "A guest occupies a bed from the booking date for as many nights as the product carries. Nothing is assigned to a particular room — this is the headcount against what you have."));
   return box;
 }
+/* Change one property across several sessions at once. Deliberately one
+   property: a form that could rewrite everything would be a form nobody dares
+   press, and their own dialog asks the same single question. */
+function bulkEditForm(list){
+  var b=el("div");
+  b.appendChild(el("p","hint",
+    list.length+" session"+(list.length===1?"":"s")+" selected on "+dm(schedDate)+"."));
+  var prop=select([{v:"name",l:"Session title"},{v:"category",l:"Activity"},
+    {v:"staff",l:"Instructor"},{v:"hour",l:"Starting hour"},
+    {v:"capacity",l:"Capacity"},{v:"spot",l:"Spot"}],"name");
+  b.appendChild(field("Property to update",prop));
+
+  var valHost=el("div");
+  b.appendChild(valHost);
+  var control=null;
+  function drawValue(){
+    valHost.textContent="";
+    if(prop.value==="name"){
+      control=input("text","",{placeholder:"Session title"});
+      valHost.appendChild(field("New title",control));
+    } else if(prop.value==="category"){
+      control=select([{v:"",l:"—"}].concat((cfg().kinds||[]).map(function(k){
+        return {v:k.l,l:k.l};})),"");
+      valHost.appendChild(field("New activity",control));
+      valHost.appendChild(el("div","note",
+        "Sessions with participants assigned keep them. Confirm you want to change the activity."));
+    } else if(prop.value==="staff"){
+      control=select([{v:"",l:"— unassigned —"}].concat(DB.staff.slice()
+        .sort(function(a,b2){return a.name.localeCompare(b2.name);})
+        .map(function(x){return {v:x.id,l:x.name};})),"");
+      valHost.appendChild(field("New instructor",control,
+        "Replaces whoever is on these sessions."));
+    } else if(prop.value==="hour"){
+      control=input("time","09:00");
+      valHost.appendChild(field("New starting hour",control));
+    } else if(prop.value==="capacity"){
+      control=input("number","",{min:"1",step:"1"});
+      valHost.appendChild(field("New capacity",control));
+    } else {
+      var opts=DB.spots.map(function(x){return {v:x.name,l:x.name};});
+      control=select(opts.length?opts:[{v:"",l:"— add a spot first —"}],"");
+      valHost.appendChild(field("New spot",control));
+    }
+  }
+  prop.addEventListener("change",drawValue);
+  drawValue();
+
+  openModal("Bulk edit sessions",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      var v=control.value;
+      if(prop.value==="name" && !v.trim()){ toast("Enter a title."); return; }
+      if(prop.value==="capacity" && !(Number(v)>0)){ toast("Enter a capacity."); return; }
+      if(prop.value==="hour" && !v){ toast("Pick an hour."); return; }
+      var seated=list.filter(function(x){return x.participants.length;}).length;
+      function apply(){
+        list.forEach(function(x){
+          if(prop.value==="name") x.title=v.trim();
+          else if(prop.value==="category") x.category=v;
+          else if(prop.value==="staff"){ x.staffIds=v?[v]:[]; delete x.staffId; }
+          else if(prop.value==="hour") x.time=v;
+          else if(prop.value==="capacity") x.capacity=Number(v);
+          else x.spot=v;
+        });
+        planPicked={}; save(); closeModal(); render();
+        toast(list.length+" session"+(list.length===1?"":"s")+" saved");
+      }
+      if(prop.value==="category" && seated){
+        closeModal();
+        confirmish("Change the activity?",
+          seated+" of these sessions have participants assigned. Do you confirm you want to change the activity?",
+          apply,"Change activity");
+        return;
+      }
+      apply();
+    }}
+  ]);
+}
+
+/* ============================ the sessions list ============================
+   Their sessions page is not the day view: it is every session, with the
+   filter panel down the left and a toolbar that acts on what you tick. The
+   day view answers "what is happening today"; this one answers "where is that
+   session I made last Tuesday". */
+var listFilter={created:"",from:"",to:"",staff:"",cat:"",q:""};
+var listSort="created";
+function sessionsList(host){
+  var shell=el("div");
+  shell.style.cssText="display:grid;grid-template-columns:230px minmax(0,1fr);gap:16px";
+
+  /* ---- filter panel ---- */
+  var side=el("div");
+  side.appendChild(el("div","eyebrow","Filter by"));
+  function styled(n){
+    n.style.cssText="width:100%;padding:8px 10px;border-radius:9px;font:inherit;"+
+      "font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--text)";
+    return n;
+  }
+  var q=styled(input("search",listFilter.q,{placeholder:"Search name"}));
+  q.addEventListener("input",function(){listFilter.q=q.value;draw();});
+  side.appendChild(field("Name",q));
+  var f1=styled(input("date",listFilter.from));
+  var f2=styled(input("date",listFilter.to));
+  f1.addEventListener("change",function(){listFilter.from=f1.value;draw();});
+  f2.addEventListener("change",function(){listFilter.to=f2.value;draw();});
+  var g=el("div","grid2");
+  g.appendChild(field("From",f1)); g.appendChild(field("To",f2));
+  side.appendChild(el("div","eyebrow","Starting date"));
+  side.appendChild(g);
+  var fs=styled(select([{v:"",l:"Instructor"},{v:"__none",l:"Unassigned"}]
+    .concat(DB.staff.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
+      .map(function(x){return {v:x.id,l:x.name};})),listFilter.staff));
+  fs.addEventListener("change",function(){listFilter.staff=fs.value;draw();});
+  side.appendChild(field("Instructor",fs));
+  var fc=styled(select([{v:"",l:"Activity calendar"}].concat((cfg().kinds||[])
+    .map(function(k){return {v:k.l,l:k.l};})),listFilter.cat));
+  fc.addEventListener("change",function(){listFilter.cat=fc.value;draw();});
+  side.appendChild(field("Activity calendar",fc));
+  var clr=el("button","btn sm","Clear filters");
+  clr.addEventListener("click",function(){
+    listFilter={created:"",from:"",to:"",staff:"",cat:"",q:""};renderSchedule();});
+  side.appendChild(clr);
+  shell.appendChild(side);
+
+  var main=el("div");
+  shell.appendChild(main);
+  host.appendChild(shell);
+
+  function rows(){
+    var term=listFilter.q.trim().toLowerCase();
+    return DB.sessions.filter(function(x){
+      if(listFilter.from && x.date<listFilter.from) return false;
+      if(listFilter.to && x.date>listFilter.to) return false;
+      if(listFilter.cat && (x.category||"")!==listFilter.cat) return false;
+      if(listFilter.staff){
+        var ids=staffIdsOf(x);
+        if(listFilter.staff==="__none"){ if(ids.length) return false; }
+        else if(ids.indexOf(listFilter.staff)<0) return false;
+      }
+      if(term && (x.title||"").toLowerCase().indexOf(term)<0) return false;
+      return true;
+    }).sort(function(a,b){
+      if(listSort==="name") return (a.title||"").localeCompare(b.title||"");
+      if(listSort==="start") return (a.date+a.time)<(b.date+b.time)?1:-1;
+      return (b.created||b.id).localeCompare?
+        String(b.created||"").localeCompare(String(a.created||"")) ||
+        ((a.date+a.time)<(b.date+b.time)?1:-1) : 0;
+    });
+  }
+
+  function draw(){
+    main.textContent="";
+    var list=rows();
+    var picked=list.filter(function(x){return planPicked[x.id];});
+
+    /* ---- toolbar: greyed until something is ticked, as theirs is ---- */
+    var bar=el("div","searchbar");
+    var all=input("checkbox"); all.style.width="auto";
+    all.checked=list.length>0 && list.every(function(x){return planPicked[x.id];});
+    all.addEventListener("change",function(){
+      list.forEach(function(x){
+        if(all.checked) planPicked[x.id]=true; else delete planPicked[x.id];});
+      draw();
+    });
+    var alab=el("label"); alab.style.cssText="display:flex;align-items:center;gap:7px;"+
+      "font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;"+
+      "color:var(--text-3);cursor:pointer";
+    alab.appendChild(all); alab.appendChild(el("span",null,"Select all"));
+    bar.appendChild(alab);
+
+    function act(label,cls,fn){
+      var b=el("button","btn sm"+(cls?" "+cls:""),label);
+      b.disabled=!picked.length;
+      if(!picked.length) b.style.opacity=".45";
+      b.addEventListener("click",function(){ if(picked.length) fn(picked); });
+      bar.appendChild(b);
+      return b;
+    }
+    act("Clone",null,function(sel){
+      sel.forEach(function(x){
+        var copy=JSON.parse(JSON.stringify(x));
+        copy.id=uid("se"); copy.participants=[];
+        DB.sessions.push(copy);
+      });
+      planPicked={}; save(); render();
+      toast(sel.length+" session"+(sel.length===1?"":"s")+" cloned");
+    });
+    act("Delete","danger",function(sel){
+      confirmDelete(sel.length+" session"+(sel.length===1?"":"s"),function(){
+        var ids={}; sel.forEach(function(x){ids[x.id]=1;});
+        DB.sessions=DB.sessions.filter(function(y){return !ids[y.id];});
+        planPicked={}; save(); render(); toast("Sessions deleted");
+      });
+    });
+    act("Edit","primary",function(sel){ bulkEditForm(sel); });
+    var ex=el("button","btn sm","Export table");
+    ex.addEventListener("click",function(){
+      exportCsv("sessions",
+        ["Name","Date","Starting time","Duration","Activity","Staff","Participants","Capacity"],
+        list.map(function(x){
+          return [x.title,x.date,x.time,hhmm(x.duration||0),x.category||"",
+                  instructorNames(x),x.participants.length,x.capacity];}));
+    });
+    bar.appendChild(ex);
+    bar.appendChild(el("span","spacer"));
+    var add=el("button","btn primary","Add session");
+    add.addEventListener("click",function(){sessionForm(null,schedDate);});
+    bar.appendChild(add);
+    main.appendChild(bar);
+
+    if(picked.length) main.appendChild(el("div","note",
+      picked.length+" selected. Clone, delete and edit act on those."));
+
+    if(!list.length){
+      main.appendChild(el("div","note","No result found."));
+      return;
+    }
+
+    var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+    tr.appendChild(el("th",null,""));
+    [["name","Name"],["","Participants"],["","Staff"],["start","Starting time"],
+     ["","Duration"]].forEach(function(c,i){
+      var h=el("th",(i===1)?null:null);
+      if(c[0]){
+        var sb=el("button",null,c[1]+(listSort===c[0]?" ▾":""));
+        sb.style.cssText="appearance:none;border:0;background:none;font:inherit;"+
+          "cursor:pointer;color:inherit;padding:0;text-transform:inherit;"+
+          "letter-spacing:inherit;font-weight:inherit";
+        sb.addEventListener("click",function(){listSort=c[0];draw();});
+        h.appendChild(sb);
+      } else h.textContent=c[1];
+      tr.appendChild(h);
+    });
+    tr.appendChild(el("th",null,""));
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el("tbody");
+    list.slice(0,300).forEach(function(x){
+      var r=el("tr");
+      var cb=input("checkbox"); cb.style.width="auto";
+      cb.checked=!!planPicked[x.id];
+      cb.setAttribute("aria-label","Select "+x.title);
+      cb.addEventListener("change",function(){
+        if(cb.checked) planPicked[x.id]=true; else delete planPicked[x.id];
+        draw();
+      });
+      var c0=el("td"); c0.style.width="30px";
+      c0.style.borderLeft="4px solid "+(catColor(x.category)||"var(--accent-hot)");
+      c0.appendChild(cb); r.appendChild(c0);
+      var nm=el("td","strong",x.title);
+      nm.style.cursor="pointer";
+      nm.addEventListener("click",function(){sessionForm(x);});
+      r.appendChild(nm);
+      var pc=el("td");
+      var chip=el("span","chip "+(x.participants.length?"ok":"neutral"),
+        x.participants.length+" / "+x.capacity);
+      chip.style.cursor="pointer";
+      chip.addEventListener("click",function(){participantsForm(x);});
+      pc.appendChild(chip); r.appendChild(pc);
+      r.appendChild(el("td",staffIdsOf(x).length?null:"muted",instructorNames(x)));
+      r.appendChild(el("td","mono",x.date+" "+x.time));
+      r.appendChild(el("td","mono",hhmm(x.duration||0)));
+      var act2=el("td");
+      act2.appendChild(rowMenu([
+        {l:"Edit session",on:function(){sessionForm(x);}},
+        {l:"Open participants list",on:function(){participantsForm(x);}},
+        {l:"Duplicate session",on:function(){cloneSessionForm(x);}},
+        {l:"Delete session",danger:true,on:function(){
+          confirmDelete("this session",function(){
+            DB.sessions=DB.sessions.filter(function(y){return y.id!==x.id;});
+            save();render();toast("Session deleted");});}}
+      ]));
+      r.appendChild(act2);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb); w.appendChild(t); main.appendChild(w);
+    if(list.length>300) main.appendChild(el("div","note",
+      "Showing the first 300 of "+list.length+". Narrow the dates to see the rest."));
+    else main.appendChild(el("div","note",
+      "Showing "+list.length+" session"+(list.length===1?"":"s")+"."));
+  }
+  draw();
+}
+
 function clientListFor(dateStr){
   var day=DB.sessions.filter(function(x){return x.date===dateStr;})
     .sort(function(a,b){return a.time<b.time?-1:1;});
