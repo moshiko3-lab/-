@@ -132,6 +132,7 @@ td.strong{font-weight:700}
 .chip.pink{background:var(--accent-soft);color:var(--accent)}
 .chip.ok{background:var(--good-soft);color:var(--good)}
 .chip.warnc{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--crit-soft);color:var(--crit)}
 .chip.critc{background:var(--crit-soft);color:var(--crit)}
 .chip.neutral{background:var(--line-soft);color:var(--text-2)}
 
@@ -289,6 +290,7 @@ var BLANK={v:1,clients:[],staff:[],products:[],sessions:[],bookings:[],
   spots:[{id:"sp1",name:"Playa Venao",lat:7.4283,lon:-80.1897}],
   gear:[],gearBlocks:[],timeOff:[],feeGroups:[],promos:[],partners:[],accommodations:[],
   invoices:[],invoiceSeq:1,tides:[],docs:[],cash:[],trips:[],staffFees:{},
+  pos:[],tickets:[],ticketSeq:1,archives:[],commissionGroups:[],icalFeeds:[],
   settings:{
     business:{name:"Shokogi Surf School",taxId:"",address:"",phone:"",email:"",currency:"USD"},
     methods:["Card","Cash","Online","Transfer","Other"],
@@ -309,10 +311,12 @@ function load(){
         /* a database saved before these existed must not arrive with holes */
         ["gear","gearBlocks","timeOff","feeGroups","promos","partners","accommodations",
          "clients","staff","products","sessions","bookings","spots","invoices",
-         "tides","docs","cash","trips"].forEach(function(k){
+         "tides","docs","cash","trips","pos","tickets","archives",
+         "commissionGroups","icalFeeds"].forEach(function(k){
           if(!Array.isArray(d[k])) d[k]=[];
         });
         if(typeof d.invoiceSeq!=="number") d.invoiceSeq=1;
+        if(typeof d.ticketSeq!=="number") d.ticketSeq=1;
         if(!d.staffFees || typeof d.staffFees!=="object") d.staffFees={};
         return d;
       }
@@ -441,6 +445,16 @@ function confirmDelete(what,then){
   openModal("Confirm",b,[
     {label:"Cancel",on:closeModal},
     {label:"Delete",cls:"danger",on:function(){ closeModal(); then(); }}
+  ]);
+}
+
+/* confirmDelete's wording only fits deletions. This is the same dialog for
+   anything else that wants a second look before it happens. */
+function confirmish(title,text,then,label){
+  var b=el("div"); b.appendChild(el("p",null,text));
+  openModal(title,b,[
+    {label:"Cancel",on:closeModal},
+    {label:label||"Confirm",cls:"primary",on:function(){ closeModal(); then(); }}
   ]);
 }
 
@@ -3343,6 +3357,15 @@ function bookingForm(existing){
   var pblock=participantsBlock(working,seatsWanted,function(){});
   b.appendChild(pblock.node);
 
+  /* who sent them, if anyone -- this is what a partner commission is computed from */
+  var partner=null;
+  if(DB.partners.length){
+    partner=select([{v:"",l:"— direct —"}].concat(DB.partners.map(function(p){
+      return {v:p.id,l:p.company+(p.commission?" ("+p.commission+"%)":"")};})),bk.partnerId||"");
+    b.appendChild(field("Booked through",partner,
+      "A hotel or agency that sent this client. Their commission is worked out on Crew pay."));
+  }
+
   var notes=el("textarea"); notes.value=bk.notes||"";
   b.appendChild(field("Notes",notes));
   var bcf=customInputs("booking",bk.custom);
@@ -3360,11 +3383,13 @@ function bookingForm(existing){
       rec.lines=working.lines.filter(function(l){return l.productId;});
       rec.payments=working.payments.filter(function(p){return Number(p.amount)>0;});
       rec.participants=working.participants;
+      rec.partnerId=partner?partner.value:(bk.partnerId||"");
       rec.notes=notes.value.trim();
       var bmiss=bcf.missing();
       if(bmiss){ toast(bmiss+" is required."); return; }
       rec.custom=bcf.read();
       if(!existing) DB.bookings.push(rec);
+      syncTickets();
       save(); closeModal(); render(); toast(existing?"Booking updated":"Booking saved");
     }}
   ]);
@@ -3578,6 +3603,7 @@ function cancelBookingForm(bk){
           reason:why.value.trim()});
       }
       bk.status="cancelled"; bk.cancelledOn=todayISO(); bk.cancelReason=why.value.trim();
+      syncTickets();
       save(); closeModal(); render();
       toast(v>0?("Cancelled, $"+money(v,0)+" refunded"):"Booking cancelled");
     }}
@@ -3593,6 +3619,332 @@ function reopenBooking(bk){
    category. A payment is therefore split across categories in proportion to the
    booking's item values -- the same way the day report is built elsewhere. */
 var regDate=todayISO();
+/* ============================ the register ============================
+   A till that is opened with a float in the morning and counted at night.
+   Until it is opened, cash cannot move: that is the whole point of a register,
+   and it is why "expected" and "counted" can be compared at all. */
+var CASH_OPS=[
+  {v:"payin",l:"Pay-In",dir:"in",hint:"money put into the till"},
+  {v:"payout",l:"Pay-Out",dir:"out",hint:"money taken out for an expense"},
+  {v:"bank2cash",l:"Bank → Cash",dir:"in",hint:"a withdrawal brought to the till"},
+  {v:"cash2bank",l:"Cash → Bank",dir:"out",hint:"a deposit taken to the bank"}
+];
+function opOf(v){ for(var i=0;i<CASH_OPS.length;i++) if(CASH_OPS[i].v===v) return CASH_OPS[i];
+                  return null; }
+/* movements recorded before operation types existed only knew in/out */
+function moveOp(m){ return m.op || (m.direction==="in"?"payin":"payout"); }
+function moveDir(m){ var o=opOf(moveOp(m)); return o?o.dir:(m.direction||"out"); }
+
+function posFor(dateStr){
+  for(var i=0;i<DB.pos.length;i++) if(DB.pos[i].date===dateStr) return DB.pos[i];
+  return null;
+}
+function posState(dateStr){
+  var s=posFor(dateStr);
+  if(!s) return "never";
+  return s.closedAt?"closed":"open";
+}
+function posOpen(dateStr){ return posState(dateStr)==="open"; }
+/* Refuse a till operation on a day whose register was never opened. Their
+   wording, because it says exactly what to do about it. */
+function requirePos(dateStr){
+  if(posOpen(dateStr)) return true;
+  toast(posState(dateStr)==="closed"
+    ? "The register for "+dm(dateStr)+" is already closed."
+    : "POS is closed. Please open the register to perform this action.");
+  return false;
+}
+function openRegisterForm(dateStr){
+  var last=null;
+  DB.pos.forEach(function(s){ if(s.date<dateStr && (!last||s.date>last.date)) last=s; });
+  var carry=last&&last.closedAt?Number(last.counted)||0:0;
+  var b=el("div");
+  var cash=input("number",carry?String(carry):"",{min:"0",step:"0.01",placeholder:"0.00"});
+  var who=select([{v:"",l:"—"}].concat(DB.staff.map(function(x){return {v:x.id,l:x.name};})),"");
+  var g=el("div","grid2");
+  g.appendChild(field("Starting cash",cash,carry?("Last count on "+dm(last.date)+" was $"+money(carry)):null));
+  g.appendChild(field("Opened by",who));
+  b.appendChild(g);
+  b.appendChild(el("div","hint",
+    "The float you start the day with. Everything that follows — cash sales, pay-ins, pay-outs — is measured against it."));
+  openModal("Open the register · "+dowOf(dateStr)+" "+dm(dateStr),b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Open register",cls:"primary",on:function(){
+      var rec={id:uid("pos"),date:dateStr,openedAt:new Date().toISOString(),
+               openedBy:who.value,starting:Number(cash.value)||0,
+               closedAt:null,closedBy:"",counted:null,note:""};
+      DB.pos.push(rec); save(); closeModal(); render(); toast("Register open");
+    }}
+  ]);
+}
+function closeRegisterForm(dateStr,expected){
+  var s=posFor(dateStr); if(!s) return;
+  var b=el("div");
+  var counted=input("number","",{min:"0",step:"0.01",placeholder:"0.00"});
+  var who=select([{v:"",l:"—"}].concat(DB.staff.map(function(x){return {v:x.id,l:x.name};})),
+                 s.openedBy||"");
+  var note=el("textarea"); note.placeholder="Anything that explains a difference";
+  var exp=el("div","tot");
+  exp.appendChild(el("span","lab","Expected in the till"));
+  exp.appendChild(el("span","v mono","$"+money(expected,2)));
+  b.appendChild(exp);
+  var diffLine=el("div","tot");
+  diffLine.appendChild(el("span","lab","Difference"));
+  var dv=el("span","v mono","—"); diffLine.appendChild(dv);
+  var g=el("div","grid2");
+  g.appendChild(field("Counted in the till",counted));
+  g.appendChild(field("Closed by",who));
+  b.appendChild(g); b.appendChild(diffLine);
+  b.appendChild(field("Note",note));
+  counted.addEventListener("input",function(){
+    if(counted.value===""){ dv.textContent="—"; dv.style.color=""; return; }
+    var d=(Number(counted.value)||0)-expected;
+    dv.textContent=(d>0?"+":"")+"$"+money(d,2);
+    dv.style.color=Math.abs(d)<0.005?"var(--good)":(d<0?"var(--crit)":"var(--warn)");
+  });
+  b.appendChild(el("div","hint",
+    "Closing freezes the day: the count, and the difference against what the books say should be there."));
+  openModal("Close the register · "+dowOf(dateStr)+" "+dm(dateStr),b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Close register",cls:"primary",on:function(){
+      if(counted.value===""){ toast("Count the till first."); counted.focus(); return; }
+      s.closedAt=new Date().toISOString(); s.closedBy=who.value;
+      s.counted=Number(counted.value)||0; s.expected=expected;
+      s.difference=Math.round((s.counted-expected)*100)/100;
+      s.note=note.value.trim();
+      save(); closeModal(); render();
+      toast(Math.abs(s.difference)<0.005?"Register closed, and it balances"
+        :"Register closed — off by $"+money(Math.abs(s.difference),2));
+    }}
+  ]);
+}
+function reopenRegister(dateStr){
+  var s=posFor(dateStr); if(!s||!s.closedAt) return;
+  confirmish("Reopen the register for "+dm(dateStr)+"?",
+    "The count and the difference recorded at closing are discarded. The tickets already issued are not touched.",
+    function(){
+      s.closedAt=null; s.closedBy=""; s.counted=null;
+      s.expected=null; s.difference=null;
+      save(); render(); toast("Register reopened");
+    });
+}
+
+/* ============================ tickets ============================
+   Every payment and every refund leaves a numbered ticket. The tickets form a
+   chain: each one carries a fingerprint of itself and of the one before it, so
+   a row that is edited or removed later stops matching and the check says so.
+   This is tamper-evident bookkeeping, not a certified fiscal signature -- if a
+   tax office asks for certified software, this is not that. */
+function fnv1a(s){
+  var h=0x811c9dc5;
+  for(var i=0;i<s.length;i++){
+    h^=s.charCodeAt(i);
+    h=(h+((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)))>>>0;
+  }
+  return ("00000000"+h.toString(16)).slice(-8);
+}
+function ticketBody(t){
+  return [t.seq,t.date,t.time||"",t.type,(Number(t.total)||0).toFixed(2),
+          (Number(t.tax)||0).toFixed(2),
+          (t.methods||[]).map(function(m){return m.method+":"+(Number(m.amount)||0).toFixed(2);}).join("|"),
+          t.clientName||"",t.voided?"VOID":""].join(";");
+}
+function ticketHash(t,prev){ return fnv1a(prev+"~"+ticketBody(t)); }
+/* Prices are stored tax-inclusive, so tax is taken out of the amount rather
+   than added to it, and split across the payment in proportion to the sale. */
+function taxOn(bk,amount){
+  var gross=0,tax=0;
+  (bk.lines||[]).forEach(function(l){
+    var p=product(l.productId);
+    var v=(Number(l.price)||0)*(Number(l.qty)||0);
+    var r=(p&&Number(p.tax))||0;
+    gross+=v; tax+=v-v/(1+r/100);
+  });
+  if(gross<=0.004) return 0;
+  return Math.round(tax*(amount/gross)*100)/100;
+}
+function ticketFor(id){ return by(id,DB.tickets); }
+function mkTicket(bk,rec,kind){
+  var amt=Math.abs(Number(rec.amount)||0);
+  var date=rec.date||bk.date||todayISO();
+  var paidBefore=(bk.payments||[]).reduce(function(a,p){
+    return a+(p===rec?0:(Number(p.amount)||0));},0);
+  var type=kind==="refund"?"refund"
+    :((paidBefore+amt)<bookingTotal(bk)-0.004?"deposit":"sale");
+  var s=posFor(date);
+  var t={id:uid("tk"),seq:DB.ticketSeq++,date:date,
+    time:rec.time||new Date().toTimeString().slice(0,5),
+    registerId:s?("R"+String(s.id).replace(/\D/g,"")):"—",
+    staffId:rec.staffId||(s&&s.openedBy)||"",
+    type:type, bookingId:bk.id, clientName:clientName(bk.clientId),
+    total:kind==="refund"?-amt:amt, tax:(kind==="refund"?-1:1)*taxOn(bk,amt),
+    methods:[{method:rec.method||"Cash",amount:kind==="refund"?-amt:amt}],
+    reprints:0, voided:false};
+  var prev=DB.tickets.length?DB.tickets[DB.tickets.length-1].hash:"00000000";
+  t.prev=prev; t.hash=ticketHash(t,prev);
+  DB.tickets.push(t);
+  return t.id;
+}
+/* A payment that is edited after the fact does not rewrite its ticket: the old
+   one is voided and a fresh one issued, the way a till does it. Rewriting the
+   ticket would defeat the point of keeping one. */
+function syncTickets(){
+  var made=0;
+  DB.bookings.forEach(function(bk){
+    (bk.payments||[]).forEach(function(p){
+      if(!(Number(p.amount)>0)) return;
+      var t=p.tid?ticketFor(p.tid):null;
+      if(t&&!t.voided){
+        var same=Math.abs(t.total-(Number(p.amount)||0))<0.005 &&
+                 (t.methods[0]||{}).method===p.method &&
+                 t.date===(p.date||bk.date);
+        if(same) return;
+        t.voided=true; t.voidedAt=new Date().toISOString();
+      }
+      p.tid=mkTicket(bk,p,"pay"); made++;
+    });
+    (bk.refunds||[]).forEach(function(r){
+      if(!(Number(r.amount)>0)) return;
+      var t=r.tid?ticketFor(r.tid):null;
+      if(t&&!t.voided){
+        if(Math.abs(-t.total-(Number(r.amount)||0))<0.005 &&
+           (t.methods[0]||{}).method===r.method && t.date===(r.date||bk.date)) return;
+        t.voided=true; t.voidedAt=new Date().toISOString();
+      }
+      r.tid=mkTicket(bk,r,"refund"); made++;
+    });
+  });
+  return made;
+}
+function ticketsBetween(from,to){
+  return DB.tickets.filter(function(t){
+    return (!from||t.date>=from)&&(!to||t.date<=to);
+  }).sort(function(a,b){return a.seq-b.seq;});
+}
+/* Recompute the chain and report the first row that stopped matching. A gap in
+   the numbering is reported too: a missing ticket is as telling as a changed one. */
+function checkTickets(from,to){
+  var rows=ticketsBetween(from,to);
+  if(!rows.length) return {ok:true,checked:0,notes:["No tickets in that range."]};
+  var notes=[],bad=0,prevSeq=null;
+  var all=DB.tickets.slice().sort(function(a,b){return a.seq-b.seq;});
+  var chain={},prev="00000000";
+  all.forEach(function(t){ chain[t.id]=prev; prev=t.hash; });
+  rows.forEach(function(t){
+    if(ticketHash(t,chain[t.id])!==t.hash){
+      bad++;
+      if(notes.length<8) notes.push("Ticket #"+t.seq+" ("+dm(t.date)+") no longer matches its fingerprint.");
+    }
+    if(prevSeq!==null&&t.seq!==prevSeq+1&&notes.length<8)
+      notes.push("Numbers jump from #"+prevSeq+" to #"+t.seq+" — "+(t.seq-prevSeq-1)+" missing.");
+    prevSeq=t.seq;
+  });
+  return {ok:bad===0,checked:rows.length,bad:bad,notes:notes};
+}
+/* Two tickets for the same client, the same amount and the same method within
+   a few minutes are usually one sale rung up twice. */
+function checkDuplicates(dateStr){
+  var rows=ticketsBetween(dateStr,dateStr).filter(function(t){return !t.voided;});
+  var seen={},dups=[];
+  rows.forEach(function(t){
+    var k=[t.clientName,(Number(t.total)||0).toFixed(2),
+           (t.methods[0]||{}).method,(t.time||"").slice(0,4)].join("|");
+    if(seen[k]) dups.push([seen[k],t]); else seen[k]=t;
+  });
+  return {checked:rows.length,dups:dups};
+}
+function ticketTypeLabel(t){
+  return t==="sale"?"Sale":t==="deposit"?"Deposit":t==="refund"?"Refund":t;
+}
+function ticketsTable(rows,onOpen){
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Date","Seq. Nb.","Register ID","Staff","Type","Total tax incl.","Tax",
+   "Payment methods","Integrity","Reprint"].forEach(function(h,i){
+    tr.appendChild(el("th",(i===5||i===6||i===9)?"r":null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  var all=DB.tickets.slice().sort(function(a,b){return a.seq-b.seq;});
+  var chain={},prev="00000000";
+  all.forEach(function(x){ chain[x.id]=prev; prev=x.hash; });
+  rows.forEach(function(x){
+    var r=el("tr");
+    if(x.voided) r.style.opacity=".55";
+    r.appendChild(el("td","muted",dm(x.date)+" "+(x.time||"")));
+    r.appendChild(el("td","mono strong","#"+x.seq));
+    r.appendChild(el("td","mono muted",x.registerId||"—"));
+    r.appendChild(el("td",null,x.staffId?staffName(x.staffId):"—"));
+    var tc=el("td");
+    tc.appendChild(el("span","chip "+(x.type==="refund"?"warnc":x.type==="deposit"?"":"ok"),
+      ticketTypeLabel(x.type)+(x.voided?" · void":"")));
+    r.appendChild(tc);
+    r.appendChild(el("td","n r strong","$"+money(x.total,2)));
+    r.appendChild(el("td","n r muted","$"+money(x.tax,2)));
+    r.appendChild(el("td","muted",(x.methods||[]).map(function(m){return m.method;}).join(", ")));
+    var ic=el("td");
+    var good=ticketHash(x,chain[x.id])===x.hash;
+    ic.appendChild(el("span","chip "+(good?"ok":"bad"),good?x.hash:"broken"));
+    r.appendChild(ic);
+    var rc=el("td","n r");
+    var rb=el("button","btn sm",String(x.reprints||0));
+    rb.title="Reprint this ticket";
+    rb.addEventListener("click",function(){ reprintTicket(x); });
+    rc.appendChild(rb); r.appendChild(rc);
+    if(onOpen){ r.style.cursor="pointer";
+      r.addEventListener("click",function(ev){
+        if(ev.target.tagName!=="BUTTON") onOpen(x); }); }
+    tb.appendChild(r);
+  });
+  t.appendChild(tb); w.appendChild(t);
+  return w;
+}
+function reprintTicket(x){
+  x.reprints=(x.reprints||0)+1;
+  /* the reprint count is part of the ticket, so the chain has to be resealed
+     from here on -- otherwise every reprint would read as tampering */
+  resealFrom(x);
+  save(); render();
+  showTicket(x);
+}
+function resealFrom(x){
+  var all=DB.tickets.slice().sort(function(a,b){return a.seq-b.seq;});
+  var prev="00000000",hit=false;
+  all.forEach(function(t){
+    if(t.id===x.id) hit=true;
+    if(hit){ t.prev=prev; t.hash=ticketHash(t,prev); }
+    prev=t.hash;
+  });
+}
+function showTicket(x){
+  var b=el("div");
+  var bz=cfg().business;
+  var head=el("div"); head.style.textAlign="center"; head.style.marginBottom="14px";
+  head.appendChild(el("div","eyebrow","Ticket #"+x.seq));
+  var nm=el("h3",null,bz.name||"—"); nm.style.fontSize="17px"; nm.style.marginTop="4px";
+  head.appendChild(nm);
+  if(bz.taxId) head.appendChild(el("div","hint","Tax "+bz.taxId));
+  head.appendChild(el("div","hint",dowOf(x.date)+" "+dm(x.date)+" · "+(x.time||"")));
+  b.appendChild(head);
+  [["Type",ticketTypeLabel(x.type)+(x.voided?" (voided)":"")],
+   ["Client",x.clientName||"—"],
+   ["Staff",x.staffId?staffName(x.staffId):"—"],
+   ["Register",x.registerId||"—"],
+   ["Total tax incl.","$"+money(x.total,2)],
+   ["Of which tax","$"+money(x.tax,2)],
+   ["Paid by",(x.methods||[]).map(function(m){return m.method+" $"+money(m.amount,2);}).join(", ")],
+   ["Reprints",String(x.reprints||0)],
+   ["Fingerprint",x.hash]].forEach(function(p){
+    var r=el("div","tot"); r.style.marginTop="4px";
+    r.appendChild(el("span","lab",p[0]));
+    r.appendChild(el("span","v mono",p[1]));
+    b.appendChild(r);
+  });
+  var bk=by(x.bookingId,DB.bookings);
+  var acts=[{label:"Close",on:closeModal}];
+  if(bk) acts.push({label:"Open booking",on:function(){closeModal();show("bookings");bookingForm(bk);}});
+  acts.push({label:"Print",cls:"primary",on:function(){window.print();}});
+  openModal("Ticket #"+x.seq,b,acts);
+}
+
 function closingFor(dateStr){
   var byMethod={},byKind={},total=0,count=0;
   DB.bookings.forEach(function(bk){
@@ -3647,6 +3999,7 @@ function renderRegister(){
   host.appendChild(bar);
 
   var c=closingFor(regDate);
+  registerStrip(host,regDate,c);
   var k=el("div","kpis");
   [{l:"Takings",v:"$"+money(c.total,2),m:dowOf(regDate)+", "+dm(regDate)},
    {l:"Payments",v:String(c.count),m:c.count?("$"+money(c.total/c.count,2)+" average"):"nothing recorded"}]
@@ -3663,6 +4016,7 @@ function renderRegister(){
     host.appendChild(el("div","note",
       "No payments recorded on "+dm(regDate)+". Takings appear here as soon as a booking is paid."));
     drawerSection(host,regDate,0);
+    ticketSection(host,regDate);
     return;
   }
   function tableOf(title,obj,labelFn){
@@ -3693,6 +4047,116 @@ function renderRegister(){
   host.appendChild(el("div","note",
     "A payment that covers several items is split across activities in proportion to what those items cost."));
   drawerSection(host,regDate,c.byMethod["Cash"]||0);
+  ticketSection(host,regDate);
+}
+
+/* The register's own state, above the day's numbers: opened with what, and at
+   closing, counted against what the books expect. */
+function registerStrip(host,dateStr,c){
+  var s=posFor(dateStr), st=posState(dateStr);
+  var d=drawerFor(dateStr,c.byMethod["Cash"]||0);
+  var expected=(s?Number(s.starting)||0:0)+d.expected;
+  var p=el("div","panel"); p.style.marginBottom="14px";
+  var row=el("div"); row.style.display="flex"; row.style.alignItems="center";
+  row.style.gap="14px"; row.style.flexWrap="wrap";
+  var lab=el("div");
+  lab.appendChild(el("div","eyebrow","Register"));
+  var state=el("span","chip "+(st==="open"?"ok":st==="closed"?"":"warnc"),
+    st==="open"?"Open":st==="closed"?"Closed":"Not opened");
+  lab.appendChild(state);
+  row.appendChild(lab);
+
+  function stat(l,v,colour){
+    var b=el("div");
+    b.appendChild(el("div","eyebrow",l));
+    var x=el("div","mono",v);
+    x.style.fontSize="16px"; x.style.fontWeight="600";
+    if(colour) x.style.color=colour;
+    b.appendChild(x);
+    row.appendChild(b);
+  }
+  if(s){
+    stat("Starting cash","$"+money(s.starting,2));
+    stat("Expected in register","$"+money(expected,2));
+    if(st==="closed"){
+      stat("Actual in register","$"+money(s.counted,2));
+      var diff=Number(s.difference)||0;
+      stat("Difference",(diff>0?"+":"")+"$"+money(diff,2),
+        Math.abs(diff)<0.005?"var(--good)":(diff<0?"var(--crit)":"var(--warn)"));
+    }
+  }
+  row.appendChild(el("span","spacer"));
+  if(st==="never"){
+    var ob=el("button","btn primary","Open register");
+    ob.addEventListener("click",function(){openRegisterForm(dateStr);});
+    row.appendChild(ob);
+  } else if(st==="open"){
+    var cb=el("button","btn primary","Close register");
+    cb.addEventListener("click",function(){closeRegisterForm(dateStr,expected);});
+    row.appendChild(cb);
+  } else {
+    var rb=el("button","btn","Reopen");
+    rb.addEventListener("click",function(){reopenRegister(dateStr);});
+    row.appendChild(rb);
+  }
+  p.appendChild(row);
+  if(s&&s.openedAt){
+    var meta=[];
+    meta.push("Opened "+s.openedAt.slice(11,16)+(s.openedBy?" by "+staffName(s.openedBy):""));
+    if(s.closedAt) meta.push("closed "+s.closedAt.slice(11,16)+(s.closedBy?" by "+staffName(s.closedBy):""));
+    p.appendChild(el("div","hint",meta.join(" · ")));
+  }
+  if(s&&s.note) p.appendChild(el("div","hint",s.note));
+  if(st==="never")
+    p.appendChild(el("div","hint",
+      "Cash cannot move in or out until the register is opened with its float."));
+  host.appendChild(p);
+}
+
+/* The day's tickets. One per payment and per refund, numbered in sequence. */
+function ticketSection(host,dateStr){
+  var rows=ticketsBetween(dateStr,dateStr);
+  var h=el("div","sec-h");
+  h.appendChild(el("h2",null,"Tickets"));
+  h.appendChild(el("span","spacer"));
+  var dup=el("button","btn sm","Check duplicates");
+  dup.addEventListener("click",function(){
+    var r=checkDuplicates(dateStr);
+    var b=el("div");
+    b.appendChild(el("p",null,r.checked+" ticket"+(r.checked===1?"":"s")+" checked on "+dm(dateStr)+"."));
+    if(!r.dups.length) b.appendChild(el("div","note","Nothing looks rung up twice."));
+    else r.dups.forEach(function(pair){
+      b.appendChild(el("div","note","#"+pair[0].seq+" and #"+pair[1].seq+" — "+
+        (pair[0].clientName||"—")+", $"+money(pair[0].total,2)+", "+
+        ((pair[0].methods[0]||{}).method||"")+", minutes apart."));
+    });
+    openModal("Duplicate check",b,[{label:"Close",cls:"primary",on:closeModal}]);
+  });
+  h.appendChild(dup);
+  var chk=el("button","btn sm","Check integrity");
+  chk.addEventListener("click",function(){ integrityReport(dateStr,dateStr); });
+  h.appendChild(chk);
+  host.appendChild(h);
+  if(!rows.length){
+    host.appendChild(el("div","note",
+      "No tickets on "+dm(dateStr)+". One is issued automatically for every payment and every refund."));
+    return;
+  }
+  host.appendChild(ticketsTable(rows,showTicket));
+}
+function integrityReport(from,to){
+  var r=checkTickets(from,to);
+  var b=el("div");
+  var line=el("div","tot");
+  line.appendChild(el("span","lab",r.checked+" ticket"+(r.checked===1?"":"s")+" checked"));
+  var v=el("span","v",r.ok?"Validated":"Failed");
+  v.style.color=r.ok?"var(--good)":"var(--crit)";
+  line.appendChild(v); b.appendChild(line);
+  (r.notes||[]).forEach(function(n){ b.appendChild(el("div","note",n)); });
+  if(r.ok&&r.checked)
+    b.appendChild(el("div","note",
+      "Every ticket still matches its fingerprint and the one before it."));
+  openModal("Ticket integrity",b,[{label:"Close",cls:"primary",on:closeModal}]);
 }
 
 
@@ -4008,17 +4472,27 @@ function renderTrips(){
    a supplier paid in cash, wages handed over. It never touches revenue, but
    it decides what should physically be in the till at close. */
 function cashForm(existing,dateStr){
-  var c=existing||{date:dateStr||todayISO(),direction:"out",amount:"",reason:"",staffId:""};
+  var day=dateStr||(existing&&existing.date)||todayISO();
+  if(!existing&&!requirePos(day)) return;
+  var c=existing||{date:day,op:"payout",amount:"",reason:"",staffId:""};
   var b=el("div");
-  var dir=select([{v:"in",l:"Money in"},{v:"out",l:"Money out"}],c.direction);
+  var op=select(CASH_OPS.map(function(o){return {v:o.v,l:o.l};}),moveOp(c));
   var amt=input("number",c.amount,{min:"0",step:"0.01"});
   var when=input("date",c.date);
   var why=input("text",c.reason,{placeholder:"Float, supplier, wages, bank run…"});
   var who=select([{v:"",l:"—"}].concat(DB.staff.map(function(x){
     return {v:x.id,l:x.name};})),c.staffId||"");
   var g=el("div","grid2");
-  g.appendChild(field("Direction",dir)); g.appendChild(field("Amount",amt));
+  var opField=field("Operation type",op);
+  g.appendChild(opField); g.appendChild(field("Amount",amt));
   b.appendChild(g);
+  var opHint=el("div","hint","");
+  function drawHint(){
+    var o=opOf(op.value);
+    opHint.textContent=o?(o.dir==="in"?"Money in — ":"Money out — ")+o.hint:"";
+  }
+  op.addEventListener("change",drawHint); drawHint();
+  opField.appendChild(opHint);
   var g2=el("div","grid2");
   g2.appendChild(field("Date",when)); g2.appendChild(field("Handled by",who));
   b.appendChild(g2);
@@ -4029,13 +4503,21 @@ function cashForm(existing,dateStr){
     {label:"Cancel",on:closeModal},
     {label:"Save",cls:"primary",on:function(){
       var v=Number(amt.value)||0;
-      if(v<=0){ toast("Enter an amount."); amt.focus(); return; }
+      if(!op.value){ toast("Operation type is required."); return; }
+      if(v<=0){ toast("The amount cannot be zero or negative."); amt.focus(); return; }
       if(!why.value.trim()){ toast("A reason is required."); why.focus(); return; }
+      var target=when.value||todayISO();
+      if(!posOpen(target)){
+        toast(posState(target)==="closed"
+          ? "The register for "+dm(target)+" is closed. Reopen it first."
+          : "POS is closed. Please open the register to perform this action.");
+        return;
+      }
       var rec=existing||{id:uid("cash")};
-      rec.date=when.value||todayISO(); rec.direction=dir.value; rec.amount=v;
+      rec.date=target; rec.op=op.value; rec.direction=moveDir(rec); rec.amount=v;
       rec.reason=why.value.trim(); rec.staffId=who.value;
       if(!existing) DB.cash.push(rec);
-      save(); closeModal(); render(); toast("Saved");
+      save(); closeModal(); render(); toast("Operation registered successfully");
     }}
   ]);
 }
@@ -4044,9 +4526,9 @@ function cashOn(dateStr){
 }
 function drawerFor(dateStr,cashTakings){
   var moves=cashOn(dateStr);
-  var inn=moves.filter(function(m){return m.direction==="in";})
+  var inn=moves.filter(function(m){return moveDir(m)==="in";})
     .reduce(function(a,m){return a+m.amount;},0);
-  var out=moves.filter(function(m){return m.direction==="out";})
+  var out=moves.filter(function(m){return moveDir(m)==="out";})
     .reduce(function(a,m){return a+m.amount;},0);
   return {in:inn,out:out,expected:(cashTakings||0)+inn-out,moves:moves};
 }
@@ -4214,6 +4696,93 @@ function renderFees(){
 
   host.appendChild(el("div","note",
     "A session taught by two instructors is split between them. A percentage rate is taken against what that session actually sold for, spread across the sessions its people sit in."));
+  commissionSection(host);
+}
+
+/* What the hotels and agencies are owed, on the same period as the crew pay. */
+function commissionSection(host){
+  var h=el("div","sec-h");
+  h.appendChild(el("h2",null,"Partner commissions"));
+  h.appendChild(el("span","spacer"));
+  var gb=el("button","btn sm","Commission groups");
+  gb.addEventListener("click",function(){show("settings");});
+  h.appendChild(gb);
+  host.appendChild(h);
+  if(!DB.partners.length){
+    host.appendChild(el("div","note",
+      "No partners yet. Add the hotels and agencies that send you clients in the back office, then pick one on a booking and the commission is worked out here."));
+    return;
+  }
+  var rows=commissionsFor(feeFrom,feeTo);
+  var any=rows.some(function(r){return r.rows.length;});
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Partner","Commission group","Rate","Bookings","Value sent","Commission",""]
+    .forEach(function(x,i){ tr.appendChild(el("th",(i>=2&&i<=5)?"r":null,x)); });
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody"),grand=0,sent=0;
+  rows.forEach(function(r){
+    grand+=r.total;
+    var base=r.rows.reduce(function(a,x){return a+x.base;},0);
+    sent+=base;
+    var g=r.partner.groupId?by(r.partner.groupId,DB.commissionGroups):null;
+    var row=el("tr");
+    row.appendChild(el("td","strong",r.partner.company));
+    row.appendChild(el("td","muted",g?g.name:"everything"));
+    row.appendChild(el("td","n r",(Number(r.partner.commission)||0)+"%"));
+    row.appendChild(el("td","n r",String(r.rows.length)));
+    row.appendChild(el("td","n r","$"+money(base,2)));
+    var pc=el("td","n r strong",r.total?"$"+money(r.total,2):"—");
+    if(!r.total) pc.classList.add("muted");
+    row.appendChild(pc);
+    var act=el("td"),box=el("div","rowbtns");
+    if(r.rows.length){
+      var det=el("button","btn sm","Breakdown");
+      det.addEventListener("click",function(){commissionDetail(r);});
+      box.appendChild(det);
+    }
+    act.appendChild(box); row.appendChild(act);
+    tb.appendChild(row);
+  });
+  var tot=el("tr");
+  tot.appendChild(el("td","strong","Total")); tot.appendChild(el("td"));
+  tot.appendChild(el("td")); tot.appendChild(el("td"));
+  tot.appendChild(el("td","n r strong","$"+money(sent,2)));
+  tot.appendChild(el("td","n r strong","$"+money(grand,2)));
+  tot.appendChild(el("td"));
+  tb.appendChild(tot);
+  t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+  if(!any) host.appendChild(el("div","note",
+    "Nothing was booked through a partner between "+dm(feeFrom)+" and "+dm(feeTo)+
+    ". Pick a partner on a booking and it lands here."));
+}
+function commissionDetail(r){
+  var b=el("div");
+  b.appendChild(el("p","hint",r.partner.company+" — "+r.rows.length+" booking"+
+    (r.rows.length===1?"":"s")+", $"+money(r.total,2)+" for "+dm(feeFrom)+" to "+dm(feeTo)+"."));
+  var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+  ["Date","Client","Qualifying value","Commission"].forEach(function(h,i){
+    tr.appendChild(el("th",i>=2?"r":null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  r.rows.forEach(function(x){
+    var row=el("tr");
+    row.appendChild(el("td",null,dm(x.booking.date)));
+    row.appendChild(el("td","strong",clientName(x.booking.clientId)));
+    row.appendChild(el("td","n r","$"+money(x.base,2)));
+    row.appendChild(el("td","n r strong","$"+money(x.pay,2)));
+    tb.appendChild(row);
+  });
+  t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  openModal("Commission · "+r.partner.company,b,[
+    {label:"Close",on:closeModal},
+    {label:"Export CSV",cls:"primary",on:function(){
+      exportCsv("commission-"+r.partner.company.replace(/\W+/g,"-")+"-"+feeFrom+"_"+feeTo,
+        ["Date","Client","Qualifying value","Rate","Commission"],
+        r.rows.map(function(x){
+          return [x.booking.date,clientName(x.booking.clientId),x.base.toFixed(2),
+                  (Number(r.partner.commission)||0)+"%",x.pay.toFixed(2)];}));
+    }}
+  ]);
 }
 function feeDetail(st,f){
   var b=el("div");
@@ -4451,19 +5020,19 @@ function drawerSection(host,dateStr,cashTakings){
     return;
   }
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
-  ["Direction","Reason","Handled by","Amount",""].forEach(function(x,i){
+  ["Operation","Reason","Handled by","Amount",""].forEach(function(x,i){
     tr.appendChild(el("th",i===3?"r":null,x));});
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
   d.moves.forEach(function(m){
     var r=el("tr");
+    var dir=moveDir(m),o=opOf(moveOp(m));
     var dc=el("td");
-    dc.appendChild(el("span","chip "+(m.direction==="in"?"ok":"warnc"),
-      m.direction==="in"?"In":"Out"));
+    dc.appendChild(el("span","chip "+(dir==="in"?"ok":"warnc"),o?o.l:(dir==="in"?"In":"Out")));
     r.appendChild(dc);
     r.appendChild(el("td","strong",m.reason));
     r.appendChild(el("td","muted",m.staffId?staffName(m.staffId):"—"));
-    r.appendChild(el("td","n r",(m.direction==="in"?"+":"−")+"$"+money(m.amount,2)));
+    r.appendChild(el("td","n r",(dir==="in"?"+":"−")+"$"+money(m.amount,2)));
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Edit");
     e.addEventListener("click",function(){cashForm(m,dateStr);});
@@ -4863,7 +5432,8 @@ function promoForm(existing){
 
 /* ============================ partners ============================ */
 function partnerForm(existing){
-  var p=existing||{company:"",code:"",contact:"",email:"",phone:"",city:"",country:"",commission:0};
+  var p=existing||{company:"",code:"",contact:"",email:"",phone:"",city:"",country:"",
+                   commission:0,groupId:""};
   var b=el("div");
   var co=input("text",p.company,{placeholder:"Hotel / agency name"});
   var code=input("text",p.code,{placeholder:"Partner code"});
@@ -4871,10 +5441,16 @@ function partnerForm(existing){
   var em=input("email",p.email), ph=input("tel",p.phone);
   var city=input("text",p.city), country=input("text",p.country);
   var comm=input("number",p.commission,{min:"0",max:"100",step:"0.5"});
+  var grp=select([{v:"",l:"— everything they send —"}].concat(
+    DB.commissionGroups.map(function(x){return {v:x.id,l:x.name};})),p.groupId||"");
   b.appendChild(field("Company",co));
   var g=el("div","grid2");
   g.appendChild(field("Partner code",code)); g.appendChild(field("Commission %",comm));
   b.appendChild(g);
+  b.appendChild(field("Commission group",grp,
+    DB.commissionGroups.length
+      ? "Only the products in that group earn this partner a commission."
+      : "No groups yet — until you make one, every product they send earns the rate above."));
   b.appendChild(field("Contact person",ct));
   var g2=el("div","grid2");
   g2.appendChild(field("Email",em)); g2.appendChild(field("Phone",ph));
@@ -4890,10 +5466,87 @@ function partnerForm(existing){
       rec.company=co.value.trim(); rec.code=code.value.trim(); rec.contact=ct.value.trim();
       rec.email=em.value.trim(); rec.phone=ph.value.trim(); rec.city=city.value.trim();
       rec.country=country.value.trim(); rec.commission=Number(comm.value)||0;
+      rec.groupId=grp.value;
       if(!existing) DB.partners.push(rec);
       save(); closeModal(); render(); toast("Saved");
     }}
   ]);
+}
+
+/* ============================ commission groups ============================
+   A named set of products a partner earns on. Without one, a partner earns on
+   everything they send; with one, only on what is in the group. */
+function commissionGroupForm(existing){
+  var g=existing||{name:"",productIds:[]};
+  var picked=(g.productIds||[]).slice();
+  var b=el("div");
+  var name=input("text",g.name,{placeholder:"Enter name for commission group"});
+  b.appendChild(field("Name",name));
+  var count=el("div","hint","");
+  var listHost=el("div","panel"); listHost.style.maxHeight="300px";
+  listHost.style.overflow="auto"; listHost.style.padding="6px";
+  function draw(){
+    listHost.textContent="";
+    if(!DB.products.length){
+      listHost.appendChild(el("div","hint","No products yet."));
+    }
+    DB.products.slice().sort(function(a,b2){return a.name.localeCompare(b2.name);})
+      .forEach(function(p){
+      var row=el("label","slot"); row.style.gridTemplateColumns="26px 1fr auto";
+      row.style.cursor="pointer"; row.style.alignItems="center";
+      var cb=el("input"); cb.type="checkbox"; cb.checked=picked.indexOf(p.id)>=0;
+      cb.addEventListener("change",function(){
+        if(cb.checked){ if(picked.indexOf(p.id)<0) picked.push(p.id); }
+        else picked=picked.filter(function(x){return x!==p.id;});
+        count.textContent=picked.length+" product"+(picked.length===1?"":"s")+" in the group";
+      });
+      row.appendChild(cb);
+      row.appendChild(el("div","t",p.name));
+      row.appendChild(el("div","muted",p.category||kindLabel(p.kind)));
+      listHost.appendChild(row);
+    });
+  }
+  draw();
+  count.textContent=picked.length+" product"+(picked.length===1?"":"s")+" in the group";
+  var lh=el("div","lines-h"); lh.appendChild(el("h4",null,"Products in the group"));
+  b.appendChild(lh); b.appendChild(listHost); b.appendChild(count);
+  openModal(existing?"Edit commission group":"New commission group",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Save",cls:"primary",on:function(){
+      if(!name.value.trim()){ toast("Commission group name is required."); name.focus(); return; }
+      var rec=existing||{id:uid("cg")};
+      rec.name=name.value.trim(); rec.productIds=picked;
+      if(!existing) DB.commissionGroups.push(rec);
+      save(); closeModal(); render();
+      toast("Commission group was correctly registered.");
+    }}
+  ]);
+}
+/* What each partner earned in a period: their rate against the value of the
+   lines they are entitled to, on bookings actually booked through them. */
+function commissionsFor(from,to){
+  var out=[];
+  DB.partners.forEach(function(pa){
+    var rows=[],total=0;
+    DB.bookings.forEach(function(bk){
+      if(bk.partnerId!==pa.id) return;
+      if(bk.status==="cancelled") return;
+      var d=bk.date||"";
+      if((from&&d<from)||(to&&d>to)) return;
+      var g=pa.groupId?by(pa.groupId,DB.commissionGroups):null;
+      var base=0;
+      (bk.lines||[]).forEach(function(l){
+        if(g&&(g.productIds||[]).indexOf(l.productId)<0) return;
+        base+=(Number(l.price)||0)*(Number(l.qty)||0);
+      });
+      if(base<=0.004) return;
+      var pay=Math.round(base*(Number(pa.commission)||0))/100;
+      rows.push({booking:bk,base:base,pay:pay});
+      total+=pay;
+    });
+    out.push({partner:pa,rows:rows,total:total});
+  });
+  return out.sort(function(a,b){return b.total-a.total;});
 }
 
 /* ============================ accommodations ============================ */
@@ -5197,6 +5850,34 @@ function renderSettings(){
     del:function(x){DB.partners=DB.partners.filter(function(y){return y.id!==x.id;});}
   }));
 
+  grid.appendChild(listEditor("Commission groups",
+    "Which products earn a partner their cut.",DB.commissionGroups,{
+    addLabel:"New commission group",
+    read:function(x){
+      var linked=DB.partners.filter(function(p){return p.groupId===x.id;});
+      return {title:x.name,
+        sub:(x.productIds||[]).length+" product"+((x.productIds||[]).length===1?"":"s")+
+          " · "+(linked.length?linked.map(function(p){return p.company;}).join(", ")
+                             :"no partners associated")};},
+    form:function(x){commissionGroupForm(x);},
+    del:function(x){
+      DB.commissionGroups=DB.commissionGroups.filter(function(y){return y.id!==x.id;});
+      DB.partners.forEach(function(p){ if(p.groupId===x.id) p.groupId=""; });
+    }
+  }));
+
+  grid.appendChild(listEditor("Calendar feeds (iCal)",
+    "Read-only links that show the schedule in Google Calendar or Apple Calendar.",
+    DB.icalFeeds,{
+    addLabel:"New URL",
+    read:function(x){
+      var who=x.staffIds&&x.staffIds.length?(x.staffIds.length+" crew"):"all crew";
+      return {title:x.name||"Calendar feed",
+        sub:who+" · "+(x.fields||[]).length+" fields"};},
+    form:function(x){icalForm(x);},
+    del:function(x){DB.icalFeeds=DB.icalFeeds.filter(function(y){return y.id!==x.id;});}
+  }));
+
   grid.appendChild(listEditor("Accommodation",
     "Beds for camps and multi-day packages.",DB.accommodations,{
     addLabel:"Add accommodation",
@@ -5207,6 +5888,7 @@ function renderSettings(){
   }));
 
   host.appendChild(grid);
+  fiscalSection(host);
 
   var danger=el("div","note");
   danger.style.borderLeftColor="var(--crit)";
@@ -5217,7 +5899,8 @@ function renderSettings(){
     confirmDelete("EVERY record in the system",function(){
       DB.clients=[];DB.staff=[];DB.products=[];DB.sessions=[];DB.bookings=[];
       DB.gear=[];DB.gearBlocks=[];DB.timeOff=[];DB.promos=[];DB.partners=[];
-      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.docs=[];DB.cash=[];DB.trips=[];DB.staffFees={};DB.seeded=true;
+      DB.accommodations=[];DB.feeGroups=[];DB.invoices=[];DB.tides=[];DB.docs=[];DB.cash=[];DB.trips=[];DB.staffFees={};
+      DB.pos=[];DB.tickets=[];DB.ticketSeq=1;DB.archives=[];DB.commissionGroups=[];DB.seeded=true;
       save();render();toast("All records cleared");
     });
   });
@@ -5225,6 +5908,239 @@ function renderSettings(){
   host.appendChild(danger);
 }
 
+
+/* ============================ fiscal archive ============================
+   A sealed copy of a stretch of the ticket journal, with a fingerprint over
+   the whole run. Keep it somewhere safe; checking it later says whether the
+   tickets it holds are still the ones that were issued. */
+var arcFrom="",arcTo="";
+function archiveBody(rows){
+  return rows.map(function(t){return ticketBody(t)+"#"+t.hash;}).join("\n");
+}
+function fiscalSection(host){
+  var h=el("div","sec-h");
+  h.appendChild(el("h2",null,"Fiscal archive"));
+  h.appendChild(el("span","spacer"));
+  var ci=el("button","btn sm","Check ticket integrity");
+  ci.addEventListener("click",function(){ integrityRangeForm(); });
+  h.appendChild(ci);
+  var ex=el("button","btn sm primary","Export archive file");
+  ex.addEventListener("click",archiveForm);
+  h.appendChild(ex);
+  host.appendChild(h);
+
+  var p=el("div","panel");
+  var total=DB.tickets.length;
+  var voided=DB.tickets.filter(function(t){return t.voided;}).length;
+  var span=total?(dm(DB.tickets[0].date)+" – "+dm(DB.tickets[total-1].date)):"—";
+  [["Tickets issued",String(total)],["Of those, voided",String(voided)],
+   ["Covering",span],["Archives made",String(DB.archives.length)]].forEach(function(x){
+    var r=el("div","slot"); r.style.gridTemplateColumns="190px 1fr";
+    r.appendChild(el("div","t",x[0]));
+    r.appendChild(el("div","mono",x[1]));
+    p.appendChild(r);
+  });
+  host.appendChild(p);
+
+  if(DB.archives.length){
+    var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
+    ["Made","Covers","Tickets","Total","Fingerprint",""].forEach(function(x,i){
+      tr.appendChild(el("th",(i===2||i===3)?"r":null,x));});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el("tbody");
+    DB.archives.slice().reverse().forEach(function(a){
+      var r=el("tr");
+      r.appendChild(el("td","muted",dm(a.made)));
+      r.appendChild(el("td","strong",dm(a.from)+" – "+dm(a.to)));
+      r.appendChild(el("td","n r",String(a.count)));
+      r.appendChild(el("td","n r","$"+money(a.total,2)));
+      r.appendChild(el("td","mono muted",a.hash));
+      var act=el("td"),box=el("div","rowbtns");
+      var open=el("button","btn sm","Open");
+      open.addEventListener("click",function(){showArchive(a);});
+      var chk=el("button","btn sm","Check");
+      chk.addEventListener("click",function(){checkArchive(a);});
+      box.appendChild(open); box.appendChild(chk);
+      act.appendChild(box); r.appendChild(act);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb); w.appendChild(t); host.appendChild(w);
+  }
+  host.appendChild(el("div","note",
+    "The tickets carry fingerprints so a later edit shows up. That is tamper-evident bookkeeping, not certified fiscal software — if your tax authority requires certified software, this is not it."));
+}
+function integrityRangeForm(){
+  var b=el("div");
+  var f=input("date",arcFrom||todayISO()), t=input("date",arcTo||todayISO());
+  var g=el("div","grid2");
+  g.appendChild(field("Tickets from",f)); g.appendChild(field("To",t));
+  b.appendChild(g);
+  b.appendChild(el("div","hint","Tickets date — one month at most."));
+  openModal("Check ticket integrity",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Check",cls:"primary",on:function(){
+      if(t.value<f.value){ toast("End date cannot be before start date."); return; }
+      if((new Date(t.value)-new Date(f.value))/864e5>31){
+        toast("Date range cannot exceed 1 month. Please update dates."); return; }
+      arcFrom=f.value; arcTo=t.value;
+      closeModal(); integrityReport(f.value,t.value);
+    }}
+  ]);
+}
+function archiveForm(){
+  var b=el("div");
+  b.appendChild(el("p","hint","Please select the period for the archive file — one year at most."));
+  var f=input("date",""), t=input("date",todayISO());
+  var g=el("div","grid2");
+  g.appendChild(field("Archive data from",f)); g.appendChild(field("Archive data to",t));
+  b.appendChild(g);
+  openModal("Export archive file",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Export file",cls:"primary",on:function(){
+      if(!f.value||!t.value){ toast("Select both dates."); return; }
+      if(t.value<f.value){ toast("Date to must be after date from."); return; }
+      if(t.value>todayISO()){ toast("Date to must be today or before."); return; }
+      if((new Date(t.value)-new Date(f.value))/864e5>366){
+        toast("Archive date range must be one year maximum."); return; }
+      var rows=ticketsBetween(f.value,t.value);
+      if(!rows.length){ toast("No tickets in that period."); return; }
+      var a={id:uid("arc"),made:todayISO(),from:f.value,to:t.value,
+             count:rows.length,
+             total:Math.round(rows.reduce(function(x,r){return x+(Number(r.total)||0);},0)*100)/100,
+             tax:Math.round(rows.reduce(function(x,r){return x+(Number(r.tax)||0);},0)*100)/100,
+             ticketIds:rows.map(function(r){return r.id;})};
+      a.hash=fnv1a(archiveBody(rows));
+      DB.archives.push(a); save(); closeModal(); render();
+      showArchive(a);
+    }}
+  ]);
+}
+function showArchive(a){
+  var rows=a.ticketIds.map(ticketFor).filter(Boolean);
+  var b=el("div");
+  [["Covers",dm(a.from)+" – "+dm(a.to)],["Tickets",String(a.count)],
+   ["Total tax incl.","$"+money(a.total,2)],["Of which tax","$"+money(a.tax,2)],
+   ["Fingerprint",a.hash]].forEach(function(x){
+    var r=el("div","tot"); r.style.marginTop="4px";
+    r.appendChild(el("span","lab",x[0]));
+    r.appendChild(el("span","v mono",x[1]));
+    b.appendChild(r);
+  });
+  var ta=el("textarea");
+  ta.value=JSON.stringify({shokogi_archive:1,made:a.made,from:a.from,to:a.to,
+    business:cfg().business,hash:a.hash,tickets:rows});
+  ta.style.minHeight="150px"; ta.style.fontFamily="'IBM Plex Mono',monospace";
+  ta.style.fontSize="11px";
+  b.appendChild(field("Archive file — copy this somewhere safe",ta,
+    "Keep it outside this browser. It is the only copy."));
+  openModal("Archive "+dm(a.from)+" – "+dm(a.to),b,[
+    {label:"Close",on:closeModal},
+    {label:"Check integrity",on:function(){checkArchive(a);}},
+    {label:"Select file",cls:"primary",on:function(){ta.focus();ta.select();toast("Now copy it");}}
+  ]);
+}
+function checkArchive(a){
+  var rows=a.ticketIds.map(ticketFor).filter(Boolean);
+  var b=el("div");
+  var missing=a.ticketIds.length-rows.length;
+  var now=fnv1a(archiveBody(rows));
+  var ok=!missing&&now===a.hash;
+  var line=el("div","tot");
+  line.appendChild(el("span","lab",a.count+" ticket"+(a.count===1?"":"s")+" checked"));
+  var v=el("span","v",ok?"Validated":"Failed");
+  v.style.color=ok?"var(--good)":"var(--crit)";
+  line.appendChild(v); b.appendChild(line);
+  if(missing) b.appendChild(el("div","note",
+    missing+" ticket"+(missing===1?" is":"s are")+" no longer in the journal."));
+  else if(!ok) b.appendChild(el("div","note",
+    "The tickets are all still there, but at least one has changed since the archive was made."));
+  else b.appendChild(el("div","note",
+    "The archive's fingerprint still matches the tickets it covers."));
+  openModal("Archive integrity",b,[{label:"Close",cls:"primary",on:closeModal}]);
+}
+
+/* ============================ calendar feeds ============================
+   A read-only view of the schedule for Google or Apple Calendar. The link is
+   generated here; it only means anything once the app sits on a server that
+   can answer it, and the form says so rather than pretending otherwise. */
+var ICAL_FIELDS=[
+  {v:"title",l:"Title",grp:"Session"},
+  {v:"date",l:"Date",grp:"Session"},
+  {v:"starting_time",l:"Starting time",grp:"Session"},
+  {v:"duration",l:"Duration",grp:"Session"},
+  {v:"instructors",l:"Assigned staff",grp:"Session"},
+  {v:"note",l:"Note",grp:"Session"},
+  {v:"host_name",l:"Customer name",grp:"Client"},
+  {v:"phone",l:"Telephone",grp:"Client"},
+  {v:"guest_name",l:"Participants' names",grp:"Client"},
+  {v:"due_balance",l:"Due balance",grp:"Client"},
+  {v:"order_total",l:"Booking total",grp:"Client"}
+];
+function icalForm(existing){
+  var f=existing||{name:"",staffIds:[],kinds:[],
+    fields:["title","date","starting_time","duration","instructors"],
+    token:Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10)};
+  var staffIds=(f.staffIds||[]).slice(), kinds=(f.kinds||[]).slice(),
+      fields=(f.fields||[]).slice();
+  var b=el("div");
+  var name=input("text",f.name,{placeholder:"e.g. Instructors' calendar"});
+  b.appendChild(field("Name",name));
+
+  function checkList(title,items,picked,help){
+    var lh=el("div","lines-h"); lh.appendChild(el("h4",null,title));
+    b.appendChild(lh);
+    if(help) b.appendChild(el("div","hint",help));
+    var box=el("div","panel"); box.style.padding="6px";
+    box.style.maxHeight="200px"; box.style.overflow="auto";
+    items.forEach(function(it){
+      var row=el("label","slot"); row.style.gridTemplateColumns="26px 1fr auto";
+      row.style.cursor="pointer"; row.style.alignItems="center";
+      var cb=el("input"); cb.type="checkbox"; cb.checked=picked.indexOf(it.v)>=0;
+      cb.addEventListener("change",function(){
+        if(cb.checked){ if(picked.indexOf(it.v)<0) picked.push(it.v); }
+        else{ var i=picked.indexOf(it.v); if(i>=0) picked.splice(i,1); }
+      });
+      row.appendChild(cb);
+      row.appendChild(el("div","t",it.l));
+      if(it.grp) row.appendChild(el("div","muted",it.grp));
+      box.appendChild(row);
+    });
+    if(!items.length) box.appendChild(el("div","hint","Nothing to choose from yet."));
+    b.appendChild(box);
+  }
+  checkList("Staff to share",
+    DB.staff.map(function(s){return {v:s.id,l:s.name,grp:s.role};}),staffIds,
+    "Leave everything unticked to share the whole school's schedule.");
+  checkList("Activities to share",
+    KINDS().map(function(k){return {v:k.k,l:k.l};}),kinds,
+    "Leave unticked to share every activity.");
+  checkList("Fields to include",ICAL_FIELDS,fields,
+    "Please select which fields to import within your calendar feed.");
+
+  var url=el("input"); url.type="text"; url.readOnly=true;
+  url.value=(location.origin&&location.origin!=="null"?location.origin:"https://your-site")+
+    "/ical/"+f.token+".ics";
+  url.style.fontFamily="'IBM Plex Mono',monospace"; url.style.fontSize="12px";
+  b.appendChild(field("Feed URL",url,
+    "Subscribe to this in Google Calendar or Apple Calendar. It only answers once the app is hosted on a server — on a plain file it is a placeholder."));
+
+  openModal(existing?"Edit URL settings":"Add new URL",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Copy",on:function(){
+      url.focus(); url.select();
+      try{ document.execCommand("copy"); toast("Copied"); }
+      catch(e){ toast("Now copy it"); }
+    }},
+    {label:"Save",cls:"primary",on:function(){
+      if(!fields.length){ toast("Pick at least one field to share."); return; }
+      var rec=existing||{id:uid("ical"),token:f.token};
+      rec.name=name.value.trim()||"Calendar feed";
+      rec.staffIds=staffIds; rec.kinds=kinds; rec.fields=fields;
+      if(!existing) DB.icalFeeds.push(rec);
+      save(); closeModal(); render(); toast("iCal feed saved successfully");
+    }}
+  ]);
+}
 
 /* ============================ starter catalog ============================
    The school's real product list, exported from Bloowatch. It is offered, not
