@@ -5382,6 +5382,33 @@ var box2Invoice=null, box2Cancel=null;
    that is the difference the school actually feels on a busy morning. */
 var posBooking=null, posCat="", posEditing=null, posConfig=null;
 
+/* The booking this client already has open on that day, if there is one. A
+   cancelled booking is not open, and neither is one being edited right now. */
+function openBookingFor(clientId,dateStr,skipId){
+  if(!clientId) return null;
+  for(var i=0;i<DB.bookings.length;i++){
+    var b=DB.bookings[i];
+    if(b.clientId!==clientId) continue;
+    if(b.date!==dateStr) continue;
+    if(b.status==="cancelled") continue;
+    if(skipId && b.id===skipId) continue;
+    return b;
+  }
+  return null;
+}
+/* Fold one booking into another: the lines, what was paid, the people and the
+   note. Used to tidy up rows made before the till started joining them. */
+function mergeBookings(from,into){
+  (from.lines||[]).forEach(function(l){ into.lines.push(l); });
+  (from.payments||[]).forEach(function(p){ into.payments.push(p); });
+  (from.refunds||[]).forEach(function(r){
+    into.refunds=into.refunds||[]; into.refunds.push(r); });
+  (from.participants||[]).forEach(function(pp){
+    into.participants=into.participants||[]; into.participants.push(pp); });
+  if(from.notes) into.notes=[into.notes,from.notes].filter(Boolean).join(" · ");
+  DB.bookings=DB.bookings.filter(function(x){return x.id!==from.id;});
+  syncTickets();
+}
 function posStart(existing){
   if(!DB.products.length){ show("catalog"); toast("Add a product first."); return; }
   posEditing=existing||null;
@@ -5958,6 +5985,30 @@ function posConfirm(){
     }
   }
   if(!posBooking.clientId){ toast("Add a customer to the booking."); posCustomerForm(); return; }
+  /* One client, one day, one booking. Somebody who takes a course in the
+     morning and hires a board in the afternoon has bought two things, not
+     been to the school twice, and a second row for them is a second row to
+     chase, invoice and reconcile. The lines join what is already open. */
+  var joinTo=!posEditing && openBookingFor(posBooking.clientId,
+                                           posBooking.date||todayISO());
+  if(joinTo){
+    posBooking.lines.forEach(function(l){ joinTo.lines.push(l); });
+    (posBooking.payments||[]).forEach(function(p){ joinTo.payments.push(p); });
+    (posBooking.participants||[]).forEach(function(pp){
+      joinTo.participants=joinTo.participants||[];
+      joinTo.participants.push(pp);
+    });
+    if(posBooking.notes) joinTo.notes=[joinTo.notes,posBooking.notes]
+      .filter(Boolean).join(" · ");
+    seatChosenSessions(joinTo);
+    syncTickets();
+    save();
+    posClose();
+    toast("Added to "+clientName(joinTo.clientId)+"'s booking"+
+          (joinTo.ref?(" "+joinTo.ref):""));
+    if(bookingDue(joinTo)>0.004) payForm(joinTo);
+    return;
+  }
   var rec=posEditing||{id:uid("b")};
   rec.date=posBooking.date||todayISO();
   rec.clientId=posBooking.clientId;
@@ -6285,6 +6336,24 @@ function renderBookings(){
       });
     });
     box.appendChild(e); box.appendChild(box2Invoice); box.appendChild(box2Cancel);
+    /* rows made before the till started joining them can still be folded in */
+    var twin=(bk.status!=="cancelled") &&
+             openBookingFor(bk.clientId,bk.date,bk.id);
+    if(twin){
+      var mg=el("button","btn sm","Merge");
+      mg.title="Put this on "+clientName(bk.clientId)+"'s other booking that day";
+      mg.addEventListener("click",function(){
+        confirmish("Merge bookings",
+          "Put this on "+clientName(bk.clientId)+"'s other booking on "+
+          dm(bk.date)+"? The lines, the payments and the people move across, "+
+          "and this row goes.",
+          function(){
+            mergeBookings(bk,twin);
+            save(); render(); toast("Merged into one booking");
+          },"Merge");
+      });
+      box.appendChild(mg);
+    }
     box.appendChild(dl);
     act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
