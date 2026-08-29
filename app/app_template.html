@@ -4635,6 +4635,29 @@ function posParticipantsForm(){
 
 var bkFilter={q:"",status:"all",from:"",to:""};
 var box2Invoice=null, box2Cancel=null;
+/* Their booking carries a five-letter code -- YFGIM, ABQLY -- because "the
+   booking from Friday" is not something you can say down a phone. Derived from
+   the id so old bookings get one too, and stored once it exists. */
+function bookingCode(b){
+  if(b.code) return b.code;
+  var A="ABCDEFGHJKLMNPQRSTUVWXYZ", n=0, src=String(b.id||"");
+  for(var i=0;i<src.length;i++) n=(n*31+src.charCodeAt(i))>>>0;
+  var out="";
+  for(var j=0;j<5;j++){ out+=A[n%A.length]; n=Math.floor(n/A.length)+7*j+13; }
+  b.code=out;
+  return out;
+}
+/* who took it: online, or a person at the counter */
+function bookingOrigin(b){
+  return b.source==="online" ? "Online" : "Internal";
+}
+function bookingPax(b){
+  return (b.lines||[]).reduce(function(a,l){
+    var p=product(l.productId);
+    var per=(p&&hasPaxTiers(p))?(Number(l.pax)||1):1;
+    return a+per*(Number(l.qty)||1);
+  },0);
+}
 function bookingStatus(b){
   if(b.status==="cancelled") return "cancelled";
   var d=bookingDue(b), paid=bookingPaid(b);
@@ -4691,11 +4714,13 @@ function renderBookings(){
   }
   var xb=el("button","btn sm","Export CSV");
   xb.addEventListener("click",function(){
-    exportCsv("bookings",["Date","Client","Items","Total","Paid","Due","Status","Notes"],
+    exportCsv("bookings",["#id","Date","Client","Items","Origin","Pax","Total",
+                          "Paid","Due","Status","Notes"],
       rowsForExport().map(function(bk){
-        return [bk.date,clientName(bk.clientId),
+        return [bookingCode(bk),bk.date,clientName(bk.clientId),
           (bk.lines||[]).map(function(l){var p=product(l.productId);
             return (l.qty>1?l.qty+"x ":"")+(p?p.name:"");}).join("; "),
+          bookingOrigin(bk),bookingPax(bk),
           bookingTotal(bk).toFixed(2),bookingPaid(bk).toFixed(2),
           Math.max(0,bookingDue(bk)).toFixed(2),bookingStatus(bk),bk.notes||""];
       }));
@@ -4710,7 +4735,7 @@ function renderBookings(){
     if(bkFilter.from && bk.date<bkFilter.from) return false;
     if(bkFilter.to && bk.date>bkFilter.to) return false;
     if(!term) return true;
-    var hay=[clientName(bk.clientId),bk.notes||""].concat(
+    var hay=[bookingCode(bk),clientName(bk.clientId),bk.notes||""].concat(
       (bk.lines||[]).map(function(l){var p=product(l.productId);return p?p.name:"";}));
     return hay.join(" ").toLowerCase().indexOf(term)>=0;
   }).sort(function(a,b){return a.date<b.date?1:-1;});
@@ -4727,20 +4752,32 @@ function renderBookings(){
   }
 
   var w=el("div","panel tbl-wrap"),t=el("table"),th=el("thead"),tr=el("tr");
-  ["Date","Client","Items","Total","Paid","Due","Status",""].forEach(function(h,i){
-    tr.appendChild(el("th",(i>=3&&i<=5)?"r":null,h));
+  ["#id","Date","Client","Items","Origin","Pax","Total","Paid","Due","Status",""]
+  .forEach(function(h,i){
+    tr.appendChild(el("th",(i>=5&&i<=8)?"r":null,h));
   });
   th.appendChild(tr); t.appendChild(th);
   var tb=el("tbody");
   rows.forEach(function(bk){
     var tot=bookingTotal(bk),paid=bookingPaid(bk),d=tot-paid;
     var r=el("tr");
+    r.appendChild(el("td","mono strong",bookingCode(bk)));
     r.appendChild(el("td",null,dm(bk.date)));
     r.appendChild(el("td","strong",clientName(bk.clientId)));
     var names=(bk.lines||[]).map(function(l){
       var p=product(l.productId); return (l.qty>1?l.qty+"× ":"")+(p?p.name:"—");}).join(", ");
     var it=el("td","muted",names.length>44?names.slice(0,44)+"…":names);
     it.title=names; r.appendChild(it);
+    var og=el("td");
+    og.appendChild(el("span","chip "+(bk.source==="online"?"pink":"neutral"),
+      bookingOrigin(bk)));
+    if(bk.partnerId){
+      var pa=by(bk.partnerId,DB.partners);
+      if(pa){ og.appendChild(document.createTextNode(" "));
+              og.appendChild(el("span","chip neutral",pa.company)); }
+    }
+    r.appendChild(og);
+    r.appendChild(el("td","n r",String(bookingPax(bk)||"—")));
     r.appendChild(el("td","n r strong","$"+money(tot,0)));
     r.appendChild(el("td","n r","$"+money(paid,0)));
     var dc=el("td","n r",d>0.004?"$"+money(d,0):"—");
@@ -4768,7 +4805,7 @@ function renderBookings(){
     r.appendChild(st);
     if(sv==="cancelled") r.style.opacity=".62";
     var act=el("td"),box=el("div","rowbtns");
-    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){bookingForm(bk);});
+    var e=el("button","btn sm","Edit"); e.addEventListener("click",function(){posStart(bk);});
     var have=invoiceFor(bk.id);
     var iv=el("button","btn sm",have?("Inv "+have.number.slice(-4)):"Invoice");
     iv.addEventListener("click",function(){ showInvoice(have||issueInvoice(bk)); });
