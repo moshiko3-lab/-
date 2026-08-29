@@ -3095,8 +3095,21 @@ function clientRowMenu(x){
   ];
 }
 
+/* Who is on the water that day and not yet in a session.
+
+   Two corrections the school made, both of which were putting the wrong names
+   on the board. It is keyed on the day the activity happens -- a lesson bought
+   on Monday for Thursday belongs to Thursday, and keying on the booking date
+   put it on Monday. And a hire is not an activity: boards live on the Rental
+   tab with their return times, so a rental line never lands here. */
+function activityLines(bk){
+  return (bk.lines||[]).filter(function(l){
+    var p=product(l.productId);
+    if(!p) return false;
+    return p.ptype!=="rental" && !p.gearId && p.kind!=="rental";
+  });
+}
 function unassignedOn(dateStr){
-  /* everyone named on a booking for that day who is not yet in a session */
   var seated={};
   DB.sessions.forEach(function(x){
     if(x.date!==dateStr) return;
@@ -3104,19 +3117,28 @@ function unassignedOn(dateStr){
   });
   var out=[];
   DB.bookings.forEach(function(bk){
-    if(bk.status==="cancelled" || bk.date!==dateStr) return;
-    var items=(bk.lines||[]).map(function(l){
+    if(bk.status==="cancelled") return;
+    /* the lines that actually put someone on the water on this day */
+    var today=activityLines(bk).filter(function(l){
+      return (l.wanted||bk.date)===dateStr;
+    });
+    if(!today.length) return;
+
+    var items=today.map(function(l){
       var p=product(l.productId); return p?p.name:"";}).filter(Boolean);
-    /* a dot per activity on the booking, and how many sessions it bought --
-       both of which their list shows against the name */
     var colours=[],seen={};
-    (bk.lines||[]).forEach(function(l){
+    today.forEach(function(l){
       var p=product(l.productId); if(!p) return;
       var c=posTileColour(p);
       if(!seen[c]){ seen[c]=1; colours.push(c); }
     });
-    var owed=(bk.lines||[]).reduce(function(a,l){return a+sessionsOwed(l);},0);
-    var pax=bookingPax(bk);
+    var owed=today.reduce(function(a,l){return a+sessionsOwed(l);},0);
+    var pax=today.reduce(function(a,l){
+      var p=product(l.productId);
+      var per=(p&&hasPaxTiers(p))?(Number(l.pax)||1):1;
+      return a+per*(Number(l.qty)||1);
+    },0);
+
     var named=(bk.participants||[]).filter(function(pp){return pp.pid;});
     if(named.length){
       named.forEach(function(pp){
@@ -3187,11 +3209,14 @@ function assignRail(dateStr,onChange){
   });
 
   if(!pending.length){
+    /* the same question the list answers: is anyone on the water that day */
+    var anyToday=DB.bookings.some(function(b){
+      return b.status!=="cancelled" && activityLines(b).some(function(l){
+        return (l.wanted||b.date)===dateStr;});});
     var e=el("div","hint",
       term ? "No result found."
-        : (DB.bookings.some(function(b){return b.date===dateStr;})
-          ? "Everyone booked today is in a session."
-          : "Nobody has booked for this day yet."));
+        : (anyToday ? "Everyone on the water today is in a session."
+                    : "No activity booked for this day. Hires are on the Rental tab."));
     e.style.padding="14px 16px";
     body.appendChild(e);
     return rail;
