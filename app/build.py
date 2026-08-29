@@ -22,6 +22,10 @@ def render(template=None):
     tpl = template or os.path.join(HERE, "app_template.html")
     with open(tpl, encoding="utf-8") as f:
         out = f.read()
+    # the pricing matrix is shared: the manager and the booking site must
+    # arrive at the same number for the same product
+    with open(os.path.join(HERE, "pricing.js"), encoding="utf-8") as f:
+        out = out.replace("/*__PRICING__*/", f.read())
     cat = os.path.join(HERE, "catalog.json")
     if os.path.exists(cat):
         with open(cat, encoding="utf-8") as f:
@@ -34,7 +38,7 @@ def render(template=None):
     if os.path.exists(logo):
         with open(logo, "rb") as f:
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
-    for token in ("/*__LOGO__*/", "/*__SEED__*/"):
+    for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/"):
         if token in out:
             raise RuntimeError(f"template placeholder {token} was not replaced")
     return out
@@ -59,6 +63,45 @@ def check_js(html):
     if r.returncode != 0:
         raise RuntimeError("the page's script does not parse:\n" + (r.stderr or "")[:900])
     return "script parses"
+
+
+def check_minisite(path):
+    """Walk the booking site the way a customer would: catalogue, product,
+    cart, checkout. It shares nothing with the manager's own check."""
+    chrome = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+    if not os.path.exists(chrome):
+        return "chromium not available, runtime not checked"
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return "playwright not available, runtime not checked"
+    errors = []
+    with sync_playwright() as p:
+        b = p.chromium.launch(headless=True, executable_path=chrome,
+                              args=["--no-sandbox"])
+        pg = b.new_context(viewport={"width": 1200, "height": 900}).new_page()
+        pg.on("pageerror", lambda e: errors.append(str(e)[:200]))
+        pg.goto("file://" + os.path.abspath(path))
+        pg.wait_for_timeout(1200)
+        cards = len(pg.query_selector_all(".card"))
+        book = pg.query_selector('.card button')
+        if book:
+            book.click()
+            pg.wait_for_timeout(600)
+            add = pg.query_selector('.modal button:has-text("Add to cart")')
+            if add:
+                add.click()
+                pg.wait_for_timeout(500)
+        pg.click("#btn-cart")
+        pg.wait_for_timeout(500)
+        cont = pg.query_selector('button:has-text("Continue")')
+        if cont:
+            cont.click()
+            pg.wait_for_timeout(600)
+        b.close()
+    if errors:
+        raise RuntimeError("the booking site throws at runtime:\n  " + "\n  ".join(errors[:6]))
+    return f"{cards} products offered, cart and checkout render clean"
 
 
 def check_runtime(path):
@@ -138,8 +181,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="index.html")
     ap.add_argument("--template")
+    ap.add_argument("--minisite", action="store_true",
+                    help="build the public booking site instead of the manager")
     a = ap.parse_args()
-    html = render(a.template)
+    tpl = a.template or os.path.join(
+        HERE, "minisite_template.html" if a.minisite else "app_template.html")
+    html = render(tpl)
     try:
         note = check_js(html)
     except RuntimeError as e:
@@ -148,7 +195,7 @@ def main():
     with open(a.out, "w", encoding="utf-8") as f:
         f.write(html)
     try:
-        runtime = check_runtime(a.out)
+        runtime = check_minisite(a.out) if a.minisite else check_runtime(a.out)
     except RuntimeError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

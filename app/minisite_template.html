@@ -1,0 +1,681 @@
+<title>Shokogi · Book online</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --accent:#f46e95; --accent-hot:#f46e95; --accent-ink:#fff; --accent-soft:#fdeaf0;
+  --bg:#fafafa; --panel:#fff; --panel-2:#f6f7f8;
+  --text:#1d232a; --text-2:#4a5560; --text-3:#8a949e;
+  --line:#e3e7ea; --line-soft:#eef1f3;
+  --good:#1f7a4d; --good-soft:#e4f4eb; --crit:#b23a2c; --crit-soft:#fbe7e4;
+  --slate:#394654;
+  --shadow:0 1px 2px rgba(16,24,32,.05),0 6px 18px rgba(16,24,32,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161a; --panel:#191f25; --panel-2:#1f262d;
+    --text:#eef2f5; --text-2:#b6c0c9; --text-3:#7d8894;
+    --line:#2a333c; --line-soft:#222a31;
+    --good:#5ec98d; --good-soft:#163327; --crit:#f0705c; --crit-soft:#3a1d18;
+    --accent-soft:#3a1f28;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161a; --panel:#191f25; --panel-2:#1f262d;
+  --text:#eef2f5; --text-2:#b6c0c9; --text-3:#7d8894;
+  --line:#2a333c; --line-soft:#222a31;
+  --good:#5ec98d; --good-soft:#163327; --crit:#f0705c; --crit-soft:#3a1d18;
+  --accent-soft:#3a1f28;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header.top{position:sticky;top:0;z-index:30;background:var(--accent-hot);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:0 18px;height:60px;
+  box-shadow:0 1px 4px rgba(0,0,0,.12)}
+header.top .mark{width:38px;height:38px;border-radius:9px;background:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+header.top .mark img{width:100%;height:100%;object-fit:contain}
+header.top .title{font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:14px}
+header.top .title small{display:block;font-weight:600;letter-spacing:.08em;font-size:10.5px;
+  opacity:.85}
+header.top .spacer{flex:1}
+.cartbtn{appearance:none;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);
+  color:#fff;font:inherit;font-weight:700;font-size:12px;letter-spacing:.07em;
+  text-transform:uppercase;padding:9px 14px;border-radius:9px;cursor:pointer;display:flex;
+  align-items:center;gap:7px}
+.cartbtn:hover{background:rgba(255,255,255,.24)}
+.cartbtn .n{background:#fff;color:var(--accent-hot);border-radius:20px;min-width:20px;
+  padding:1px 6px;font-size:11px;text-align:center}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 18px 80px}
+h1{font-size:20px;letter-spacing:.1em;text-transform:uppercase;margin:6px 0 4px}
+h2{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);
+  margin:26px 0 10px}
+.lede{color:var(--text-2);margin:0 0 18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px}
+.card .nm{font-weight:700;font-size:15px}
+.card .desc{color:var(--text-2);font-size:13px;flex:1}
+.card .from{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card .price{font-weight:800;font-size:19px;font-variant-numeric:tabular-nums}
+.card .tiers{font-size:11.5px;color:var(--text-3)}
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--text);
+  font:inherit;font-weight:600;font-size:13px;padding:9px 14px;border-radius:9px;cursor:pointer}
+.btn:hover{background:var(--panel-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.block{width:100%;text-align:center}
+.btn.big{padding:13px 18px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:800}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;
+  box-shadow:var(--shadow);padding:16px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-3);margin-bottom:5px}
+input,select,textarea{width:100%;font:inherit;padding:10px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--panel);color:var(--text)}
+input[type=checkbox]{width:auto}
+textarea{min-height:72px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{font-size:12px;color:var(--text-3);margin-top:5px}
+.note{background:var(--panel-2);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;
+  padding:11px 14px;font-size:13px;color:var(--text-2);margin:12px 0}
+.line{display:grid;grid-template-columns:1fr 70px 100px 40px;gap:10px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.line:last-child{border-bottom:0}
+.line .nm{font-weight:600}
+.line .sub{font-size:12px;color:var(--text-3)}
+.r{text-align:right}
+.mono{font-variant-numeric:tabular-nums}
+.tot{display:flex;align-items:baseline;gap:10px;padding:9px 0}
+.tot .lab{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.tot .v{margin-left:auto;font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+  background:var(--panel-2);color:var(--text-2)}
+.chip.pink{background:var(--accent-soft);color:var(--accent-hot)}
+.scrim{position:fixed;inset:0;background:rgba(12,16,20,.45);display:flex;align-items:center;
+  justify-content:center;padding:18px;z-index:60}
+.modal{background:var(--panel);border-radius:15px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  width:min(540px,100%);max-height:88vh;display:flex;flex-direction:column}
+.modal h3{margin:0;padding:17px 20px 13px;font-size:16px;border-bottom:1px solid var(--line)}
+.modal .body{padding:18px 20px;overflow-y:auto}
+.modal .acts{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:9px;
+  justify-content:flex-end;flex-wrap:wrap}
+.steps{display:flex;gap:7px;margin:0 0 20px;flex-wrap:wrap}
+.steps div{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:7px 12px;border-radius:20px;background:var(--panel-2);color:var(--text-3)}
+.steps div.on{background:var(--accent);color:var(--accent-ink)}
+.steps div.done{background:var(--good-soft);color:var(--good)}
+.empty{text-align:center;padding:48px 20px;color:var(--text-2)}
+.empty .ico{font-size:38px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:var(--slate);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:90}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filters button{appearance:none;border:1px solid var(--line);background:var(--panel);
+  color:var(--text-2);font:inherit;font-size:12px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:8px 13px;border-radius:20px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);
+  color:var(--accent-ink)}
+@media (max-width:640px){
+  .grid2{grid-template-columns:1fr}
+  .line{grid-template-columns:1fr 60px 80px 34px;gap:7px}
+  .wrap{padding:16px 13px 70px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{header.top,.filters,.btn{display:none!important}}
+</style>
+
+<header class="top">
+  <span class="mark"><img src="data:image/png;base64,/*__LOGO__*/" alt="Shokogi"></span>
+  <span class="title">Shokogi <small>Online booking</small></span>
+  <span class="spacer"></span>
+  <button class="cartbtn" id="btn-cart">Cart <span class="n" id="cart-n">0</span></button>
+</header>
+
+<div class="wrap" id="wrap"></div>
+<div class="toast" id="toast" role="status"></div>
+<script id="seed" type="application/json">/*__SEED__*/</script>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================ the shared store ============================
+   The booking site and the manager are two pages of one site, so they read and
+   write the same browser store. A booking taken here shows up in the manager
+   the next time it loads -- on the same domain. Served from two different
+   domains they are two different stores, and this page would be taking
+   bookings nobody sees; that is worth knowing before it is deployed. */
+var KEY="shokogi.manager.v1";
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d&&d.v===1) return d;
+    }
+  }catch(e){}
+  return null;
+}
+function save(d){
+  try{ localStorage.setItem(KEY,JSON.stringify(d)); return true; }
+  catch(e){ return false; }
+}
+/* Nothing has been set up yet in this browser: fall back to the catalogue the
+   build bundled, so the site still shows what the school sells. Bookings still
+   need a real store to land in, and checkout says so rather than pretending. */
+function seedCatalog(){
+  try{
+    var n=document.getElementById("seed");
+    var d=JSON.parse(n.textContent||"null");
+    return (d&&d.products&&d.products.length)?d:null;
+  }catch(e){ return null; }
+}
+
+var DB=load();
+var readOnly=!DB;
+var products=[];
+if(DB){
+  products=(DB.products||[]).filter(function(p){
+    return !p.archived && p.onlineSale!==false;});
+}
+if(!products.length){
+  var sd=seedCatalog();
+  if(sd) products=sd.products.map(function(p,i){
+    return {id:"seed"+i,name:p.name,kind:p.kind,ptype:p.ptype||"class",
+      price:p.price||0,publicPrice:p.publicPrice,prices:p.prices||[],
+      description:p.description||"",sessions:p.sessions||1,nights:p.nights,
+      category:p.category||"",tax:p.tax||0};});
+  readOnly=true;
+}
+
+/*__PRICING__*/
+
+/* ============================ helpers ============================ */
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;
+  if(x!=null)e.textContent=x;return e;}
+function money(n,d){ return (Number(n)||0).toLocaleString("en-US",
+  {minimumFractionDigits:d==null?2:d,maximumFractionDigits:d==null?2:d}); }
+function cur(){ return ((DB&&DB.settings&&DB.settings.business&&
+  DB.settings.business.currency)||"USD"); }
+function sym(){ var c=cur(); return c==="EUR"?"€":c==="GBP"?"£":"$"; }
+function iso(d){ var z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);
+  return z.toISOString().slice(0,10); }
+function todayISO(){ return iso(new Date()); }
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dm(s){ var p=String(s).split("-"); return MON[+p[1]-1]+" "+(+p[2])+", "+p[0]; }
+function schoolName(){ return (DB&&DB.settings&&DB.settings.business&&
+  DB.settings.business.name)||"Shokogi"; }
+function field(label,node,hint){
+  var f=el("div","field");
+  var l=el("label",null,label);
+  if(node.id||node.name){ l.setAttribute("for",node.id||""); }
+  f.appendChild(l); f.appendChild(node);
+  if(hint) f.appendChild(el("div","hint",hint));
+  return f;
+}
+function input(type,val,attrs){
+  var i=el("input"); i.type=type; if(val!=null) i.value=val;
+  if(attrs) for(var k in attrs) i.setAttribute(k,attrs[k]);
+  return i;
+}
+function select(opts,val){
+  var s=el("select");
+  opts.forEach(function(o){
+    var op=el("option",null,o.l); op.value=o.v;
+    if(String(o.v)===String(val)) op.selected=true;
+    s.appendChild(op);
+  });
+  return s;
+}
+var toastEl=document.getElementById("toast"),toastT;
+function toast(m){
+  toastEl.textContent=m; toastEl.classList.add("on");
+  clearTimeout(toastT);
+  toastT=setTimeout(function(){toastEl.classList.remove("on");},2800);
+}
+
+/* ============================ modal ============================ */
+var scrim=null;
+function openModal(title,body,acts){
+  closeModal();
+  scrim=el("div","scrim");
+  var m=el("div","modal");
+  m.setAttribute("role","dialog"); m.setAttribute("aria-modal","true");
+  m.appendChild(el("h3",null,title));
+  var b=el("div","body"); b.appendChild(body); m.appendChild(b);
+  var a=el("div","acts");
+  (acts||[]).forEach(function(x){
+    var btn=el("button","btn"+(x.cls?" "+x.cls:""),x.label);
+    btn.addEventListener("click",x.on);
+    a.appendChild(btn);
+  });
+  m.appendChild(a); scrim.appendChild(m);
+  scrim.addEventListener("click",function(e){ if(e.target===scrim) closeModal(); });
+  document.body.appendChild(scrim);
+}
+function closeModal(){ if(scrim){ scrim.remove(); scrim=null; } }
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeModal(); });
+
+/* ============================ the cart ============================
+   Kept apart from the shop's store: an abandoned cart is not a booking, and
+   nothing reaches the school until checkout. */
+var CART_KEY="shokogi.cart.v1";
+var cart=[];
+try{ cart=JSON.parse(sessionStorage.getItem(CART_KEY)||"[]")||[]; }catch(e){ cart=[]; }
+function saveCart(){
+  try{ sessionStorage.setItem(CART_KEY,JSON.stringify(cart)); }catch(e){}
+  var n=cart.reduce(function(a,l){return a+(Number(l.qty)||1);},0);
+  document.getElementById("cart-n").textContent=String(n);
+}
+function cartTotal(){
+  return cart.reduce(function(a,l){return a+(Number(l.price)||0)*(Number(l.qty)||1);},0);
+}
+function productById(id){
+  for(var i=0;i<products.length;i++) if(products[i].id===id) return products[i];
+  return null;
+}
+
+/* ============================ the catalogue ============================ */
+var PTYPES=[{v:"",l:"Everything"},{v:"class",l:"Classes"},{v:"course",l:"Courses"},
+  {v:"rental",l:"Rental"},{v:"camp",l:"Camp"},{v:"tour",l:"Tours"},
+  {v:"accommodation",l:"Accommodation"},{v:"item",l:"Items"}];
+function typeLabel(v){
+  for(var i=0;i<PTYPES.length;i++) if(PTYPES[i].v===v) return PTYPES[i].l;
+  return "Everything else";
+}
+var filterType="";
+var view="catalog";
+var lastOrder=null;
+
+function fromPrice(p){
+  /* only the ladder: a tier priced by a different unit is not a cheaper
+     version of the same thing, and quoting it as "from" would mislead */
+  var t=ladderTiers(p);
+  if(!t.length) return Number(p.publicPrice||p.price)||0;
+  return t.reduce(function(a,x){
+    var v=Number(x.price)||0; return (a==null||v<a)?v:a;},null)||0;
+}
+function renderCatalog(host){
+  host.appendChild(el("h1",null,"Online booking"));
+  host.appendChild(el("p","lede",
+    "Pick what you would like to do with us, choose your day, and we will hold it for you. "+
+    "You settle up with the school — nothing is charged on this page."));
+
+  var f=el("div","filters");
+  PTYPES.forEach(function(t){
+    var n=t.v?products.filter(function(p){return (p.ptype||"class")===t.v;}).length
+            :products.length;
+    if(t.v&&!n) return;
+    var b=el("button",null,t.l+" ("+n+")");
+    b.setAttribute("aria-pressed",filterType===t.v?"true":"false");
+    b.addEventListener("click",function(){filterType=t.v;draw();});
+    f.appendChild(b);
+  });
+  host.appendChild(f);
+
+  var rows=products.filter(function(p){
+    return !filterType||(p.ptype||"class")===filterType;});
+  if(!rows.length){
+    var e=el("div","panel empty");
+    e.appendChild(el("div","ico","🏄"));
+    e.appendChild(el("h3",null,"Nothing to book just yet"));
+    e.appendChild(el("p",null,
+      "The school has not put anything online yet. Please get in touch and we will sort you out."));
+    host.appendChild(e);
+    return;
+  }
+  var byCat={};
+  rows.forEach(function(p){
+    var g=p.category||typeLabel(p.ptype);
+    (byCat[g]=byCat[g]||[]).push(p);
+  });
+  Object.keys(byCat).sort().forEach(function(g){
+    host.appendChild(el("h2",null,g));
+    var cards=el("div","cards");
+    byCat[g].sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(p){
+      var c=el("div","card");
+      c.appendChild(el("div","nm",p.name));
+      var bits=[];
+      if(p.sessions>1) bits.push(p.sessions+" sessions");
+      /* their export carries num_nights=1 on plenty of day products; a night
+         only means something where you actually sleep somewhere */
+      if(p.nights&&(p.ptype==="accommodation"||p.ptype==="camp"))
+        bits.push(p.nights+" night"+(p.nights===1?"":"s"));
+      if(bits.length) c.appendChild(el("div","chip pink",bits.join(" · ")));
+      c.appendChild(el("div","desc",p.description||""));
+      c.appendChild(el("div","from","From"));
+      c.appendChild(el("div","price",sym()+money(fromPrice(p),2)));
+      var s=priceSummary(p);
+      if(s) c.appendChild(el("div","tiers",s));
+      var b=el("button","btn primary block","Book now");
+      b.addEventListener("click",function(){ pickForm(p); });
+      c.appendChild(b);
+      cards.appendChild(c);
+    });
+    host.appendChild(cards);
+  });
+}
+
+/* Number of participants, day, and duration where the product is priced by it.
+   The price shown is recomputed from the same tier matrix the manager uses. */
+function pickForm(p){
+  var b=el("div");
+  var perPax=hasPaxTiers(p), perHour=hasHourTiers(p);
+  var pax=input("number",1,{min:"1",max:"30",step:"1"});
+  var when=input("date",todayISO(),{min:todayISO()});
+  var hours=input("number",1,{min:"1",max:"24",step:"1"});
+  var qty=input("number",1,{min:"1",max:"20",step:"1"});
+
+  if(p.description) b.appendChild(el("p","lede",p.description));
+  var g=el("div","grid2");
+  g.appendChild(field("Search from",when));
+  g.appendChild(field(perPax?"Number of participants":"Quantity",perPax?pax:qty));
+  b.appendChild(g);
+  if(perHour) b.appendChild(field("How many hours",hours));
+
+  var line=el("div","tot");
+  line.appendChild(el("span","lab","Price"));
+  var v=el("span","v mono","—");
+  line.appendChild(v);
+  b.appendChild(line);
+  var per=el("div","hint","");
+  b.appendChild(per);
+
+  function unit(){
+    return priceFor(p,perPax?(Number(pax.value)||1):1,
+                    perHour?(Number(hours.value)||1):null);
+  }
+  function count(){
+    return perPax?(Number(pax.value)||1):(Number(qty.value)||1);
+  }
+  function recalc(){
+    var u=unit(), n=count();
+    v.textContent=sym()+money(u*n,2);
+    per.textContent=n>1?(sym()+money(u,2)+" each · "+n+
+      (perPax?" participants":" of them")):"";
+  }
+  [pax,hours,qty].forEach(function(n){ n.addEventListener("input",recalc); });
+  recalc();
+
+  var avail=el("div","note",
+    "Availability is confirmed by the school. If the day you picked is full we will "+
+    "write to you and offer the nearest one.");
+  b.appendChild(avail);
+
+  openModal(p.name,b,[
+    {label:"Continue shopping",on:closeModal},
+    {label:"Add to cart",cls:"primary",on:function(){
+      if(!when.value){ toast("Pick a date first."); return; }
+      cart.push({productId:p.id,name:p.name,date:when.value,
+        pax:perPax?(Number(pax.value)||1):1,
+        hours:perHour?(Number(hours.value)||1):null,
+        qty:count(),price:unit()});
+      saveCart(); closeModal(); toast("Added to your cart");
+    }}
+  ]);
+}
+
+/* ============================ the cart page ============================ */
+function renderCart(host){
+  host.appendChild(steps(1));
+  host.appendChild(el("h1",null,"Order summary"));
+  if(!cart.length){
+    var e=el("div","panel empty");
+    e.appendChild(el("div","ico","🛒"));
+    e.appendChild(el("h3",null,"Your cart is empty"));
+    e.appendChild(el("p",null,"Have a look at what we run and add something to it."));
+    var b=el("button","btn primary","Continue shopping");
+    b.addEventListener("click",function(){view="catalog";draw();});
+    e.appendChild(b);
+    host.appendChild(e);
+    return;
+  }
+  var p=el("div","panel");
+  var head=el("div","line");
+  ["Concept","Quantity","Price",""].forEach(function(h,i){
+    var c=el("div",(i===1||i===2)?"sub r":"sub",h);
+    head.appendChild(c);
+  });
+  p.appendChild(head);
+  cart.forEach(function(l,i){
+    var row=el("div","line");
+    var left=el("div");
+    left.appendChild(el("div","nm",l.name));
+    var bits=[dm(l.date)];
+    if(l.pax>1) bits.push(l.pax+" participants");
+    if(l.hours) bits.push(l.hours+"h");
+    left.appendChild(el("div","sub",bits.join(" · ")));
+    row.appendChild(left);
+    row.appendChild(el("div","r mono",String(l.qty)));
+    row.appendChild(el("div","r mono",sym()+money(l.price*l.qty,2)));
+    var del=el("button","btn","×");
+    del.title="Delete";
+    del.addEventListener("click",function(){
+      cart.splice(i,1); saveCart(); draw();});
+    row.appendChild(del);
+    p.appendChild(row);
+  });
+  host.appendChild(p);
+
+  var t=el("div","tot");
+  t.appendChild(el("span","lab","Total"));
+  t.appendChild(el("span","v mono",sym()+money(cartTotal(),2)));
+  host.appendChild(t);
+
+  var acts=el("div"); acts.style.display="flex"; acts.style.gap="9px";
+  acts.style.flexWrap="wrap"; acts.style.marginTop="10px";
+  var back=el("button","btn","Continue shopping");
+  back.addEventListener("click",function(){view="catalog";draw();});
+  acts.appendChild(back);
+  var go=el("button","btn primary big","Continue");
+  go.addEventListener("click",function(){view="checkout";draw();});
+  acts.appendChild(go);
+  host.appendChild(acts);
+}
+
+function steps(n){
+  var s=el("div","steps");
+  ["Cart","Your details","Confirmation"].forEach(function(l,i){
+    var d=el("div",i+1===n?"on":(i+1<n?"done":""),(i+1)+". "+l);
+    s.appendChild(d);
+  });
+  return s;
+}
+
+/* ============================ checkout ============================
+   No card is taken here. The school said they do not use online payment, so
+   the page does not pretend to: the booking is made and settled with them. */
+function renderCheckout(host){
+  host.appendChild(steps(2));
+  host.appendChild(el("h1",null,"Your details"));
+  if(!cart.length){ view="cart"; draw(); return; }
+
+  var p=el("div","panel");
+  var name=input("text","",{placeholder:"Full name",autocomplete:"name"});
+  var email=input("email","",{placeholder:"name@example.com",autocomplete:"email"});
+  var phone=input("tel","",{placeholder:"+507 …",autocomplete:"tel"});
+  var country=input("text","",{placeholder:"Country",autocomplete:"country-name"});
+  var notes=el("textarea");
+  notes.placeholder="Anything we should know — level, injuries, who is coming with you";
+  p.appendChild(field("Name",name));
+  var g=el("div","grid2");
+  g.appendChild(field("Email",email)); g.appendChild(field("Phone",phone));
+  p.appendChild(g);
+  p.appendChild(field("Country",country));
+
+  /* the names of everyone coming, which is what the instructor actually needs */
+  var seats=cart.reduce(function(a,l){return a+(Number(l.pax)||1)*(Number(l.qty)||1);},0);
+  var names=[];
+  if(seats>1){
+    var nh=el("div"); nh.style.marginTop="6px";
+    nh.appendChild(el("h2",null,"Who is coming"));
+    p.appendChild(nh);
+    for(var i=0;i<Math.min(seats,20);i++){
+      (function(idx){
+        var n=input("text","",{placeholder:"Participant "+(idx+1)});
+        names.push(n);
+        p.appendChild(field(idx===0?"First participant":("Participant "+(idx+1)),n));
+      })(i);
+    }
+    p.appendChild(el("div","hint",
+      "Leave a name blank if you do not know it yet — you can tell us on the day."));
+  }
+  p.appendChild(field("Notes",notes));
+  host.appendChild(p);
+
+  var t=el("div","tot");
+  t.appendChild(el("span","lab","Total"));
+  t.appendChild(el("span","v mono",sym()+money(cartTotal(),2)));
+  host.appendChild(t);
+
+  var agreeBox=el("label");
+  agreeBox.style.cssText="display:flex;gap:9px;align-items:flex-start;margin:12px 0";
+  var agree=input("checkbox");
+  agreeBox.appendChild(agree);
+  agreeBox.appendChild(el("span",null,
+    "I agree to the terms of sale of "+schoolName()+", and to being contacted about this booking."));
+  host.appendChild(agreeBox);
+
+  host.appendChild(el("div","note",
+    "Nothing is charged now. We hold your place and you settle it with us — in the shop, "+
+    "or however you have arranged it."));
+
+  if(readOnly){
+    host.appendChild(el("div","note",
+      "This page cannot reach the school's system from here, so a booking made now would "+
+      "not arrive. Please call or write to us instead."));
+  }
+
+  var acts=el("div"); acts.style.display="flex"; acts.style.gap="9px";
+  acts.style.flexWrap="wrap";
+  var back=el("button","btn","Back to cart");
+  back.addEventListener("click",function(){view="cart";draw();});
+  acts.appendChild(back);
+  var go=el("button","btn primary big","Book & pay later");
+  go.disabled=readOnly;
+  go.addEventListener("click",function(){
+    if(!name.value.trim()){ toast("We need a name for the booking."); name.focus(); return; }
+    if(!email.value.trim()&&!phone.value.trim()){
+      toast("Leave us an email or a phone number so we can confirm."); email.focus(); return; }
+    if(!agree.checked){ toast("Please agree to the terms of sale."); return; }
+    var order=placeOrder({name:name.value.trim(),email:email.value.trim(),
+      phone:phone.value.trim(),country:country.value.trim(),notes:notes.value.trim(),
+      names:names.map(function(n){return n.value.trim();}).filter(Boolean)});
+    if(!order){ toast("The booking could not be saved. Please call us."); return; }
+    lastOrder=order; view="done"; draw();
+  });
+  acts.appendChild(go);
+  host.appendChild(acts);
+}
+
+/* Write the booking into the shop's store, in the shape the manager reads.
+   Re-read it first: the school may have saved something while this cart sat
+   open, and overwriting their work to save a booking would be a poor trade. */
+function placeOrder(who){
+  var db=load();
+  if(!db) return null;
+  db.clients=db.clients||[]; db.bookings=db.bookings||[];
+  if(typeof db.seq!=="number") db.seq=1;
+  function uid(p){ return p+(db.seq++); }
+
+  var client=null;
+  if(who.email){
+    client=db.clients.filter(function(c){
+      return (c.email||"").toLowerCase()===who.email.toLowerCase();})[0]||null;
+  }
+  if(!client){
+    client={id:uid("c"),name:who.name,email:who.email,phone:who.phone,
+            country:who.country,notes:"",custom:{},source:"online"};
+    db.clients.push(client);
+  }
+
+  var bk={id:uid("b"),date:todayISO(),clientId:client.id,
+    lines:cart.map(function(l){
+      return {lid:uid("ln"),productId:l.productId,qty:l.qty,pax:l.pax,
+              hours:l.hours,price:l.price,wanted:l.date};
+    }),
+    payments:[],refunds:[],
+    participants:who.names.map(function(n){
+      return {pid:uid("pt"),name:n,age:"",level:"",wetsuit:"",height:"",weight:"",
+              clientId:"",insurance:false,notes:"",custom:{}};
+    }),
+    partnerId:"",custom:{},source:"online",
+    notes:[who.notes,"Booked online on "+dm(todayISO())+"."+
+      (cart.some(function(l){return l.date;})
+        ? " Wanted: "+cart.map(function(l){return l.name+" on "+dm(l.date);}).join("; ")
+        : "")].filter(Boolean).join("\n")};
+  db.bookings.push(bk);
+  if(!save(db)) return null;
+
+  var order={number:String(new Date().getFullYear())+"-"+
+    String(bk.id).replace(/\D/g,"").padStart(4,"0"),
+    date:todayISO(),total:cartTotal(),email:who.email,name:who.name,
+    lines:cart.slice()};
+  cart=[]; saveCart();
+  return order;
+}
+
+function renderDone(host){
+  host.appendChild(steps(3));
+  host.appendChild(el("h1",null,"Confirmation"));
+  var o=lastOrder;
+  if(!o){ view="catalog"; draw(); return; }
+  var p=el("div","panel");
+  p.appendChild(el("h2",null,"Thank you, "+o.name));
+  p.appendChild(el("p",null,
+    o.email
+      ? ("Your booking has been received. We will confirm it to "+o.email+" shortly.")
+      : "Your booking has been received. We will be in touch on the number you left."));
+  [["Order number",o.number],["Date",dm(o.date)],
+   ["Total",sym()+money(o.total,2)],
+   ["Payment","To settle with the school"]].forEach(function(x){
+    var r=el("div","tot");
+    r.appendChild(el("span","lab",x[0]));
+    r.appendChild(el("span","v mono",x[1]));
+    p.appendChild(r);
+  });
+  o.lines.forEach(function(l){
+    var row=el("div","line");
+    var left=el("div");
+    left.appendChild(el("div","nm",l.name));
+    left.appendChild(el("div","sub",dm(l.date)+(l.pax>1?" · "+l.pax+" participants":"")));
+    row.appendChild(left);
+    row.appendChild(el("div","r mono",String(l.qty)));
+    row.appendChild(el("div","r mono",sym()+money(l.price*l.qty,2)));
+    row.appendChild(el("div"));
+    p.appendChild(row);
+  });
+  host.appendChild(p);
+  host.appendChild(el("div","note","The team of "+schoolName()+" — see you in the water."));
+  var acts=el("div"); acts.style.marginTop="12px";
+  var b=el("button","btn primary","Book something else");
+  b.addEventListener("click",function(){view="catalog";draw();});
+  acts.appendChild(b);
+  var pr=el("button","btn","Print"); pr.style.marginLeft="9px";
+  pr.addEventListener("click",function(){window.print();});
+  acts.appendChild(pr);
+  host.appendChild(acts);
+}
+
+/* ============================ paint ============================ */
+function draw(){
+  var host=document.getElementById("wrap");
+  host.textContent="";
+  if(view==="cart") renderCart(host);
+  else if(view==="checkout") renderCheckout(host);
+  else if(view==="done") renderDone(host);
+  else renderCatalog(host);
+  window.scrollTo(0,0);
+}
+document.getElementById("btn-cart").addEventListener("click",function(){
+  view="cart"; draw();});
+saveCart();
+draw();
+})();
+</script>

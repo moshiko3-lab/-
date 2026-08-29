@@ -872,59 +872,13 @@ function renderCrew(){
 }
 
 
-/* ============================ pricing ============================
-   A product does not have "a price". A lesson is priced per head by how many
-   share it; a rental by how long the board is out. all_prices in Bloowatch is
-   that matrix, and this is the same thing: tiers, and the rule for picking one. */
-function tiersOf(p){ return (p && p.prices && p.prices.length) ? p.prices : null; }
-function hasPaxTiers(p){
-  var t=tiersOf(p); if(!t) return false;
-  return t.some(function(x){return (x.minPax||1)>1;});
-}
-function hasHourTiers(p){
-  var t=tiersOf(p); if(!t) return false;
-  return t.some(function(x){return x.hours;});
-}
-function priceFor(p,pax,hours){
-  /* the applicable tier is the most generous one the request still clears */
-  var t=tiersOf(p);
-  if(!t) return Number(p&&p.price)||0;
-  var cands=t;
-  if(hasHourTiers(p)){
-    var h=Number(hours)||1;
-    var fit=t.filter(function(x){return x.hours && x.hours<=h;});
-    /* below the smallest tier, charge the smallest tier */
-    cands=fit.length?fit:t.filter(function(x){return x.hours;});
-    cands=[cands.reduce(function(a,b){
-      if(fit.length) return (a.hours>b.hours)?a:b;
-      return (a.hours<b.hours)?a:b;
-    })];
-  }
-  if(hasPaxTiers(p)){
-    var n=Math.max(1,Number(pax)||1);
-    var ok=cands.filter(function(x){return (x.minPax||1)<=n;});
-    if(ok.length) cands=[ok.reduce(function(a,b){
-      return ((a.minPax||1)>(b.minPax||1))?a:b;})];
-  }
-  var chosen=cands[0]||t[0];
-  return Number(chosen.price)||0;
-}
-function priceSummary(p){
-  var t=tiersOf(p);
-  if(!t||t.length<2) return "";
-  if(hasHourTiers(p)){
-    var hs=t.filter(function(x){return x.hours;}).sort(function(a,b){return a.hours-b.hours;});
-    return hs.length+" duration tiers · "+hs[0].hours+"h $"+money(hs[0].price,0)+
-      " … "+hs[hs.length-1].hours+"h $"+money(hs[hs.length-1].price,0);
-  }
-  if(hasPaxTiers(p)){
-    var ps=t.slice().sort(function(a,b){return (a.minPax||1)-(b.minPax||1);});
-    return ps.map(function(x){return (x.minPax||1)+"p $"+money(x.price,0);}).join(" · ");
-  }
-  return "";
-}
+/*__PRICING__*/
 
 /* ============================ catalog ============================ */
+/* Their price_unit values. A tier means a different thing under each, so the
+   product form shows it rather than hiding it behind the number. */
+var PRICE_UNITS=[{v:"",l:"—"},{v:"by_closing_time",l:"Until closing"},
+  {v:"from_pickup",l:"From pickup"},{v:"hourly",l:"Per hour"}];
 var PRODUCT_TYPES=[
   {v:"class",l:"Class (flexible)"},{v:"course",l:"Course on specific periods"},
   {v:"tour",l:"Tour"},{v:"camp",l:"Camp"},{v:"accommodation",l:"Accommodation"},
@@ -944,8 +898,11 @@ function productForm(existing){
     limitedStock:false,stock:"",limitedAvail:false,availMax:"",
     gearId:"",accomId:"",nights:"",nightsAtBooking:false};
 
+  /* keep the pricing unit: it decides which tiers form the ladder, and
+     dropping it here would silently re-price the rentals on the next save */
   var tiers=(p.prices||[]).map(function(x){
-    return {minPax:x.minPax||1,hours:x.hours||null,price:x.price||0};});
+    return {minPax:x.minPax||1,hours:x.hours||null,price:x.price||0,
+            unit:x.unit||""};});
   var weekDays=(p.weekDays||[]).slice();
   var startHours=(p.startHours||[]).slice();
 
@@ -1043,7 +1000,7 @@ function productForm(existing){
       return;
     }
     tiers.forEach(function(t,i){
-      var row=el("div","line"); row.style.gridTemplateColumns="70px 70px 90px auto";
+      var row=el("div","line"); row.style.gridTemplateColumns="66px 66px 84px 1fr auto";
       var px=input("number",t.minPax,{min:"1",step:"1"});
       px.title="Applies from this many people";
       px.addEventListener("input",function(){t.minPax=Number(px.value)||1;});
@@ -1052,14 +1009,18 @@ function productForm(existing){
       hr.addEventListener("input",function(){t.hours=hr.value===""?null:Number(hr.value);});
       var pr=input("number",t.price,{min:"0",step:"0.01"});
       pr.addEventListener("input",function(){t.price=Number(pr.value)||0;});
+      var un=select(PRICE_UNITS,t.unit||"");
+      un.title="What this tier's number means";
+      un.addEventListener("change",function(){t.unit=un.value;});
       var rm=el("button","btn sm danger","×"); rm.type="button";
       rm.addEventListener("click",function(){tiers.splice(i,1);drawTiers();});
-      row.appendChild(px);row.appendChild(hr);row.appendChild(pr);row.appendChild(rm);
+      row.appendChild(px);row.appendChild(hr);row.appendChild(pr);
+      row.appendChild(un);row.appendChild(rm);
       tHost.appendChild(row);
     });
   }
   var th2=el("div","lines-h");
-  th2.appendChild(el("h4",null,"Price tiers — from pax / from hours / price"));
+  th2.appendChild(el("h4",null,"Price tiers — from pax / from hours / price / unit"));
   var addT=el("button","btn sm","Add tier"); addT.type="button";
   addT.addEventListener("click",function(){
     tiers.push({minPax:1,hours:null,price:Number(price.value)||0}); drawTiers();});
