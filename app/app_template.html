@@ -165,6 +165,43 @@ td.strong{font-weight:700}
   padding:18px 16px}
 .cfg-foot{background:var(--panel);border:1px solid var(--line);border-top:0;
   border-radius:0 0 8px 8px;padding:12px 16px}
+/* the client list panel: a row per client, opening onto a row per session */
+.cl-row{border-bottom:1px solid var(--line-soft);padding:9px 12px 10px}
+.cl-head{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;
+  align-items:start}
+.cl-caret{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+  font-size:11px;color:var(--text-3);padding:2px 0;line-height:1.2}
+.cl-who{min-width:0}
+.cl-name{appearance:none;border:0;background:none;padding:0;font:inherit;
+  font-weight:700;font-size:13px;color:var(--text);cursor:pointer;text-align:left;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.cl-name:hover{color:var(--accent)}
+.cl-sub{font-size:11.5px;color:var(--text-3)}
+.cl-side{display:flex;align-items:center;gap:6px}
+.cl-dots{display:flex;gap:3px}
+.cl-dots span{width:8px;height:8px;border-radius:50%;display:block}
+.cl-date{font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.cl-mark{font-size:11px;font-weight:800}
+.cl-mark.done{color:var(--good)}
+.cl-mark.open{color:var(--crit)}
+.cl-count{display:flex;align-items:center;gap:4px;font-size:11.5px;
+  color:var(--text-3);margin:3px 0 0 28px}
+.cl-prod{display:flex;align-items:center;gap:6px;margin:9px 0 5px 28px;
+  font-size:11.5px;font-weight:700;color:var(--text-2)}
+.cl-prod .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.cl-slot{display:grid;grid-template-columns:14px minmax(0,1fr) auto auto auto;
+  gap:7px;align-items:center;margin:0 0 5px 28px;padding:5px 8px;
+  border:1px solid var(--line-soft);border-left:3px solid var(--text-3);
+  border-radius:6px;background:var(--panel-2);font-size:11.5px}
+.cl-slot .tick{color:var(--good);font-weight:800}
+.cl-slot .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text-2)}
+.cl-slot .when{color:var(--text-3);font-variant-numeric:tabular-nums}
+.cl-slot .idx{font-weight:700;font-variant-numeric:tabular-nums}
+.cl-slot.on{opacity:.75}
+.cl-x{appearance:none;border:0;background:none;cursor:pointer;color:var(--text-3);
+  font-size:14px;line-height:1;padding:0 2px}
+.cl-x:hover{color:var(--crit)}
 .pt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;
   align-items:center;margin-bottom:8px}
 .pt-extra{background:var(--panel-2);border-radius:9px;padding:12px 13px 2px;
@@ -3109,80 +3146,102 @@ function clientRowMenu(x){
 
 /* Who is on the water that day and not yet in a session.
 
-   Two corrections the school made, both of which were putting the wrong names
-   on the board. It is keyed on the day the activity happens -- a lesson bought
-   on Monday for Thursday belongs to Thursday, and keying on the booking date
-   put it on Monday. And a hire is not an activity: boards live on the Rental
-   tab with their return times, so a rental line never lands here. */
+/* ============================ the client list ============================
+   Their people panel is not a list of names, it is a list of *slots*. Open a
+   client and you get the product, then one row per session it bought:
+
+       3X SURF LESSON COURSE 2024
+         P1 nahum c   30/08  -  1/3
+         P1 nahum c   31/08  -  2/3
+         P1 nahum c   01/09  -  3/3
+
+   Each of those is dragged onto a session on its own. One draggable per person
+   is what a single lesson needs; a three-lesson course needs three, or it can
+   only ever be scheduled once -- which is what was going wrong.
+
+   Hires are not here. A board is not something a person attends, and it lives
+   on the Rental tab with its return time. */
+function isActivityProduct(p){
+  if(!p) return false;
+  return p.ptype!=="rental" && !p.gearId && p.kind!=="rental";
+}
 function activityLines(bk){
   return (bk.lines||[]).filter(function(l){
-    var p=product(l.productId);
-    if(!p) return false;
-    return p.ptype!=="rental" && !p.gearId && p.kind!=="rental";
-  });
+    return isActivityProduct(product(l.productId));});
 }
-function unassignedOn(dateStr){
-  var seated={};
-  DB.sessions.forEach(function(x){
-    if(x.date!==dateStr) return;
-    x.participants.forEach(function(ref){ seated[ref]=true; });
-  });
+/* The people a booking puts on the water: whoever is named, or the client who
+   made it when nobody is. */
+function bookingSeats(bk){
+  var named=(bk.participants||[]).filter(function(pp){return pp.pid;});
+  if(named.length){
+    return named.map(function(pp,i){
+      return {ref:seatRef("participant",bk.id,pp.pid),
+              name:pp.name||("Participant "+(i+1)),
+              label:"P"+(i+1),
+              clientId:pp.clientId||"",level:pp.level,wetsuit:pp.wetsuit};
+    });
+  }
+  if(!bk.clientId) return [];
+  return [{ref:seatRef("client",bk.clientId),name:clientName(bk.clientId),
+           label:"P1",clientId:bk.clientId}];
+}
+/* Which sessions a seat already sits in for one line, oldest first. The n-th
+   is that seat's n-th of the course. */
+function sessionsForSeat(line,ref){
+  return DB.sessions.filter(function(se){
+    return (se.fromLines||[]).indexOf(line.lid)>=0 &&
+           se.participants.indexOf(ref)>=0;
+  }).sort(function(a,b){return (a.date+a.time)<(b.date+b.time)?-1:1;});
+}
+function lineSlots(bk,line){
+  var owed=Math.max(1,sessionsOwed(line)||1);
   var out=[];
-  DB.bookings.forEach(function(bk){
-    if(bk.status==="cancelled") return;
-    /* the lines that actually put someone on the water on this day */
-    var today=activityLines(bk).filter(function(l){
-      return (l.wanted||bk.date)===dateStr;
-    });
-    if(!today.length) return;
-
-    var items=today.map(function(l){
-      var p=product(l.productId); return p?p.name:"";}).filter(Boolean);
-    var colours=[],seen={};
-    today.forEach(function(l){
-      var p=product(l.productId); if(!p) return;
-      var c=posTileColour(p);
-      if(!seen[c]){ seen[c]=1; colours.push(c); }
-    });
-    var owed=today.reduce(function(a,l){return a+sessionsOwed(l);},0);
-    var pax=today.reduce(function(a,l){
-      var p=product(l.productId);
-      var per=(p&&hasPaxTiers(p))?(Number(l.pax)||1):1;
-      return a+per*(Number(l.qty)||1);
-    },0);
-
-    var named=(bk.participants||[]).filter(function(pp){return pp.pid;});
-    if(named.length){
-      named.forEach(function(pp){
-        var ref=seatRef("participant",bk.id,pp.pid);
-        if(seated[ref]) return;
-        out.push({ref:ref,name:pp.name,clientId:pp.clientId||"",items:items,
-          level:pp.level,wetsuit:pp.wetsuit,
-          colours:colours,owed:owed,pax:pax,bookings:[bk]});
-      });
-    } else if(bk.clientId){
-      /* nobody named, so the booking stands for the client who made it */
-      var cref=seatRef("client",bk.clientId);
-      if(!seated[cref] && !out.some(function(o){return o.ref===cref;}))
-        out.push({ref:cref,name:clientName(bk.clientId),clientId:bk.clientId,
-          items:items,colours:colours,owed:owed,pax:pax,bookings:[bk]});
+  bookingSeats(bk).forEach(function(seat){
+    var got=sessionsForSeat(line,seat.ref);
+    for(var i=0;i<owed;i++){
+      out.push({booking:bk,line:line,seat:seat,ref:seat.ref,
+                idx:i+1,of:owed,session:got[i]||null});
     }
   });
   return out;
 }
-var clientListQ="", clientListMode="customer";
-/* Their people button opens this: everyone who has booked, with the colour of
-   what they booked, how many of them are coming, and the row menu that acts on
-   the booking. Dragging a name onto a session is how it gets assigned. */
+/* Every booking with an activity on it, newest first, with its slots. */
+function assignmentRows(){
+  var out=[];
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    var lines=activityLines(bk);
+    if(!lines.length) return;
+    var groups=lines.map(function(l){
+      return {line:l,product:product(l.productId),slots:lineSlots(bk,l)};
+    });
+    var slots=groups.reduce(function(a,g){return a.concat(g.slots);},[]);
+    var open=slots.filter(function(s){return !s.session;}).length;
+    out.push({booking:bk,groups:groups,slots:slots,open:open,
+      pax:bookingSeats(bk).length,
+      colours:groups.map(function(g){
+        return g.product?posTileColour(g.product):"var(--text-3)";})
+        .filter(function(c,i,a){return a.indexOf(c)===i;})});
+  });
+  return out.sort(function(a,b){
+    /* anything still to place first, then most recent */
+    if((b.open>0)-(a.open>0)) return (b.open>0)-(a.open>0);
+    return a.booking.date<b.booking.date?1:-1;
+  });
+}
+
+var clientListQ="", clientListMode="customer", clientOpen={};
+
 function assignRail(dateStr,onChange){
-  var pending=unassignedOn(dateStr);
+  var rows=assignmentRows();
   var rail=el("div","panel");
   rail.style.cssText="padding:0;overflow:hidden;align-self:start;position:sticky;"+
     "top:calc(var(--topbar) + 14px);max-height:calc(100vh - var(--topbar) - 40px);"+
     "display:flex;flex-direction:column";
   var h=el("div","day-h");
   h.appendChild(el("h3",null,"Client list"));
-  h.appendChild(el("span","c",String(pending.length)));
+  var openTotal=rows.reduce(function(a,r){return a+r.open;},0);
+  h.appendChild(el("span","c",String(openTotal)));
   rail.appendChild(h);
 
   var sb=el("div");
@@ -3212,131 +3271,181 @@ function assignRail(dateStr,onChange){
   rail.appendChild(body);
 
   var term=clientListQ.trim().toLowerCase();
-  pending=pending.filter(function(x){
+  rows=rows.filter(function(r){
     if(!term) return true;
-    var who=clientListMode==="customer"
-      ? [x.name,(by(x.clientId,DB.clients)||{}).phone||""].join(" ")
-      : x.name;
-    return who.toLowerCase().indexOf(term)>=0;
+    if(clientListMode==="customer"){
+      var c=by(r.booking.clientId,DB.clients)||{};
+      return [clientName(r.booking.clientId),c.phone||"",c.email||""]
+        .join(" ").toLowerCase().indexOf(term)>=0;
+    }
+    return r.slots.some(function(s){
+      return (s.seat.name||"").toLowerCase().indexOf(term)>=0;});
   });
 
-  if(!pending.length){
-    /* the same question the list answers: is anyone on the water that day */
-    var anyToday=DB.bookings.some(function(b){
-      return b.status!=="cancelled" && activityLines(b).some(function(l){
-        return (l.wanted||b.date)===dateStr;});});
+  if(!rows.length){
     var e=el("div","hint",
       term ? "No result found."
-        : (anyToday ? "Everyone on the water today is in a session."
-                    : "No activity booked for this day. Hires are on the Rental tab."));
+           : "No activity booked yet. Hires are on the Rental tab.");
     e.style.padding="14px 16px";
     body.appendChild(e);
     return rail;
   }
-  var note=el("div","hint","Drag a name onto a session to put them in it.");
-  note.style.padding="10px 16px 4px";
-  body.appendChild(note);
-  pending.forEach(function(x){
-    var card=el("div");
-    card.style.cssText="margin:8px 12px;padding:9px 11px;border:1px solid var(--line);"+
-      "border-radius:9px;background:var(--panel-2);cursor:grab;font-size:13px";
-    card.style.touchAction="none";
-    card.dataset.seatRef=x.ref;
-    var top=el("div");
-    top.style.cssText="display:flex;align-items:center;gap:6px";
-    var nm=el("div",null,x.name||"—");
-    nm.style.cssText="font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;"+
-      "white-space:nowrap";
-    top.appendChild(nm);
-    /* a dot per activity booked, as their list shows */
-    (x.colours||[]).slice(0,4).forEach(function(c){
-      var d=el("span");
-      d.style.cssText="width:9px;height:9px;border-radius:50%;flex:none;background:"+c;
-      top.appendChild(d);
+
+  rows.forEach(function(r){
+    var bk=r.booking;
+    var card=el("div","cl-row");
+    var head=el("div","cl-head");
+    var caret=el("button","cl-caret",clientOpen[bk.id]?"▾":"▸");
+    caret.type="button";
+    caret.setAttribute("aria-expanded",clientOpen[bk.id]?"true":"false");
+    caret.addEventListener("click",function(){
+      if(clientOpen[bk.id]) delete clientOpen[bk.id];
+      else clientOpen[bk.id]=true;
+      renderBoard();
     });
-    if(x.bookings&&x.bookings.length){
-      top.appendChild(rowMenu(clientRowMenu(x)));
-    }
-    card.appendChild(top);
-    /* how many are coming on that booking, which is the count they show */
-    var cnt=el("div","hint");
-    cnt.style.cssText="margin-top:3px;display:flex;align-items:center;gap:5px";
+    head.appendChild(caret);
+    var who=el("div","cl-who");
+    var nm=el("button","cl-name",clientName(bk.clientId));
+    nm.type="button";
+    nm.addEventListener("click",function(){
+      var c=by(bk.clientId,DB.clients); if(c) clientCard(c);});
+    who.appendChild(nm);
+    var c0=by(bk.clientId,DB.clients)||{};
+    if(c0.phone) who.appendChild(el("div","cl-sub",c0.phone));
+    head.appendChild(who);
+
+    var side=el("div","cl-side");
+    var dots=el("div","cl-dots");
+    r.colours.slice(0,4).forEach(function(c){
+      var d=el("span"); d.style.background=c; dots.appendChild(d);
+    });
+    side.appendChild(dots);
+    side.appendChild(el("span","cl-date",dm(bk.date)));
+    /* their two markers: everything placed, or something still to place */
+    var mark=el("span","cl-mark "+(r.open?"open":"done"));
+    mark.textContent=r.open?"!":"✓✓";
+    mark.title=r.open?(r.open+" still to schedule"):"Every session scheduled";
+    side.appendChild(mark);
+    side.appendChild(rowMenu(clientRowMenu({bookings:[bk]})));
+    head.appendChild(side);
+    card.appendChild(head);
+
+    var cnt=el("div","cl-count");
     cnt.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">'+
       '<circle cx="12" cy="7.5" r="3.6"/>'+
       '<path d="M4.5 21c0-4.1 3.4-6.8 7.5-6.8s7.5 2.7 7.5 6.8z"/></svg>';
-    cnt.appendChild(el("span",null,String(x.pax||1)+
-      (x.owed?("  ·  "+x.owed+" session"+(x.owed===1?"":"s")+" booked"):"")));
+    cnt.appendChild(el("span",null," "+r.pax));
     card.appendChild(cnt);
-    var sub=[];
-    if(x.level) sub.push(x.level);
-    if(x.wetsuit) sub.push("wetsuit "+x.wetsuit);
-    if(x.items.length) sub.push(x.items.join(", "));
-    if(sub.length){
-      var it=el("div","hint",sub.join(" · "));
-      it.style.marginTop="2px";
-      card.appendChild(it);
+
+    if(clientOpen[bk.id]){
+      r.groups.forEach(function(g){
+        var chip=el("div","cl-prod");
+        var d=el("span","dot");
+        d.style.background=g.product?posTileColour(g.product):"var(--text-3)";
+        chip.appendChild(d);
+        chip.appendChild(el("span",null,g.product?g.product.name:"Item"));
+        card.appendChild(chip);
+        g.slots.forEach(function(s){ card.appendChild(slotRow(s)); });
+      });
     }
-    var docs=x.clientId?docsFor(x.clientId):[];
-    if(x.clientId && !docs.length){
-      var w=el("span","chip critc","no waiver");
-      w.style.marginTop="5px"; w.style.display="inline-block";
-      card.appendChild(w);
-    }
-    var ghost=null, moved=false;
-    card.addEventListener("pointerdown",function(e){
-      if(e.button && e.button!==0) return;
-      e.preventDefault();
-      moved=false;
-      card.setPointerCapture(e.pointerId);
-      card.style.opacity=".45";
-      ghost=el("div",null,x.name);
-      ghost.style.cssText="position:fixed;z-index:80;pointer-events:none;"+
-        "background:var(--accent);color:var(--accent-ink);padding:6px 11px;"+
-        "border-radius:8px;font-size:12.5px;font-weight:600;"+
-        "box-shadow:0 8px 22px rgba(0,0,0,.35);left:"+(e.clientX+12)+"px;top:"+
-        (e.clientY-14)+"px";
-      document.body.appendChild(ghost);
-    });
-    card.addEventListener("pointermove",function(e){
-      if(!ghost) return;
-      moved=true;
-      ghost.style.left=(e.clientX+12)+"px";
-      ghost.style.top=(e.clientY-14)+"px";
-      var under=document.elementFromPoint(e.clientX,e.clientY);
-      var blk=under&&under.closest?under.closest("[data-session-id]"):null;
-      [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
-        n.style.outline="";});
-      if(blk) blk.style.outline="2px solid var(--text)";
-    });
-    function drop(e){
-      if(!ghost) return;
-      ghost.remove(); ghost=null;
-      card.style.opacity="1";
-      var under=document.elementFromPoint(e.clientX,e.clientY);
-      var blk=under&&under.closest?under.closest("[data-session-id]"):null;
-      [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
-        n.style.outline="";});
-      if(!moved || !blk){
-        if(moved) toast("Drop a name onto a session block.");
-        return;
-      }
-      var se=by(blk.dataset.sessionId,DB.sessions);
-      if(!se) return;
-      if(se.participants.indexOf(x.ref)>=0){ toast("Already in that session."); return; }
-      if(se.participants.length>=se.capacity){
-        toast(se.title+" is full ("+se.capacity+")."); return; }
-      se.participants.push(x.ref);
-      save(); renderBoard();
-      toast(x.name+" → "+se.title);
-    }
-    card.addEventListener("pointerup",drop);
-    card.addEventListener("pointercancel",function(){
-      if(ghost){ghost.remove();ghost=null;}
-      card.style.opacity="1";});
-    rail.appendChild(card);
+    body.appendChild(card);
   });
   return rail;
 }
+
+/* One session of one person's course: ticked when it has a session, showing
+   the date it landed on, and draggable onto the board when it has not. */
+function slotRow(s){
+  var row=el("div","cl-slot"+(s.session?" on":""));
+  row.style.borderLeftColor=s.line&&product(s.line.productId)
+    ? posTileColour(product(s.line.productId)) : "var(--text-3)";
+  var tick=el("span","tick");
+  tick.textContent=s.session?"✓":"";
+  row.appendChild(tick);
+  var nm=el("span","who",s.seat.label+" "+s.seat.name);
+  row.appendChild(nm);
+  row.appendChild(el("span","when",s.session?dm(s.session.date):"—"));
+  row.appendChild(el("span","idx",s.idx+"/"+s.of));
+
+  if(s.session){
+    row.title=s.session.title+" · "+s.session.time+
+      (staffIdsOf(s.session).length?(" · "+instructorNames(s.session)):"");
+    var off=el("button","cl-x","×");
+    off.type="button";
+    off.title="Take them out of this session";
+    off.addEventListener("click",function(ev){
+      ev.stopPropagation();
+      var se=s.session;
+      se.participants=se.participants.filter(function(x){return x!==s.ref;});
+      save(); renderBoard(); toast("Unassigned");
+    });
+    row.appendChild(off);
+    return row;
+  }
+
+  /* not placed yet: drag it onto a session */
+  row.dataset.seatRef=s.ref;
+  row.style.cursor="grab";
+  row.style.touchAction="none";
+  var ghost=null,moved=false;
+  row.addEventListener("pointerdown",function(e){
+    if(e.button && e.button!==0) return;
+    e.preventDefault();
+    moved=false;
+    row.setPointerCapture(e.pointerId);
+    row.style.opacity=".45";
+    ghost=el("div",null,s.seat.name+"  "+s.idx+"/"+s.of);
+    ghost.style.cssText="position:fixed;z-index:80;pointer-events:none;"+
+      "background:var(--accent);color:var(--accent-ink);padding:6px 11px;"+
+      "border-radius:8px;font-size:12.5px;font-weight:600;"+
+      "box-shadow:0 8px 22px rgba(0,0,0,.35);left:"+(e.clientX+12)+"px;top:"+
+      (e.clientY-14)+"px";
+    document.body.appendChild(ghost);
+  });
+  row.addEventListener("pointermove",function(e){
+    if(!ghost) return;
+    moved=true;
+    ghost.style.left=(e.clientX+12)+"px";
+    ghost.style.top=(e.clientY-14)+"px";
+    var under=document.elementFromPoint(e.clientX,e.clientY);
+    var blk=under&&under.closest?under.closest("[data-session-id]"):null;
+    [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
+      n.style.outline="";});
+    if(blk) blk.style.outline="2px solid var(--text)";
+  });
+  function drop(e){
+    if(!ghost) return;
+    ghost.remove(); ghost=null;
+    row.style.opacity="";
+    [].forEach.call(document.querySelectorAll("[data-session-id]"),function(n){
+      n.style.outline="";});
+    if(!moved) return;
+    var under=document.elementFromPoint(e.clientX,e.clientY);
+    var blk=under&&under.closest?under.closest("[data-session-id]"):null;
+    if(!blk) return;
+    var se=by(blk.dataset.sessionId,DB.sessions);
+    if(!se) return;
+    if(se.participants.indexOf(s.ref)>=0){
+      toast(s.seat.name+" is already in that session.");
+      return;
+    }
+    if(se.participants.length>=se.capacity){
+      toast("That session is full ("+se.capacity+").");
+      return;
+    }
+    se.participants.push(s.ref);
+    se.fromLines=se.fromLines||[];
+    if(se.fromLines.indexOf(s.line.lid)<0) se.fromLines.push(s.line.lid);
+    save(); renderBoard();
+    toast(s.seat.name+" → "+se.title+" "+se.time);
+  }
+  row.addEventListener("pointerup",drop);
+  row.addEventListener("pointercancel",function(){
+    if(ghost){ ghost.remove(); ghost=null; row.style.opacity=""; }
+  });
+  return row;
+}
+
 
 function laneRows(dayISO){
   /* One row per group, then split into lanes so overlapping sessions never sit
