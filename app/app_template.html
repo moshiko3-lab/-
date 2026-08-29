@@ -207,6 +207,37 @@ td.strong{font-weight:700}
 .cl-slot .tick.on{background:var(--good);border-color:var(--good);color:#fff}
 .cl-done{margin-left:auto;font-weight:600;color:var(--text-3);
   font-variant-numeric:tabular-nums}
+
+/* the card that opens on a session block */
+.sess-pop{position:fixed;z-index:70;min-width:250px;max-width:330px;
+  background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  box-shadow:0 14px 38px rgba(0,0,0,.22);padding:10px 12px 11px;font-size:12px}
+.sess-pop .sp-head{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.sess-pop .sp-title{appearance:none;border:0;background:none;padding:0;
+  font:inherit;font-weight:800;font-size:12.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--text);cursor:pointer;text-align:left;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sess-pop .sp-title:hover{color:var(--accent)}
+.sess-pop .sp-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding-bottom:9px;border-bottom:1px solid var(--line-soft)}
+.sess-pop .sp-time{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.sess-pop .sp-eye{appearance:none;border:0;background:none;padding:2px;
+  color:var(--text-3);cursor:pointer;display:flex;line-height:0}
+.sess-pop .sp-eye:hover{color:var(--text)}
+.sess-pop .sp-eye.off{color:var(--text-3);opacity:.55}
+.sess-pop .sp-cap{display:flex;align-items:center;gap:3px;color:var(--text-2);
+  font-size:11.5px;font-variant-numeric:tabular-nums}
+.sess-pop .sp-who{width:auto;max-width:150px;margin-left:auto;padding:5px 8px;
+  font:inherit;font-size:11.5px;font-weight:700;border-radius:8px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text)}
+.sess-pop .sp-warn{color:var(--crit);font-size:11px;margin-top:7px}
+.sess-pop .sp-none{color:var(--text-3);font-size:11.5px;margin-top:9px}
+.sess-pop .sp-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
+  gap:8px;align-items:center;margin-top:7px}
+.sess-pop .sp-row .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text-2)}
+.sess-pop .sp-row .when{color:var(--text-3);font-variant-numeric:tabular-nums}
+.sess-pop .sp-row .idx{font-weight:700;font-variant-numeric:tabular-nums}
 .cl-slot .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--text-2)}
 .cl-slot .when{color:var(--text-3);font-variant-numeric:tabular-nums}
@@ -2706,16 +2737,7 @@ function planTable(day){
     };
     shown.forEach(function(c){ r.appendChild(cell[c.k]()); });
     var act=el("td"); act.style.width="34px";
-    act.appendChild(rowMenu([
-      {l:"Edit session",on:function(){sessionForm(x);}},
-      {l:"Open participants list",on:function(){participantsForm(x);}},
-      {l:"Duplicate session",on:function(){cloneSessionForm(x);}},
-      {l:"Print list",on:function(){window.print();}},
-      {l:"Delete session",danger:true,on:function(){
-        confirmDelete("this session",function(){
-          DB.sessions=DB.sessions.filter(function(y){return y.id!==x.id;});
-          save();render();toast("Session deleted");});}}
-    ]));
+    act.appendChild(rowMenu(sessionRowMenu(x)));
     r.appendChild(act);
     tb.appendChild(r);
 
@@ -3406,6 +3428,25 @@ function lineSeats(bk,line){
   }
   return bookingSeats(bk);
 }
+/* Where this session sits in one person's course: their second of three. The
+   session remembers the lines it was filled from, so the answer is found by
+   asking each of those lines where this session falls for that seat. */
+function seatPlaceInSession(se,ref){
+  var out=null;
+  (se.fromLines||[]).forEach(function(lid){
+    if(out) return;
+    DB.bookings.forEach(function(bk){
+      if(out) return;
+      (bk.lines||[]).forEach(function(l){
+        if(out || l.lid!==lid) return;
+        var got=sessionsForSeat(l,ref).map(function(x){return x.id;});
+        var i=got.indexOf(se.id);
+        if(i>=0) out={idx:i+1,of:sessionsEach(l),line:l,booking:bk};
+      });
+    });
+  });
+  return out;
+}
 /* Which sessions a seat already sits in for one line, oldest first. The n-th
    is that seat's n-th of the course. */
 function sessionsForSeat(line,ref){
@@ -3612,6 +3653,133 @@ function assignRail(dateStr,onChange){
     body.appendChild(card);
   });
   return rail;
+}
+
+/* ===================== the card on the block =====================
+   Clicking a session on their board does not open a form. It opens a small
+   card on the block itself: the hour, whether it is public, how full it is,
+   the instructor as a dropdown you can change without leaving, and every
+   person in it with which lesson of their course this one is. The form is
+   still there, one click further in, for everything else. */
+/* what their ⋮ offers against a session, wherever the session is shown */
+function sessionRowMenu(x){
+  return [
+    {l:"Edit session",on:function(){closeSessionPop();sessionForm(x);}},
+    {l:"Open participants list",on:function(){closeSessionPop();participantsForm(x);}},
+    {l:"Duplicate session",on:function(){closeSessionPop();cloneSessionForm(x);}},
+    {l:"Print list",on:function(){window.print();}},
+    {l:"Delete session",danger:true,on:function(){
+      closeSessionPop();
+      confirmDelete("this session",function(){
+        DB.sessions=DB.sessions.filter(function(y){return y.id!==x.id;});
+        save();render();toast("Session deleted");});}}
+  ];
+}
+var sessPop=null;
+function closeSessionPop(){
+  if(sessPop && sessPop.parentNode) sessPop.parentNode.removeChild(sessPop);
+  sessPop=null;
+}
+document.addEventListener("pointerdown",function(e){
+  if(!sessPop) return;
+  if(sessPop.contains(e.target)) return;
+  if(e.target.closest && e.target.closest("[data-session-id]")) return;
+  closeSessionPop();
+},true);
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape" && sessPop) closeSessionPop();
+});
+
+function sessionPop(anchor,se){
+  closeSessionPop();
+  var p=el("div","sess-pop");
+  var head=el("div","sp-head");
+  var nm=el("button","sp-title",se.title||"Session");
+  nm.type="button";
+  nm.title="Open the full session";
+  nm.addEventListener("click",function(){ closeSessionPop(); sessionForm(se); });
+  head.appendChild(nm);
+  head.appendChild(rowMenu(sessionRowMenu(se)));
+  p.appendChild(head);
+
+  var meta=el("div","sp-meta");
+  meta.appendChild(el("span","sp-time",se.time));
+
+  /* the eye is their public flag, and it toggles from here */
+  var eye=el("button","sp-eye");
+  eye.type="button";
+  function paintEye(){
+    eye.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" '+
+      'stroke="currentColor" stroke-width="2"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7'+
+      '-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/>'+
+      (se.isPublic===false?'<path d="M3 3l18 18"/>':'')+'</svg>';
+    eye.title=se.isPublic===false ? "Not shown to clients booking online"
+                                  : "Shown to clients booking online";
+    eye.classList.toggle("off",se.isPublic===false);
+  }
+  paintEye();
+  eye.addEventListener("click",function(){
+    se.isPublic=(se.isPublic===false);
+    save(); paintEye(); renderBoard();
+  });
+  meta.appendChild(eye);
+
+  var cap=el("span","sp-cap");
+  cap.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">'+
+    '<circle cx="12" cy="7.5" r="3.6"/>'+
+    '<path d="M4.5 21c0-4.1 3.4-6.8 7.5-6.8s7.5 2.7 7.5 6.8z"/></svg>';
+  cap.appendChild(el("span",null," "+se.participants.length+"/"+se.capacity));
+  meta.appendChild(cap);
+
+  /* the instructor, changed here rather than in the form */
+  var pool=DB.staff.filter(function(x){
+    return staffDoes(x,se.category) || staffIdsOf(se).indexOf(x.id)>=0;});
+  if(!pool.length) pool=DB.staff.slice();
+  var who=select([{v:"",l:"Unassigned"}].concat(pool.sort(crewOrder)
+    .map(function(x){return {v:x.id,l:x.name};})),staffIdsOf(se)[0]||"");
+  who.className="sp-who";
+  who.addEventListener("change",function(){
+    se.staffIds=who.value?[who.value]:[]; delete se.staffId;
+    save(); renderBoard();
+  });
+  meta.appendChild(who);
+  p.appendChild(meta);
+
+  if(staffIdsOf(se).some(function(id){return isOff(id,se.date);})){
+    var off=el("div","sp-warn","Booked off on "+dmy(se.date)+".");
+    p.appendChild(off);
+  }
+
+  if(!se.participants.length){
+    p.appendChild(el("div","sp-none","Nobody in it yet."));
+  } else {
+    se.participants.forEach(function(ref){
+      var row=el("div","sp-row");
+      row.appendChild(el("span","who",seatName(ref)));
+      var pl=seatPlaceInSession(se,ref);
+      row.appendChild(el("span","when",pl?dmy(se.date):"—"));
+      row.appendChild(el("span","idx",pl?(pl.idx+"/"+pl.of):""));
+      var x=el("button","cl-x","×");
+      x.type="button";
+      x.title="Take them out of this session";
+      x.addEventListener("click",function(){
+        se.participants=se.participants.filter(function(y){return y!==ref;});
+        save(); closeSessionPop(); renderBoard(); toast("Unassigned");
+      });
+      row.appendChild(x);
+      p.appendChild(row);
+    });
+  }
+
+  document.body.appendChild(p);
+  var r=anchor.getBoundingClientRect();
+  var w=p.offsetWidth, h=p.offsetHeight;
+  var left=Math.max(8,Math.min(window.innerWidth-w-8,r.left));
+  var top=r.bottom+6;
+  if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-6);
+  p.style.left=left+"px";
+  p.style.top=top+"px";
+  sessPop=p;
 }
 
 /* One session of one person's course: ticked when it has a session, showing
@@ -4156,7 +4324,10 @@ function boardDay(dayISO){
         [].forEach.call(lanesHost.children,function(k){k.style.background="";});
         blk.style.cursor="grab"; blk.style.zIndex=""; blk.style.boxShadow="";
         var d=dragging; dragging=null;
-        if(!d.moved){ sessionForm(x); return; }
+        /* A click opens the card on the block, the way theirs does -- who is
+           in it, which lesson of their course this is, and the instructor
+           changed on the spot. The full form is one click further in. */
+        if(!d.moved){ sessionPop(blk,x); return; }
         var destRow=null;
         if(d.targetRi!=null){
           for(var i=0;i<rows.length;i++)
