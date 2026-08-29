@@ -1,0 +1,60 @@
+name: Publish
+
+# Every push rebuilds both pages and puts them online, so the platform can be
+# worked on while it is live. The manager is the site root; the booking page
+# the school sends to customers sits beside it at /book.html.
+#
+# clients.json is not in the repository, so a build made here can never carry
+# real names, phone numbers or email addresses -- the pages go up empty, which
+# is the state the school starts from.
+
+on:
+  push:
+    branches:
+      - main
+      - claude/new-session-d0r3xc
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # node is not required, but with it the build parses the page's script
+      # and fails here rather than shipping a blank app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build the manager and the booking page
+        run: |
+          mkdir -p site
+          python3 app/build.py --out site/index.html
+          python3 app/build.py --minisite --out site/book.html
+          ls -l site
+      - name: Refuse to publish anything carrying real people
+        run: python3 .github/no_pii.py site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
