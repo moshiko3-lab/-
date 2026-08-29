@@ -227,6 +227,18 @@ td.strong{font-weight:700}
   .pos{grid-template-columns:1fr}
   .pos-side{position:static;max-height:none}
 }
+/* the revenue bars under the sales report: label, value, then the bar */
+.panel > .row{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:4px 14px;align-items:baseline;margin-bottom:11px}
+.panel > .row .nm{font-size:13.5px;font-weight:600;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.panel > .row .vl{font-size:13.5px;font-weight:700;text-align:right;
+  font-variant-numeric:tabular-nums}
+.panel > .row .vl small{margin-left:8px;font-size:11.5px;font-weight:600;
+  color:var(--text-3)}
+.panel > .row .bar{grid-column:1/3;height:6px;border-radius:4px;
+  background:var(--panel-3);overflow:hidden}
+.panel > .row .bar i{display:block;height:100%;border-radius:4px}
 .lanebtn{appearance:none;border:0;background:var(--panel);cursor:pointer;color:var(--text-3);
   padding:2px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:2px;
   font:inherit;box-shadow:0 0 0 1px var(--line-soft)}
@@ -7158,6 +7170,129 @@ function renderReports(){
 }
 
 /* ---- what was sold ---- */
+/* ============================ the income chart ============================
+   Their sales report leads with the month's shape: one line across the days,
+   filled underneath. One series, so no legend -- the heading names it -- and
+   no number on every point; the hover says the day you are on.
+
+   Drawn by hand in SVG. A charting library would be a megabyte of dependency
+   inside a page that has to stay one self-contained file. */
+function lineChart(host,points,opts){
+  opts=opts||{};
+  var W=1000, H=260, L=52, R=14, T=14, B=28;   /* a viewBox, scaled by CSS */
+  var box=el("div","panel");
+  box.style.cssText="padding:14px 16px 10px;overflow:hidden";
+  if(opts.title){
+    var h=el("div","eyebrow",opts.title);
+    h.style.marginBottom="6px";
+    box.appendChild(h);
+  }
+  if(!points.length){
+    box.appendChild(el("div","hint","Nothing in this period."));
+    host.appendChild(box);
+    return box;
+  }
+  var NS="http://www.w3.org/2000/svg";
+  var svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  svg.setAttribute("width","100%");
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label",(opts.title||"Chart")+", "+points.length+" points");
+  /* let the width drive the height, or the viewBox letterboxes and the plot
+     floats in the middle of an empty panel */
+  svg.setAttribute("preserveAspectRatio","none");
+  svg.style.cssText="display:block;width:100%;height:"+(opts.height||230)+"px;"+
+    "overflow:visible";
+
+  var max=points.reduce(function(a,p){return Math.max(a,p.v);},0);
+  /* a round ceiling, so the gridline labels are numbers a person recognises */
+  var step=Math.pow(10,Math.floor(Math.log(Math.max(1,max))/Math.LN10));
+  var top=Math.ceil(max/step)*step || 1;
+  if(top/step<2) { step=step/2; top=Math.ceil(max/step)*step || 1; }
+
+  function X(i){ return L + (points.length<2?0:(i/(points.length-1))*(W-L-R)); }
+  function Y(v){ return T + (1-(v/top))*(H-T-B); }
+
+  function add(tag,attrs){
+    var n=document.createElementNS(NS,tag);
+    for(var k in attrs) n.setAttribute(k,attrs[k]);
+    svg.appendChild(n);
+    return n;
+  }
+  /* recessive grid: four lines, labelled at the axis */
+  for(var g=0;g<=4;g++){
+    var v=top*g/4;
+    add("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line-soft)",
+      "stroke-width":1,"vector-effect":"non-scaling-stroke"});
+    var lab=add("text",{x:L-8,y:Y(v)+4,"text-anchor":"end",
+      "font-size":11,fill:"var(--text-3)"});
+    lab.textContent=(opts.money?(sym0()+money(v,0)):String(Math.round(v)));
+  }
+  var d="",area="";
+  points.forEach(function(p,i){
+    d+=(i?" L":"M")+X(i).toFixed(1)+" "+Y(p.v).toFixed(1);
+  });
+  area="M"+X(0).toFixed(1)+" "+Y(0).toFixed(1)+" L"+d.slice(1)+
+       " L"+X(points.length-1).toFixed(1)+" "+Y(0).toFixed(1)+" Z";
+  add("path",{d:area,fill:"var(--accent)","fill-opacity":.16,stroke:"none"});
+  add("path",{d:d,fill:"none",stroke:"var(--accent)","stroke-width":2,
+              "stroke-linejoin":"round","stroke-linecap":"round",
+              "vector-effect":"non-scaling-stroke"});
+
+  /* x labels, thinned so they never collide */
+  var every=Math.max(1,Math.ceil(points.length/16));
+  points.forEach(function(p,i){
+    if(i%every && i!==points.length-1) return;
+    var t=add("text",{x:X(i),y:H-8,"text-anchor":"middle",
+      "font-size":11,fill:"var(--text-3)"});
+    t.textContent=p.l;
+  });
+
+  /* the hover layer: a crosshair and one readout, rather than a number on
+     every point */
+  var cross=add("line",{x1:0,x2:0,y1:T,y2:H-B,stroke:"var(--text-3)",
+    "stroke-width":1,"stroke-dasharray":"3 3",opacity:0,
+    "vector-effect":"non-scaling-stroke"});
+  var dot=add("circle",{r:4.5,fill:"var(--accent)",stroke:"var(--panel)",
+    "stroke-width":2,opacity:0});
+  var hit=add("rect",{x:L,y:T,width:W-L-R,height:H-T-B,fill:"transparent"});
+  var tip=el("div");
+  tip.style.cssText="position:absolute;pointer-events:none;opacity:0;z-index:5;"+
+    "background:var(--slate);color:#fff;padding:6px 9px;border-radius:8px;"+
+    "font-size:12px;white-space:nowrap;transform:translate(-50%,-130%);"+
+    "box-shadow:0 6px 18px rgba(0,0,0,.28)";
+  var wrap=el("div");
+  wrap.style.cssText="position:relative";
+  wrap.appendChild(svg);
+  wrap.appendChild(tip);
+  box.appendChild(wrap);
+
+  function at(ev){
+    var r=svg.getBoundingClientRect();
+    var px=(ev.clientX-r.left)/r.width*W;
+    var i=Math.round((px-L)/Math.max(1,(W-L-R))*(points.length-1));
+    i=Math.max(0,Math.min(points.length-1,i));
+    var p=points[i];
+    cross.setAttribute("x1",X(i)); cross.setAttribute("x2",X(i));
+    cross.setAttribute("opacity",1);
+    dot.setAttribute("cx",X(i)); dot.setAttribute("cy",Y(p.v));
+    dot.setAttribute("opacity",1);
+    tip.textContent=p.full||(p.l+" · "+(opts.money?(sym0()+money(p.v,2)):p.v));
+    tip.style.left=(X(i)/W*r.width)+"px";
+    tip.style.top=(Y(p.v)/H*r.height)+"px";
+    tip.style.opacity=1;
+  }
+  hit.addEventListener("pointermove",at);
+  hit.addEventListener("pointerdown",at);
+  hit.addEventListener("pointerleave",function(){
+    cross.setAttribute("opacity",0);
+    dot.setAttribute("opacity",0);
+    tip.style.opacity=0;
+  });
+  host.appendChild(box);
+  return box;
+}
+
 function salesReport(host){
   var rows=salesIn(repRange());
   if(!rows.length){
@@ -7193,6 +7328,32 @@ function salesReport(host){
     var key=(r.rate||0)+"%";
     byTax[key]=(byTax[key]||0)+r.tax;
   });
+  /* the month's shape: takings by day, or by month across a year */
+  var bucket={},order=[];
+  rows.forEach(function(r){
+    var key = repMode==="month" ? r.date : r.date.slice(0,7);
+    if(!(key in bucket)){ bucket[key]=0; order.push(key); }
+    bucket[key]+=r.net;
+  });
+  if(repMode==="month"){
+    /* every day of the month, so a quiet Tuesday reads as a dip not a gap */
+    var ym=repAnchor, days=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();
+    order=[];
+    for(var dd=1;dd<=days;dd++){
+      var k2=ym+"-"+String(dd).padStart(2,"0");
+      order.push(k2);
+      if(!(k2 in bucket)) bucket[k2]=0;
+    }
+  } else order.sort();
+  lineChart(host,order.map(function(k){
+    return {l: repMode==="month" ? String(+k.slice(8,10))
+                                 : MON[+k.slice(5,7)-1],
+            v: Math.round(bucket[k]*100)/100,
+            full: (repMode==="month" ? (dowOf(k)+" "+dm(k)) :
+                   (MON[+k.slice(5,7)-1]+" "+k.slice(0,4)))+
+                  " · "+sym0()+money(bucket[k],2)};
+  }),{title:repMode==="month"?"Sales by day":"Sales by month",money:true});
+
   barTable(host,"Categories revenue",byCat,net);
   barTable(host,"Products revenue",byProd,net);
 
@@ -7224,6 +7385,52 @@ function salesReport(host){
   t.appendChild(tb); w.appendChild(t); host.appendChild(w);
 
   var bar=el("div","searchbar"); bar.style.marginTop="12px";
+  /* the four their report offers, over the period on screen */
+  var eb=el("button","btn sm","Export bookings");
+  eb.addEventListener("click",function(){
+    var seen={},bs=[];
+    rows.forEach(function(r){ if(!seen[r.booking.id]){ seen[r.booking.id]=1;
+      bs.push(r.booking); } });
+    exportCsv("bookings-"+repRange(),
+      ["#id","Date","Client","Origin","Pax","Total","Paid","Due","Status"],
+      bs.map(function(bk){
+        return [bookingCode(bk),bk.date,clientName(bk.clientId),bookingOrigin(bk),
+          bookingPax(bk),bookingTotal(bk).toFixed(2),bookingPaid(bk).toFixed(2),
+          Math.max(0,bookingDue(bk)).toFixed(2),bookingStatus(bk)];}));
+  });
+  bar.appendChild(eb);
+  var ei=el("button","btn sm","Export invoices");
+  ei.addEventListener("click",function(){
+    var inv=DB.invoices.filter(function(i){
+      return (i.date||"").indexOf(repRange())===0;});
+    exportCsv("invoices-"+repRange(),
+      ["Number","Date","Client","Total","Paid","Outstanding"],
+      inv.map(function(i){
+        return [i.number,i.date,i.clientName,(i.total||0).toFixed(2),
+          (i.paid||0).toFixed(2),Math.max(0,(i.total||0)-(i.paid||0)).toFixed(2)];}));
+  });
+  bar.appendChild(ei);
+  var ep=el("button","btn sm","Export payments");
+  ep.addEventListener("click",function(){
+    exportCsv("payments-"+repRange(),
+      ["Date","Client","Method","Amount"],
+      paymentsIn(repRange()).map(function(r){
+        return [r.date,clientName(r.bk.clientId),r.pay.method||"",
+                r.amount.toFixed(2)];}));
+  });
+  bar.appendChild(ep);
+  var et=el("button","btn sm","Export tickets");
+  et.addEventListener("click",function(){
+    var tk=DB.tickets.filter(function(t){
+      return (t.date||"").indexOf(repRange())===0;});
+    exportCsv("tickets-"+repRange(),
+      ["Ticket number","Date","Type","Client","Total","Tax","Status"],
+      tk.map(function(t){
+        return [t.seq,t.date,ticketTypeLabel(t.type),t.clientName||"",
+          (t.total||0).toFixed(2),(t.tax||0).toFixed(2),
+          t.voided?"Voided":"Valid"];}));
+  });
+  bar.appendChild(et);
   var ex=el("button","btn sm","Export sales");
   ex.addEventListener("click",function(){
     exportCsv("sales-"+repRange(),
