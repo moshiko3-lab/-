@@ -89,6 +89,7 @@ def build():
 
         products.append({
             "prices": prices,
+            "rental": p.get("rental"),      # which gear the hire actually goes out with
             "name": p.get("name") or p.get("title"),
             "kind": kind_of(p),
             "ptype": ptype_of(p),
@@ -120,6 +121,7 @@ def build():
                 "notes": (u.get("notes") or "").strip(),
             })
         gear.append({
+            "id": r.get("id"),              # products point at this
             "name": r.get("name"),
             "units": units,
             "type": r.get("rental_type"),

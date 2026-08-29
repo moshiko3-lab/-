@@ -134,6 +134,67 @@ def main():
               "nuria campos" in low(pg, "#p-bookings"),
               pg.inner_text("#p-bookings")[:200])
 
+        # ---- a line that still needs answering blocks the confirm ----
+        def tile_with(word):
+            n = pg.locator(".pos-tile").count()
+            for i in range(n):
+                if word in (pg.locator(".pos-tile").nth(i).inner_text() or "").upper():
+                    return i
+            return None
+
+        pg.click("#btn-newbooking")
+        pg.wait_for_timeout(1300)
+        i = tile_with("RENTAL")
+        check("a rental is on the till", i is not None)
+        pg.locator(".pos-tile").nth(i).click()
+        pg.wait_for_timeout(900)
+        check("a rental opens its own pane", pg.locator(".cfg-body").count() == 1)
+        cfg = low(pg, ".cfg-body")
+        for want in ("date", "starting hour", "duration", "gear"):
+            check(f"the rental pane asks for {want}", want in cfg, cfg[:200])
+        durations = pg.eval_on_selector_all(
+            ".cfg-body select option", "e => e.map(x => x.textContent)")
+        check("duration options carry their price",
+              any("$" in (d or "") for d in durations), str(durations[:3]))
+        check("the panel says a unit is missing",
+              "please select unit" in low(pg, ".pos-lines"), pg.inner_text(".pos-lines")[:160])
+
+        pg.locator('.pos-foot button:has-text("Confirm")').click()
+        pg.wait_for_timeout(700)
+        check("confirm is refused while a unit is missing",
+              "unit" in (pg.inner_text("#toast") or "").lower(), pg.inner_text("#toast"))
+
+        # picking a unit clears it
+        sels = pg.locator(".cfg-body select")
+        gear = sels.nth(sels.count() - 1)
+        vals = gear.locator("option").all_text_contents()
+        check("real boards are offered", len(vals) > 1, str(vals[:3]))
+        gear.select_option(index=1)
+        pg.wait_for_timeout(800)
+        check("the missing-unit warning clears",
+              "please select unit" not in low(pg, ".pos-lines"),
+              pg.inner_text(".pos-lines")[:160])
+
+        # ---- a course asks for its sessions ----
+        pg.click('.cfg-foot button:has-text("Add another product")')
+        pg.wait_for_timeout(800)
+        j = tile_with("COURSE")
+        if j is not None:
+            pg.locator(".pos-tile").nth(j).click()
+            pg.wait_for_timeout(1100)
+            cfg = low(pg, ".cfg-body")
+            check("the course pane asks for participants", "participants" in cfg, cfg[:200])
+            check("the course pane counts its sessions", "sessions (0 of" in cfg, cfg[:250])
+            check("the panel says sessions are missing",
+                  "please select session" in low(pg, ".pos-lines"),
+                  pg.inner_text(".pos-lines")[:200])
+            cards = pg.locator(".cfg-ses")
+            if cards.count():
+                cards.first.click()
+                pg.wait_for_timeout(800)
+                check("choosing a session counts up",
+                      "(1 of" in low(pg, ".pos-lines"), pg.inner_text(".pos-lines")[:200])
+
         check("no uncaught errors", not errs, "; ".join(errs[:3]))
         b.close()
 

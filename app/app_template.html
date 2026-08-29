@@ -155,6 +155,30 @@ td.strong{font-weight:700}
   font-variant-numeric:tabular-nums}
 .pos-tile .nm{background:var(--panel);padding:9px 10px;font-size:12.5px;font-weight:700;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cfg-head{display:flex;align-items:center;gap:10px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px 8px 0 0;padding:13px 16px;
+  font-size:14px;box-shadow:var(--shadow)}
+.cfg-bar{background:var(--panel-3);border-left:1px solid var(--line);
+  border-right:1px solid var(--line);padding:7px 16px;font-size:12px;font-weight:700;
+  letter-spacing:.05em;color:var(--text-2)}
+.cfg-body{background:var(--panel);border:1px solid var(--line);border-top:0;
+  padding:18px 16px}
+.cfg-foot{background:var(--panel);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 8px 8px;padding:12px 16px}
+.cfg-days{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.cfg-day .h{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--text-3);
+  padding:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfg-day .none{font-size:12px;color:var(--text-3);padding:6px 0}
+.cfg-ses{appearance:none;width:100%;border:1px solid var(--line);background:var(--panel-2);
+  border-radius:6px;padding:6px 7px;margin-bottom:6px;cursor:pointer;font:inherit;
+  text-align:left;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 6px}
+.cfg-ses:hover{border-color:var(--accent)}
+.cfg-ses.on{background:var(--accent-soft);border-color:var(--accent)}
+.cfg-ses .who{font-size:10.5px;color:var(--text-3);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;grid-column:1/3}
+.cfg-ses .t{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.cfg-ses .n{font-size:10.5px;color:var(--text-3);text-align:right}
+@media (max-width:900px){ .cfg-days{grid-template-columns:repeat(3,minmax(0,1fr))} }
 .pos-side{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   box-shadow:var(--shadow);display:flex;flex-direction:column;
   position:sticky;top:calc(var(--topbar) + 14px);max-height:calc(100vh - var(--topbar) - 40px)}
@@ -4224,7 +4248,7 @@ var bkView="list";
    product a tile you press, and the booking building up in a panel on the
    right with the total at the bottom. Six presses instead of six dialogs, and
    that is the difference the school actually feels on a busy morning. */
-var posBooking=null, posCat="", posEditing=null;
+var posBooking=null, posCat="", posEditing=null, posConfig=null;
 
 function posStart(existing){
   if(!DB.products.length){ show("catalog"); toast("Add a product first."); return; }
@@ -4239,7 +4263,7 @@ function posStart(existing){
   renderBookings();
 }
 function posClose(){
-  posBooking=null; posEditing=null; bkView="list"; renderBookings();
+  posBooking=null; posEditing=null; posConfig=null; bkView="list"; renderBookings();
 }
 
 /* the categories their tabs use: the activity calendars, in their own order */
@@ -4282,12 +4306,267 @@ function posTotals(){
   return {gross:sub,tax:tax,net:sub-tax};
 }
 
+/* ---- configuring a line ----------------------------------------------
+   Pressing a tile does not finish the job. A board hire needs a day, an hour,
+   how long, and which board; a course needs how many people and which sessions
+   they are coming to. Their till answers those in a pane where the tiles were,
+   and refuses to confirm until they are answered -- "Please select unit!",
+   "please select session!". Same here. */
+function lineNeeds(l){
+  var p=product(l.productId);
+  if(!p) return null;
+  if(p.ptype==="rental"||p.gearId) return "unit";
+  if(sessionsOwed(l)>0) return "sessions";
+  return null;
+}
+function lineReady(l){
+  var need=lineNeeds(l);
+  if(need==="unit") return !!l.unitId;
+  if(need==="sessions") return (l.sessionIds||[]).length>=sessionsOwed(l);
+  return true;
+}
+function lineSummary(l){
+  var need=lineNeeds(l);
+  if(need==="unit" && !l.unitId) return "Please select unit!";
+  if(need==="sessions"){
+    var got=(l.sessionIds||[]).length, want=sessionsOwed(l);
+    if(got<want) return "please select session! ("+got+" of "+want+")";
+    return got+" of "+want+" sessions chosen";
+  }
+  return "";
+}
+
+function posConfigPane(l){
+  var p=product(l.productId);
+  var box=el("div");
+  var head=el("div","cfg-head");
+  head.style.borderLeft="5px solid "+posTileColour(p);
+  head.appendChild(el("strong",null,p?p.name:"Item"));
+  head.appendChild(el("span","spacer"));
+  var del=el("button","kebab"); del.type="button"; del.title="Remove from the booking";
+  del.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" '+
+    'stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13"/></svg>';
+  del.addEventListener("click",function(){
+    posBooking.lines=posBooking.lines.filter(function(x){return x!==l;});
+    posConfig=null; renderBookings();
+  });
+  head.appendChild(del);
+  box.appendChild(head);
+  box.appendChild(el("div","cfg-bar","General"));
+
+  var body=el("div","cfg-body");
+  box.appendChild(body);
+
+  var need=lineNeeds(l);
+  if(need==="unit") rentalFields(body,l,p);
+  else if(need==="sessions") courseFields(body,l,p);
+  else body.appendChild(el("div","hint","Nothing else to choose for this product."));
+
+  var foot=el("div","cfg-foot");
+  var back=el("button","btn","Add another product");
+  back.addEventListener("click",function(){posConfig=null;renderBookings();});
+  foot.appendChild(back);
+  box.appendChild(foot);
+  return box;
+}
+
+/* a hire: when it goes out, for how long, and which board */
+function rentalFields(body,l,p){
+  var g=el("div","grid2");
+  var date=input("date",l.wanted||posBooking.date||todayISO());
+  date.addEventListener("change",function(){l.wanted=date.value;});
+  g.appendChild(field("Date",date));
+  var hour=input("time",l.time||"09:00");
+  hour.addEventListener("change",function(){l.time=hour.value;});
+  g.appendChild(field("Starting hour",hour));
+  body.appendChild(g);
+
+  /* the duration ladder, priced -- this is the tier matrix, shown as choices */
+  var tiers=ladderTiers(p).filter(function(x){return x.hours;})
+    .sort(function(a,b){return a.hours-b.hours;});
+  var g2=el("div","grid2");
+  if(tiers.length){
+    var dur=select(tiers.map(function(t){
+      return {v:String(t.hours),l:t.hours+" h — "+sym0()+money(t.price,2)};}),
+      String(l.hours||tiers[0].hours));
+    dur.addEventListener("change",function(){
+      l.hours=Number(dur.value)||1;
+      l.price=priceFor(p,l.pax,l.hours);
+      renderBookings();
+    });
+    g2.appendChild(field("Duration",dur));
+  } else {
+    var h=input("number",l.hours||1,{min:"1",step:"1"});
+    h.addEventListener("input",function(){
+      l.hours=Number(h.value)||1; l.price=priceFor(p,l.pax,l.hours);});
+    g2.appendChild(field("Duration (hours)",h));
+  }
+
+  /* which board actually goes out, so two customers cannot take the same one */
+  var gear=p.gearId?by(p.gearId,DB.gear):null;
+  var units=gear?(gear.units||[]):[];
+  var taken=unitsOutOn(l.wanted||posBooking.date,l.lid);
+  var opts=[{v:"",l:units.length?"— select a unit —":"— no gear on this product —"}]
+    .concat(units.map(function(u){
+      return {v:u.id,l:u.name+(taken[u.id]?"  (already out)":"")};}));
+  var unit=select(opts,l.unitId||"");
+  unit.addEventListener("change",function(){
+    l.unitId=unit.value;
+    l.unitName=(units.filter(function(u){return u.id===unit.value;})[0]||{}).name||"";
+    renderBookings();
+  });
+  g2.appendChild(field("Gear",unit,gear?null:
+    "This product has no gear attached. Set it on the product in the catalog."));
+  body.appendChild(g2);
+  if(units.length && Object.keys(taken).length)
+    body.appendChild(el("div","note",
+      "Units marked already out are on another booking that day. Nothing stops you "+
+      "picking one — the school knows its own boards — but it is worth a look."));
+}
+
+/* which individual boards are already on a booking that day */
+function unitsOutOn(dateStr,exceptLid){
+  var out={};
+  DB.bookings.forEach(function(bk){
+    if(bk.status==="cancelled") return;
+    (bk.lines||[]).forEach(function(x){
+      if(!x.unitId || x.lid===exceptLid) return;
+      if((x.wanted||bk.date)!==dateStr) return;
+      out[x.unitId]=true;
+    });
+  });
+  return out;
+}
+
+/* a course: how many are coming, who they are, and which sessions they attend */
+function courseFields(body,l,p){
+  var want=sessionsOwed(l);
+  var g=el("div","grid2");
+  var pax=input("number",l.pax||1,{min:"1",step:"1"});
+  pax.addEventListener("input",function(){
+    l.pax=Math.max(1,Number(pax.value)||1);
+    l.price=priceFor(p,l.pax,l.hours);
+    renderBookings();
+  });
+  g.appendChild(field("Participants",pax));
+  var from=input("date",l.wanted||posBooking.date||todayISO());
+  from.addEventListener("change",function(){l.wanted=from.value;renderBookings();});
+  g.appendChild(field("Date from",from));
+  body.appendChild(g);
+
+  var ph=el("div","lines-h");
+  ph.appendChild(el("h4",null,"Details of participants"));
+  var pe=el("button","btn sm","Edit names");
+  pe.addEventListener("click",posParticipantsForm);
+  ph.appendChild(pe);
+  body.appendChild(ph);
+  var named=(posBooking.participants||[]).filter(function(x){return x.name;});
+  var chips=el("div");
+  chips.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px";
+  if(!named.length) chips.appendChild(el("span","hint",
+    "No names yet — the instructor will want them, but they can wait."));
+  named.forEach(function(x){ chips.appendChild(el("span","chip neutral",x.name)); });
+  body.appendChild(chips);
+
+  var sh=el("div","lines-h");
+  sh.appendChild(el("h4",null,"Sessions ("+((l.sessionIds||[]).length)+" of "+want+")"));
+  var clr=el("button","btn sm","Clear all");
+  clr.addEventListener("click",function(){l.sessionIds=[];renderBookings();});
+  sh.appendChild(clr);
+  body.appendChild(sh);
+
+  /* six days of what is on, laid out a column a day, as theirs is */
+  var start=l.wanted||posBooking.date||todayISO();
+  var nav=el("div","searchbar");
+  var pv=el("button","btn sm","‹");
+  pv.addEventListener("click",function(){
+    l.wanted=addDays(start,-6); renderBookings();});
+  var nx=el("button","btn sm","›");
+  nx.addEventListener("click",function(){
+    l.wanted=addDays(start,6); renderBookings();});
+  nav.appendChild(pv);
+  nav.appendChild(el("span","eyebrow",dm(start)+" – "+dm(addDays(start,5))));
+  nav.appendChild(nx);
+  body.appendChild(nav);
+
+  var cols=el("div","cfg-days");
+  var any=false;
+  for(var i=0;i<6;i++){
+    (function(off){
+      var d=addDays(start,off);
+      var col=el("div","cfg-day");
+      col.appendChild(el("div","h",dowOf(d)+" "+dm(d)));
+      var rows=DB.sessions.filter(function(x){return x.date===d;})
+        .sort(function(a,b){return a.time<b.time?-1:1;});
+      if(!rows.length) col.appendChild(el("div","none","—"));
+      rows.forEach(function(se){
+        any=true;
+        var on=(l.sessionIds||[]).indexOf(se.id)>=0;
+        var full=se.participants.length>=se.capacity;
+        var card=el("button","cfg-ses"+(on?" on":""));
+        card.type="button";
+        card.appendChild(el("span","who",instructorNames(se)));
+        card.appendChild(el("span","t",se.time));
+        card.appendChild(el("span","n",se.participants.length+"/"+se.capacity));
+        card.title=se.title+" · "+instructorNames(se)+
+          (full?" · full":"")+(on?" · chosen":"");
+        if(full&&!on){ card.style.opacity=".55"; }
+        card.addEventListener("click",function(){
+          l.sessionIds=l.sessionIds||[];
+          var at=l.sessionIds.indexOf(se.id);
+          if(at>=0) l.sessionIds.splice(at,1);
+          else{
+            if(l.sessionIds.length>=want){
+              toast("You have selected "+want+" of "+want+" sessions.");
+              return;
+            }
+            l.sessionIds.push(se.id);
+          }
+          renderBookings();
+        });
+        col.appendChild(card);
+      });
+      cols.appendChild(col);
+    })(i);
+  }
+  body.appendChild(cols);
+  if(!any) body.appendChild(el("div","note",
+    "Nothing is scheduled in these six days. Put sessions on the planning first, "+
+    "or step forward to a week that has them."));
+}
+
+/* Seat the booking's people into the sessions the line chose. Runs on confirm,
+   so the schedule and the booking never disagree about who is coming. */
+function seatChosenSessions(bk){
+  (bk.lines||[]).forEach(function(l){
+    if(!(l.sessionIds||[]).length) return;
+    var refs=[];
+    (bk.participants||[]).forEach(function(pp){
+      if(pp.pid && pp.name) refs.push(seatRef("participant",bk.id,pp.pid));
+    });
+    if(!refs.length && bk.clientId) refs=[seatRef("client",bk.clientId)];
+    l.sessionIds.forEach(function(sid){
+      var se=by(sid,DB.sessions);
+      if(!se) return;
+      se.fromLines=se.fromLines||[];
+      if(se.fromLines.indexOf(l.lid)<0) se.fromLines.push(l.lid);
+      refs.forEach(function(r){
+        if(se.participants.indexOf(r)<0) se.participants.push(r);
+      });
+    });
+  });
+}
+
 function renderPos(host){
   var shell=el("div","pos");
   /* ---------------- left: the tiles ---------------- */
   var left=el("div","pos-left");
+  /* the tiles give way to the pane that asks what the line still needs; the
+     booking panel on the right is the same either way */
+  var configuring = posConfig && posBooking.lines.indexOf(posConfig)>=0;
+  if(configuring) left.appendChild(posConfigPane(posConfig));
   var tabs=el("div","pos-tabs");
-  var cats=posCats();
+  var cats=configuring?[]:posCats();
   /* their strip shows five and folds the rest into MORE. With a dozen imported
      activity calendars, a strip that wraps to three rows pushes the tiles off
      the screen -- which is the one thing a till must not do. */
@@ -4315,10 +4594,10 @@ function renderPos(host){
     });
     tabs.appendChild(more);
   }
-  left.appendChild(tabs);
+  if(!configuring) left.appendChild(tabs);
 
-  var rows=posProducts();
-  if(!rows.length){
+  var rows=configuring?[]:posProducts();
+  if(!rows.length && !configuring){
     left.appendChild(el("div","note","Nothing in this category yet."));
   }
   var grid=el("div","pos-grid");
@@ -4341,7 +4620,7 @@ function renderPos(host){
     tile.addEventListener("click",function(){ posAdd(p); });
     grid.appendChild(tile);
   });
-  left.appendChild(grid);
+  if(!configuring) left.appendChild(grid);
   shell.appendChild(left);
 
   /* ---------------- right: the booking ---------------- */
@@ -4393,9 +4672,18 @@ function renderPos(host){
       ? l.discount+"%" : sym0()+money(l.discount,2)));
     if(l.manual) bits.push("price set by hand");
     main.appendChild(el("div","sub",bits.join(" · ")||(sym0()+money(l.price,2)+" each")));
+    var warn=lineSummary(l);
+    if(warn){
+      var wl=el("div","sub",warn);
+      wl.style.color=lineReady(l)?"var(--good)":"var(--crit)";
+      wl.style.fontWeight="600";
+      main.appendChild(wl);
+    }
     main.style.cursor="pointer";
     main.addEventListener("click",function(){
-      priceEditForm(l,function(){renderBookings();});
+      /* an unanswered line goes back to its pane; a finished one to the price */
+      if(lineNeeds(l)) { posConfig=l; renderBookings(); }
+      else priceEditForm(l,function(){renderBookings();});
     });
     row.appendChild(main);
 
@@ -4447,6 +4735,7 @@ function renderPos(host){
   host.appendChild(shell);
 }
 
+
 function sym0(){
   var c=CUR(); return c==="EUR"?"€":c==="GBP"?"£":"$";
 }
@@ -4460,21 +4749,32 @@ function posAdd(p){
     /* an untouched line for the same product: same one person, same duration,
        no discount and no hand-set price. posAdd sets hours on hour-tier
        products, so comparing against "no hours" never matched them. */
-    if(l.productId===p.id && l.discount==null && !l.manual &&
+    if(l.productId===p.id && l.discount==null && !l.manual && !lineNeeds(l) &&
        (Number(l.pax)||1)===1 && (l.hours||null)===baseHours){
       l.qty=(Number(l.qty)||1)+1;
       renderBookings();
       return;
     }
   }
-  posBooking.lines.push({lid:uid("ln"),productId:p.id,qty:1,pax:1,
+  var line={lid:uid("ln"),productId:p.id,qty:1,pax:1,
     hours:hasHourTiers(p)?1:null,
-    price:priceFor(p,1,hasHourTiers(p)?1:null)});
+    price:priceFor(p,1,hasHourTiers(p)?1:null),
+    wanted:posBooking.date,sessionIds:[]};
+  posBooking.lines.push(line);
+  if(lineNeeds(line)) posConfig=line;      /* straight into what it still needs */
   renderBookings();
 }
 
 function posConfirm(){
   if(!posBooking.lines.length){ toast("Add a product first."); return; }
+  for(var i=0;i<posBooking.lines.length;i++){
+    if(!lineReady(posBooking.lines[i])){
+      posConfig=posBooking.lines[i];
+      renderBookings();
+      toast(lineSummary(posConfig));
+      return;
+    }
+  }
   if(!posBooking.clientId){ toast("Add a customer to the booking."); posCustomerForm(); return; }
   var rec=posEditing||{id:uid("b")};
   rec.date=posBooking.date||todayISO();
@@ -4488,6 +4788,7 @@ function posConfirm(){
   rec.custom=posBooking.custom||{};
   var wasEdit=!!posEditing;
   if(!wasEdit) DB.bookings.push(rec);
+  seatChosenSessions(rec);
   syncTickets();
   save();
   var saved=rec;
@@ -7819,6 +8120,21 @@ function importCatalog(){
   if(!d){ toast("No catalog is bundled with this build."); return; }
   var added={products:0,gear:0,units:0,spots:0,kinds:0,crew:0,sessions:0,cats:0};
 
+  /* gear first: a product carries the id of the gear its hire goes out with */
+  var gearBySrc={};
+  (d.gear||[]).forEach(function(g){
+    var already=DB.gear.filter(function(x){return x.name===g.name;})[0];
+    if(already){ if(g.id!=null) gearBySrc[g.id]=already.id; return; }
+    var units=(g.units||[]).map(function(u){
+      return {id:uid("u"),name:u.name||"",maxPax:u.maxPax||1,
+              lastCheck:u.lastCheck||"",nextCheck:u.nextCheck||"",notes:u.notes||""};
+    });
+    var rec={id:uid("g"),name:g.name,units:units,description:g.description||""};
+    DB.gear.push(rec);
+    if(g.id!=null) gearBySrc[g.id]=rec.id;   /* so products can point at it */
+    added.gear++; added.units+=units.length;
+  });
+
   d.products.forEach(function(p){
     if(DB.products.some(function(x){return x.name===p.name;})) return;
     DB.products.push({id:uid("p"),name:p.name,kind:p.kind,price:p.price||0,
@@ -7827,19 +8143,11 @@ function importCatalog(){
       ptype:p.ptype||"class",
       priceMode:(p.prices&&p.prices.some(function(t){return t.hours;}))?"item":
                 ((p.prices&&p.prices.some(function(t){return (t.minPax||1)>1;}))?"person":"fixed"),
+      gearId:(p.rental!=null&&gearBySrc[p.rental])||"",
       code:"",maxAttendants:"",depositType:"",depositValue:"",
       onlineSale:true,onlinePay:"full",sessionChoice:"full",
       weekDays:[],startHours:[],archived:false});
     added.products++;
-  });
-  (d.gear||[]).forEach(function(g){
-    if(DB.gear.some(function(x){return x.name===g.name;})) return;
-    var units=(g.units||[]).map(function(u){
-      return {id:uid("u"),name:u.name||"",maxPax:u.maxPax||1,
-              lastCheck:u.lastCheck||"",nextCheck:u.nextCheck||"",notes:u.notes||""};
-    });
-    DB.gear.push({id:uid("g"),name:g.name,units:units,description:g.description||""});
-    added.gear++; added.units+=units.length;
   });
 
   /* activity calendars become activity types, keeping their colour */

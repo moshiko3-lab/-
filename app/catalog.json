@@ -24,6 +24,7 @@
      "price": 300.0
     }
    ],
+   "rental": null,
    "name": "10X SURF LESSON COURSE - NEW",
    "kind": "course",
    "ptype": "course",
@@ -61,6 +62,7 @@
      "price": 90.0
     }
    ],
+   "rental": null,
    "name": "3X SURF LESSON COURSE 2024",
    "kind": "course",
    "ptype": "course",
@@ -98,6 +100,7 @@
      "price": 150.0
     }
    ],
+   "rental": null,
    "name": "5X SURF LESSON COURSE - NEW",
    "kind": "course",
    "ptype": "course",
@@ -135,6 +138,7 @@
      "price": 180.0
     }
    ],
+   "rental": null,
    "name": "6X SURF LESSON COURSE - NEW",
    "kind": "course",
    "ptype": "course",
@@ -172,6 +176,7 @@
      "price": 210.0
     }
    ],
+   "rental": null,
    "name": "7X SURF LESSON COURSE",
    "kind": "course",
    "ptype": "course",
@@ -209,6 +214,7 @@
      "price": 60.0
     }
    ],
+   "rental": null,
    "name": "2 SURF LESSON 2024",
    "kind": "lesson",
    "ptype": "class",
@@ -246,6 +252,7 @@
      "price": 30.0
     }
    ],
+   "rental": null,
    "name": "SURF LESSON 2024",
    "kind": "lesson",
    "ptype": "class",
@@ -283,6 +290,7 @@
      "price": 120.0
     }
    ],
+   "rental": null,
    "name": "4 SURF LESSON 2024",
    "kind": "lesson",
    "ptype": "class",
@@ -306,6 +314,7 @@
      "price": 70.0
     }
    ],
+   "rental": null,
    "name": "VIDEO ANALYSIS",
    "kind": "lesson",
    "ptype": "class",
@@ -329,6 +338,7 @@
      "price": 0.0
     }
    ],
+   "rental": null,
    "name": "VIDEO ANALYSIS - THEORY",
    "kind": "lesson",
    "ptype": "class",
@@ -352,6 +362,7 @@
      "price": 90.0
     }
    ],
+   "rental": null,
    "name": "1.5 HOUR LESSON",
    "kind": "lesson",
    "ptype": "class",
@@ -389,6 +400,7 @@
      "price": 75.0
     }
    ],
+   "rental": null,
    "name": "1 HOUR EXTRA FOIL TOW IN",
    "kind": "lesson",
    "ptype": "class",
@@ -426,6 +438,7 @@
      "price": 200.0
     }
    ],
+   "rental": null,
    "name": "2 HOUR FOIL TOW IN",
    "kind": "lesson",
    "ptype": "class",
@@ -659,6 +672,7 @@
      "price": 10.0
     }
    ],
+   "rental": 6840,
    "name": "BODY-BOARDS RENTALS",
    "kind": "rental",
    "ptype": "rental",
@@ -682,6 +696,7 @@
      "price": 100.0
     }
    ],
+   "rental": 3623,
    "name": "FOIL RENTAL",
    "kind": "rental",
    "ptype": "rental",
@@ -915,6 +930,7 @@
      "price": 10.0
     }
    ],
+   "rental": 3623,
    "name": "FUN-BOARDS RENTALS",
    "kind": "rental",
    "ptype": "rental",
@@ -980,6 +996,7 @@
      "price": 150.0
     }
    ],
+   "rental": 3623,
    "name": "HIGH PERFORMANCE",
    "kind": "rental",
    "ptype": "rental",
@@ -1003,6 +1020,7 @@
      "price": 8.0
     }
    ],
+   "rental": null,
    "name": "ICE BATH X1",
    "kind": "other",
    "ptype": "item",
@@ -1026,6 +1044,7 @@
      "price": 30.0
     }
    ],
+   "rental": null,
    "name": "INSIDE-WATER PHOTOS",
    "kind": "photo",
    "ptype": "item",
@@ -1259,6 +1278,7 @@
      "price": 10.0
     }
    ],
+   "rental": 3623,
    "name": "LONGBOARD RENTAL",
    "kind": "rental",
    "ptype": "rental",
@@ -1282,6 +1302,7 @@
      "price": 10.0
     }
    ],
+   "rental": null,
    "name": "PHOTOS",
    "kind": "photo",
    "ptype": "item",
@@ -1305,6 +1326,7 @@
      "price": 15.0
     }
    ],
+   "rental": null,
    "name": "PILATES X1",
    "kind": "lesson",
    "ptype": "class",
@@ -1328,6 +1350,7 @@
      "price": 50.0
     }
    ],
+   "rental": null,
    "name": "PRIVITE PHOTO SHOOT",
    "kind": "photo",
    "ptype": "class",
@@ -1351,6 +1374,7 @@
      "price": 5.0
     }
    ],
+   "rental": 6838,
    "name": "RENTAL LOCAL",
    "kind": "rental",
    "ptype": "rental",
@@ -1584,6 +1608,7 @@
      "price": 10.0
     }
    ],
+   "rental": 3623,
    "name": "SHORT-BOARDS RENTALS",
    "kind": "rental",
    "ptype": "rental",
@@ -1817,6 +1842,7 @@
      "price": 10.0
     }
    ],
+   "rental": 6838,
    "name": "SOFT-BOARDS RENTALS",
    "kind": "rental",
    "ptype": "rental",
@@ -1840,6 +1866,7 @@
      "price": 15.0
     }
    ],
+   "rental": null,
    "name": "SUMMER CAMPS - EDEN",
    "kind": "course",
    "ptype": "camp",
@@ -1884,6 +1911,7 @@
      "price": 45.0
     }
    ],
+   "rental": null,
    "name": "SUP LESSON 1.5 HOUR",
    "kind": "lesson",
    "ptype": "class",
@@ -1928,6 +1956,7 @@
      "price": 40.0
     }
    ],
+   "rental": null,
    "name": "SUP LESSON 1 HOUR",
    "kind": "lesson",
    "ptype": "class",
@@ -2049,6 +2078,7 @@
      "price": 20.0
     }
    ],
+   "rental": 3623,
    "name": "SUP RENTAL",
    "kind": "rental",
    "ptype": "rental",
@@ -2079,6 +2109,7 @@
      "price": 100.0
     }
    ],
+   "rental": null,
    "name": "SURF TRIP",
    "kind": "lesson",
    "ptype": "tour",
@@ -2102,6 +2133,7 @@
      "price": 30.0
     }
    ],
+   "rental": null,
    "name": "VIDEO",
    "kind": "other",
    "ptype": "item",
@@ -2125,6 +2157,7 @@
      "price": 15.0
     }
    ],
+   "rental": null,
    "name": "YOGA - ISABEL",
    "kind": "lesson",
    "ptype": "class",
@@ -2148,6 +2181,7 @@
      "price": 15.0
     }
    ],
+   "rental": null,
    "name": "YOGA X1",
    "kind": "lesson",
    "ptype": "class",
@@ -2171,6 +2205,7 @@
      "price": 20.0
     }
    ],
+   "rental": null,
    "name": "YOUNG GUNS",
    "kind": "lesson",
    "ptype": "class",
@@ -2187,6 +2222,7 @@
  ],
  "gear": [
   {
+   "id": 3623,
    "name": "SHOKOGI SURFBOARDS",
    "units": [
     {
@@ -3154,6 +3190,7 @@
    "description": ""
   },
   {
+   "id": 6838,
    "name": "SHOKOGI SOFTBOARDS",
    "units": [
     {
@@ -4129,6 +4166,7 @@
    "description": ""
   },
   {
+   "id": 4008,
    "name": "TIPI BIG",
    "units": [
     {
@@ -4168,6 +4206,7 @@
    "description": ""
   },
   {
+   "id": 4009,
    "name": "TIPI SMALL",
    "units": [
     {
@@ -4207,6 +4246,7 @@
    "description": ""
   },
   {
+   "id": 6931,
    "name": "SELINA TIPI",
    "units": [
     {
@@ -4246,6 +4286,7 @@
    "description": ""
   },
   {
+   "id": 6842,
    "name": "SHORTBOARD - CONTAINER",
    "units": [
     {
@@ -4309,6 +4350,7 @@
    "description": ""
   },
   {
+   "id": 6841,
    "name": "SUP",
    "units": [
     {
@@ -4356,6 +4398,7 @@
    "description": ""
   },
   {
+   "id": 6840,
    "name": "BODY-BOARD",
    "units": [
     {
@@ -4461,10 +4504,10 @@
    "notes": "Bodyboarders. Conflictivo"
   },
   {
-   "name": "Playa Venao",
-   "lat": 7.4283,
-   "lon": -80.1897,
-   "notes": "Coordinates corrected — Bloowatch had this pinned at lat -87, which is not a real latitude, so its tide lookup never resolved."
+   "name": "Playa Venao1",
+   "lat": -87.0088496735143,
+   "lon": 5.683170548067323,
+   "notes": "Playa Venao1"
   }
  ],
  "staff": [
@@ -4554,206 +4597,6 @@
   }
  ],
  "sessions": [
-  {
-   "date": "2026-08-21",
-   "time": "06:00",
-   "title": "SHOKOGI - STAFF",
-   "category": "SHOKOGI - STAFF",
-   "duration": 840,
-   "capacity": 1
-  },
-  {
-   "date": "2026-08-21",
-   "time": "06:00",
-   "title": "SHOKOGI - STAFF",
-   "category": "SHOKOGI - STAFF",
-   "duration": 840,
-   "capacity": 1
-  },
-  {
-   "date": "2026-08-21",
-   "time": "06:00",
-   "title": "SHOKOGI - STAFF",
-   "category": "SHOKOGI - STAFF",
-   "duration": 840,
-   "capacity": 1
-  },
-  {
-   "date": "2026-08-21",
-   "time": "06:00",
-   "title": "SHOKOGI - STAFF",
-   "category": "SHOKOGI - STAFF",
-   "duration": 840,
-   "capacity": 1
-  },
-  {
-   "date": "2026-08-21",
-   "time": "06:00",
-   "title": "SHOKOGI - STAFF",
-   "category": "SHOKOGI - STAFF",
-   "duration": 840,
-   "capacity": 1
-  },
-  {
-   "date": "2026-08-21",
-   "time": "06:30",
-   "title": "CLASS 2024 - Gabriel Eisenberger ",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "07:00",
-   "title": "CLASS 2024 - INES ",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "07:00",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "07:30",
-   "title": "CLASS 2024 - kris steen",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "09:00",
-   "title": "SHOP PLAYA",
-   "category": "SHOP PLAYA",
-   "duration": 600,
-   "capacity": 8
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "CLASS 2024 - rotem oz ari",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "CLASS 2024 - kris steen",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "PHOTOGRAPHY",
-   "category": "PHOTOGRAPHY",
-   "duration": 60,
-   "capacity": 8
-  },
-  {
-   "date": "2026-08-21",
-   "time": "11:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "12:30",
-   "title": "CLASS 2024 - maria and antonio",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "12:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "12:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "12:30",
-   "title": "CLASS 2024 - racheli kitai",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "12:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "13:30",
-   "title": "CLASS 2024 - erez stanier",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "13:30",
-   "title": "SURF PACK",
-   "category": "SURF PACK",
-   "duration": 60,
-   "capacity": 12
-  },
-  {
-   "date": "2026-08-21",
-   "time": "16:00",
-   "title": "YOGA",
-   "category": "YOGA",
-   "duration": 60,
-   "capacity": 8
-  },
-  {
-   "date": "2026-08-21",
-   "time": "17:00",
-   "title": "VIDEO ANALYSIS THEORY",
-   "category": "VIDEO ANALYSIS THEORY",
-   "duration": 30,
-   "capacity": 8
-  },
   {
    "date": "2026-08-22",
    "time": "06:00",
@@ -5756,8 +5599,32 @@
   },
   {
    "date": "2026-08-29",
+   "time": "09:00",
+   "title": "SHOP PLAYA",
+   "category": "SHOP PLAYA",
+   "duration": 360,
+   "capacity": 8
+  },
+  {
+   "date": "2026-08-29",
+   "time": "13:00",
+   "title": "SHOP PLAYA",
+   "category": "SHOP PLAYA",
+   "duration": 360,
+   "capacity": 8
+  },
+  {
+   "date": "2026-08-29",
    "time": "13:00",
    "title": "SURF PACK",
+   "category": "SURF PACK",
+   "duration": 60,
+   "capacity": 12
+  },
+  {
+   "date": "2026-08-29",
+   "time": "13:00",
+   "title": "CLASS 2024 - stav salzman",
    "category": "SURF PACK",
    "duration": 60,
    "capacity": 12
@@ -6212,6 +6079,14 @@
   },
   {
    "date": "2026-09-27",
+   "time": "06:00",
+   "title": "SHOKOGI - STAFF",
+   "category": "SHOKOGI - STAFF",
+   "duration": 840,
+   "capacity": 1
+  },
+  {
+   "date": "2026-09-28",
    "time": "06:00",
    "title": "SHOKOGI - STAFF",
    "category": "SHOKOGI - STAFF",
