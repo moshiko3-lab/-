@@ -69,12 +69,31 @@ can *ask* for a message to be sent; it can never send one.
 
 ## Setting it up
 
-### Step 1 — the database
+### The short way
+
+One script does every part of this that a script can do — the link, both SQL
+files, the two secrets nobody should be inventing by hand, all five secrets on
+the function, the deploy, and a check that the webhook answers its own
+challenge:
+
+```
+bash supabase/setup_whatsapp.sh          # set it up
+bash supabase/setup_whatsapp.sh --check  # what is set up and what is not
+```
+
+It asks for the four values only Meta can give (step 2 below), and it prints
+the three things that still have to be pasted into Meta's own panels
+afterwards. Everything it does is in the long way below, step by step, for
+when something needs doing by hand.
+
+### The long way
+
+#### Step 1 — the database (the script does this)
 
 In the Supabase SQL editor, run `supabase/schema.sql` (if it has not been run),
 then `supabase/whatsapp.sql`. Both are safe to run twice.
 
-### Step 2 — Meta
+#### Step 2 — Meta (only you can do this)
 
 1. **A business portfolio** at <https://business.facebook.com>, with the
    school's legal name and website.
@@ -94,7 +113,7 @@ then `supabase/whatsapp.sql`. Both are safe to run twice.
    again.
 6. **The app secret**: App settings → Basic → *App secret* → Show.
 
-### Step 3 — the function
+#### Step 3 — the function (the script does this)
 
 Set the secrets, then deploy. None of these ever go in the repository.
 
@@ -117,7 +136,7 @@ the gate would refuse every message the school is sent. The function checks each
 door itself — a signed-in member for `/send` and `/health`, Meta's signature for
 `/webhook`, the tick secret for `/tick`.
 
-### Step 4 — the webhook
+#### Step 4 — the webhook (only you can do this)
 
 In the app: WhatsApp → *Configuration* → Webhook → Edit.
 
@@ -129,7 +148,7 @@ In the app: WhatsApp → *Configuration* → Webhook → Edit.
 Verify and save, then **Manage** the fields and subscribe to **messages**.
 Nothing arrives without that subscription, and the panel does not say so.
 
-### Step 5 — the two templates
+#### Step 5 — the two templates (only you can do this)
 
 WhatsApp Manager → *Message templates* → Create. Both are **Utility**, both in
 the language you set on the automation (`en` unless you change it). The names
@@ -150,7 +169,7 @@ not contain a newline or a tab — Meta refuses the whole message — which is w
 the brief goes out as one line of stops through a template, and as a proper
 list when it is sent inside the open window.
 
-### Step 6 — the clock
+#### Step 6 — the clock (the script prints it, filled in)
 
 Reminders and the brief are worked out and queued by `/tick`. Something has to
 call it. In the Supabase SQL editor, switch on the `pg_cron` and `pg_net`
@@ -160,7 +179,7 @@ extensions (Database → Extensions), then run the block at the bottom of
 Until that is scheduled, **Run now** on the WhatsApp screen does one turn of it
 by hand, which is enough to test with.
 
-### Step 7 — turn it on
+#### Step 7 — turn it on
 
 Open the manager → **WhatsApp** → *Setup*. Every line should say `set`. Then in
 *Automations*, switch on what the school actually wants, one at a time:

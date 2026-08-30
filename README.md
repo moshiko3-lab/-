@@ -44,8 +44,9 @@ each morning to whoever is working, and a bot that answers the questions that
 get asked forty times a week.
 
 It is off until somebody sets it up, and setting it up is mostly Meta's
-paperwork rather than ours. [`supabase/WHATSAPP.md`](supabase/WHATSAPP.md) is
-the whole of it, in order. Three things are worth knowing before starting:
+paperwork rather than ours. `bash supabase/setup_whatsapp.sh` does every part
+a script can do and prints what is left;
+[`supabase/WHATSAPP.md`](supabase/WHATSAPP.md) is the whole of it, in order. Three things are worth knowing before starting:
 
 * **A number on the API leaves the WhatsApp Business phone app.** It cannot be
   in both. Use a second number unless the school is ready to give the first one
