@@ -124,7 +124,21 @@ function cloudFetch(path,opts){
     }
     if(!r.ok) return r.text().then(function(t){
       throw {status:r.status,message:t||("HTTP "+r.status)}; });
-    return r.status===204?null:r.json();
+    /* An answer with nothing in it is the normal answer here, not an odd one:
+       a push asks for the shortest reply the server can give, and gets back
+       201 Created and an empty body. Asking that to parse as JSON throws
+       "Unexpected end of JSON input" -- which is not a failure of the write at
+       all. It succeeded; only the reading of the reply fell over. It then
+       counted as a failed table, so the rows stayed in the outbox and were
+       sent again, and again, each time landing and each time looking refused.
+       So go by what came back rather than by the status code -- 204 is not the
+       only empty answer -- and let an empty one be an empty one. */
+    return r.text().then(function(t){
+      if(!t) return null;
+      try{ return JSON.parse(t); }
+      catch(e){ throw {status:r.status,
+        message:"the server's answer was not readable: "+t.slice(0,120)}; }
+    });
   });
 }
 
