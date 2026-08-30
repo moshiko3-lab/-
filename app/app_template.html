@@ -123,7 +123,12 @@ section[hidden]{display:none!important}
 .kpi .meta{font-size:12.5px;color:var(--text-2);margin-top:3px}
 
 /* tables */
-.tbl-wrap{overflow-x:auto;border-radius:var(--r)}
+/* A scrolling box still claims its content's width when it is a grid or flex
+   item, and one wide table then pushes the whole page sideways -- which on a
+   phone dragged the fixed header off with it and made its buttons unpressable.
+   min-width:0 is what lets the box be narrower than the table inside it. */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);min-width:0;max-width:100%}
+.wrap section{min-width:0}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:8px 12px;text-align:left;white-space:nowrap}
 th.r,td.r{text-align:right}
@@ -434,9 +439,14 @@ td.strong{font-weight:700}
   z-index:70;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s,transform .2s;
   pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
-.searchbar{display:flex;gap:9px;align-items:center;margin-bottom:12px}
-.searchbar input{flex:1;font:inherit;font-size:14px;padding:9px 12px;border-radius:9px;
+/* A row of filters that will not wrap is a row that widens the page, and a
+   page wider than the phone takes the fixed header off the screen with it --
+   which is how the corner buttons became unpressable. */
+.searchbar{display:flex;gap:9px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.searchbar input{flex:1 1 150px;min-width:0;max-width:100%;font:inherit;
+  font-size:14px;padding:9px 12px;border-radius:9px;
   border:1px solid var(--line);background:var(--panel);color:var(--text)}
+.searchbar select{max-width:100%}
 .searchbar input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 
 @media (max-width:1000px){
@@ -453,6 +463,47 @@ td.strong{font-weight:700}
   aside.rail .tip{display:none}
   header.top{left:0}
   .wrap{margin-left:0;padding-bottom:70px}
+}
+/* the day, and the hires, as rows a thumb can hit */
+.dayrow{appearance:none;width:100%;border:0;border-left:4px solid var(--accent);
+  background:none;font:inherit;text-align:left;cursor:pointer;
+  display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;
+  align-items:center;padding:11px 13px;
+  border-bottom:1px solid var(--line-soft)}
+.dayrow:last-child{border-bottom:0}
+.dayrow:hover,.dayrow:active{background:var(--panel-2)}
+.dayrow .w{display:flex;flex-direction:column;line-height:1.25}
+.dayrow .w strong{font-size:14px;font-family:'IBM Plex Mono',monospace}
+.dayrow .w span{font-size:10.5px;color:var(--text-3)}
+.dayrow .m{min-width:0}
+.dayrow .m .t{font-weight:700;font-size:13.5px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.dayrow .m .s{font-size:11.5px;color:var(--text-3);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.dayrow .m .p{font-size:11.5px;color:var(--text-2);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dayrow .n{flex:none}
+
+@media (max-width:820px){
+  /* a phone reads the day as a list, so nothing here needs to be wide */
+  .wrap.wide{max-width:none}
+  /* the header has to fit, or its own buttons end up under it and nothing
+     in the corner can be pressed at all */
+  header.top{gap:6px;padding:0 11px}
+  header.top .title{font-size:0}           /* the school's name is on the tab */
+  header.top .title small{font-size:13px;margin:0;opacity:1}
+  header.top .tbtn{padding:6px 10px;font-size:12px;white-space:nowrap}
+  #btn-backup{display:none}                /* back office, not a counter job */
+  #btn-cloud{max-width:110px;overflow:hidden;text-overflow:ellipsis}
+  /* nothing may move the page sideways on a phone: a wide table scrolls
+     inside its own panel, and the header stays where a thumb expects it */
+  body{overflow-x:hidden}
+  .sec-h{margin:18px 0 10px}
+  .sec-h h2{font-size:15px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .daybar{overflow-x:auto}
+  /* the panels that were columns stack */
+  .cl-row{border-radius:0}
 }
 @media (max-width:640px){
   .wrap{padding-left:13px;padding-right:13px}
@@ -4522,7 +4573,19 @@ function renderBoard(){
   if(boardTab==="accommodation"){ host.appendChild(accomBoard(boardDate)); return; }
 
   var shell=el("div");
-  shell.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px";
+  /* On a phone the grid and the rail cannot both have the width, and the grid
+     is the one that needs it. They stack, and the day is drawn as a list. */
+  shell.style.cssText = narrow()
+    ? "display:grid;grid-template-columns:minmax(0,1fr);gap:14px"
+    : "display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px";
+  if(narrow()){
+    var ph=el("div");
+    for(var d0=0;d0<boardSpan;d0++) ph.appendChild(boardDayList(addDays(boardDate,d0)));
+    shell.appendChild(ph);
+    shell.appendChild(assignRail(boardDate));
+    host.appendChild(shell);
+    return;
+  }
   var wrap=el("div","panel");
   wrap.style.cssText="overflow-x:auto;overflow-y:visible;padding:0";
   var stack=el("div");
@@ -4542,6 +4605,109 @@ function renderBoard(){
     boardSpan>1 ? ("Nothing scheduled between "+dm(boardDate)+" and "+
                    dm(addDays(boardDate,boardSpan-1))+".")
                 : ("Nothing scheduled on "+dm(boardDate)+".")));
+}
+
+/* ===================== the day on a phone =====================
+   A fourteen-hour grid on a four-inch screen is a grid nobody reads. The same
+   day as a list is not a lesser version of it -- at the counter you want to
+   see the shape of the day; on the beach you want to know what is next, who
+   is in it and who is taking it. */
+function narrow(){
+  try{ return matchMedia("(max-width: 820px)").matches; }catch(e){ return false; }
+}
+function boardDayList(dayISO){
+  var box=el("div","panel");
+  box.style.cssText="padding:0;overflow:hidden;margin-bottom:12px";
+  var h=el("div","day-h");
+  h.appendChild(el("h3",null,dowOf(dayISO)+" "+dm(dayISO)));
+  var t=tideFor(dayISO);
+  if(t){
+    var bits=[];
+    (t.highs||[]).forEach(function(x){ bits.push("▲ "+x); });
+    (t.lows||[]).forEach(function(x){ bits.push("▼ "+x); });
+    var tl=el("span","hint",bits.join("  "));
+    tl.style.marginLeft="auto";
+    h.appendChild(tl);
+  }
+  box.appendChild(h);
+  var rows=DB.sessions.filter(function(x){return x.date===dayISO;})
+    .sort(function(a,b){return a.time<b.time?-1:1;});
+  if(!rows.length){
+    var e=el("div","hint","Nothing on this day.");
+    e.style.padding="14px 16px";
+    box.appendChild(e);
+    return box;
+  }
+  rows.forEach(function(x){
+    var r=el("button","dayrow");
+    r.type="button";
+    var col=catColor(x.category)||"var(--accent-hot)";
+    r.style.borderLeftColor=col;
+    var when=el("div","w");
+    when.appendChild(el("strong",null,x.time));
+    when.appendChild(el("span",null,hhmm(Math.max(15,x.duration||60))));
+    r.appendChild(when);
+    var mid=el("div","m");
+    mid.appendChild(el("div","t",x.title||"Session"));
+    var sub=[instructorNames(x)];
+    if(x.spot) sub.push(x.spot);
+    if(x.category) sub.push(x.category);
+    mid.appendChild(el("div","s",sub.filter(Boolean).join(" · ")));
+    if(x.participants.length){
+      mid.appendChild(el("div","p",x.participants.map(seatName).join(", ")));
+    }
+    r.appendChild(mid);
+    var n=el("div","n");
+    var chip=el("span","chip "+(x.participants.length>=x.capacity?"warnc":"neutral"),
+      x.participants.length+"/"+x.capacity);
+    n.appendChild(chip);
+    r.appendChild(n);
+    r.addEventListener("click",function(){ sessionPop(r,x); });
+    box.appendChild(r);
+  });
+  return box;
+}
+/* the hires, grouped by the board they went out on */
+function rentalList(dateStr){
+  var box=el("div","panel");
+  box.style.cssText="padding:0;overflow:hidden";
+  var h=el("div","day-h");
+  h.appendChild(el("h3",null,"Out on hire"));
+  h.appendChild(el("span","c",String(hiresOn(dateStr).filter(function(x){
+    return !x.returnedAt;}).length)));
+  box.appendChild(h);
+  var rows=hiresOn(dateStr);
+  if(!rows.length){
+    var e=el("div","hint","No boards are out on "+dm(dateStr)+".");
+    e.style.padding="14px 16px";
+    box.appendChild(e);
+    return box;
+  }
+  rows.forEach(function(x){
+    var st=hireState(x,dateStr);
+    var r=el("button","dayrow");
+    r.type="button";
+    r.style.borderLeftColor = st==="late"?"var(--crit)"
+      : st==="soon"?"var(--warn)" : st==="back"?"var(--text-3)":"var(--accent)";
+    if(st==="back") r.style.opacity=".6";
+    var when=el("div","w");
+    when.appendChild(el("strong",null,hhmmOf(x.start)));
+    when.appendChild(el("span",null,hhmmOf(x.due)));
+    r.appendChild(when);
+    var mid=el("div","m");
+    mid.appendChild(el("div","t",clientName(x.booking.clientId)));
+    mid.appendChild(el("div","s",(x.gear?x.gear.name+" · ":"")+
+      (x.unit?x.unit.name:"board no longer listed")));
+    r.appendChild(mid);
+    var n=el("div","n");
+    n.appendChild(el("span","chip "+(st==="late"?"bad":st==="soon"?"warnc":
+      st==="back"?"ok":"neutral"),
+      st==="back"?"back":hireWhen(x,dateStr)));
+    r.appendChild(n);
+    r.addEventListener("click",function(){ hireCard(x,dateStr); });
+    box.appendChild(r);
+  });
+  return box;
 }
 
 function addDays(dateStr,n){
@@ -5290,6 +5456,10 @@ function hireCard(x,dateStr){
 
 function boardRentalTab(){
   var box=el("div");
+  if(narrow()){
+    box.appendChild(rentalList(boardDate));
+    return box;
+  }
   if(rentalView==="board"){
     box.appendChild(rentalBoard(boardDate));
     rentalsOutTable(box,boardDate);
@@ -10942,6 +11112,14 @@ setInterval(function(){
   cloudRun(false);
 },20000);
 addEventListener("online",function(){ cloudRun(false); });
+/* turning a phone on its side crosses the width where the board changes shape */
+(function(){
+  var was=narrow();
+  addEventListener("resize",function(){
+    var now=narrow();
+    if(now!==was){ was=now; render(); }
+  });
+})();
 
 document.getElementById("btn-backup").addEventListener("click",backupForm);
 document.getElementById("btn-newbooking").addEventListener("click",function(){

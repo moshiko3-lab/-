@@ -43,12 +43,18 @@ def low(pg, sel):
 
 
 def main():
-    today = dt.date.today().isoformat()
-    now = dt.datetime.now()
+    # The three states this test is about -- overdue, due soon, hours left --
+    # are read against the clock, so the clock is pinned. Run this at half past
+    # midnight without it and "three hours ago" lands on yesterday evening,
+    # nothing is overdue, and the failure says nothing about the app.
+    anchor = dt.datetime.combine(dt.date.today(), dt.time(14, 0))
+    today = anchor.date().isoformat()
+    now = anchor
 
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True, executable_path=CHROME, args=["--no-sandbox"])
         pg = b.new_context(viewport={"width": 1500, "height": 1000}).new_page()
+        pg.clock.set_fixed_time(anchor)
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
         pg.goto("file://" + build())

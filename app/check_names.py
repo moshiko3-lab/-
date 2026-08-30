@@ -28,7 +28,7 @@ ALLOW = {
     # writing a spreadsheet is bytes, and handing it over is a blob
     "Blob", "URL", "Uint8Array", "Int32Array", "unescape", "escape",
     # the shared book talks over the network and waits for answers
-    "fetch", "Response", "navigator",
+    "fetch", "Response", "navigator", "matchMedia",
     # CSS function syntax survives inside style strings
     "rgba", "rgb", "hsl", "hsla", "calc", "minmax", "repeat", "url",
     "translateX", "translateY", "translate", "scale", "rotate",

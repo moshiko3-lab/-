@@ -161,13 +161,21 @@ def main():
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(400)
 
-        # tamper with the stored journal the way a person with the console would
-        pg.evaluate("""() => {
+        # Tamper with the stored journal the way a person with the console
+        # would. It has to be a ticket the register is actually showing: a
+        # build carrying the school's own book mints a ticket for every
+        # payment it ever took, so tickets[0] is somebody's payment from
+        # weeks ago and the day being looked at would never show it.
+        tampered = pg.evaluate("""() => {
           const k = "shokogi.manager.v1";
           const d = JSON.parse(localStorage.getItem(k));
-          d.tickets[0].total = 999;
+          const mine = (d.tickets||[]).slice().sort((a,b) => b.seq - a.seq)[0];
+          if (!mine) return null;
+          mine.total = 999;
           localStorage.setItem(k, JSON.stringify(d));
+          return {seq: mine.seq, date: mine.date};
         }""")
+        check("there is a ticket to tamper with", tampered is not None)
         pg.reload()
         pg.wait_for_timeout(1200)
         tab(pg, "register")
