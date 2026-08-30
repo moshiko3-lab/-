@@ -11,6 +11,11 @@ python3 app/build.py --out index.html            # the manager
 python3 app/build.py --minisite --out book.html  # the booking page
 ```
 
+There is one thing here that is not a web page: `print/shokogi-brochure.pdf`,
+the bilingual four-page sheet that goes in guest rooms, with a QR code on every
+page pointing back at the booking page. How to rebuild it and how to print it
+is in [`print/README.md`](print/README.md).
+
 ## Putting it online
 
 Every push to `main` or to the working branch rebuilds both pages and publishes
