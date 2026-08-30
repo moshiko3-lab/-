@@ -47,10 +47,15 @@ import content as C  # noqa: E402
 # cream, which the storefront pink is not.
 # --------------------------------------------------------------------------
 P = {
-    "ink": "#14100E", "ink2": "#4A413A", "ink3": "#8B7F74",
-    "paper": "#F7F2EA", "sand": "#EBE1D3", "rule": "#DED3C4",
-    "pink": "#F46E95", "rose": "#C9436B",
-    "onink": "#EFE7DA", "onink2": "#B3A697", "onink3": "#7C7167",
+    # the water
+    "sea": "#0F2C34", "sea2": "#17515E", "tube": "#0A2129",
+    # the beach
+    "paper": "#F6F1E7", "sand": "#E9DCC6", "rule": "#D9C9AE",
+    # type on the beach, and on the water
+    "ink": "#14262C", "ink2": "#45585F", "ink3": "#8A9AA0",
+    "onink": "#F1EBE0", "onink2": "#A7BDC2", "onink3": "#6E888F",
+    # the two accents: the school's pink, and the hour it is worth surfing
+    "pink": "#F46E95", "rose": "#D24870", "sun": "#EFA24E",
 }
 
 SIZES = {"letter": ("8.5in", "11in"), "a4": ("210mm", "297mm")}
@@ -65,22 +70,20 @@ SIZES = {"letter": ("8.5in", "11in"), "a4": ("210mm", "297mm")}
 # fill the same box the same way -- dropping a photo in changes no layout.
 # --------------------------------------------------------------------------
 SLOTS = {
-    "cover":  lambda: art.contours(850, 1100, seed=11, lines=34, stroke=P["pink"],
-                                   ground=P["ink"], width=.75, opacity=.78,
-                                   grid=(110, 140)),
-    "coast":  lambda: art.contours(560, 900, seed=29, lines=30, stroke=P["rose"],
-                                   ground=P["paper"], width=.65, opacity=.85,
-                                   grid=(100, 150)),
-    "surf":   lambda: art.swell(1200, 420, seed=5, lines=18, stroke=P["pink"],
-                                ground=P["ink"], width=1.0, opacity=.9),
-    "beyond": lambda: art.contours(520, 980, seed=91, lines=26, stroke=P["rose"],
-                                   ground=P["sand"], width=.7, opacity=.9,
-                                   grid=(80, 150)),
-    "boards": lambda: art.boards_row(1200, 300, stroke=P["rose"],
-                                     ground=P["sand"], width=.95),
-    "back":   lambda: art.contours(850, 1100, seed=63, lines=30, stroke=P["pink"],
-                                   ground=P["ink"], width=.7, opacity=.62,
-                                   grid=(110, 140)),
+    "cover":  lambda: art.wave(1000, 640, deep=P["tube"], body=P["sea2"],
+                               foam=P["paper"], ground=P["sea"]),
+    "place":  lambda: art.lineup(1200, 482, ink=P["ink"], line=P["rose"],
+                                 ground=P["sand"]),
+    "surf":   lambda: art.swell(1200, 560, seed=5, lines=13, stroke=P["pink"],
+                                ground=P["sea2"], width=1.9, opacity=.95),
+    "beyond": lambda: art.contours(1200, 400, seed=91, lines=20, stroke=P["rose"],
+                                   ground=P["sand"], width=.8, opacity=.85,
+                                   grid=(190, 70)),
+    "boards": lambda: art.boards_row(1200, 300, stroke=P["ink"],
+                                     ground=P["sand"], width=1.0),
+    "back":   lambda: art.wave(1000, 640, deep=P["sea"], body="#153F4A",
+                               foam="#295A65", spray="#295A65", rider=False,
+                               ground=P["sea"]),
 }
 PHOTO_TYPES = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png", ".webp": "webp"}
 
@@ -187,7 +190,7 @@ $fonts
 html, body { margin: 0; padding: 0; }
 body {
   font-family: Figtree, -apple-system, "Segoe UI", system-ui, sans-serif;
-  color: $ink; background: #6b6259;
+  color: $ink; background: #4b5a60;
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
   -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
 }
@@ -199,52 +202,59 @@ body {
   background: $paper; page-break-after: always; break-after: page;
 }
 .page:last-child { page-break-after: auto; break-after: auto; }
-.page.dark { background: $ink; color: $onink; }
+.page.sea  { background: $sea;  color: $onink; }
+.page.sand { background: $sand; }
 @media screen { .page { margin: 24px auto; box-shadow: 0 10px 50px rgba(0,0,0,.5); } }
 
 /* Ink lives inside the frame; only pictures and colour reach the paper's edge,
    so a printer that cannot go borderless loses trim and never a word. */
 .frame { position: absolute; left: $m; right: $m; top: $mt; bottom: $mb; }
-
+.band { position: absolute; left: 0; right: 0; overflow: hidden; }
 .pic { display: block; width: 100%; height: 100%; overflow: hidden; }
 img.pic { object-fit: cover; }
 .pic svg { display: block; width: 100%; height: 100%; }
-.band { position: absolute; left: 0; right: 0; overflow: hidden; }
 
-/* ---------------------------------------------------------------- type --- */
+/* ---------------------------------------------------------------- type ---
+   Archivo carries a width axis, and the display sizes run wide: set broad and
+   heavy it holds a page the way a surf brand's type does, where a fine serif
+   at the same size reads as a hotel. Figtree, the storefront's own sans, still
+   does the reading. */
+.d {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-variation-settings: "wdth" 118, "wght" 800;
+  text-transform: uppercase; letter-spacing: -.004em; line-height: .94;
+  margin: 0; color: inherit;
+}
+h2.d { font-size: 44px; }
+h2.d.big { font-size: 54px; }
+.d.sub {
+  font-variation-settings: "wdth" 108, "wght" 500;
+  text-transform: none; font-size: 20px; line-height: 1.12; letter-spacing: 0;
+  color: $ink3; margin-top: 10px;
+}
+.sea .d.sub { color: $onink3; }
+
 .eyebrow {
   font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500;
   font-size: 8.6px; letter-spacing: .215em; text-transform: uppercase;
   color: $rose; margin: 0;
 }
-.dark .eyebrow { color: $pink; }
+.sea .eyebrow { color: $pink; }
 .meta {
   font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 400;
   font-size: 8.4px; letter-spacing: .18em; text-transform: uppercase;
   color: $ink3; margin: 0;
 }
-.dark .meta { color: $onink3; }
+.sea .meta { color: $onink3; }
 
-.display {
-  font-family: "Cormorant Garamond", Georgia, serif; font-weight: 300;
-  font-size: 45px; line-height: 1.06; letter-spacing: .004em;
-  margin: 14px 0 0; color: $ink;
-}
-.dark .display { color: $onink; }
-.display.es {
-  font-style: italic; font-size: 24px; line-height: 1.14; color: $ink3;
-  margin-top: 9px; letter-spacing: .01em;
-}
-.dark .display.es { color: $onink2; }
-.display.sm { font-size: 38px; }
+.hr { display: block; width: 40px; height: 3px; background: $pink; margin: 18px 0; }
 
-.hr { display: block; width: 34px; height: 1px; background: $pink; margin: 20px 0; }
-
-p.en { font-size: 11.4px; line-height: 1.62; color: $ink2; margin: 0; font-weight: 400; }
-p.es { font-size: 10.5px; line-height: 1.6; color: $ink3; margin: 7px 0 0; }
+p.en { font-size: 11.4px; line-height: 1.62; color: $ink2; margin: 0; }
+p.es { font-size: 11px; line-height: 1.6; color: $ink3; margin: 0; }
+.sea p.en { color: $onink2; }
+.sea p.es { color: $onink3; }
 p.en + p.en, p.es + p.es { margin-top: 11px; }
 
-/* --------------------------------------------------------------- folio --- */
 .folio {
   position: absolute; left: $m; right: $m; bottom: 0.44in;
   display: flex; justify-content: space-between; align-items: baseline;
@@ -252,141 +262,153 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
   font-family: "IBM Plex Mono", monospace; font-size: 8px; letter-spacing: .19em;
   text-transform: uppercase; color: $ink3;
 }
+.sea .folio { border-color: rgba(241,235,224,.20); color: $onink3; }
 .folio .n { color: $rose; letter-spacing: .1em; }
+.sea .folio .n { color: $pink; }
 
-/* ---------------------------------------------------------------- cover --- */
-.cover .band { top: 0; bottom: 0; }
-.cover .veil {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(20,16,14,.88) 0%, rgba(20,16,14,.40) 40%,
-              rgba(20,16,14,.58) 70%, rgba(20,16,14,.94) 100%);
+/* ---------------------------------------------------------------- cover ---
+   The wave sits along the bottom on its own ground, which is the page's, so
+   there is no seam; the name takes the flat water above it. */
+.cover .band { left: 0; right: 0; bottom: 0; height: 6.3in; }
+.cover .top {
+  position: absolute; left: $m; right: $m; top: 0.62in;
+  display: flex; align-items: center; justify-content: space-between;
 }
-/* Mark, name and rule are one lockup, sitting a little above centre where the
-   eye lands first, with the field open above and below it. */
-.cover .lockup {
-  position: absolute; left: $m; right: $m; top: 3.05in; text-align: center;
-}
-.cover .lockup img { width: 1.16in; height: 1.16in; object-fit: contain; }
+.cover .top img { width: 0.62in; height: 0.62in; object-fit: contain; }
+.cover .lockup { position: absolute; left: $m; right: $m; top: 2.58in; }
 .cover .lockup b {
-  display: block; margin-top: 40px; font-family: "Cormorant Garamond", Georgia, serif;
-  font-weight: 300; font-size: 64px; line-height: 1; letter-spacing: .30em;
-  text-indent: .30em; color: $onink;
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 122, "wght" 800;
+  font-size: 92px; line-height: .88; letter-spacing: -.012em;
+  text-transform: uppercase; color: $onink;
 }
-.cover .lockup .line {
-  display: block; width: 46px; height: 1px; background: $pink; margin: 26px auto;
-}
-.cover .lockup .sub { color: $onink2; letter-spacing: .32em; font-size: 9px; }
-.cover .foot {
-  position: absolute; left: $m; right: $m; bottom: 0.84in;
-  display: flex; justify-content: space-between; color: $onink3;
-}
+.cover .lockup .sub { margin-top: 4px; color: $onink2; letter-spacing: .26em; font-size: 9.4px; }
+.cover .lockup .where { margin-top: 9px; color: $onink3; letter-spacing: .2em; font-size: 8.4px; }
 
 /* -------------------------------------------------------------- opening --- */
-/* The picture runs off three edges of the sheet and the type keeps to its own
-   column: the whitespace between them is the layout, not a gap left over. */
-.opening .col-pic { position: absolute; right: 0; top: 0; bottom: 0; width: 3.02in; }
-.opening .frame { right: 3.48in; display: flex; flex-direction: column; }
-.opening .facts { margin-top: auto; border-top: 1px solid $rule; padding-top: 15px; }
-.opening .facts div { padding: 9px 0; }
-.opening .facts div + div { border-top: 1px solid $rule; }
+.opening .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.42in; margin-top: 26px; }
+.opening .band { top: 5.78in; height: 3.42in; }
+.opening .facts {
+  position: absolute; left: $m; right: $m; bottom: 0.98in;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  border-top: 2px solid $ink; padding-top: 12px;
+}
+.opening .facts div + div { border-left: 1px solid $rule; padding-left: 16px; }
+.opening .facts div { padding-right: 16px; }
+.opening .facts b {
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 104, "wght" 700;
+  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+}
 .opening .facts small {
-  display: block; margin-top: 4px; font-family: "IBM Plex Mono", monospace;
-  font-size: 7.6px; letter-spacing: .16em; color: $ink3; opacity: .74;
+  display: block; margin-top: 3px; font-family: "IBM Plex Mono", monospace;
+  font-size: 7.6px; letter-spacing: .15em; color: $ink3;
 }
 
 /* ----------------------------------------------------------------- list --- */
-.rows { display: grid; gap: 0; }
-.rows.two { grid-template-columns: 1fr 1fr; column-gap: 0.44in; }
-.row { border-top: 1px solid $rule; padding: 13px 0 15px; display: flex; gap: 13px; }
+.rows { display: grid; }
+.rows.two { grid-template-columns: 1fr 1fr; column-gap: 0.42in; }
+.row { border-top: 1px solid $rule; padding: 13px 0 15px; display: flex; gap: 12px; }
+.sea .row { border-color: rgba(241,235,224,.20); }
 .row .n {
   font-family: "IBM Plex Mono", monospace; font-size: 8.4px; letter-spacing: .1em;
-  color: $pink; padding-top: 3px; flex: none;
+  color: $rose; padding-top: 4px; flex: none;
 }
+.sea .row .n { color: $pink; }
 .row h3 {
-  margin: 0; font-size: 11.4px; font-weight: 700; letter-spacing: .105em;
-  text-transform: uppercase; color: $ink;
+  margin: 0; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 106, "wght" 700;
+  font-size: 13px; letter-spacing: .015em; text-transform: uppercase; color: inherit;
 }
 .row h3 small {
   display: block; font-family: "IBM Plex Mono", monospace; font-weight: 400;
-  font-size: 8.2px; letter-spacing: .155em; color: $ink3; margin-top: 4px;
+  font-size: 8.2px; letter-spacing: .15em; color: $ink3; margin-top: 4px;
 }
+.sea .row h3 small { color: $onink3; }
 .row p { margin: 8px 0 0; }
 .row p.en { font-size: 11px; line-height: 1.55; }
-.row p.es { font-size: 10.2px; line-height: 1.52; margin-top: 5px; }
+.row p.es { font-size: 10.3px; line-height: 1.52; margin-top: 5px; }
 
 /* --------------------------------------------------------------- beyond --- */
-.beyond .col-pic { position: absolute; left: 0; top: 0; bottom: 0; width: 2.66in; }
-.beyond .frame { left: 3.12in; bottom: 1.02in; display: flex; flex-direction: column; }
-.beyond .rows { flex: 1 1 auto; }
-.beyond .row { padding: 8px 0 9px; }
-.beyond .row p.en { font-size: 10.6px; }
+.beyond .band { top: 0; height: 2.72in; }
+.beyond .row { padding: 10px 0 11px; }
+.beyond .row p.en { font-size: 10.5px; }
 .beyond .row p.es { font-size: 9.9px; }
 
 .bookline {
-  border-top: 1px solid $rule; margin-top: 12px; padding-top: 13px;
-  display: flex; align-items: center; gap: 16px;
+  border-top: 2px solid $ink; margin-top: 16px; padding-top: 15px;
+  display: flex; align-items: center; gap: 17px;
 }
-.bookline .qr { width: 0.94in; height: 0.94in; display: block; flex: none; }
-.bookline b { display: block; font-size: 11.6px; font-weight: 600; }
-.bookline i { display: block; font-style: normal; font-size: 10.6px; color: $ink3; margin-top: 2px; }
+.bookline .qr { width: 1.06in; height: 1.06in; display: block; flex: none; }
+.bookline b {
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 108, "wght" 700;
+  font-size: 15px; text-transform: uppercase; letter-spacing: .01em;
+}
+.bookline i { display: block; font-style: normal; font-size: 11px; color: $ink3; margin-top: 3px; }
 .bookline .url {
-  display: block; margin-top: 9px; font-family: "IBM Plex Mono", monospace;
-  font-size: 9.6px; letter-spacing: .04em; color: $rose;
+  display: block; margin-top: 10px; font-family: "IBM Plex Mono", monospace;
+  font-size: 10px; letter-spacing: .04em; color: $rose;
 }
 
 /* -------------------------------------------------------------- rentals --- */
+.rentals .band { top: 0; height: 2.125in; }
 .chips {
-  display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.44in;
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.42in;
   margin: 0; padding: 0; list-style: none;
 }
 .chips li {
   border-top: 1px solid $rule; padding: 10px 0 11px;
   display: flex; align-items: baseline; gap: 10px;
 }
-.chips b { font-size: 11.2px; font-weight: 700; letter-spacing: .105em; text-transform: uppercase; }
+.chips b {
+  font-family: Archivo, sans-serif; font-variation-settings: "wdth" 106, "wght" 700;
+  font-size: 12.5px; letter-spacing: .015em; text-transform: uppercase;
+}
 .chips small {
   font-family: "IBM Plex Mono", monospace; font-size: 8.6px; letter-spacing: .1em;
   color: $ink3; margin-left: auto;
 }
 
-.know { background: $sand; border-radius: 2px; padding: 24px 28px 22px; }
+.know { background: $paper; padding: 24px 28px 22px; }
 .know ul { list-style: none; margin: 12px 0 0; padding: 0; }
 .know li { display: flex; gap: 11px; padding: 7px 0; }
-.know li + li { border-top: 1px solid rgba(20,16,14,.09); }
-.know .hex { width: 8px; height: 10px; flex: none; margin-top: 5px; }
-.know b { display: block; font-size: 10.8px; font-weight: 600; line-height: 1.45; }
-.know small { display: block; font-size: 9.9px; color: $ink3; line-height: 1.45; margin-top: 2px; }
+.know li + li { border-top: 1px solid $rule; }
+.know .hex { width: 9px; height: 11px; flex: none; margin-top: 4px; }
+.know b {
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 100, "wght" 600;
+  font-size: 11.4px; line-height: 1.42;
+}
+.know small { display: block; font-size: 10px; color: $ink3; line-height: 1.45; margin-top: 2px; }
 .know figure {
-  margin: 16px 0 0; padding-top: 15px; border-top: 1px solid rgba(20,16,14,.11);
+  margin: 16px 0 0; padding-top: 15px; border-top: 1px solid $rule;
   display: flex; align-items: center; gap: 20px;
 }
-.know figure .pic { width: 3.1in; height: 0.66in; flex: none; }
-.know figcaption { font-size: 9.4px; line-height: 1.5; color: $ink2; }
+.know figure .pic { width: 3.1in; height: 0.62in; flex: none; }
+.know figcaption { font-size: 9.6px; line-height: 1.5; color: $ink2; }
 .know figcaption i { display: block; font-style: normal; color: $ink3; margin-top: 2px; }
 
 /* ----------------------------------------------------------------- back --- */
-.back .band { top: 0; bottom: 0; }
-.back .veil { position: absolute; inset: 0; background: rgba(20,16,14,.62); }
+.back .band { left: 0; right: 0; bottom: 0; height: 4.0in; }
 .back .inner {
-  position: absolute; left: $m; right: $m; top: 1.55in; bottom: 1.5in;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center;
+  position: absolute; left: $m; right: $m; top: 1.28in;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-.back .inner img { width: 1.04in; height: 1.04in; object-fit: contain; }
-.back .display { margin-top: 22px; }
-.back .say { max-width: 3.55in; margin: 20px 0 0; font-size: 10.8px; line-height: 1.6; color: $onink2; }
-.back .say i { display: block; font-style: normal; color: $onink3; font-size: 10px; margin-top: 5px; }
-.back .qrcard { margin-top: 32px; background: $paper; border-radius: 3px; padding: 15px; }
-.back .qrcard .qr { width: 1.92in; height: 1.92in; display: block; }
+.back .inner img { width: 0.92in; height: 0.92in; object-fit: contain; }
+.back .d { margin-top: 22px; font-size: 50px; }
+.back .say { max-width: 3.6in; margin: 16px 0 0; font-size: 11px; line-height: 1.6; color: $onink2; }
+.back .say i { display: block; font-style: normal; color: $onink3; font-size: 10.2px; margin-top: 5px; }
+.back .qrcard { margin-top: 26px; background: $paper; padding: 14px; }
+.back .qrcard .qr { width: 1.86in; height: 1.86in; display: block; }
 .back .url {
-  margin-top: 20px; font-family: "IBM Plex Mono", monospace; font-size: 10.4px;
+  margin-top: 18px; font-family: "IBM Plex Mono", monospace; font-size: 10.4px;
   letter-spacing: .06em; color: $onink;
 }
-.back .mail { margin-top: 9px; font-size: 10px; color: $onink2; }
+.back .mail { margin-top: 8px; font-size: 10px; color: $onink2; }
 .back .mail b { font-family: "IBM Plex Mono", monospace; font-weight: 400; color: $onink; }
-.back .sign { margin-top: 34px; }
 .back .stamp {
-  position: absolute; left: $m; right: $m; bottom: 0.6in; text-align: center; color: $onink3;
+  position: absolute; left: $m; right: $m; bottom: 0.56in; text-align: center; color: $onink3;
 }
 """)
 
@@ -397,7 +419,7 @@ def build(size="letter"):
     raw = base64.b64encode(open(os.path.join(ROOT, "app", "logo.png"), "rb").read()).decode()
     logo = '<img src="data:image/png;base64,%s" alt="Shokogi">' % raw
 
-    css = CSS.substitute(fonts=fonts, w=w, h=h, m="0.78in", mt="0.78in", mb="0.78in", **P)
+    css = CSS.substitute(fonts=fonts, w=w, h=h, m="0.72in", mt="0.72in", mb="0.72in", **P)
     pages = [cover_page(logo), opening_page(), surf_page(),
              beyond_page(), rentals_page(), back_page(logo)]
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
@@ -406,75 +428,73 @@ def build(size="letter"):
 
 
 def cover_page(logo):
+    c = C.COVER
     return """
-<section class="page dark cover">
+<section class="page sea cover">
   <div class="band">%s</div>
-  <div class="veil"></div>
-  <div class="lockup">
+  <div class="top">
     %s
+    <p class="meta">%s</p>
+  </div>
+  <div class="lockup">
     <b>%s</b>
-    <span class="line"></span>
+    <span class="hr"></span>
     <p class="meta sub">%s &nbsp;·&nbsp; %s</p>
+    <p class="meta where">%s &nbsp;·&nbsp; %s</p>
   </div>
-  <div class="foot">
-    <p class="meta">%s</p>
-    <p class="meta">%s</p>
-  </div>
-</section>""" % (picture("cover"), logo, C.COVER["wordmark"],
-                 C.COVER["rule_en"], C.COVER["rule_es"],
-                 C.COVER["place"], C.COVER["est"])
+</section>""" % (picture("cover"), logo, c["est"], c["wordmark"],
+                 c["rule_en"], c["rule_es"], c["place"], c["coords"])
 
 
 def opening_page():
     o = C.OPENING
-    facts = "".join('<div><p class="eyebrow">%s</p><small>%s</small></div>' % f
-                    for f in o["facts"])
+    facts = "".join('<div><b>%s</b><small>%s</small></div>' % f for f in o["facts"])
     return """
 <section class="page opening">
-  <div class="col-pic">%s</div>
-  <div class="frame">
+  <div class="frame" style="bottom:auto">
     <p class="eyebrow">%s</p>
-    %s
-    %s
-    %s
-    %s
-    %s
-    <div class="facts">%s</div>
+    <h2 class="d big" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
+    <div class="cols">
+      <div>%s</div>
+      <div>%s</div>
+    </div>
   </div>
+  <div class="band">%s</div>
+  <div class="facts">%s</div>
   %s
 </section>""" % (
-        picture("coast"), o["eyebrow"],
-        display(o["display_en"]), display(o["display_es"], "es"), rule(),
+        o["eyebrow"], o["display_en"].replace("\n", "<br>"),
+        o["display_es"].replace("\n", " "),
         "".join('<p class="en">%s</p>' % t for t in o["body_en"]),
         "".join('<p class="es">%s</p>' % t for t in o["body_es"]),
-        facts, folio(1, "right:3.48in"))
+        picture("place"), facts, folio(1))
 
 
-def _rows(items):
+def _rows(items, start=1):
     return "".join(
         '<article class="row"><span class="n">%02d</span><div>'
         '<h3>%s<small>%s</small></h3>'
         '<p class="en">%s</p><p class="es">%s</p></div></article>'
-        % (i + 1, en, es, ben, bes)
+        % (i + start, en, es, ben, bes)
         for i, (en, es, ben, bes) in enumerate(items))
 
 
 def surf_page():
     s = C.SURF
     return """
-<section class="page surf">
-  <div class="band" style="top:0;height:3.92in">%s</div>
-  <div class="frame" style="top:4.46in">
+<section class="page sea surf">
+  <div class="band" style="top:0;height:4.02in">%s</div>
+  <div class="frame" style="top:4.58in">
     <p class="eyebrow">%s</p>
-    %s
-    %s
-    <p class="en" style="margin-top:16px;max-width:5.1in">%s</p>
-    <p class="es" style="max-width:5.1in">%s</p>
+    <h2 class="d" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
+    <p class="en" style="margin-top:16px;max-width:5.2in">%s</p>
+    <p class="es" style="margin-top:6px;max-width:5.2in">%s</p>
     <div class="rows two" style="margin-top:26px">%s</div>
   </div>
   %s
-</section>""" % (picture("surf"), s["eyebrow"],
-                 display(s["title_en"], "sm"), display(s["title_es"], "es"),
+</section>""" % (picture("surf"), s["eyebrow"], s["title_en"], s["title_es"],
                  s["lede_en"], s["lede_es"], _rows(s["items"]), folio(2))
 
 
@@ -482,12 +502,12 @@ def beyond_page():
     b = C.BEYOND
     return """
 <section class="page beyond">
-  <div class="col-pic">%s</div>
-  <div class="frame">
+  <div class="band">%s</div>
+  <div class="frame" style="top:3.28in">
     <p class="eyebrow">%s</p>
-    %s
-    %s
-    <div class="rows" style="margin-top:18px">%s</div>
+    <h2 class="d" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
+    <div class="rows two" style="margin-top:22px">%s</div>
     <div class="bookline">
       %s
       <div>
@@ -498,11 +518,10 @@ def beyond_page():
   </div>
   %s
 </section>""" % (picture("beyond"), b["eyebrow"],
-                 display(b["title_en"], "sm"), display(b["title_es"], "es"),
+                 b["title_en"].replace("\n", " "), b["title_es"],
                  _rows(b["items"]),
-                 qr_svg(C.BOOKING_URL, "0.94in", quiet=2, light=P["paper"]),
-                 C.BOOK["inline_en"], C.BOOK["inline_es"], C.BOOKING_LABEL,
-                 folio(3, "left:3.12in"))
+                 qr_svg(C.BOOKING_URL, "1.06in", quiet=2, light=P["paper"]),
+                 C.BOOK["inline_en"], C.BOOK["inline_es"], C.BOOKING_LABEL, folio(3))
 
 
 def rentals_page():
@@ -513,58 +532,53 @@ def rentals_page():
     items = "".join('<li>%s<div><b>%s</b><small>%s</small></div></li>' % (hexb, en, es)
                     for en, es in k["items"])
     return """
-<section class="page rentals">
-  <div class="band" style="top:0;height:2.125in">%s</div>
+<section class="page sand rentals">
+  <div class="band">%s</div>
   <div class="frame" style="top:2.72in">
     <p class="eyebrow">%s</p>
-    %s
-    %s
+    <h2 class="d" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
     <ul class="chips" style="margin-top:22px">%s</ul>
-    <p class="meta" style="margin-top:15px;color:%s">%s &nbsp;·&nbsp; %s</p>
-    <div class="know" style="margin-top:34px">
+    <p class="meta" style="margin-top:14px;color:%s">%s &nbsp;·&nbsp; %s</p>
+    <div class="know" style="margin-top:28px">
       <p class="eyebrow">%s</p>
       <ul>%s</ul>
       <figure>
-        <span class="pic">%s</span>
+        %s
         <figcaption>%s<i>%s</i></figcaption>
       </figure>
     </div>
   </div>
   %s
 </section>""" % (
-        picture("boards"), r["eyebrow"],
-        display(r["title_en"], "sm"), display(r["title_es"], "es"),
+        picture("boards"), r["eyebrow"], r["title_en"], r["title_es"],
         chips, P["ink2"], r["note_en"], r["note_es"], k["eyebrow"], items,
-        art.tide(420, 90, stroke=P["rose"], ground=P["sand"], width=.9),
+        '<span class="pic">%s</span>' % art.tide(420, 84, stroke=P["rose"],
+                                                 ground=P["paper"], width=1.0),
         k["tide_caption_en"], k["tide_caption_es"], folio(4))
 
 
 def back_page(logo):
     b = C.BOOK
     return """
-<section class="page dark back">
+<section class="page sea back">
   <div class="band">%s</div>
-  <div class="veil"></div>
   <div class="inner">
     %s
-    %s
-    %s
+    <h2 class="d">%s</h2>
     <p class="say">%s<i>%s</i></p>
     <div class="qrcard">%s</div>
     <p class="url">%s</p>
     <p class="mail">%s · %s &nbsp; <b>%s</b></p>
-    <p class="meta sign">%s &nbsp;·&nbsp; %s</p>
   </div>
   <p class="meta stamp">%s &nbsp;·&nbsp; %s &nbsp;·&nbsp; %s</p>
 </section>""" % (
-        picture("back"), logo, display(b["title_en"]), display(b["title_es"], "es"),
-        b["body_en"], b["body_es"],
-        qr_svg(C.BOOKING_URL, "1.92in"), C.BOOKING_LABEL,
-        b["or_en"], b["or_es"], C.EMAIL, b["sign_en"], b["sign_es"],
+        picture("back"), logo, b["title_en"], b["body_en"], b["body_es"],
+        qr_svg(C.BOOKING_URL, "1.86in"), C.BOOKING_LABEL,
+        b["or_en"], b["or_es"], C.EMAIL,
         C.COVER["wordmark"], C.COVER["place"], C.COVER["est"])
 
 
-# --------------------------------------------------------------------------
 def chrome():
     """Whichever Chromium this machine has. Playwright's copy comes first
     because that is the one the rest of the tests here already drive."""

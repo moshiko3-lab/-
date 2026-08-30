@@ -5,12 +5,12 @@ in English and Spanish throughout, on US Letter, and it carries the booking
 page's QR code twice -- once beside the services on page four, once filling the
 back cover.
 
-    01  cover           the mark on deep ink, and nothing else
-    02  the place       Playa Venao, and what a first lesson is
+    01  cover           the name over a wave with somebody in it
+    02  the place       Playa Venao, a first lesson, and the line-up
     03  in the water    private, shared, packs, video analysis
-    04  the rest of     SUP, foil, yoga, ice bath, photo, kids, trips
-        the day         -- and the code to book any of it
-    05  take one out    the eight boards for rent, and what to know
+    04  the rest of     SUP, foil, yoga, ice bath, photo, kids, camps,
+        the day         trips -- and the code to book any of it
+    05  take one out    the eight boards for rent, drawn, and what to know
     06  reserve         the code, the address, the way to reach us
 
 ## Building it
@@ -47,9 +47,10 @@ cannot be proof-read by looking at it.
   eighth of an inch; no type sits there, so it costs picture and nothing else.
 * **Six pages is three sheets, printed both sides.** Folded and stapled it is a
   booklet; loose in a folder or a stand it still reads in order.
-* **Matte or silk stock, 170 gsm or better**, if a shop is doing it. Pages one
-  and six are solid deep ink, and thin paper will show them through from the
-  back. Matte suits the hairline drawings; high gloss fights them.
+* **Matte or silk stock, 170 gsm or better**, if a shop is doing it. Pages one,
+  three and six are solid deep ink edge to edge -- thin paper shows them
+  through from the other side, and cheap paper drinks that much ink and goes
+  soft. Ask for matte or silk rather than high gloss.
 * Print one copy and scan the code off it before ordering a hundred.
 
 ## Changing what it says
@@ -61,16 +62,23 @@ carries a reader to the booking page where today's prices are.
 
 ## Where the look comes from
 
-The brand is the storefront's, matching `bloowatch/site_template.html`, but
-turned down: a sheet that is mostly pink reads as a flyer, so here the pink is
-an accent on warm cream and deep ink instead of a field. Display type is
-Cormorant Garamond, text is Figtree -- the storefront's own sans -- and labels
-stay in IBM Plex Mono. The logo is read straight out of `app/logo.png`, so the
-mark on paper cannot drift from the mark on screen, and its hexagon is reused
-for the bullets and the middle of the QR code. The fonts are already base64'd
-into `fonts.css` so a build makes the same booklet on any machine, with or
-without a network.
+It is meant to read as a surf school's booklet and not as a hotel's. That is
+mostly two decisions. The palette is the water rather than the brand sheet --
+deep sea, sand and bone, with the storefront's pink kept as the accent it is
+good at and one warm amber behind it; a page that is mostly pink reads as a
+flyer, and a page that is mostly cream reads as a spa. And the display face is
+Archivo set wide and heavy, where a fine serif at the same size reads as a
+boutique hotel however well it is set. Figtree, the storefront's own sans, does
+the reading; IBM Plex Mono does the labels and the numbers.
 
-Every picture is drawn by [`art.py`](art.py) rather than photographed, and
+The logo comes straight out of `app/logo.png`, so the mark on paper cannot
+drift from the mark on screen, and its hexagon is reused for the bullets and
+the middle of the QR code. The fonts are base64'd into `fonts.css` so a build
+makes the same booklet on any machine, with or without a network.
+
+Every picture is drawn by [`art.py`](art.py) rather than photographed: a wave
+with somebody in the barrel, the line-up seen from the water, swell coming in,
+the day's tide, and the eight rental boards at their real relative
+proportions in the order the list beside them names them.
 [`images/README.md`](images/README.md) says how to replace any of them with a
-real photograph -- which is one file per slot and no layout work.
+real photograph -- one file per slot, and no layout work.

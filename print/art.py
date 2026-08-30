@@ -6,8 +6,8 @@ fills it, and the page is still finished rather than a grey box with a cross
 through it.
 
 The drawings are all line work on a flat field -- contours read off a smooth
-scalar field, swell lines, a sun over a banded horizon -- because hairlines on
-paper are what an expensive brochure looks like and what a cheap printer can
+scalar field, swell lines, a wave with somebody in it -- because flat colour
+and clean line on paper are what an expensive brochure looks like and what a cheap printer can
 still hold. Everything is seeded, so the same page draws the same picture every
 time and a reprint matches the copy already in the rooms.
 """
@@ -185,26 +185,6 @@ def swell(w, h, seed=3, lines=16, stroke="#F46E95", ground=None,
     return _svg(w, h, body, ground)
 
 
-def sun(w, h, stroke="#F46E95", ground=None, width=1.0, bands=30, opacity=1.0):
-    """A disc low over a horizon, with the water between it and you drawn as
-    lines that open out as they come nearer and lighten as they do. The
-    spacing and the fade do all the work -- it reads as distance without
-    anything being drawn in perspective."""
-    cx, cy, r = w * 0.5, h * 0.375, min(w, h) * 0.25
-    hz = h * 0.565
-    lines = ['<circle cx="%.1f" cy="%.1f" r="%.1f" stroke-opacity="%s"/>'
-             % (cx, cy, r, opacity),
-             '<path d="M0 %.1fH%.1f" stroke-opacity="%s"/>' % (hz, w, opacity)]
-    for i in range(1, bands + 1):
-        t = i / float(bands)
-        y = hz + (h - hz) * (t ** 1.9)
-        lines.append('<path d="M0 %.1fH%.1f" stroke-opacity="%.3f"/>'
-                     % (y, w, opacity * (1.0 - 0.62 * t)))
-    body = ('<g fill="none" stroke="%s" stroke-width="%s" stroke-linecap="round">'
-            '%s</g>' % (stroke, width, "".join(lines)))
-    return _svg(w, h, body, ground)
-
-
 def tide(w, h, stroke="#F46E95", ground=None, width=1.0, hours=13):
     """The day's tide, the curve the school plans its sessions against. Drawn
     with its hour ticks, because a chart without them is just a squiggle."""
@@ -221,11 +201,14 @@ def tide(w, h, stroke="#F46E95", ground=None, width=1.0, hours=13):
     return _svg(w, h, body, ground)
 
 
-def _svg(w, h, body, ground):
-    bg = '<rect width="%s" height="%s" fill="%s"/>' % (w, h, ground) if ground else ""
+def _svg(w, h, body, ground, box=None):
+    """`box` lets a drawing keep its own coordinate space -- the wave is drawn
+    once at 1000x640 and then cropped to whatever shape the page gives it."""
+    bw, bh = box or (w, h)
+    bg = '<rect width="%s" height="%s" fill="%s"/>' % (bw, bh, ground) if ground else ""
     return ('<svg class="art" viewBox="0 0 %s %s" preserveAspectRatio="xMidYMid slice" '
             'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">%s%s</svg>'
-            % (w, h, bg, body))
+            % (bw, bh, bg, body))
 
 
 # --------------------------------------------------------------------------
@@ -299,3 +282,126 @@ def boards_row(w, h, stroke="#C9436B", ground=None, width=0.85, pad=0.15):
             'stroke-linejoin="round"><path d="%s"/></g>'
             % (stroke, width, "".join(d)))
     return _svg(w, h, body, ground)
+
+
+# --------------------------------------------------------------------------
+# The wave
+#
+# A brochure for a surf school has to open with a wave, and there is no
+# photograph to open it with, so this one is built the way a screen printer
+# would build it: three or four flat tones, no gradients, every edge a curve
+# somebody chose. The figure is small on purpose. A wave with a person on it
+# reads as surfing; the same wave without one reads as weather.
+# --------------------------------------------------------------------------
+def wave(w, h, deep="#0A222A", body="#17515E", foam="#F5F0E6", spray=None,
+         rider=True, ground=None):
+    # No rider, no spray: the back cover wants the shape of a wave behind the
+    # type, and loose dots up in the air read as dirt on the page rather than
+    # as water once there is nobody throwing them.
+    spray = spray or foam
+    p = []
+
+    # the mass of water: trough at the left, rising to the crest at the right
+    p.append('<path fill="%s" d="M0 640V560C140 540 260 490 360 415'
+             'C460 340 540 235 630 172C712 114 800 96 868 116'
+             'C936 136 984 190 1000 250V640Z"/>' % body)
+
+    # two long runs up the open face, the way water draws off before it stands
+    for x0, y0, x1, y1, x2, y2 in ((152, 528, 306, 474, 436, 402),
+                                   (188, 578, 348, 520, 480, 446)):
+        p.append('<path fill="none" stroke="%s" stroke-opacity=".13" stroke-width="7" '
+                 'stroke-linecap="round" d="M%d %dQ%d %d %d %d"/>'
+                 % (foam, x0, y0, x1, y1, x2, y2))
+
+    # the tube: an almond, not a wedge -- it is an opening, and there is
+    # daylight at the far end of it
+    p.append('<path fill="%s" d="M452 352C505 270 592 216 690 205'
+             'C768 196 822 218 848 254C800 292 730 330 660 352'
+             'C590 374 512 372 452 352Z"/>' % deep)
+
+    if rider:
+        # In the barrel, in foam against the dark, because that is the only
+        # place on a wave where a figure this small still reads. Built from
+        # round-capped strokes rather than one filled outline: at 8mm on paper
+        # a limb of even weight reads and a clever silhouette does not.
+        p.append('<g transform="translate(578 236) rotate(10) scale(0.80)" '
+                 'stroke="%s" stroke-linecap="round" fill="none">'
+                 '<path fill="%s" stroke="none" d="M0 92C30 82 108 79 132 86'
+                 'C104 96 28 100 0 92Z"/>'
+                 '<circle cx="62" cy="18" r="7.5" fill="%s" stroke="none"/>'
+                 '<path stroke-width="11" d="M62 27L71 53"/>'
+                 '<path stroke-width="7" d="M60 33C46 36 30 41 18 45"/>'
+                 '<path stroke-width="7" d="M67 32C80 28 92 23 104 20"/>'
+                 '<path stroke-width="8" d="M71 53C64 64 54 76 45 86"/>'
+                 '<path stroke-width="8" d="M71 53C80 63 88 74 94 85"/>'
+                 '</g>' % (foam, foam, foam))
+
+    # the lip, thrown forward and already coming apart at the tip
+    p.append('<path fill="%s" d="M868 118C776 92 678 116 598 176'
+             'C520 234 460 306 430 352C470 300 520 262 592 232'
+             'C668 200 772 190 846 226C868 212 876 168 868 118Z"/>' % foam)
+
+    # spray off the back of it, thinning as it goes
+    if rider:
+        for i, (x, y, r) in enumerate(((884, 98, 15), (920, 116, 11), (856, 76, 9),
+                                       (948, 142, 8), (904, 64, 6), (968, 112, 5))):
+            p.append('<circle cx="%d" cy="%d" r="%d" fill="%s" fill-opacity="%.2f"/>'
+                     % (x, y, r, spray, 0.92 - i * 0.11))
+
+    # whitewater along the trough
+    p.append('<path fill="%s" fill-opacity=".95" d="M0 640V556C92 538 172 543 240 566'
+             'C308 589 376 595 444 585C524 573 600 580 672 607'
+             'C720 625 764 631 804 629V640Z"/>' % foam)
+
+    return _svg(w, h, "".join(p), ground, box=(1000, 640))
+
+
+# --------------------------------------------------------------------------
+# The line-up
+#
+# The other half of surfing, and the half a brochure never shows: three people
+# sitting on their boards, out past the break, waiting. It is the view from the
+# water rather than of it, and at this size a seated figure reads instantly --
+# a head, a torso, a board on the line.
+# --------------------------------------------------------------------------
+def _sitter(x, y, scale, ink):
+    """Someone sitting their board, seen side-on, cut off at the waterline.
+    Same build as the rider in the barrel -- round-capped strokes of even
+    weight -- so the two figures in this booklet are recognisably one hand."""
+    return ('<g transform="translate(%.1f %.1f) scale(%.3f)" stroke="%s" '
+            'stroke-linecap="round" fill="none">'
+            '<path fill="%s" stroke="none" d="M-34-1C-19-9 14-11 34-6'
+            'L35 0C19 5-16 7-34-1Z"/>'
+            '<path stroke-width="9" d="M0-4L6-26"/>'
+            '<circle cx="8" cy="-35" r="6.2" fill="%s" stroke="none"/>'
+            '<path stroke-width="6" d="M4-23C-2-19-9-13-13-7"/>'
+            '</g>' % (x, y, scale, ink, ink, ink))
+
+
+def lineup(w, h, ink="#14262C", line="#D24870", ground=None, sun_at=0.76):
+    hz = h * 0.30
+    d = ['<path fill="none" stroke="%s" stroke-width="1.6" stroke-opacity=".55" '
+         'd="M0 %.1fH%.1f"/>' % (line, hz, w)]
+
+    # the sun, half in the water, where the light in a photograph would be
+    d.append('<clipPath id="lz"><rect x="0" y="0" width="%.0f" height="%.1f"/></clipPath>'
+             % (w, hz))
+    d.append('<circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" stroke="%s" '
+             'stroke-width="1.6" clip-path="url(#lz)"/>'
+             % (w * sun_at, hz, h * 0.135, line))
+
+    # swell coming in, opening out as it nears
+    for i in range(9):
+        t = (i + 1) / 9.0
+        y = hz + (h - hz) * (t ** 1.7)
+        amp = h * 0.012 * (0.4 + t)
+        pts = ["%.1f %.1f" % (x, y + amp * math.sin(x / w * 7.4 + i))
+               for x in range(-20, int(w) + 21, 24)]
+        d.append('<path fill="none" stroke="%s" stroke-width="%.2f" '
+                 'stroke-opacity="%.2f" stroke-linecap="round" d="M%s"/>'
+                 % (line, 1.2 + 1.3 * t, 0.30 + 0.42 * t, "L".join(pts)))
+
+    for x, y, sc in ((0.20, 0.60, 1.00), (0.45, 0.75, 1.28), (0.66, 0.545, 0.84)):
+        d.append(_sitter(w * x, hz + (h - hz) * y, sc * h / 300.0, ink))
+
+    return _svg(w, h, "".join(d), ground)

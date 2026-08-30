@@ -23,6 +23,9 @@ COVER = {
     "rule_es": "ESCUELA DE SURF",
     "place": "PLAYA VENAO · PANAMÁ",
     "est": "EST. 2009",
+    # the school's own pin, off app/catalog.json, in the notation a surf guide
+    # would use rather than the decimal one a database stores
+    "coords": "07°25′42″ N · 80°11′23″ W",
 }
 
 # ------------------------------------------------------------- 2. the place
@@ -52,8 +55,9 @@ OPENING = {
     ],
     "facts": [
         ("SINCE 2009", "DESDE 2009"),
-        ("ENGLISH · ESPAÑOL · FRANÇAIS", "INGLÉS · ESPAÑOL · FRANCÉS"),
         ("EVERY LEVEL", "TODOS LOS NIVELES"),
+        ("EN · ES · FR", "TRES IDIOMAS"),
+        ("BOARD + LYCRA", "TABLA Y LICRA"),
     ],
 }
 
@@ -112,8 +116,11 @@ BEYOND = {
          "From the sand or from the water beside you. Private shoots too.",
          "Desde la arena o desde el agua a tu lado. También sesiones privadas."),
         ("YOUNG GUNS", "YOUNG GUNS",
-         "Kids, at their own pace, on the right board. Camps in season.",
-         "Niños, a su ritmo y con la tabla adecuada. Campamentos en temporada."),
+         "Our kids' programme: their own pace, and the right board under them.",
+         "Nuestro programa infantil: su propio ritmo, y la tabla adecuada."),
+        ("SUMMER CAMPS", "CAMPAMENTOS",
+         "Through the summer season, by the day.",
+         "Durante la temporada de verano, por día."),
         ("SURF TRIP", "SURF TRIP",
          "A guided day to whichever break along the coast is working.",
          "Un día guiado al break de la costa que esté funcionando."),
