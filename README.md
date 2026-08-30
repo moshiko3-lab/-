@@ -16,8 +16,19 @@ python3 app/build.py --minisite --out book.html  # the booking page
 Every push to `main` or to the working branch rebuilds both pages and publishes
 them, so the platform can be worked on while it is live:
 
-* the manager at `https://moshiko3-lab.github.io/-/`
-* the booking page at `https://moshiko3-lab.github.io/-/book.html`
+* the manager at `https://manage.shokogimanager.com/`
+* the booking page at `https://manage.shokogimanager.com/book.html`
+
+GitHub's own address, `https://moshiko3-lab.github.io/-/`, keeps working and
+redirects there.
+
+The domain is `shokogimanager.com`, bought for this. It points at GitHub with
+one CNAME record — `manage` → `moshiko3-lab.github.io.` — and the `CNAME` file
+in this repository is what tells Pages to answer to it; the two have to say the
+same thing or the site answers on neither. To move it to the bare
+`shokogimanager.com` instead, the four A records GitHub publishes
+(185.199.108–111.153) replace whatever the registrar parks there, `www` becomes
+a CNAME to the same place, and this file changes to match.
 
 This needs GitHub Pages switched on once, by the repository's owner:
 **Settings → Pages → Build and deployment → Source: GitHub Actions**. Until
