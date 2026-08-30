@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - main
-      - claude/new-session-d0r3xc
   workflow_dispatch:
 
 permissions:
@@ -20,9 +19,12 @@ permissions:
   pages: write
   id-token: write
 
+# One publish at a time, and the newest wins -- but a run is never cancelled
+# halfway: the site is what the last finished run left, and cancelling the run
+# that carries the newest work leaves the old one live with nothing to say so.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
