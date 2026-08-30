@@ -769,6 +769,35 @@ function waSetup(host){
   }
   if(h.numberError) p.appendChild(el("p","muted","Meta says: "+h.numberError));
 
+  /* The two values Meta's own panel asks for, in the shape it wants them.
+     Reading a project id off a screen and typing it into a form on a phone is
+     exactly where a setup goes wrong for an afternoon, so neither is typed. */
+  var box=el("div");
+  box.style.cssText="margin-top:12px;border:1px solid var(--line);"+
+    "border-radius:8px;padding:10px";
+  box.appendChild(el("div","strong","What Meta's webhook panel asks for"));
+  var hook=CLOUD.url+"/functions/v1/whatsapp/webhook";
+  var line=el("div");
+  line.style.cssText="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap";
+  var code=el("code",null,hook);
+  code.style.cssText="flex:1;min-width:220px;font-size:12px;word-break:break-all";
+  line.appendChild(code);
+  var cp=el("button","btn sm","Copy");
+  cp.addEventListener("click",function(){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(hook).then(function(){ toast("Copied"); },
+        function(){ toast("Copy it from the line above."); });
+    } else toast("Copy it from the line above.");
+  });
+  line.appendChild(cp);
+  box.appendChild(line);
+  box.appendChild(el("div","hint",
+    "Callback URL. The verify token beside it is the WA_VERIFY_TOKEN set on "+
+    "the function — the same string, character for character. Then Manage the "+
+    "fields and subscribe to messages: nothing arrives without that, and the "+
+    "panel does not say so."));
+  p.appendChild(box);
+
   p.appendChild(el("h3",null,"The order it has to be done in"));
   var ol=el("ol");
   [ "Run supabase/schema.sql, then supabase/whatsapp.sql, in the Supabase SQL editor.",

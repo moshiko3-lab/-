@@ -257,6 +257,8 @@ def main():
               setup[:300])
         check("it says the number leaves the phone app",
               "leaves the whatsapp business phone app" in setup.lower())
+        check("it hands over the callback URL rather than describing it",
+              "/functions/v1/whatsapp/webhook" in setup, setup[:300])
 
         b.close()
 
