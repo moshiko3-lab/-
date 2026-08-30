@@ -30,7 +30,7 @@ PINK = "#DA5A7A"
 PINK_CTA = "#DC5E7E"
 NAVY = "#1F2B4A"
 BG = "#EFF0F4"
-BG_FOOT = "#E4E5EB"
+BG_FOOT = "#D3D7E1"
 RULE = "rgba(218,90,122,.55)"
 
 # --- the icons, drawn on a 24x24 grid in one thin pink stroke ----------------
@@ -80,15 +80,15 @@ html, body {{ width: {W}px; height: {H}px; overflow: hidden; background: #888; }
 
 .canvas {{
   position: relative; width: {W}px; height: {H}px; overflow: hidden;
-  background: linear-gradient(180deg, {BG} 0%, {BG} 62%, {BG_FOOT} 100%);
+  background: linear-gradient(180deg, {BG} 0%, {BG} 44%, {BG_FOOT} 100%);
   font-family: 'Montserrat', sans-serif; -webkit-font-smoothing: antialiased;
 }}
 
-/* the photograph, twice: a blurred wash over the whole poster, then sharp on
-   the right with its left edge dissolved into that wash */
-.haze {{ position: absolute; inset: 0; opacity: .30; overflow: hidden; }}
-.haze img {{ width: 100%; height: 100%; object-fit: cover;
-  filter: blur(46px) saturate(.85); transform: scale(1.18); }}
+/* the photograph, twice: an out-of-focus copy carrying the shot's own light
+   across the whole poster — without it the left half is a dead white field —
+   and then the sharp one on the right, its left edge dissolved into that */
+.haze {{ position: absolute; inset: 0; overflow: hidden; }}
+.haze img {{ width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); }}
 
 .shot {{ position: absolute; top: 0; right: 0; height: 100%; }}
 .shot img {{ height: 100%; display: block; }}
@@ -178,11 +178,12 @@ PAGE = """<!doctype html>
 <style>{css}</style></head>
 <body>
 <div class="canvas">
-  <div class="haze"><img src="{photo}" alt=""></div>
+  <div class="haze" style="opacity: {haze}"><img src="{photo}" alt=""
+       style="filter: blur({blur}px) saturate(.32)"></div>
   <div class="shot" style="width: {shot_w}px"><img src="{photo}" alt="{alt}"
        style="width: {img_w}px; margin: {img_y}px 0 0 {img_x}px;
               -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 {fade}%);"></div>
-  <div class="veil" style="background: linear-gradient(180deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.05) 34%, rgba(255,255,255,.10) 100%)"></div>
+  <div class="veil" style="background: linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.02) 34%, rgba(255,255,255,.04) 100%)"></div>
   <div class="veil" style="background: {veil}"></div>
   <div class="col">
     <div class="mark">
@@ -225,13 +226,14 @@ FLYERS = [
         # the crop is 625x1800, laid in at its own scale so it reaches from
         # x=400 to the right edge, hung 130px low to keep the dark headland
         # out of the top corner
-        shot_w=624, img_w=624, img_x=0, img_y=0, fade=44,
+        haze=.62, blur=58,
+        shot_w=624, img_w=624, img_x=0, img_y=0, fade=22,
         # the wash is tilted: it reaches further across the dark headland at the
         # top, where the headline crosses the photograph, and clears at the
         # bottom where the surfer is
-        veil=("linear-gradient(101deg, rgba(240,241,245,.97) 0%, rgba(240,241,245,.95) 33%,"
-              " rgba(240,241,245,.74) 45%, rgba(240,241,245,.30) 57%,"
-              " rgba(240,241,245,0) 70%)"),
+        veil=("linear-gradient(101deg, rgba(240,241,245,.81) 0%, rgba(240,241,245,.74) 26%,"
+              " rgba(240,241,245,.52) 38%, rgba(240,241,245,.20) 48%,"
+              " rgba(240,241,245,0) 58%)"),
         headline="Board<br>Rentals",
         lede="Ride any wave. Any level.<br>Any day.",
         cta="Rent your board",
@@ -250,9 +252,11 @@ FLYERS = [
         # the crop is 694x1800; at 1536 tall it is 592 wide. the surfer's head
         # sits on its left edge, so the photograph keeps almost full strength
         # from the very first pixel and the veil alone does the dissolving
+        haze=.62, blur=58,
         shot_w=592, img_w=592, img_x=0, img_y=0, fade=12,
-        veil=("linear-gradient(90deg, rgba(240,241,245,.94) 0%, rgba(240,241,245,.84) 18%,"
-              " rgba(240,241,245,.55) 30%, rgba(240,241,245,.18) 42%, rgba(240,241,245,0) 52%)"),
+        veil=("linear-gradient(97deg, rgba(240,241,245,.80) 0%, rgba(240,241,245,.72) 20%,"
+              " rgba(240,241,245,.50) 32%, rgba(240,241,245,.16) 44%,"
+              " rgba(240,241,245,0) 54%)"),
         headline="Surf<br>Lessons",
         lede="From your first wave to<br>your best wave.",
         cta="Book your lesson",
@@ -281,6 +285,8 @@ def build(flyer):
         title=flyer["title"],
         photo=flyer["photo"],
         alt=flyer["alt"],
+        haze=flyer["haze"],
+        blur=flyer["blur"],
         shot_w=flyer["shot_w"],
         img_w=flyer["img_w"],
         img_x=flyer["img_x"],
