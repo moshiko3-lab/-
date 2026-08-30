@@ -73,7 +73,13 @@ body {
 
 .panel { position: relative; overflow: hidden; padding: 0.42in 0.34in 0.40in; }
 .panel.sea { background: $sea; color: $onink; }
+.panel.aqua { background: $aqua; }
 .panel.sand { background: $sand; }
+
+/* Every band ends in a wave instead of a rule. Right angles everywhere is
+   what made the last version read as an estate agent's brochure. */
+.band .edge { position: absolute; left: 0; right: 0; bottom: -1px; height: 0.5in; }
+.band .edge svg { display: block; width: 100%; height: 100%; }
 .screen { position: absolute; inset: 0; width: 100%; height: 100%; }
 .band { position: absolute; left: 0; right: 0; overflow: hidden; }
 .pic { display: block; width: 100%; height: 100%; overflow: hidden; }
@@ -85,22 +91,26 @@ body {
   font-family: Archivo, sans-serif; font-variation-settings: "wdth" 116, "wght" 800;
   text-transform: uppercase; letter-spacing: -.004em; line-height: .94; margin: 0;
 }
-h2.d { font-size: 27px; }
+h2.d { font-size: 32px; }
 .script {
-  font-family: "Kaushan Script", cursive; font-size: 27px; line-height: 1.06;
-  color: $amber; margin: 3px 0 0; letter-spacing: .005em;
+  font-family: "Kaushan Script", cursive; font-size: 30px; line-height: 1.04;
+  color: $rose; margin: 2px 0 0; letter-spacing: .005em;
 }
+.sea .script { color: $amber; }
+.aqua .script { color: $ink; }
 .eyebrow {
-  font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 7.6px;
+  font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 8px;
   letter-spacing: .2em; text-transform: uppercase; color: $rose; margin: 0;
 }
-.sea .eyebrow { color: $pink; }
+.sea .eyebrow { color: $amber; }
+.aqua .eyebrow { color: $ink; }
 .meta {
   font-family: "IBM Plex Mono", monospace; font-size: 7.4px; letter-spacing: .16em;
   text-transform: uppercase; color: $ink3; margin: 0;
 }
 .sea .meta { color: $onink2; }
-p.en { font-size: 9.4px; line-height: 1.5; color: $ink2; margin: 0; }
+.aqua .meta { color: rgba(6,50,65,.82); }
+p.en { font-size: 9.8px; line-height: 1.5; color: $ink2; margin: 0; }
 p.es { font-size: 8.8px; line-height: 1.48; color: $ink3; margin: 3px 0 0; }
 .sea p.en { color: $onink2; }
 .sea p.es { color: $onink3; }
@@ -114,28 +124,41 @@ p.es { font-size: 8.8px; line-height: 1.48; color: $ink3; margin: 3px 0 0; }
 /* The reference's move, and a good one: everything that is a group of facts
    sits in its own rounded card rather than between two hairlines. */
 .card {
-  background: $paper; border-radius: 11px; padding: 9px 12px 10px; margin-top: 8px;
+  background: $sand; border-radius: 12px; padding: 8px 11px 9px; margin-top: 7px;
 }
-.sea .card { background: rgba(241,235,224,.07); }
+.sea .card { background: rgba(255,255,255,.09); }
+.aqua .card { background: rgba(255,255,255,.34); }
 .card.sand { background: $sand; }
+/* the three camps, in three colours, because a run of identical grey cards is
+   a price list and a run of coloured ones is a poster */
+.card.hot { background: $pink; }
+.card.hot h3, .card.hot .numrow b { color: #fff; }
+.card.hot h3 small { color: rgba(255,255,255,.8); }
+.card.sun { background: $amber; }
+.card.sun h3, .card.sun .numrow b { color: $ink; }
+.card.sun h3 small { color: rgba(6,50,65,.62); }
+.card.wet { background: $aqua; }
+.card.wet h3, .card.wet .numrow b { color: #fff; }
+.card.wet h3 small { color: rgba(255,255,255,.82); }
 .card h3 {
   margin: 0; font-family: Archivo, sans-serif;
   font-variation-settings: "wdth" 106, "wght" 700;
-  font-size: 10.6px; letter-spacing: .02em; text-transform: uppercase;
+  font-size: 10.8px; letter-spacing: .02em; text-transform: uppercase;
 }
 .card h3 small {
   display: block; font-family: "IBM Plex Mono", monospace; font-weight: 400;
   font-size: 7px; letter-spacing: .13em; color: $ink3; margin-top: 3px;
 }
 .sea .card h3 small { color: $onink3; }
-.card p { margin: 6px 0 0; }
-.card p.en { font-size: 8.7px; line-height: 1.4; }
-.card p.es { font-size: 8.2px; line-height: 1.38; margin-top: 3px; }
+.card p { margin: 5px 0 0; }
+.card p.en { font-size: 8.5px; line-height: 1.36; }
+.card p.es { font-size: 8px; line-height: 1.34; margin-top: 3px; }
 
 .rowlist { list-style: none; margin: 9px 0 0; padding: 0; }
 .rowlist li { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; }
 .rowlist li + li { border-top: 1px solid $rule; }
-.sea .rowlist li + li { border-color: rgba(241,235,224,.16); }
+.sea .rowlist li + li { border-color: rgba(255,255,255,.2); }
+.aqua .rowlist li + li { border-color: rgba(6,50,65,.2); }
 .rowlist b {
   font-family: Archivo, sans-serif; font-variation-settings: "wdth" 104, "wght" 700;
   font-size: 9.6px; letter-spacing: .02em; text-transform: uppercase;
@@ -152,10 +175,13 @@ p.es { font-size: 8.8px; line-height: 1.48; color: $ink3; margin: 3px 0 0; }
   font-size: 19px; letter-spacing: -.015em; color: $rose;
 }
 .sea .numrow b { color: $pink; }
+.numrow b { font-size: 23px; }
 .numrow span {
   font-family: "IBM Plex Mono", monospace; font-size: 7px; letter-spacing: .14em;
   color: $ink3;
 }
+.card.hot .numrow span, .card.wet .numrow span { color: rgba(255,255,255,.8); }
+.card.sun .numrow span { color: rgba(6,50,65,.6); }
 .sea .numrow span { color: $onink3; }
 
 .stats { display: flex; gap: 0; border-top: 2px solid $ink; padding-top: 8px; margin-top: 10px; }
@@ -182,10 +208,11 @@ p.es { font-size: 8.8px; line-height: 1.48; color: $ink3; margin: 3px 0 0; }
   border-top: 1px solid $rule; padding-top: 6px;
   display: flex; justify-content: space-between;
 }
-.sea .foot { border-color: rgba(241,235,224,.2); }
+.sea .foot { border-color: rgba(255,255,255,.22); }
+.aqua .foot { border-color: rgba(6,50,65,.22); }
 
 /* ---------------------------------------------------------------- cover --- */
-.cover .sunband { position: absolute; left: 0; right: 0; top: 0.52in; height: 3.3in; }
+.cover .sunband { position: absolute; left: 0; right: 0; top: 0.42in; height: 3.2in; }
 .cover .band { bottom: 0; height: 3.62in; }
 .cover .mark { position: relative; }
 .cover .mark img { width: 0.62in; height: 0.62in; object-fit: contain; }
@@ -206,21 +233,28 @@ p.es { font-size: 8.8px; line-height: 1.48; color: $ink3; margin: 3px 0 0; }
 .patch svg { display: block; width: 100%; transform: rotate(-8deg); }
 
 /* ----------------------------------------------------------------- back --- */
-.back .qrcard { background: $paper; border-radius: 12px; padding: 11px; margin-top: 12px; }
+.back .qrcard { background: $paper; border-radius: 14px; padding: 12px; margin-top: 12px; }
 .back .qrcard .qr { width: 100%; height: auto; display: block; }
 .back .url {
-  margin-top: 11px; font-family: "IBM Plex Mono", monospace; font-size: 9.6px;
-  letter-spacing: .04em; color: $onink;
+  margin-top: 11px; font-family: "IBM Plex Mono", monospace; font-size: 10.4px;
+  letter-spacing: .04em; color: $ink;
 }
-.back .mail { margin-top: 5px; font-size: 8.8px; color: $onink2; }
-.back .mail b { font-family: "IBM Plex Mono", monospace; font-weight: 400; color: $onink; }
-.back .racks { margin-top: 14px; border-top: 1px solid rgba(241,235,224,.2); padding-top: 9px; }
+.back .mail { margin-top: 5px; font-size: 9.2px; color: $ink; }
+.back .mail b { font-family: "IBM Plex Mono", monospace; font-weight: 400; color: $ink; }
+.back .racks { margin-top: 14px; border-top: 1px solid rgba(6,50,65,.22); padding-top: 9px; }
 .back .racks span {
   display: block; margin-top: 6px; font-family: Archivo, sans-serif;
   font-variation-settings: "wdth" 100, "wght" 600;
-  font-size: 8.2px; letter-spacing: .05em; line-height: 1.72; color: $onink2;
+  font-size: 8.4px; letter-spacing: .05em; line-height: 1.72; color: $ink;
 }
 """)
+
+
+def edge(fill, seed=2):
+    """The wave that eats into the bottom of a band, cut in the colour of the
+    panel underneath it."""
+    return ('<span class="edge">%s</span>'
+            % art.wave_edge(360, 48, fill, seed=seed, flip=True, amp=0.62))
 
 
 def screen(colour, opacity):
@@ -276,7 +310,7 @@ def panel_cover(logo):
 def panel_find(logo):
     b, q = C.BOOK, quiver.read()
     return """
-<div class="panel sea back">
+<div class="panel aqua back">
   %s
   <div class="inner">
     <p class="eyebrow">%s</p>
@@ -306,7 +340,7 @@ def panel_before():
     items = "".join('<div class="card"><p class="en">%s</p><p class="es">%s</p></div>'
                     % it for it in k["items"])
     return """
-<div class="panel sand before">
+<div class="panel before">
   <div class="inner">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:9px">%s</h2>
@@ -344,41 +378,43 @@ def panel_water():
                     for it in s["items"])
     return """
 <div class="panel water">
-  <div class="band" style="top:0;height:1.34in">%s</div>
-  <div class="inner" style="margin-top:1.06in">
+  <div class="band" style="top:0;height:1.52in">%s%s</div>
+  <div class="inner" style="margin-top:1.30in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:9px">%s</h2>
-    <p class="script" style="font-size:22px">%s</p>
+    <p class="script" style="font-size:24px">%s</p>
     <p class="eyebrow" style="margin-top:12px">%s</p>
     <ul class="rowlist">%s</ul>
     %s
   </div>
   <div class="foot"><p class="meta">%s</p><p class="meta">01</p></div>
-</div>""" % (picture("surf"), s["eyebrow"], s["title_en"], C.COVER["water_script"],
+</div>""" % (picture("surf"), edge(P["paper"], 2), s["eyebrow"], s["title_en"], C.COVER["water_script"],
              g["eyebrow"], start, cards, C.FOLIO[2])
 
 
 def panel_week():
     c, b = C.CAMPS, C.BEYOND
-    camps = "".join('<div class="card"><div class="numrow"><b>%s</b><span>%s</span></div>'
+    tone = ("wet", "hot", "sun")
+    camps = "".join('<div class="card %s"><div class="numrow"><b>%s</b><span>%s</span></div>'
                     '<h3 style="margin-top:5px">%s<small>%s</small></h3></div>'
-                    % (num, unit, en, es)
-                    for en, es, num, unit, ben, bes in c["groups"][:3])
+                    % (tone[i], num, unit, en, es)
+                    for i, (en, es, num, unit, ben, bes) in enumerate(c["groups"][:3]))
     rest = "".join('<li><b>%s</b><small>%s</small></li>' % (en, es)
                    for en, es, ben, bes in b["items"])
     return """
-<div class="panel sand week">
-  <div class="band" style="top:0;height:1.34in">%s</div>
-  <div class="inner" style="margin-top:1.06in">
+<div class="panel week">
+  <div class="band" style="top:0;height:1.52in">%s%s</div>
+  <div class="inner" style="margin-top:1.30in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:9px">%s</h2>
-    <p class="script" style="font-size:22px">%s</p>
+    <p class="script" style="font-size:24px">%s</p>
     %s
     <p class="eyebrow" style="margin-top:13px">%s</p>
     <ul class="rowlist">%s</ul>
   </div>
   <div class="foot"><p class="meta">%s</p><p class="meta">02</p></div>
-</div>""" % (picture("camps"), c["eyebrow"], c["title_en"], C.COVER["week_script"], camps,
+</div>""" % (picture("camps"), edge(P["paper"], 5), c["eyebrow"], c["title_en"],
+             C.COVER["week_script"], camps,
              b["eyebrow"], rest, C.FOLIO[3])
 
 
@@ -391,11 +427,11 @@ def panel_rack():
                      % b for b in h["blocks"][:3])
     return """
 <div class="panel rack">
-  <div class="band" style="top:0;height:1.34in">%s</div>
-  <div class="inner" style="margin-top:1.06in">
+  <div class="band" style="top:0;height:1.52in">%s%s</div>
+  <div class="inner" style="margin-top:1.30in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:9px">%s</h2>
-    <p class="script" style="font-size:22px">%s</p>
+    <p class="script" style="font-size:24px">%s</p>
     <div class="stats">
       <div><b>%d</b><small>%s</small></div>
       <div><b>%s</b><small>%s</small></div>
@@ -408,7 +444,8 @@ def panel_rack():
   </div>
   <div class="foot"><p class="meta">%s</p><p class="meta">03</p></div>
 </div>""" % (
-        picture("boards"), r["eyebrow"], r["title_en"], C.COVER["rack_script"],
+        picture("boards"), edge(P["paper"], 9),
+        r["eyebrow"], r["title_en"], C.COVER["rack_script"],
         q["total"], r["stat_boards"][0],
         "%s–%s" % (q["shortest"], q["longest"]), r["stat_range"][0],
         len(q["shapers"]), r["stat_shapers"][0],

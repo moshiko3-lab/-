@@ -697,3 +697,26 @@ def foil(w, h, deep="#0A2129", body="#17515E", foam="#F5F0E6", ground=None):
              % (foam, w * .005, bx - w * .015, sea + h * .012,
                 -w * .15, h * .016, -w * .32, h * .004))
     return _svg(w, h, "".join(p), ground)
+
+
+def wave_edge(w, h, fill, seed=2, flip=False, amp=0.55):
+    """A block of colour whose bottom edge is a wave rather than a rule.
+
+    This is the single most surf-looking piece of furniture a page can have,
+    and its absence is most of why the last version read as an estate agent's
+    brochure: everything there met everything else at a right angle."""
+    rnd = _rng(seed)
+    ph = [rnd() * math.tau for _ in range(3)]
+    top, base = (h, h * (1 - amp)) if flip else (0.0, h * amp)
+    pts = []
+    for i in range(41):
+        x = w * i / 40.0
+        u = x / w * math.tau
+        y = base + h * amp * 0.42 * (math.sin(u * 1.0 + ph[0])
+                                     + .42 * math.sin(u * 2.3 + ph[1])
+                                     + .18 * math.sin(u * 3.7 + ph[2])) / 1.6
+        pts.append("%.1f %.1f" % (x, y))
+    d = ("M0 %.1fL" % top) + "L".join(pts) + ("L%.1f %.1fZ" % (w, top))
+    return ('<svg class="art" viewBox="0 0 %.0f %.0f" preserveAspectRatio="none" '
+            'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+            '<path d="%s" fill="%s"/></svg>' % (w, h, d, fill))

@@ -48,19 +48,19 @@ import quiver  # noqa: E402
 # cream, which the storefront pink is not.
 # --------------------------------------------------------------------------
 P = {
-    # the water
-    "sea": "#0F2C34", "sea2": "#17515E", "tube": "#0A2129",
-    # the beach
-    "paper": "#F6F1E7", "sand": "#E9DCC6", "rule": "#D9C9AE",
-    # type on the beach, and on the water
-    "ink": "#14262C", "ink2": "#45585F", "ink3": "#8A9AA0",
-    "onink": "#F1EBE0", "onink2": "#A7BDC2", "onink3": "#6E888F",
-    # the accents. The pink is the school's; the amber and the coral are the
-    # hour it is worth surfing, and the reason the page stops reading as a
-    # design studio's and starts reading as a surf shop's.
-    "pink": "#F46E95", "rose": "#D24870",
-    "amber": "#F2A03D", "coral": "#F4735C", "sun": "#EFA24E",
-    # the quiver chart's two series
+    # The water, and it is the Pacific at midday rather than the North Sea at
+    # dusk. The muted version of this palette -- deep teal, sand, cream -- is
+    # what an estate agent's brochure is made of, which is exactly what the
+    # last one looked like. Surf print is bright, saturated and high contrast,
+    # so the ground is white, the blue is turquoise and the sun is yellow.
+    "sea": "#06384E", "sea2": "#0E7C9B", "aqua": "#14B4D2", "tube": "#04283A",
+    "paper": "#FFFFFF", "sand": "#E6F6FA", "rule": "#C9E7EF",
+    "ink": "#063241", "ink2": "#3B6070", "ink3": "#7BA0AD",
+    "onink": "#FFFFFF", "onink2": "#BCE6F1", "onink3": "#79A6B5",
+    # the school's pink, the hour worth surfing, and the sun
+    "pink": "#F46E95", "rose": "#E23A6C",
+    "amber": "#FFC531", "coral": "#FF6B4A", "sun": "#FFC531",
+    # the quiver chart's two series, checked against the panel they sit on
     "chart_a": "#0A8AA1", "chart_b": "#C93F68",
 }
 
@@ -96,10 +96,10 @@ SLOTS = {
     "boards": lambda: art.boards_row(1200, 380, stroke=P["ink"],
                                      ground=P["sand"], width=1.05),
     "shop":   lambda: art.stripes(1200, 260, ground=P["paper"],
-                                  colours=(P["amber"], "#F4894C", P["coral"],
+                                  colours=(P["amber"], P["coral"],
                                            P["pink"], P["rose"])),
-    "back":   lambda: art.wave(1000, 640, deep=P["sea"], body="#153F4A",
-                               foam="#295A65", spray="#295A65", rider=False,
+    "back":   lambda: art.wave(1000, 640, deep=P["sea"], body="#0B5C78",
+                               foam="#14809E", spray="#14809E", rider=False,
                                ground=P["sea"]),
 }
 PHOTO_TYPES = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png", ".webp": "webp"}
@@ -202,6 +202,13 @@ PAGE_PX = {"letter": (816, 1056), "a4": (794, 1123)}
 _SIZE = ["letter"]
 
 
+def edge(fill, seed=2):
+    """The wave that eats into the bottom of a band, cut in the colour of the
+    page underneath it."""
+    return ('<span class="edge">%s</span>'
+            % art.wave_edge(360, 56, fill, seed=seed, flip=True, amp=0.6))
+
+
 def screen(colour, opacity):
     """The dot screen a page wears over its flat colour."""
     w, h = PAGE_PX[_SIZE[0]]
@@ -237,6 +244,10 @@ body {
    so a printer that cannot go borderless loses trim and never a word. */
 .frame { position: absolute; left: $m; right: $m; top: $mt; bottom: $mb; }
 .band { position: absolute; left: 0; right: 0; overflow: hidden; }
+/* Bands end in a wave, not a rule. A page where every element meets every
+   other at a right angle is a property listing, whatever colour it is. */
+.band .edge { position: absolute; left: 0; right: 0; bottom: -1px; height: 0.62in; }
+.band .edge svg { display: block; width: 100%; height: 100%; }
 .pic { display: block; width: 100%; height: 100%; overflow: hidden; }
 img.pic { object-fit: cover; }
 .pic svg { display: block; width: 100%; height: 100%; }
@@ -590,7 +601,7 @@ def cover_page(logo):
   <div class="patch">%s</div>
 </section>""" % (
         art.sunset(1000, 780, ground=None,
-                   colours=(P["amber"], "#F4894C", P["coral"], P["pink"], P["rose"])),
+                   colours=(P["amber"], P["coral"], P["pink"], P["rose"])),
         picture("cover"), screen(P["paper"], .13),
         logo, c["est"], c["wordmark"],
         c["rule_en"], c["rule_es"], c["place"], c["coords"],
@@ -654,7 +665,7 @@ def surf_page():
     <div class="rows two" style="margin-top:26px">%s</div>
   </div>
   %s
-</section>""" % (picture("surf"), s["eyebrow"], s["title_en"], s["title_es"],
+</section>""" % (picture("surf") + edge(P["sea"], 3), s["eyebrow"], s["title_en"], s["title_es"],
                  g["eyebrow"], guide, _rows(s["items"]), folio(2))
 
 
@@ -680,7 +691,7 @@ def camps_page():
     <p class="meta" style="margin-top:4px;max-width:6in">%s</p>
   </div>
   %s
-</section>""" % (picture("camps"), c["eyebrow"], c["title_en"], c["title_es"],
+</section>""" % (picture("camps") + edge(P["sea"], 6), c["eyebrow"], c["title_en"], c["title_es"],
                  c["lede_en"], c["lede_es"], cells,
                  c["note_en"], c["note_es"], folio(3))
 
@@ -710,7 +721,7 @@ def shop_page():
     </div>
   </div>
   %s
-</section>""" % (picture("shop"), h["eyebrow"], h["title_en"], h["title_es"],
+</section>""" % (picture("shop") + edge(P["paper"], 19), h["eyebrow"], h["title_en"], h["title_es"],
                  h["lede_en"], h["lede_es"], blocks,
                  P["ink2"], h["note_en"], h["note_es"],
                  qr_svg(C.BOOKING_URL, "1.06in", quiet=2, light=P["paper"]),
@@ -737,7 +748,7 @@ def beyond_page():
     </div>
   </div>
   %s
-</section>""" % (picture("beyond"), b["eyebrow"],
+</section>""" % (picture("beyond") + edge(P["paper"], 11), b["eyebrow"],
                  b["title_en"].replace("\n", " "), b["title_es"],
                  _rows(b["items"]),
                  qr_svg(C.BOOKING_URL, "1.06in", quiet=2, light=P["paper"]),

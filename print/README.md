@@ -137,14 +137,27 @@ them. Surf print is a screen-printed medium and has been since the sixties:
 flat inks, a dot screen where a photograph would be, stripes, and a patch
 sewn on somewhere. All four are in `art.py` and all four are on the cover.
 
-The palette is the water rather than the brand sheet -- deep sea, sand and
-bone, with the storefront's pink kept as the accent it is good at, and amber
-and coral behind it for the hour worth surfing. A page that is mostly pink
-reads as a flyer and a page that is mostly cream reads as a spa. The display
-face is Archivo set wide and heavy, where a fine serif at the same size reads
-as a boutique hotel however well it is set. Figtree, the storefront's own sans,
-does the reading; IBM Plex Mono does the labels, the numbers and the type that
-runs round the patches.
+The palette is the water at midday, not at dusk: white ground, turquoise,
+yellow, the storefront's pink. It got there by way of a wrong turn worth
+recording -- deep teal on sand and cream, tastefully muted, which is precisely
+what an estate agent's brochure is made of and precisely what this looked like.
+Surf print is bright, saturated and high contrast, and the fix was to stop
+being tasteful about it.
+
+Two things carry most of that. Colour: nothing on these pages is desaturated,
+and the three camps are three different colours rather than three grey cards,
+because a run of identical cards is a price list and a run of coloured ones is
+a poster. And the wave edge in `art.py`: every band ends in a wave instead of a
+rule, because a page where every element meets every other at a right angle is
+a property listing whatever colour it is. The one band that keeps its straight
+edge is the rack -- the boards already give it an organic bottom, and a wave
+cut through them eats their tails.
+
+The display face is Archivo set wide and heavy, where a fine serif at the same
+size reads as a boutique hotel however well it is set. Figtree, the
+storefront's own sans, does the reading; IBM Plex Mono does the labels, the
+numbers and the type that runs round the patches; Kaushan Script does one line
+per panel on the tri-fold.
 
 One thing about the dot screen is worth knowing before anyone tunes it. Its
 dots are drawn, not tiled from an SVG `<pattern>`: Chromium rasterises a
