@@ -44,8 +44,11 @@ jobs:
           mkdir -p site
           python3 app/build.py --out site/index.html
           python3 app/build.py --minisite --out site/book.html
-          # the address the school actually uses; Pages reads this file
-          cp CNAME site/CNAME
+          # The address the school uses, when there is one: Pages reads this
+          # file and answers to the name in it. Without the file the site stays
+          # on its github.io address -- so the copy is conditional, or removing
+          # the domain breaks the build that was meant to remove it.
+          [ -f CNAME ] && cp CNAME site/CNAME || echo "no custom domain"
           ls -l site
       - name: Refuse to publish anything carrying real people
         run: python3 .github/no_pii.py site
