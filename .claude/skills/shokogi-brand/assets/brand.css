@@ -1,0 +1,121 @@
+/* SHOKOGI brand stylesheet.
+   Tokens first, then type, then the pieces every artboard reuses.
+   The screen values are the ones already shipping in app/app_template.html and
+   app/minisite_template.html -- do not drift from them, or the flyer and the
+   booking page stop looking like the same school. */
+
+:root{
+  /* Pink. --pink-500 is the interface accent; the printed badge in the logo is
+     --pink-logo, very slightly duller, and that is the one to match on paper. */
+  --pink-50:#fef6f9; --pink-100:#fdebf0; --pink-200:#fcd6e1; --pink-300:#fab6ca;
+  --pink-400:#f792b0; --pink-500:#f46e95; --pink-600:#c85a7a; --pink-700:#9c465f;
+  --pink-800:#6e3143; --pink-900:#441f2a;
+  --pink-logo:#e37695;
+  --pink-ui:#e04b78;        /* the accent light-mode UI already uses for links */
+
+  /* Slate. The cool counterweight; the app's rail and the booking page's chrome. */
+  --slate-50:#f3f4f5; --slate-100:#e3e5e7; --slate-200:#c8cbcf; --slate-300:#9ca2aa;
+  --slate-400:#6a747f; --slate-500:#394654; --slate-600:#2f3945; --slate-700:#242d36;
+  --slate-800:#1a1f26; --slate-900:#101418;
+
+  /* Ground and ink. Warm off-whites, near-black with a trace of plum in it --
+     a pure #000 next to this pink reads as cheap. */
+  --paper:#f7f5f6; --paper-2:#faf7f8; --paper-3:#f2ecee; --white:#fff;
+  --ink:#121011; --ink-2:#5c5257; --ink-3:#8d8288;
+  --line:#e6dfe2; --line-soft:#efe9eb;
+
+  --good:#1f7a4d; --good-soft:#e4f4eb;
+  --warn:#9a6a10; --warn-soft:#fbf0d9;
+  --crit:#b23a2c; --crit-soft:#fbe7e4;
+
+  --font-display:"Figtree",-apple-system,"Segoe UI",system-ui,sans-serif;
+  --font-he:"Heebo","Figtree",-apple-system,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+
+  --shadow:0 1px 2px rgba(18,16,17,.05),0 10px 26px -14px rgba(18,16,17,.22);
+  --shadow-lg:0 20px 60px -20px rgba(18,16,17,.35);
+  --r:12px; --r-sm:6px;
+}
+
+/* Screens only. Print never inverts: paper is paper. */
+@media screen{
+  :root[data-theme="dark"], :root:not([data-theme="light"]) .dark{
+    --paper:#131012; --paper-2:#1c181a; --paper-3:#211c1f;
+    --ink:#f4eff1; --ink-2:#b3a7ac; --ink-3:#867a80;
+    --line:#332c30; --line-soft:#282225;
+    --pink-ui:#f46e95;
+    --good:#5ec98d; --warn:#e0ae4a; --crit:#f0705c;
+  }
+}
+
+/* --- type ------------------------------------------------------------------
+   The school's voice is short uppercase Latin, widely tracked, very heavy --
+   it comes off the hexagon badge and holds a poster from across a beach bar.
+   Set it at 700-900, never below 13px, and let it breathe.
+   Hebrew has no uppercase and resents tracking, so it carries the same weight
+   at normal tracking instead; that is what [lang=he] below does. */
+
+.display{font-family:var(--font-display);font-weight:900;text-transform:uppercase;
+  letter-spacing:.10em;line-height:1.02}
+.eyebrow{font-family:var(--font-display);font-weight:700;text-transform:uppercase;
+  letter-spacing:.16em;font-size:12px;color:var(--ink-3)}
+.lede{font-family:var(--font-display);font-weight:500;line-height:1.45;color:var(--ink-2)}
+.body{font-family:var(--font-display);font-weight:400;line-height:1.55}
+.figure{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600}
+
+[lang="he"], [dir="rtl"]{font-family:var(--font-he)}
+[lang="he"] .display,[dir="rtl"] .display{letter-spacing:0;text-transform:none;font-weight:900;
+  line-height:1.15}
+[lang="he"] .eyebrow,[dir="rtl"] .eyebrow{letter-spacing:.02em;text-transform:none;font-weight:700}
+[dir="rtl"]{text-align:right}
+
+/* A scale, not a free-for-all. Pick a step; do not interpolate.
+   Print steps are in mm-aware px: at 96dpi 1mm = 3.78px. */
+.t-hero{font-size:76px}   .t-h1{font-size:48px}  .t-h2{font-size:32px}
+.t-h3{font-size:22px}     .t-body{font-size:15px} .t-small{font-size:13px}
+.t-micro{font-size:11px;letter-spacing:.12em}
+
+/* --- artboard --------------------------------------------------------------
+   Every printed piece is one .sheet at exactly the page size, and the page
+   itself is declared in the document's own @page rule. font-size:0 on the
+   wrapper stops a stray newline from spilling a blank second page. */
+html,body{margin:0;padding:0}
+/* The wrapper is a canvas, not text, so it stays ltr even on a Hebrew page:
+   chromium will not open a window narrower than 500px, and an rtl body parks
+   the artboard against the right edge of that window where the render crop
+   cannot reach it. The sheet takes the document's direction back below. */
+body.artboard{font-size:0;background:#8d8288;direction:ltr}  /* grey = off-sheet, never prints */
+html[dir="rtl"] body.artboard>.sheet{direction:rtl}
+.sheet{position:relative;overflow:hidden;background:var(--paper);color:var(--ink);
+  font-family:var(--font-display);font-size:15px;box-sizing:border-box}
+.sheet.ink{background:var(--slate-900);color:var(--white);--ink:#fff;--ink-2:#c8cbcf;--ink-3:#9ca2aa}
+.sheet.pink{background:var(--pink-500);color:var(--ink)}   /* ink on pink, not white */
+
+/* Safety: keep everything that must survive a trim inside .safe, and let
+   backgrounds run past the edge into .bleed. */
+.safe{position:absolute;inset:12mm}
+.bleed{position:absolute;inset:-3mm}
+
+/* --- logo ------------------------------------------------------------------
+   The badge is pink and unboxed, so it disappears on a pink field. On anything
+   that is not near-white, put it in the white chip -- the same solution the
+   booking page header already uses. Clear space is a third of its width. */
+.logo{display:block;width:28mm;height:auto}
+.logo-chip{display:inline-flex;align-items:center;justify-content:center;
+  background:#fff;border-radius:var(--r);padding:3mm}
+.logo-chip .logo{width:22mm}
+.wordmark{font-family:var(--font-display);font-weight:900;text-transform:uppercase;
+  letter-spacing:.22em}
+.wordmark small{display:block;font-weight:600;letter-spacing:.14em;font-size:.42em;opacity:.85}
+
+/* --- pieces ----------------------------------------------------------------*/
+.rule{height:2px;background:var(--pink-500);border:0;width:56px;margin:0}
+.chip{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.12em;padding:5px 10px;border-radius:999px;
+  background:var(--pink-100);color:var(--pink-700)}
+.btn{display:inline-block;font-weight:800;text-transform:uppercase;letter-spacing:.09em;
+  font-size:13px;padding:12px 20px;border-radius:var(--r-sm);
+  background:var(--pink-700);color:#fff;text-decoration:none}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-sm);
+  box-shadow:var(--shadow);padding:16px}
+.price{font-family:var(--font-mono);font-weight:600;font-variant-numeric:tabular-nums}

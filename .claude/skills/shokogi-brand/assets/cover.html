@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- SHOKOGI screen artboard: social post, story, page cover, link preview.
+     Set --w and --h below to the preset you are rendering, then:
+       python3 render.py cover.html --preset ig-post --out cover.png
+     The sizes are in css pixels and must match the preset, or render.py will
+     crop the picture rather than the picture filling the frame.
+       ig-post 1080x1080 · ig-story 1080x1920 · fb-cover 1640x624
+       yt-banner 2560x1440 · li-banner 1584x396 · og 1200x630 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shokogi cover</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<style>
+  :root{--w:1080px;--h:1080px}
+  .sheet{width:var(--w);height:var(--h);background:var(--slate-900);color:#fff;
+    display:flex;flex-direction:column;justify-content:space-between;padding:64px}
+  /* The pink arrives as light, not as a panel: one wash keeps the badge the
+     brightest pink object in the frame. */
+  .sheet:before{content:"";position:absolute;right:-15%;top:-25%;width:90%;height:90%;
+    border-radius:50%;mix-blend-mode:screen;
+    background:radial-gradient(closest-side,rgba(244,110,149,.9),rgba(244,110,149,.12) 62%,transparent 78%)}
+  .row{position:relative;z-index:1;display:flex;align-items:center;gap:22px}
+  .row .logo-chip{padding:14px;border-radius:18px}
+  .row .logo-chip .logo{width:84px}
+  .row .wordmark{font-size:28px;color:#fff}
+  h1{position:relative;z-index:1;margin:0;font-size:104px;color:#fff;max-width:14ch}
+  .foot{position:relative;z-index:1;display:flex;align-items:baseline;
+    justify-content:space-between;gap:24px}
+  .foot .cta{font-weight:900;text-transform:uppercase;letter-spacing:.10em;font-size:30px;
+    color:var(--pink-300)}
+  .foot .where{font-family:var(--font-mono);font-size:20px;color:var(--slate-300)}
+
+  /* Wide banners have no room for a stacked layout: one line, centred. */
+  @media (min-aspect-ratio:2/1){
+    .sheet{flex-direction:row;align-items:center;padding:0 72px;gap:48px}
+    h1{font-size:56px;max-width:none;flex:1}
+    .foot{flex-direction:column;align-items:flex-end;gap:6px}
+  }
+</style>
+</head>
+<body class="artboard">
+<div class="sheet">
+  <div class="row">
+    <span class="logo-chip"><img class="logo" src="logo.png" alt="Shokogi"></span>
+    <span class="wordmark">Shokogi<small>Playa Venao · Panama</small></span>
+  </div>
+  <h1 class="display">Surf lessons every morning</h1>
+  <div class="foot">
+    <span class="cta">Book online</span>
+    <span class="where">shokogimanager.com</span>
+  </div>
+</div>
+</body>
+</html>

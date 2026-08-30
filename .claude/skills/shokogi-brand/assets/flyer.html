@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- SHOKOGI A4 flyer. Copy it next to brand.css, fonts.css and logo.png, edit the
+     text, render with scripts/render.py --preset a4.
+     For a Hebrew flyer set <html lang="he" dir="rtl"> and translate; brand.css
+     switches to Heebo and drops the Latin tracking on its own. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shokogi flyer</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<style>
+  @page{size:210mm 297mm;margin:0}
+  .sheet{width:210mm;height:297mm}
+
+  .hero{position:absolute;inset:0 0 auto 0;height:150mm;background:var(--slate-900);
+    color:#fff;overflow:hidden}
+  /* A wash of the brand pink instead of a flat block: the badge is a small pink
+     object, so a poster that is 40% pink swallows it. */
+  .hero:after{content:"";position:absolute;right:-40mm;bottom:-70mm;width:160mm;height:160mm;
+    border-radius:50%;mix-blend-mode:screen;
+    background:radial-gradient(closest-side,rgba(244,110,149,.85),rgba(244,110,149,.1) 60%,transparent 76%)}
+  .hero .inner{position:relative;z-index:1;padding:16mm 16mm 0}
+  .hero .top{display:flex;align-items:center;gap:6mm;margin-bottom:22mm}
+  .hero .wordmark{font-size:16px;color:#fff}
+  .hero h1{margin:0;color:#fff;font-size:82px}
+  .hero .sub{margin:6mm 0 0;color:var(--pink-300);font-size:17px;max-width:120mm}
+
+  .body-half{position:absolute;left:0;right:0;top:150mm;bottom:0;padding:14mm 16mm 0;
+    background:var(--paper);font-size:15px}
+  .offers{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin:8mm 0 0}
+  .offer{border:1px solid var(--line);border-radius:6px;background:#fff;padding:6mm}
+  .offer h3{margin:0 0 2mm;font-size:15px;text-transform:uppercase;letter-spacing:.09em;
+    font-weight:800;color:var(--pink-700)}
+  .offer p{margin:0 0 4mm;color:var(--ink-2);font-size:13px;line-height:1.5}
+  .offer .price{font-size:26px;color:var(--ink)}
+  .offer .price span{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+
+  .foot{position:absolute;left:0;right:0;bottom:0;height:26mm;background:var(--pink-500);
+    color:var(--ink);display:flex;align-items:center;justify-content:space-between;
+    padding:0 16mm}
+  .foot .call{font-weight:900;text-transform:uppercase;letter-spacing:.10em;font-size:19px}
+  .foot .where{font-family:var(--font-mono);font-size:12px;font-weight:600}
+</style>
+</head>
+<body class="artboard">
+<div class="sheet">
+
+  <div class="hero">
+    <div class="inner">
+      <div class="top">
+        <span class="logo-chip"><img class="logo" src="logo.png" alt="Shokogi"></span>
+        <span class="wordmark">Shokogi<small>Playa Venao · Panama</small></span>
+      </div>
+      <h1 class="display">Learn to<br>surf here</h1>
+      <p class="sub lede">Small groups, warm water and an empty point break —
+        the same coaches since 2009.</p>
+    </div>
+  </div>
+
+  <div class="body-half">
+    <span class="eyebrow">This season</span>
+    <div class="offers">
+      <div class="offer">
+        <h3>Group lesson</h3>
+        <p>Two hours, board and rash guard included, four surfers to a coach.</p>
+        <div class="price figure">$45<span> / person</span></div>
+      </div>
+      <div class="offer">
+        <h3>Private coaching</h3>
+        <p>One coach, one surfer, video of every wave you catch.</p>
+        <div class="price figure">$90<span> / session</span></div>
+      </div>
+      <div class="offer">
+        <h3>Five-day camp</h3>
+        <p>Daily sessions, theory, tides and a board to keep using all week.</p>
+        <div class="price figure">$320<span> / week</span></div>
+      </div>
+      <div class="offer">
+        <h3>Board hire</h3>
+        <p>Soft-tops and performance shortboards, by the day or the fortnight.</p>
+        <div class="price figure">$20<span> / day</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="call">Book online</span>
+    <span class="where">shokogimanager.com · Playa Venao</span>
+  </div>
+
+</div>
+</body>
+</html>
