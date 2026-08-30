@@ -26,6 +26,11 @@ COVER = {
     # the school's own pin, off app/catalog.json, in the notation a surf guide
     # would use rather than the decimal one a database stores
     "coords": "07°25′42″ N · 80°11′23″ W",
+    # the words that go round the patch on the cover
+    "patch_top": "SHOKOGI SURF SCHOOL",
+    "patch_bottom": "PLAYA VENAO PANAMA",
+    "patch2_top": "SCHOOL SINCE 2009",
+    "patch2_bottom": "EVERY LEVEL WELCOME",
 }
 
 # ------------------------------------------------------------- 2. the place

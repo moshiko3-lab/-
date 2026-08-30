@@ -55,8 +55,11 @@ P = {
     # type on the beach, and on the water
     "ink": "#14262C", "ink2": "#45585F", "ink3": "#8A9AA0",
     "onink": "#F1EBE0", "onink2": "#A7BDC2", "onink3": "#6E888F",
-    # the two accents: the school's pink, and the hour it is worth surfing
-    "pink": "#F46E95", "rose": "#D24870", "sun": "#EFA24E",
+    # the accents. The pink is the school's; the amber and the coral are the
+    # hour it is worth surfing, and the reason the page stops reading as a
+    # design studio's and starts reading as a surf shop's.
+    "pink": "#F46E95", "rose": "#D24870",
+    "amber": "#F2A03D", "coral": "#F4735C", "sun": "#EFA24E",
     # the quiver chart's two series
     "chart_a": "#0A8AA1", "chart_b": "#C93F68",
 }
@@ -73,15 +76,20 @@ SIZES = {"letter": ("8.5in", "11in"), "a4": ("210mm", "297mm")}
 # fill the same box the same way -- dropping a photo in changes no layout.
 # --------------------------------------------------------------------------
 SLOTS = {
+    # no ground on the cover's wave: the striped sun is behind it and has to
+    # show through everywhere the water is not
     "cover":  lambda: art.wave(1000, 640, deep=P["tube"], body=P["sea2"],
-                               foam=P["paper"], ground=P["sea"]),
+                               foam=P["paper"]),
     "place":  lambda: art.lineup(1200, 482, ink=P["ink"], line=P["rose"],
                                  ground=P["sand"]),
     "surf":   lambda: art.swell(1200, 560, seed=5, lines=13, stroke=P["pink"],
                                 ground=P["sea2"], width=1.9, opacity=.95),
-    "beyond": lambda: art.contours(1200, 400, seed=91, lines=20, stroke=P["rose"],
-                                   ground=P["sand"], width=.8, opacity=.85,
-                                   grid=(190, 70)),
+    # the same disc as the cover, but only its crown, coming up out of the
+    # bottom of the band -- a different sight of the same sun rather than the
+    # cover's picture used twice
+    "beyond": lambda: art.stripes(1200, 300, ground=P["sand"],
+                                  colours=(P["amber"], "#F4894C", P["coral"],
+                                           P["pink"], P["rose"])),
     "boards": lambda: art.boards_row(1200, 300, stroke=P["ink"],
                                      ground=P["sand"], width=1.0),
     "back":   lambda: art.wave(1000, 640, deep=P["sea"], body="#153F4A",
@@ -184,6 +192,16 @@ def rule():
     return '<span class="hr"></span>'
 
 
+PAGE_PX = {"letter": (816, 1056), "a4": (794, 1123)}
+_SIZE = ["letter"]
+
+
+def screen(colour, opacity):
+    """The dot screen a page wears over its flat colour."""
+    w, h = PAGE_PX[_SIZE[0]]
+    return art.halftone(w, h, colour=colour, opacity=opacity)
+
+
 CSS = Template("""
 $fonts
 
@@ -250,7 +268,15 @@ h2.d.big { font-size: 54px; }
 }
 .sea .meta { color: $onink3; }
 
-.hr { display: block; width: 40px; height: 3px; background: $pink; margin: 18px 0; }
+/* the rule is four stripes now, not one bar: the same 1972 idea shrunk to
+   the size of a divider */
+.hr {
+  display: block; width: 62px; height: 9px; margin: 18px 0;
+  background: linear-gradient(to bottom,
+    $amber 0 2.4px, transparent 2.4px 3.6px,
+    $coral 3.6px 5.6px, transparent 5.6px 6.6px,
+    $pink 6.6px 8.2px, transparent 8.2px 9px);
+}
 
 p.en { font-size: 11.4px; line-height: 1.62; color: $ink2; margin: 0; }
 p.es { font-size: 11px; line-height: 1.6; color: $ink3; margin: 0; }
@@ -270,27 +296,41 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
 .sea .folio .n { color: $pink; }
 
 /* ---------------------------------------------------------------- cover ---
-   The wave sits along the bottom on its own ground, which is the page's, so
-   there is no seam; the name takes the flat water above it. */
-.cover .band { left: 0; right: 0; bottom: 0; height: 6.3in; }
+   Three layers, back to front: the striped sun, the water, the name. The sun
+   is the oldest thing in surf print and the reason this page stops looking
+   like a brochure and starts looking like something off a shop wall. */
+.cover .sunband { position: absolute; left: 0; right: 0; top: 0.42in; height: 6.1in; }
+.cover .band { left: 0; right: 0; bottom: 0; height: 4.35in; }
+/* the dot screen, over the flat colour on every page that has any. Without
+   a width and a height an inline <svg> is 300x150 and the screen covers one
+   corner of the sheet, which is exactly what it did the first time. */
+.screen { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cover .top {
   position: absolute; left: $m; right: $m; top: 0.62in;
   display: flex; align-items: center; justify-content: space-between;
 }
 .cover .top img { width: 0.62in; height: 0.62in; object-fit: contain; }
-.cover .lockup { position: absolute; left: $m; right: $m; top: 2.58in; }
+.cover .lockup { position: absolute; left: $m; right: $m; top: 5.62in; }
 .cover .lockup b {
   display: block; font-family: Archivo, sans-serif;
   font-variation-settings: "wdth" 122, "wght" 800;
-  font-size: 92px; line-height: .88; letter-spacing: -.012em;
-  text-transform: uppercase; color: $onink;
+  font-size: 96px; line-height: .86; letter-spacing: -.016em;
+  text-transform: uppercase; color: $paper;
 }
 .cover .lockup .sub { margin-top: 4px; color: $onink2; letter-spacing: .26em; font-size: 9.4px; }
-.cover .lockup .where { margin-top: 9px; color: $onink3; letter-spacing: .2em; font-size: 8.4px; }
+.cover .lockup .where { margin-top: 9px; color: $onink2; letter-spacing: .2em; font-size: 8.4px; }
+.cover .patch { position: absolute; right: 0.66in; bottom: 0.62in; width: 1.34in; }
+.cover .patch svg { display: block; width: 100%; transform: rotate(-9deg); }
 
 /* -------------------------------------------------------------- opening --- */
 .opening .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.42in; margin-top: 26px; }
 .opening .band { top: 5.78in; height: 3.42in; }
+/* the patch goes on the water, not over the words: it overlapped the Spanish
+   column the first time and made a paragraph unreadable */
+.opening .patch {
+  position: absolute; right: 0.74in; top: 7.82in; width: 1.28in;
+}
+.opening .patch svg { display: block; width: 100%; transform: rotate(7deg); }
 .opening .facts {
   position: absolute; left: $m; right: $m; bottom: 0.98in;
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
@@ -476,6 +516,7 @@ def build(size="letter"):
     raw = base64.b64encode(open(os.path.join(ROOT, "app", "logo.png"), "rb").read()).decode()
     logo = '<img src="data:image/png;base64,%s" alt="Shokogi">' % raw
 
+    _SIZE[0] = size
     css = CSS.substitute(fonts=fonts, w=w, h=h, m="0.72in", mt="0.72in", mb="0.72in", **P)
     pages = [cover_page(logo), opening_page(), surf_page(),
              beyond_page(), rentals_page(), back_page(logo)]
@@ -488,7 +529,9 @@ def cover_page(logo):
     c = C.COVER
     return """
 <section class="page sea cover">
+  <div class="sunband">%s</div>
   <div class="band">%s</div>
+  %s
   <div class="top">
     %s
     <p class="meta">%s</p>
@@ -499,8 +542,15 @@ def cover_page(logo):
     <p class="meta sub">%s &nbsp;·&nbsp; %s</p>
     <p class="meta where">%s &nbsp;·&nbsp; %s</p>
   </div>
-</section>""" % (picture("cover"), logo, c["est"], c["wordmark"],
-                 c["rule_en"], c["rule_es"], c["place"], c["coords"])
+  <div class="patch">%s</div>
+</section>""" % (
+        art.sunset(1000, 780, ground=None,
+                   colours=(P["amber"], "#F4894C", P["coral"], P["pink"], P["rose"])),
+        picture("cover"), screen(P["paper"], .13),
+        logo, c["est"], c["wordmark"],
+        c["rule_en"], c["rule_es"], c["place"], c["coords"],
+        art.stamp(120, c["patch_top"], c["patch_bottom"], P["paper"],
+                  mark='<path d="%s" fill="%s"/>' % (hexagon(0, 0, 26), P["pink"])))
 
 
 def opening_page():
@@ -518,6 +568,7 @@ def opening_page():
     </div>
   </div>
   <div class="band">%s</div>
+  <div class="patch">%s</div>
   <div class="facts">%s</div>
   %s
 </section>""" % (
@@ -525,7 +576,12 @@ def opening_page():
         o["display_es"].replace("\n", " "),
         "".join('<p class="en">%s</p>' % t for t in o["body_en"]),
         "".join('<p class="es">%s</p>' % t for t in o["body_es"]),
-        picture("place"), facts, folio(1))
+        picture("place"),
+        art.stamp(120, C.COVER["patch2_top"], C.COVER["patch2_bottom"], P["ink"],
+                  id_="st2",
+                  mark='<text text-anchor="middle" y="13" font-family="Archivo" '
+                       'font-size="38" font-weight="800" fill="%s">09</text>' % P["ink"]),
+        facts, folio(1))
 
 
 def _rows(items, start=1):
@@ -611,7 +667,8 @@ def rentals_page():
   </div>
   %s
 </section>""" % (
-        picture("boards"), r["eyebrow"], r["title_en"], r["title_es"],
+        picture("boards"),
+        r["eyebrow"], r["title_en"], r["title_es"],
         r["lede_en"], r["lede_es"], stats,
         art.quiver_chart(980, 248, q["rows"], hard_c=P["chart_a"], soft_c=P["chart_b"],
                          ink=P["ink"], muted=P["ink3"], surface=P["paper"],
@@ -630,6 +687,7 @@ def back_page(logo):
     return """
 <section class="page sea back">
   <div class="band">%s</div>
+  %s
   <div class="inner">
     %s
     <h2 class="d">%s</h2>
@@ -645,7 +703,8 @@ def back_page(logo):
   </div>
   <p class="meta stamp">%s &nbsp;·&nbsp; %s &nbsp;·&nbsp; %s</p>
 </section>""" % (
-        picture("back"), logo, b["title_en"], b["body_en"], b["body_es"],
+        picture("back"), screen(P["paper"], .10),
+        logo, b["title_en"], b["body_en"], b["body_es"],
         k["eyebrow"], know,
         '<span class="pic">%s</span>' % art.tide(420, 84, stroke=P["rose"],
                                                  ground=P["paper"], width=1.0),

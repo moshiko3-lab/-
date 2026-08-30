@@ -477,3 +477,124 @@ def _bar(x, y, w, h, fill, round_right=True, r=4.0):
     return ('<path fill="%s" d="M%.1f %.1fH%.1fa%.1f %.1f 0 0 1 %.1f %.1f'
             'V%.1fa%.1f %.1f 0 0 1 %.1f %.1fH%.1fZ"/>'
             % (fill, x, y, x + w - r, r, r, r, r, y + h - r, r, r, -r, r, x))
+
+
+# --------------------------------------------------------------------------
+# Screen-print furniture
+#
+# What was missing was not another drawing, it was the grit around them. Surf
+# print is a screen-printed medium and always has been: flat inks, halftone
+# where a photograph would be, stripes, and a patch stitched on somewhere. All
+# three of the pieces below exist to be layered over and under everything else.
+# --------------------------------------------------------------------------
+def halftone(w, h, cell=12.0, r=1.85, colour="#F5F0E6", opacity=0.15, angle=22.0):
+    """A dot screen. Laid over a flat colour it gives the field the tooth a
+    solid fill never has, and it survives a printer that a gradient would band
+    all over.
+
+    The dots are drawn, not tiled from an SVG <pattern>: Chromium rasterises a
+    pattern fill on its way into a PDF, and at print size the screen came out
+    as soft grey squares instead of dots. Some thousands of circles in one path
+    is more markup and compresses to nothing, and it stays vector all the way
+    to the plate."""
+    rad = math.radians(angle)
+    ca, sa = math.cos(rad), math.sin(rad)
+    diag = math.hypot(w, h)
+    d, j = [], 0
+    y = -diag
+    while y < diag:
+        x = -diag
+        # every other row offset, which is what makes it a screen and not a grid
+        off = (cell / 2.0) if (j % 2) else 0.0
+        while x < diag:
+            px = (x + off) * ca - y * sa + w / 2.0
+            py = (x + off) * sa + y * ca + h / 2.0
+            if -cell < px < w + cell and -cell < py < h + cell:
+                d.append("M%.1f %.1fm%.2f 0a%.2f %.2f 0 1 0 %.2f 0a%.2f %.2f 0 1 0 %.2f 0"
+                         % (px, py, -r, r, r, r * 2, r, r, -r * 2))
+            x += cell
+        y += cell * 0.866
+        j += 1
+    return ('<svg class="screen" viewBox="0 0 %.0f %.0f" preserveAspectRatio="none" '
+            'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+            '<path d="%s" fill="%s" fill-opacity="%s"/></svg>'
+            % (w, h, "".join(d), colour, opacity))
+
+
+def sunset(w, h, bands=22, cy=0.60, r=0.46, colours=("#F2A03D", "#F4894C",
+                                                     "#F4735C", "#F4557F", "#E23F73"),
+           ground=None, id_="sun"):
+    """The striped disc every surf shop has had on a wall since about 1972:
+    solid at the crown and coming apart into bands on the way down. Bands sit
+    on an even pitch and lose thickness as they fall, so the gaps open by
+    themselves -- an evenly striped circle is a beach ball."""
+    cx, cyy, rr = w / 2.0, h * cy, min(w, h) * r
+    top, pitch = cyy - rr, (2.0 * rr) / bands
+    out = ['<defs><clipPath id="%s"><circle cx="%.1f" cy="%.1f" r="%.1f"/>'
+           '</clipPath></defs>' % (id_, cx, cyy, rr)]
+    out.append('<g clip-path="url(#%s)">' % id_)
+    for i in range(bands):
+        t = i / float(bands - 1)
+        th = pitch * (1.0 - 0.88 * t ** 0.85)
+        col = colours[min(int(t * len(colours)), len(colours) - 1)]
+        out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>'
+                   % (cx - rr - 2, top + i * pitch, rr * 2 + 4, max(th, 0.6), col))
+    out.append('</g>')
+    return _svg(w, h, "".join(out), ground)
+
+
+def stamp(r, top_text, bottom_text, fg, mark=None, size=None, id_="st",
+          track=0.16):
+    """A patch. Type set round a ring is the most surf-looking thing a page can
+    carry that is not a photograph, and it is the school's own words going
+    round it rather than decoration.
+
+    Both arcs run left to right -- the top one clockwise over the crown, the
+    bottom one anticlockwise under the foot -- which is what keeps the lower
+    words the right way up. Sweeping both the same way is the classic mistake
+    and prints the bottom half upside down."""
+    size = size or r * 0.14
+    ring = r * 0.775
+    mid = ('<g transform="translate(%.1f %.1f)">%s</g>' % (r, r, mark)) if mark else ""
+    dot = ('<circle cx="%.1f" cy="%.1f" r="%.2f" fill="%s"/>'
+           '<circle cx="%.1f" cy="%.1f" r="%.2f" fill="%s"/>'
+           % (r - ring, r, r * 0.022, fg, r + ring, r, r * 0.022, fg))
+
+    def ring_text(path_id, text):
+        return ('<text font-family="IBM Plex Mono, monospace" font-size="%.2f" '
+                'font-weight="500" letter-spacing="%.2f" fill="%s">'
+                '<textPath href="#%s" startOffset="50%%" text-anchor="middle">%s'
+                '</textPath></text>' % (size, size * track, fg, path_id, text))
+
+    return (
+        '<svg class="stamp" viewBox="0 0 %.1f %.1f" xmlns="http://www.w3.org/2000/svg">'
+        '<defs>'
+        '<path id="%s-t" fill="none" d="M%.1f %.1fA%.1f %.1f 0 0 1 %.1f %.1f"/>'
+        '<path id="%s-b" fill="none" d="M%.1f %.1fA%.1f %.1f 0 0 0 %.1f %.1f"/>'
+        '</defs>'
+        '<circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" stroke="%s" stroke-width="%.2f"/>'
+        '<circle cx="%.1f" cy="%.1f" r="%.1f" fill="none" stroke="%s" stroke-width="%.2f"/>'
+        '%s%s%s%s</svg>'
+    ) % (r * 2, r * 2,
+         id_, r - ring, r, ring, ring, r + ring, r,
+         id_, r - ring, r, ring, ring, r + ring, r,
+         r, r, r * 0.965, fg, r * 0.042,
+         r, r, r * 0.60, fg, r * 0.026,
+         ring_text(id_ + "-t", top_text), ring_text(id_ + "-b", bottom_text),
+         dot, mid)
+
+
+def stripes(w, h, colours=("#F2A03D", "#F4894C", "#F4735C", "#F4557F"),
+            ground=None, n=11, lean=1.25):
+    """A band of them on an even pitch, losing thickness as they fall so the
+    ground opens up underneath. The other half of the same 1972 idea as the
+    disc, and the thing that turns a rule between two sections into a piece of
+    surf furniture rather than a line."""
+    out, pitch = [], h / float(n)
+    for i in range(n):
+        t = i / float(n - 1)
+        th = pitch * (0.62 - 0.56 * t ** lean)
+        out.append('<rect x="0" y="%.2f" width="%.1f" height="%.2f" fill="%s"/>'
+                   % (i * pitch, w, max(th, 0.6),
+                      colours[min(int(t * len(colours)), len(colours) - 1)]))
+    return _svg(w, h, "".join(out), ground)

@@ -25,11 +25,11 @@ and a drawing fill the same box the same way, so the type does not move.
 
 | file     | where it goes                      | shape           | 300 dpi     |
 |----------|------------------------------------|-----------------|-------------|
-| `cover`  | across the bottom of the cover     | 8.5 × 6.3 in    | 2550 × 1890 |
+| `cover`  | across the bottom of the cover     | 8.5 × 4.35 in   | 2550 × 1305 |
 | `place`  | across the lower half of p. 2      | 8.5 × 3.42 in   | 2550 × 1026 |
-| `surf`   | across the top of p. 3             | 8.5 × 4.02 in   | 2550 × 1206 |
+| `surf`   | across the top of p. 3             | 8.5 × 3.36 in   | 2550 × 1008 |
 | `beyond` | across the top of p. 4             | 8.5 × 2.72 in   | 2550 × 816  |
-| `boards` | across the top of p. 5             | 8.5 × 2.125 in  | 2550 × 638  |
+| `boards` | across the top of p. 5             | 8.5 × 1.78 in   | 2550 × 534  |
 | `back`   | across the bottom of the back      | 8.5 × 4.0 in    | 2550 × 1200 |
 
 Every one of them is a wide band, which is the shape a phone takes a photograph
@@ -50,6 +50,11 @@ screen.
   rather than over them, so a photograph there does not have to survive a wash
   -- but it does have to sit next to that colour. Something with water in it,
   shot late, works; a bright midday shot will fight the page.
+* **The cover's drawing has no background of its own**, because the striped sun
+  is behind it and shows through everywhere the water is not. A photograph does
+  have a background, so dropping one into `cover` covers the lower half of that
+  sun. That is fine -- a real wave beats a drawn one -- but it is a different
+  cover, and worth looking at before printing a hundred.
 * **`boards` currently draws the eight rental boards in the order the list
   under it names them**, so it reads as a key as well as a picture. A
   photograph of the actual rack, in that order, does the same job better --

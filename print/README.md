@@ -51,6 +51,9 @@ export shape would print zeroes rather than an error.
   eighth of an inch; no type sits there, so it costs picture and nothing else.
 * **Six pages is three sheets, printed both sides.** Folded and stapled it is a
   booklet; loose in a folder or a stand it still reads in order.
+* **The file is around 5 MB**, most of it the dot screen on the two poster
+  pages. That is normal for print and small for a shop; it is only worth
+  mentioning because emailing it may need a link rather than an attachment.
 * **Matte or silk stock, 170 gsm or better**, if a shop is doing it. Pages one,
   three and six are solid deep ink edge to edge -- thin paper shows them
   through from the other side, and cheap paper drinks that much ink and goes
@@ -73,14 +76,27 @@ and it is worth as much as it is accurate.
 
 ## Where the look comes from
 
-It is meant to read as a surf school's booklet and not as a hotel's. That is
-mostly two decisions. The palette is the water rather than the brand sheet --
-deep sea, sand and bone, with the storefront's pink kept as the accent it is
-good at and one warm amber behind it; a page that is mostly pink reads as a
-flyer, and a page that is mostly cream reads as a spa. And the display face is
-Archivo set wide and heavy, where a fine serif at the same size reads as a
-boutique hotel however well it is set. Figtree, the storefront's own sans, does
-the reading; IBM Plex Mono does the labels and the numbers.
+It is meant to read as a surf school's booklet and not as a hotel's, and what
+finally got it there was not another drawing -- it was the furniture around
+them. Surf print is a screen-printed medium and has been since the sixties:
+flat inks, a dot screen where a photograph would be, stripes, and a patch
+sewn on somewhere. All four are in `art.py` and all four are on the cover.
+
+The palette is the water rather than the brand sheet -- deep sea, sand and
+bone, with the storefront's pink kept as the accent it is good at, and amber
+and coral behind it for the hour worth surfing. A page that is mostly pink
+reads as a flyer and a page that is mostly cream reads as a spa. The display
+face is Archivo set wide and heavy, where a fine serif at the same size reads
+as a boutique hotel however well it is set. Figtree, the storefront's own sans,
+does the reading; IBM Plex Mono does the labels, the numbers and the type that
+runs round the patches.
+
+One thing about the dot screen is worth knowing before anyone tunes it. Its
+dots are drawn, not tiled from an SVG `<pattern>`: Chromium rasterises a
+pattern on its way into a PDF, and at print size the screen came out as soft
+grey squares rather than dots. Some thousands of real circles stay vector all
+the way to the plate -- and cost about three megabytes, which is why the screen
+is on the two poster pages and not on the four with paragraphs on them.
 
 The logo comes straight out of `app/logo.png`, so the mark on paper cannot
 drift from the mark on screen, and its hexagon is reused for the bullets and
