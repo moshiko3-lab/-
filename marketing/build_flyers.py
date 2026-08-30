@@ -115,9 +115,9 @@ html, body {{ width: {W}px; height: {H}px; overflow: hidden; background: #888; }
 
 /* the headline */
 .head {{
-  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 116px;
+  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 151px;
   line-height: 1.047; letter-spacing: .05em; color: {PINK}; text-transform: uppercase;
-  margin-left: -6px;
+  margin-left: -8px;
 }}
 .head-dash {{ width: 36px; height: 2px; background: {PINK}; }}
 
@@ -222,10 +222,16 @@ FLYERS = [
         title="Shokogi — Board Rentals",
         photo="../photos/rentals.jpg",
         alt="A surfer trimming along a green wave on a soft-top longboard",
-        # the crop is 625x1800; at 1536 tall it is 533 wide and sits on the right
-        shot_w=533, img_w=533, img_x=0, img_y=0, fade=34,
-        veil=("linear-gradient(90deg, rgba(240,241,245,.97) 0%, rgba(240,241,245,.95) 34%,"
-              " rgba(240,241,245,.62) 50%, rgba(240,241,245,0) 66%)"),
+        # the crop is 625x1800, laid in at its own scale so it reaches from
+        # x=400 to the right edge, hung 130px low to keep the dark headland
+        # out of the top corner
+        shot_w=624, img_w=624, img_x=0, img_y=0, fade=44,
+        # the wash is tilted: it reaches further across the dark headland at the
+        # top, where the headline crosses the photograph, and clears at the
+        # bottom where the surfer is
+        veil=("linear-gradient(101deg, rgba(240,241,245,.97) 0%, rgba(240,241,245,.95) 33%,"
+              " rgba(240,241,245,.74) 45%, rgba(240,241,245,.30) 57%,"
+              " rgba(240,241,245,0) 70%)"),
         headline="Board<br>Rentals",
         lede="Ride any wave. Any level.<br>Any day.",
         cta="Rent your board",
