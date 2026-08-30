@@ -4564,6 +4564,15 @@ function renderBoard(){
   cog.title="Agenda settings";
   cog.addEventListener("click",agendaSettingsForm);
   top.appendChild(cog);
+  /* the same day, read the other way */
+  var lay=el("button","btn sm",boardLayout==="list"?"Board":"List");
+  lay.id="btn-layout";
+  lay.title=boardLayout==="list"
+    ? "Back to the board with the hours and the tide"
+    : "The same day as a list, for one hand on the beach";
+  lay.addEventListener("click",function(){
+    setBoardLayout(boardLayout==="list"?"grid":"list");});
+  top.appendChild(lay);
   var ns=el("button","btn primary","+ Session");
   ns.addEventListener("click",function(){sessionForm(null,boardDate);});
   top.appendChild(ns);
@@ -4573,12 +4582,14 @@ function renderBoard(){
   if(boardTab==="accommodation"){ host.appendChild(accomBoard(boardDate)); return; }
 
   var shell=el("div");
-  /* On a phone the grid and the rail cannot both have the width, and the grid
-     is the one that needs it. They stack, and the day is drawn as a list. */
+  /* On a phone the board and the rail cannot both have the width, so they
+     stack -- but the board is still the board: the same hours, the same tide
+     over them, the same blocks to drag. It scrolls sideways inside its own
+     panel rather than dragging the page with it. */
   shell.style.cssText = narrow()
     ? "display:grid;grid-template-columns:minmax(0,1fr);gap:14px"
     : "display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px";
-  if(narrow()){
+  if(boardLayout==="list"){
     var ph=el("div");
     for(var d0=0;d0<boardSpan;d0++) ph.appendChild(boardDayList(addDays(boardDate,d0)));
     shell.appendChild(ph);
@@ -4587,9 +4598,10 @@ function renderBoard(){
     return;
   }
   var wrap=el("div","panel");
-  wrap.style.cssText="overflow-x:auto;overflow-y:visible;padding:0";
+  wrap.style.cssText="overflow-x:auto;overflow-y:visible;padding:0;min-width:0";
   var stack=el("div");
-  stack.style.cssText="min-width:1100px";
+  /* narrower on a phone -- the same grid, with less of it off the edge */
+  stack.style.cssText="min-width:"+(narrow()?"860":"1100")+"px";
   var any=false;
   for(var i=0;i<boardSpan;i++){
     var day=addDays(boardDate,i);
@@ -4614,6 +4626,18 @@ function renderBoard(){
    is in it and who is taking it. */
 function narrow(){
   try{ return matchMedia("(max-width: 820px)").matches; }catch(e){ return false; }
+}
+/* The board is the board on every screen. The list is a second way of reading
+   the same day -- useful on the beach with one hand -- so it is a choice that
+   is remembered, not something a screen width decides for you. */
+var boardLayout=(function(){
+  try{ return localStorage.getItem("shokogi.boardLayout")==="list"?"list":"grid"; }
+  catch(e){ return "grid"; }
+})();
+function setBoardLayout(v){
+  boardLayout=v;
+  try{ localStorage.setItem("shokogi.boardLayout",v); }catch(e){}
+  renderBoard();
 }
 function boardDayList(dayISO){
   var box=el("div","panel");
@@ -4718,7 +4742,8 @@ function addDays(dateStr,n){
    it, and a lane per session. Dragging moves a block within its own day --
    each day has its own axis, so there is nothing to drop onto in another. */
 function boardDay(dayISO){
-  var LABEL=205;
+  /* the name column costs half a phone screen at its full width */
+  var LABEL=narrow()?116:205;
   var span=(BOARD_TO-BOARD_FROM)*60;
   var box=el("div");
   box.style.cssText="border-bottom:2px solid var(--line)";
@@ -5194,7 +5219,7 @@ function unitBusy(unitId,dateStr,startMins,endMins,skipLine){
   return clash;
 }
 function rentalBoard(dateStr){
-  var LABEL=205;
+  var LABEL=narrow()?116:205;
   var span=(BOARD_TO-BOARD_FROM)*60;
   var box=el("div");
 
@@ -5456,7 +5481,7 @@ function hireCard(x,dateStr){
 
 function boardRentalTab(){
   var box=el("div");
-  if(narrow()){
+  if(boardLayout==="list"){
     box.appendChild(rentalList(boardDate));
     return box;
   }

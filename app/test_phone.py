@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """The app on a phone.
 
-A fourteen-hour grid on a four-inch screen is a grid nobody reads, and that is
-what the board was: it simply did not appear. On a narrow screen the same day
-is drawn as a list -- the hour, the session, who is taking it, who is in it --
-and the hires the same way, grouped by board with how long is left.
+The board is the board on every screen: the same hours, the same tide drawn
+over them, the same blocks to drag. On a phone it scrolls sideways inside its
+own panel -- what it must never do is drag the whole page with it, which is
+what it used to do, and which took the fixed header and its buttons off the
+screen.
 
-Checked at 390x844, which is a phone people actually hold, and then back at a
-laptop width to be sure the grid returns.
+The list is still there as a second way of reading the same day, one hand on
+the beach; it is a choice that is remembered, not something a screen width
+decides.
+
+Checked at 390x844, which is a phone people actually hold.
 """
 import os
 import subprocess
@@ -95,17 +99,34 @@ def main():
         pg.click('#tabs button[data-id="board"]')
         pg.wait_for_timeout(1500)
 
-        check("the day is drawn as a list", pg.locator(".dayrow").count() >= 1,
-              str(pg.locator(".dayrow").count()) + " rows")
-        check("and not as the wide grid",
-              pg.locator("[data-session-id]").count() == 0)
+        check("the board is the grid, as it is on a laptop",
+              pg.locator("[data-session-id]").count() >= 1,
+              str(pg.locator("[data-session-id]").count()) + " blocks")
+        blk = (pg.locator("[data-session-id]").first.inner_text() or "").lower()
+        check("a block names its session", "dawn patrol" in blk, blk[:120])
+        check("the tide is drawn over the hours",
+              pg.locator("#p-board svg").count() >= 1)
+        check("and the hours are there",
+              "08:00" in (pg.inner_text("#p-board") or ""),
+              (pg.inner_text("#p-board") or "")[:200])
 
+        # the same day the other way, and the choice is remembered
+        pg.click("#btn-layout")
+        pg.wait_for_timeout(900)
+        check("the list is one button away", pg.locator(".dayrow").count() >= 1,
+              str(pg.locator(".dayrow").count()) + " rows")
         row = (pg.locator(".dayrow").first.inner_text() or "").lower()
         check("a row carries the hour", "08:30" in row, row[:120])
-        check("and the session", "dawn patrol" in row, row[:120])
         check("and who is in it", "ana phone" in row, row[:120])
-        if seeded["staff"]:
-            check("and who is taking it", seeded["staff"].lower() in row, row[:160])
+        pg.reload()
+        pg.wait_for_timeout(2200)
+        pg.click('#tabs button[data-id="board"]')
+        pg.wait_for_timeout(1200)
+        check("and the choice survives a reload", pg.locator(".dayrow").count() >= 1,
+              str(pg.locator(".dayrow").count()) + " rows")
+        pg.click("#btn-layout")
+        pg.wait_for_timeout(1000)
+        check("back to the board", pg.locator("[data-session-id]").count() >= 1)
 
         # nothing may push the page sideways: that is what made it unreadable
         over = pg.evaluate("""() => {
@@ -123,10 +144,10 @@ def main():
         check("the board fits the screen",
               over["scroll"] <= over["w"] + 2, str(over))
 
-        # tapping a row opens the session
-        pg.locator(".dayrow").first.click()
+        # tapping a block opens the session card
+        pg.locator("[data-session-id]").first.click()
         pg.wait_for_timeout(700)
-        check("tapping a row opens the session card",
+        check("tapping a block opens the session card",
               pg.locator(".sess-pop").count() == 1)
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(300)
@@ -135,10 +156,12 @@ def main():
         pg.locator('#p-board button[data-tab="rental"]').click()
         pg.wait_for_timeout(1200)
         hire = (pg.inner_text("#p-board") or "").lower()
-        check("the hires are a list too", "ana phone" in hire and "a-one" in hire,
+        check("the hire board is a grid too, with the rack down the side",
+              "a-one" in hire and pg.locator("[data-unit-id]").count() >= 1,
               hire[:200])
-        check("with how long is left", "left" in hire or "late" in hire,
-              hire[:200])
+        check("and the hire is a block on it",
+              pg.locator("[data-hire-line]").count() >= 1,
+              str(pg.locator("[data-hire-line]").count()))
         check("and it fits too",
               pg.evaluate("() => document.documentElement.scrollWidth <= "
                           "document.documentElement.clientWidth + 2"))
