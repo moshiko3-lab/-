@@ -35,6 +35,7 @@ sys.path.insert(0, HERE)
 
 import art  # noqa: E402
 import content as C  # noqa: E402
+import quiver  # noqa: E402
 
 # --------------------------------------------------------------------------
 # The palette.
@@ -56,6 +57,8 @@ P = {
     "onink": "#F1EBE0", "onink2": "#A7BDC2", "onink3": "#6E888F",
     # the two accents: the school's pink, and the hour it is worth surfing
     "pink": "#F46E95", "rose": "#D24870", "sun": "#EFA24E",
+    # the quiver chart's two series
+    "chart_a": "#0A8AA1", "chart_b": "#C93F68",
 }
 
 SIZES = {"letter": ("8.5in", "11in"), "a4": ("210mm", "297mm")}
@@ -351,14 +354,66 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
   font-size: 10px; letter-spacing: .04em; color: $rose;
 }
 
-/* -------------------------------------------------------------- rentals --- */
-.rentals .band { top: 0; height: 2.125in; }
+/* ---------------------------------------------------------------- guide ---
+   The strip a surf brand puts in front of its wetsuits: four states a reader
+   might be in, and the one product that answers each. */
+.guide {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 0.28in;
+  border-top: 2px solid $onink; padding-top: 13px; margin-top: 20px;
+}
+.sea .guide { border-color: $onink; }
+.guide div + div { border-left: 1px solid rgba(241,235,224,.22); padding-left: 0.2in; }
+.guide b {
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 104, "wght" 700;
+  font-size: 10.5px; letter-spacing: .035em; text-transform: uppercase;
+}
+.guide small {
+  display: block; font-family: "IBM Plex Mono", monospace; font-size: 7.4px;
+  letter-spacing: .13em; color: $onink3; margin-top: 3px;
+}
+.guide p { margin: 8px 0 0; font-size: 10.2px; line-height: 1.45; color: $onink2; }
+.guide p i { display: block; font-style: normal; color: $onink3; font-size: 9.6px; margin-top: 3px; }
+
+/* --------------------------------------------------------------- quiver --- */
+.rentals .band { top: 0; height: 1.78in; }
+.stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 2px solid $ink; margin-top: 16px; padding-top: 11px;
+}
+.stats div + div { border-left: 1px solid $rule; padding-left: 0.24in; }
+.stats b {
+  display: block; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 116, "wght" 800;
+  font-size: 30px; line-height: 1; letter-spacing: -.015em;
+}
+.stats small {
+  display: block; margin-top: 5px; font-family: "IBM Plex Mono", monospace;
+  font-size: 7.8px; letter-spacing: .17em; text-transform: uppercase; color: $ink3;
+}
+.chart { margin-top: 15px; background: $paper; padding: 13px 16px 7px; }
+.chart .pic { height: 1.58in; }
+.chart figcaption {
+  margin-top: 4px; font-size: 9.4px; line-height: 1.5; color: $ink2;
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.chart figcaption i { font-style: normal; color: $ink3; }
+.racks { border-top: 1px solid $rule; margin-top: 16px; padding-top: 11px; }
+.racks b {
+  font-family: "IBM Plex Mono", monospace; font-size: 8.2px; letter-spacing: .17em;
+  text-transform: uppercase; color: $rose;
+}
+.racks span {
+  display: block; margin-top: 7px; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 100, "wght" 600;
+  font-size: 10.6px; letter-spacing: .055em; line-height: 1.7; color: $ink;
+}
 .chips {
   display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.42in;
   margin: 0; padding: 0; list-style: none;
 }
 .chips li {
-  border-top: 1px solid $rule; padding: 10px 0 11px;
+  border-top: 1px solid $rule; padding: 8px 0 9px;
   display: flex; align-items: baseline; gap: 10px;
 }
 .chips b {
@@ -370,37 +425,39 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
   color: $ink3; margin-left: auto;
 }
 
-.know { background: $paper; padding: 24px 28px 22px; }
-.know ul { list-style: none; margin: 12px 0 0; padding: 0; }
-.know li { display: flex; gap: 11px; padding: 7px 0; }
+/* the two things left to say, on the back where they are read last */
+.know { background: $paper; color: $ink; padding: 18px 22px 16px; text-align: left; }
+.know ul { list-style: none; margin: 10px 0 0; padding: 0; }
+.know li { display: flex; gap: 10px; padding: 6px 0; }
 .know li + li { border-top: 1px solid $rule; }
 .know .hex { width: 9px; height: 11px; flex: none; margin-top: 4px; }
 .know b {
   display: block; font-family: Archivo, sans-serif;
   font-variation-settings: "wdth" 100, "wght" 600;
-  font-size: 11.4px; line-height: 1.42;
+  font-size: 10.6px; line-height: 1.42;
 }
-.know small { display: block; font-size: 10px; color: $ink3; line-height: 1.45; margin-top: 2px; }
+.know small { display: block; font-size: 9.6px; color: $ink3; line-height: 1.45; margin-top: 2px; }
 .know figure {
-  margin: 16px 0 0; padding-top: 15px; border-top: 1px solid $rule;
-  display: flex; align-items: center; gap: 20px;
+  margin: 12px 0 0; padding-top: 12px; border-top: 1px solid $rule;
+  display: flex; align-items: center; gap: 16px;
 }
-.know figure .pic { width: 3.1in; height: 0.62in; flex: none; }
-.know figcaption { font-size: 9.6px; line-height: 1.5; color: $ink2; }
+.know figure .pic { width: 2.5in; height: 0.5in; flex: none; }
+.know figcaption { font-size: 9px; line-height: 1.45; color: $ink2; }
 .know figcaption i { display: block; font-style: normal; color: $ink3; margin-top: 2px; }
 
 /* ----------------------------------------------------------------- back --- */
 .back .band { left: 0; right: 0; bottom: 0; height: 4.0in; }
 .back .inner {
-  position: absolute; left: $m; right: $m; top: 1.28in;
+  position: absolute; left: $m; right: $m; top: 0.86in;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-.back .inner img { width: 0.92in; height: 0.92in; object-fit: contain; }
-.back .d { margin-top: 22px; font-size: 50px; }
-.back .say { max-width: 3.6in; margin: 16px 0 0; font-size: 11px; line-height: 1.6; color: $onink2; }
+.back .inner img { width: 0.78in; height: 0.78in; object-fit: contain; }
+.back .d { margin-top: 20px; font-size: 46px; }
+.back .say { max-width: 3.6in; margin: 13px 0 0; font-size: 11px; line-height: 1.6; color: $onink2; }
 .back .say i { display: block; font-style: normal; color: $onink3; font-size: 10.2px; margin-top: 5px; }
-.back .qrcard { margin-top: 26px; background: $paper; padding: 14px; }
-.back .qrcard .qr { width: 1.86in; height: 1.86in; display: block; }
+.back .know { margin-top: 22px; width: 4.5in; }
+.back .qrcard { margin-top: 20px; background: $paper; padding: 13px; }
+.back .qrcard .qr { width: 1.62in; height: 1.62in; display: block; }
 .back .url {
   margin-top: 18px; font-family: "IBM Plex Mono", monospace; font-size: 10.4px;
   letter-spacing: .06em; color: $onink;
@@ -481,21 +538,23 @@ def _rows(items, start=1):
 
 
 def surf_page():
-    s = C.SURF
+    s, g = C.SURF, C.START
+    guide = "".join('<div><b>%s</b><small>%s</small><p>%s<i>%s</i></p></div>' % it
+                    for it in g["items"])
     return """
 <section class="page sea surf">
-  <div class="band" style="top:0;height:4.02in">%s</div>
-  <div class="frame" style="top:4.58in">
+  <div class="band" style="top:0;height:3.36in">%s</div>
+  <div class="frame" style="top:3.92in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:14px">%s</h2>
     <p class="d sub">%s</p>
-    <p class="en" style="margin-top:16px;max-width:5.2in">%s</p>
-    <p class="es" style="margin-top:6px;max-width:5.2in">%s</p>
+    <p class="eyebrow" style="margin-top:24px">%s</p>
+    <div class="guide">%s</div>
     <div class="rows two" style="margin-top:26px">%s</div>
   </div>
   %s
 </section>""" % (picture("surf"), s["eyebrow"], s["title_en"], s["title_es"],
-                 s["lede_en"], s["lede_es"], _rows(s["items"]), folio(2))
+                 g["eyebrow"], guide, _rows(s["items"]), folio(2))
 
 
 def beyond_page():
@@ -525,41 +584,49 @@ def beyond_page():
 
 
 def rentals_page():
-    r, k = C.RENTALS, C.KNOW
+    r = C.RENTALS
+    q = quiver.read()
     chips = "".join('<li><b>%s</b><small>%s</small></li>' % it for it in r["items"])
-    hexb = ('<svg class="hex" viewBox="0 0 10 12" aria-hidden="true">'
-            '<path d="%s" fill="%s"/></svg>' % (hexagon(5, 6, 5), P["pink"]))
-    items = "".join('<li>%s<div><b>%s</b><small>%s</small></div></li>' % (hexb, en, es)
-                    for en, es in k["items"])
+    stats = "".join('<div><b>%s</b><small>%s · %s</small></div>' % st for st in (
+        (q["total"], r["stat_boards"][0], r["stat_boards"][1]),
+        ("%s–%s" % (q["shortest"], q["longest"]), r["stat_range"][0], r["stat_range"][1]),
+        (len(q["shapers"]), r["stat_shapers"][0], r["stat_shapers"][1])))
     return """
 <section class="page sand rentals">
   <div class="band">%s</div>
-  <div class="frame" style="top:2.72in">
+  <div class="frame" style="top:2.34in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:14px">%s</h2>
     <p class="d sub">%s</p>
-    <ul class="chips" style="margin-top:22px">%s</ul>
-    <p class="meta" style="margin-top:14px;color:%s">%s &nbsp;·&nbsp; %s</p>
-    <div class="know" style="margin-top:28px">
-      <p class="eyebrow">%s</p>
-      <ul>%s</ul>
-      <figure>
-        %s
-        <figcaption>%s<i>%s</i></figcaption>
-      </figure>
-    </div>
+    <p class="en" style="margin-top:14px;max-width:5.4in">%s</p>
+    <p class="es" style="margin-top:5px;max-width:5.4in">%s</p>
+    <div class="stats">%s</div>
+    <figure class="chart">
+      <span class="pic">%s</span>
+      <figcaption><span>%s</span><i>%s</i></figcaption>
+    </figure>
+    <div class="racks"><b>%s &nbsp;·&nbsp; %s</b><span>%s</span></div>
+    <ul class="chips" style="margin-top:18px">%s</ul>
+    <p class="meta" style="margin-top:12px;color:%s">%s &nbsp;·&nbsp; %s</p>
   </div>
   %s
 </section>""" % (
         picture("boards"), r["eyebrow"], r["title_en"], r["title_es"],
-        chips, P["ink2"], r["note_en"], r["note_es"], k["eyebrow"], items,
-        '<span class="pic">%s</span>' % art.tide(420, 84, stroke=P["rose"],
-                                                 ground=P["paper"], width=1.0),
-        k["tide_caption_en"], k["tide_caption_es"], folio(4))
+        r["lede_en"], r["lede_es"], stats,
+        art.quiver_chart(980, 248, q["rows"], hard_c=P["chart_a"], soft_c=P["chart_b"],
+                         ink=P["ink"], muted=P["ink3"], surface=P["paper"],
+                         labels=r["legend"]),
+        r["chart_en"], r["chart_es"],
+        r["racks_en"], r["racks_es"], " · ".join(q["shapers"]),
+        chips, P["ink2"], r["note_en"], r["note_es"], folio(4))
 
 
 def back_page(logo):
-    b = C.BOOK
+    b, k = C.BOOK, C.KNOW
+    hexb = ('<svg class="hex" viewBox="0 0 10 12" aria-hidden="true">'
+            '<path d="%s" fill="%s"/></svg>' % (hexagon(5, 6, 5), P["pink"]))
+    know = "".join('<li>%s<div><b>%s</b><small>%s</small></div></li>' % (hexb, en, es)
+                   for en, es in k["items"])
     return """
 <section class="page sea back">
   <div class="band">%s</div>
@@ -567,6 +634,11 @@ def back_page(logo):
     %s
     <h2 class="d">%s</h2>
     <p class="say">%s<i>%s</i></p>
+    <div class="know">
+      <p class="eyebrow">%s</p>
+      <ul>%s</ul>
+      <figure>%s<figcaption>%s<i>%s</i></figcaption></figure>
+    </div>
     <div class="qrcard">%s</div>
     <p class="url">%s</p>
     <p class="mail">%s · %s &nbsp; <b>%s</b></p>
@@ -574,7 +646,11 @@ def back_page(logo):
   <p class="meta stamp">%s &nbsp;·&nbsp; %s &nbsp;·&nbsp; %s</p>
 </section>""" % (
         picture("back"), logo, b["title_en"], b["body_en"], b["body_es"],
-        qr_svg(C.BOOKING_URL, "1.86in"), C.BOOKING_LABEL,
+        k["eyebrow"], know,
+        '<span class="pic">%s</span>' % art.tide(420, 84, stroke=P["rose"],
+                                                 ground=P["paper"], width=1.0),
+        k["tide_caption_en"], k["tide_caption_es"],
+        qr_svg(C.BOOKING_URL, "1.62in"), C.BOOKING_LABEL,
         b["or_en"], b["or_es"], C.EMAIL,
         C.COVER["wordmark"], C.COVER["place"], C.COVER["est"])
 

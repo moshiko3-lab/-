@@ -39,6 +39,7 @@ sys.path.insert(0, HERE)
 
 import build_brochure as B  # noqa: E402
 import content as C  # noqa: E402
+import quiver  # noqa: E402
 
 PAGES = 6
 QR_ON = {4, 6}                  # the booking page's code, twice: mid-book and back
@@ -120,6 +121,17 @@ def main():
     for slot in sorted(B.SLOTS):
         check("slot %s" % slot, True,
               "photograph %s" % os.path.basename(have[slot]) if slot in have else "drawn")
+
+    # Page five prints numbers counted off app/catalog.json rather than typed
+    # into content.py, so the way it fails is silent: a changed export shape
+    # gives zeroes and a page that reads as if the school owned no boards.
+    print("the quiver")
+    q = quiver.read()
+    check("boards counted", q["total"] > 0, "%d boards" % q["total"])
+    check("lengths parsed", bool(q["rows"]) and all(a + b for _, a, b in q["rows"]),
+          "%s to %s" % (q["shortest"], q["longest"]))
+    check("shapers found", len(q["shapers"]) > 3, ", ".join(q["shapers"][:4]) + " ...")
+    check("the page prints them", str(q["total"]) in html and q["longest"] in html)
 
     print("the QR code")
     try:

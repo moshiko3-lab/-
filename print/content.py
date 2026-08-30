@@ -94,6 +94,21 @@ SURF = {
     ],
 }
 
+START = {
+    "eyebrow": "WHERE TO START · POR DÓNDE EMPEZAR",
+    "items": [
+        ("NEVER SURFED", "NUNCA HAS SURFEADO",
+         "One private hour, on foam.", "Una hora privada, sobre espuma."),
+        ("A FEW TIMES", "ALGUNAS VECES",
+         "A pack of three to five.", "Un paquete de tres a cinco."),
+        ("YOU CAN STAND UP", "YA TE PARAS",
+         "Video analysis, then a shorter board.",
+         "Análisis de video, y luego una tabla más corta."),
+        ("JUST WANT A BOARD", "SÓLO QUIERES TABLA",
+         "Take one out by the hour.", "Llévate una por hora."),
+    ],
+}
+
 # ---------------------------------------------------------------- 4. beyond
 BEYOND = {
     "eyebrow": "BEYOND THE BOARD · MÁS ALLÁ DE LA TABLA",
@@ -127,11 +142,29 @@ BEYOND = {
     ],
 }
 
-# --------------------------------------------------------------- 5. rentals
+# ---------------------------------------------------------------- 5. quiver
+#
+# The numbers on this page are not written here. quiver.py counts them off
+# app/catalog.json, so a rebuild after the next inventory export prints
+# whatever is true then rather than whatever was true the day this was typed.
 RENTALS = {
-    "eyebrow": "BOARD RENTAL · ALQUILER DE TABLAS",
+    "eyebrow": "THE QUIVER · EL QUIVER",
     "title_en": "Take one out",
     "title_es": "Llévate una",
+    "lede_en": "Every board the school owns, counted off its own rack. Foam to "
+               "start on, fibreglass when you are ready for it, and a long list "
+               "of things in between.",
+    "lede_es": "Cada tabla que tiene la escuela, contada de su propio rack. "
+               "Espuma para empezar, fibra cuando estés listo, y una lista larga "
+               "de cosas en medio.",
+    "stat_boards": ("BOARDS", "TABLAS"),
+    "stat_range": ("NOSE TO TAIL", "DE LARGO"),
+    "stat_shapers": ("SHAPERS", "SHAPERS"),
+    "chart_en": "How many of each length, foam and fibreglass.",
+    "chart_es": "Cuántas de cada largo, espuma y fibra.",
+    "legend": ("HARD · FIBRA", "SOFT · ESPUMA"),
+    "racks_en": "In the racks",
+    "racks_es": "En el rack",
     "note_en": "By the hour, or keep it until closing time.",
     "note_es": "Por hora, o quédatela hasta la hora de cierre.",
     "items": [
@@ -146,15 +179,12 @@ RENTALS = {
     ],
 }
 
+# The facts strip on page two already says what is included, what levels we
+# take and what languages we speak. These are the two things it does not, and
+# they belong last, next to the code somebody is about to scan.
 KNOW = {
-    "eyebrow": "GOOD TO KNOW · BUENO SABER",
+    "eyebrow": "BEFORE YOU COME · ANTES DE VENIR",
     "items": [
-        ("Board and lycra come with every lesson.",
-         "Tabla y licra incluidas en cada clase."),
-        ("Every level. A first time on a board is welcome.",
-         "Todos los niveles. Tu primera vez es bienvenida."),
-        ("English, Spanish and French across the crew.",
-         "Inglés, español y francés en el equipo."),
         ("Session times follow the tide, so they move day to day. "
          "Booking ahead gets you the best window.",
          "Los horarios siguen la marea y cambian cada día. "
@@ -187,6 +217,6 @@ FOLIO = [
     "PLAYA VENAO, PANAMÁ",
     "LESSONS · CLASES",
     "BEYOND THE BOARD · MÁS ALLÁ",
-    "RENTAL · ALQUILER",
+    "THE QUIVER · EL QUIVER",
     None,                                   # nor the back
 ]

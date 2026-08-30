@@ -201,14 +201,19 @@ def tide(w, h, stroke="#F46E95", ground=None, width=1.0, hours=13):
     return _svg(w, h, body, ground)
 
 
-def _svg(w, h, body, ground, box=None):
+def _svg(w, h, body, ground, box=None, fit="slice"):
     """`box` lets a drawing keep its own coordinate space -- the wave is drawn
-    once at 1000x640 and then cropped to whatever shape the page gives it."""
+    once at 1000x640 and then cropped to whatever shape the page gives it.
+
+    `fit` is "slice" for pictures, which should fill their box and lose their
+    edges the way a photograph would, and "meet" for the chart, which must not:
+    cropping a chart eats its axis labels, which is exactly what happened the
+    first time this shipped."""
     bw, bh = box or (w, h)
     bg = '<rect width="%s" height="%s" fill="%s"/>' % (bw, bh, ground) if ground else ""
-    return ('<svg class="art" viewBox="0 0 %s %s" preserveAspectRatio="xMidYMid slice" '
+    return ('<svg class="art" viewBox="0 0 %s %s" preserveAspectRatio="xMidYMid %s" '
             'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">%s%s</svg>'
-            % (bw, bh, bg, body))
+            % (bw, bh, fit, bg, body))
 
 
 # --------------------------------------------------------------------------
@@ -405,3 +410,70 @@ def lineup(w, h, ink="#14262C", line="#D24870", ground=None, sun_at=0.76):
         d.append(_sitter(w * x, hz + (h - hz) * y, sc * h / 300.0, ink))
 
     return _svg(w, h, "".join(d), ground)
+
+
+# --------------------------------------------------------------------------
+# The quiver, counted
+#
+# One bar per foot of board, hard and soft stacked, in length order rather than
+# in size order -- the rack is read from short to long and so is this. It is
+# the one place in the booklet with real numbers in it, and they say something
+# a sentence cannot: the eights are almost all foam and the fives are none of
+# it, which is the school's whole progression drawn without a word.
+#
+# Two series, so a legend is present and every bar is labelled; the two colours
+# were checked against the panel they sit on rather than chosen by eye.
+# --------------------------------------------------------------------------
+def quiver_chart(w, h, rows, hard_c="#0A8AA1", soft_c="#C93F68",
+                 ink="#14262C", muted="#8A9AA0", surface="#F6F1E7",
+                 labels=("HARD", "SOFT")):
+    pad_l, pad_r, top = 52, 62, 40
+    rowh = (h - top) / float(len(rows))
+    barh = min(21.0, rowh * 0.52)
+    scale = (w - pad_l - pad_r) / float(max(a + b for _, a, b in rows))
+    mono = 'font-family="IBM Plex Mono, monospace"'
+    d = []
+
+    # legend first: two series never rely on colour alone
+    x = pad_l
+    for i, (c, lab) in enumerate(zip((hard_c, soft_c), labels)):
+        d.append('<rect x="%.1f" y="6" width="11" height="11" rx="2.5" fill="%s"/>'
+                 % (x, c))
+        d.append('<text x="%.1f" y="15.5" %s font-size="10.5" letter-spacing="1.5" '
+                 'fill="%s">%s</text>' % (x + 17, mono, ink, lab))
+        x += 17 + len(lab) * 8.2 + 26
+
+    for i, (name, a, b) in enumerate(rows):
+        y = top + i * rowh + (rowh - barh) / 2.0
+        d.append('<text x="0" y="%.1f" %s font-size="12" letter-spacing="1" '
+                 'fill="%s">%s</text>' % (y + barh * 0.78, mono, ink, name))
+
+        wa, wb = a * scale, b * scale
+        gap = 2.0 if a and b else 0.0
+        if a:
+            d.append(_bar(pad_l, y, max(wa - gap, 1), barh, hard_c,
+                          round_right=not b))
+        if b:
+            d.append(_bar(pad_l + wa, y, max(wb, 1), barh, soft_c, round_right=True))
+        for val, x0, seg in ((a, pad_l, wa - gap), (b, pad_l + wa, wb)):
+            if val and seg > 30:
+                d.append('<text x="%.1f" y="%.1f" %s font-size="10.5" fill="%s" '
+                         'text-anchor="middle">%d</text>'
+                         % (x0 + seg / 2.0, y + barh * 0.72, mono, surface, val))
+        d.append('<text x="%.1f" y="%.1f" %s font-size="12" fill="%s">%d</text>'
+                 % (pad_l + wa + wb + 9, y + barh * 0.76, mono, ink, a + b))
+
+    # one recessive baseline, no grid: the numbers are already on the bars
+    d.append('<path d="M%.1f %.1fV%.1f" stroke="%s" stroke-width="1" '
+             'stroke-opacity=".45"/>' % (pad_l - 0.5, top - 4, h, muted))
+    return _svg(w, h, "".join(d), surface, fit="meet")
+
+
+def _bar(x, y, w, h, fill, round_right=True, r=4.0):
+    r = min(r, h / 2.0, w)
+    if not round_right:
+        return '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>' % (
+            x, y, w, h, fill)
+    return ('<path fill="%s" d="M%.1f %.1fH%.1fa%.1f %.1f 0 0 1 %.1f %.1f'
+            'V%.1fa%.1f %.1f 0 0 1 %.1f %.1fH%.1fZ"/>'
+            % (fill, x, y, x + w - r, r, r, r, r, y + h - r, r, r, -r, r, x))

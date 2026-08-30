@@ -7,11 +7,11 @@ back cover.
 
     01  cover           the name over a wave with somebody in it
     02  the place       Playa Venao, a first lesson, and the line-up
-    03  in the water    private, shared, packs, video analysis
+    03  in the water    where to start, then the four ways to have a lesson
     04  the rest of     SUP, foil, yoga, ice bath, photo, kids, camps,
         the day         trips -- and the code to book any of it
-    05  take one out    the eight boards for rent, drawn, and what to know
-    06  reserve         the code, the address, the way to reach us
+    05  the quiver      every board the school owns, counted
+    06  reserve         what to bring, the code, and how to reach us
 
 ## Building it
 
@@ -33,10 +33,14 @@ whenever the wording or the pictures change.
     pip install pypdfium2 opencv-python-headless
     python3 print/test_brochure.py
 
-Six pages, the right paper size, no type inside the trim, and both QR codes
-read back off the rendered page and compared against the booking URL. That last
-one is the only part of the booklet with a job to do, and the only part that
-cannot be proof-read by looking at it.
+Six pages, the right paper size, no type inside the trim, both QR codes read
+back off the rendered page and compared against the booking URL, and the board
+figures on page five checked against the catalogue they were counted from.
+
+The codes are the only part of the booklet with a job to do and the only part
+that cannot be proof-read by looking at it. The quiver figures are the only
+part that could go wrong silently: they are counted, not typed, so a changed
+export shape would print zeroes rather than an error.
 
 ## Printing it
 
@@ -60,6 +64,13 @@ by side; `build_brochure.py` only decides how it looks. Nothing in there quotes
 a price on purpose -- a printed booklet cannot follow a price list, so the code
 carries a reader to the booking page where today's prices are.
 
+Page five is the exception, and deliberately so. Its numbers -- how many boards,
+how short and how long, which shapers, how many of each length -- are not
+written anywhere. [`quiver.py`](quiver.py) counts them off `app/catalog.json`,
+the school's own inventory, so a rebuild after the next export prints what is
+true then. That page is the closest thing here to a wetsuit brand's spec sheet,
+and it is worth as much as it is accurate.
+
 ## Where the look comes from
 
 It is meant to read as a surf school's booklet and not as a hotel's. That is
@@ -78,7 +89,13 @@ makes the same booklet on any machine, with or without a network.
 
 Every picture is drawn by [`art.py`](art.py) rather than photographed: a wave
 with somebody in the barrel, the line-up seen from the water, swell coming in,
-the day's tide, and the eight rental boards at their real relative
-proportions in the order the list beside them names them.
+the day's tide, and the eight rental boards at their real relative proportions
+in the order the list beside them names them.
 [`images/README.md`](images/README.md) says how to replace any of them with a
 real photograph -- one file per slot, and no layout work.
+
+The one chart in the booklet, on page five, uses two colours that were checked
+rather than chosen: `#0A8AA1` and `#C93F68` pass lightness, chroma, colour-blind
+separation and contrast against the panel they sit on. Both series are labelled
+on every bar as well, so the chart never depends on colour alone. Anyone
+changing them should re-check rather than eyeball it.
