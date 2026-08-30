@@ -57,9 +57,13 @@ a script can do and prints what is left;
   individually. Where it has to be the real group, a link opens WhatsApp with
   the day already written and somebody taps send.
 
-The brief can come from the manager's own book, or, since the school still
-plans in Bloowatch, straight out of Bloowatch every evening: `Evening brief` in
-Actions reads tomorrow at eight in the evening Panama time and hands it over.
+The brief the crew gets is one message in their own group, every evening.
+`Evening brief` in Actions reads tomorrow out of Bloowatch at eight in the
+evening Panama time, folds the day into the lines a person would write, and
+posts it as a comment on the repository's **Evening brief** issue — which is
+what puts it on a phone. The link in the comment opens WhatsApp with the whole
+message written; you pick the group and send. That last tap is a person's
+because the Cloud API has no way to post into a group at all.
 * **A free-form message only goes within 24 hours of the customer's own last
   message.** Outside that, only a template Meta approved beforehand — which is
   why the reply box closes itself rather than accepting something that would be

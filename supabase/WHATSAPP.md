@@ -202,12 +202,22 @@ sources, and they use the same sending rules:
 
 * **From the manager's own book.** `brief.on` in WhatsApp → Automations. The
   tick works out the day and sends it. Nothing else to set up.
-* **From Bloowatch, every evening.** `.github/workflows/brief.yml` runs at
-  01:00 UTC — eight in the evening in Panama — reads tomorrow's sessions
-  through `bloowatch/tomorrow_brief.py`, writes the brief and hands it to
-  `POST /whatsapp/brief`, which sends it to the same list. The run's summary
-  page carries the text and a link that opens WhatsApp with it written, for
-  the crew's actual group.
+* **From Bloowatch, every evening — one message, to the crew group.**
+  `.github/workflows/brief.yml` runs at 01:00 UTC — eight in the evening in
+  Panama — reads tomorrow's sessions through `bloowatch/tomorrow_brief.py`,
+  folds them into the twelve lines a person would write, and posts them as a
+  comment on the repository's **Evening brief** issue. That is what puts it on
+  a phone: GitHub notifies, and the link in the comment opens WhatsApp with the
+  whole message already written. Tap it, pick the group, send.
+
+  The last tap is a person's because it has to be: the Cloud API cannot post
+  into a group. The individual fan-out is still there — `send` on a hand-started
+  run, or `POST /whatsapp/brief` — but it is off by default, because one
+  message in the group is what the school asked for and one message each is not
+  the same thing.
+
+  To get the phone notification reliably, set a repository **variable** (not a
+  secret) `BRIEF_MENTION` to your `@username`. GitHub always pushes a mention.
 
 Four repository secrets make it run (Settings → Secrets and variables →
 Actions):

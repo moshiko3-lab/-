@@ -1,16 +1,22 @@
 name: Evening brief
 
-# Tomorrow's board, out of Bloowatch, every evening.
+# One message, to the crew group, every evening.
 #
 # The school plans its days in Bloowatch, so that is where tomorrow lives. This
-# reads it at eight in the evening Panama time, writes the brief, and hands it
-# to the WhatsApp function, which sends it to whoever is on the list in the
-# manager's WhatsApp -> Automations.
+# reads it at eight in the evening Panama time and writes the brief: every
+# session with its hour, its instructors and who is on it, folded into the
+# twelve lines a person would actually write rather than the twenty-three rows
+# it is stored as.
 #
-# The run's summary page also carries the brief as text and a link that opens
-# WhatsApp with it already written -- which is the only way into the crew's
-# actual group, since WhatsApp's API has no group endpoint at all. One tap from
-# a phone, rather than typing the day out.
+# Then it posts it as a comment on the repository's "Evening brief" issue,
+# which is what puts it on a phone: GitHub notifies, the comment carries the
+# message, and the link under it opens WhatsApp with the whole thing already
+# written. Tap, pick the Shokogi crew group, send.
+#
+# That last step is a person's, and it is not laziness: WhatsApp's Cloud API
+# has no endpoint for posting into a group at all. Sending is only ever
+# automatic to people individually, which is what the `send` input does and
+# what the school did not want.
 #
 # Two things about GitHub's clock worth knowing: a scheduled run can be several
 # minutes late when the runners are busy, which does not matter for an evening
@@ -26,12 +32,13 @@ on:
         description: 'Which day (YYYY-MM-DD). Empty means tomorrow.'
         required: false
       send:
-        description: 'Send it, rather than only showing it here'
+        description: 'Also send it to each person individually over WhatsApp'
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: evening-brief
@@ -57,14 +64,13 @@ jobs:
           WA: ${{ secrets.WA_TICK_SECRET }}
         run: |
           if [ -z "$BW" ]; then
-            echo "BLOOWATCH_EMAIL is not set as a repository secret — nothing to read." >&2
+            echo "::warning::BLOOWATCH_EMAIL is not set as a repository secret — nothing to read."
             echo "ready=no" >> "$GITHUB_OUTPUT"
           else
             echo "ready=yes" >> "$GITHUB_OUTPUT"
           fi
-          # sending is only attempted where the function's secret exists
-          if [ -n "$WA" ]; then echo "send=yes" >> "$GITHUB_OUTPUT";
-          else echo "send=no" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$WA" ]; then echo "wa=yes" >> "$GITHUB_OUTPUT";
+          else echo "wa=no" >> "$GITHUB_OUTPUT"; fi
 
       - name: Read tomorrow out of Bloowatch
         if: steps.creds.outputs.ready == 'yes'
@@ -74,14 +80,38 @@ jobs:
           BLOOWATCH_PASSWORD: ${{ secrets.BLOOWATCH_PASSWORD }}
           WA_TICK_SECRET: ${{ secrets.WA_TICK_SECRET }}
           WHEN: ${{ inputs.date }}
-          WANT_SEND: ${{ steps.creds.outputs.send }}
+          HAVE_WA: ${{ steps.creds.outputs.wa }}
           ASKED_SEND: ${{ inputs.send }}
         working-directory: bloowatch
         run: |
-          args=""
+          args="--markdown $GITHUB_WORKSPACE/brief.md"
           [ -n "$WHEN" ] && args="$args --date $WHEN"
-          # a scheduled run sends; a hand-started one sends unless it was told not to
-          if [ "$WANT_SEND" = "yes" ] && [ "$ASKED_SEND" != "false" ]; then
+          # Sending is the individual fan-out, and it is off unless asked for:
+          # the school wants one message in the group, not one each.
+          if [ "$ASKED_SEND" = "true" ] && [ "$HAVE_WA" = "yes" ]; then
             args="$args --send"
           fi
           python3 tomorrow_brief.py $args
+
+      # Where a phone will actually show it. One long-lived issue, one comment
+      # an evening, so the thread is the school's own history of its days.
+      - name: Put it where the phone will show it
+        if: steps.creds.outputs.ready == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MENTION: ${{ vars.BRIEF_MENTION }}
+          TITLE: Evening brief
+        run: |
+          num=$(gh issue list --state open --search "$TITLE in:title" \
+                  --json number,title \
+                  --jq "[.[] | select(.title == \"$TITLE\")][0].number")
+          if [ -z "$num" ] || [ "$num" = "null" ]; then
+            url=$(gh issue create --title "$TITLE" --body \
+              "Tomorrow's board lands here every evening at eight, Panama time, straight out of Bloowatch. Each comment carries the message and a link that opens WhatsApp with it already written — tap it and pick the crew group. Closing this issue stops the brief appearing anywhere; the schedule is in .github/workflows/brief.yml.")
+            num=${url##*/}
+          fi
+          # A mention is what makes GitHub push it to a phone. Set the
+          # repository variable BRIEF_MENTION to your @username to get one.
+          [ -n "$MENTION" ] && printf '\n%s\n' "$MENTION" >> "$GITHUB_WORKSPACE/brief.md"
+          gh issue comment "$num" --body-file "$GITHUB_WORKSPACE/brief.md"
+          echo "posted to issue #$num"

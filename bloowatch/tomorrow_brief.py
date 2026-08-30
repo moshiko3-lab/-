@@ -253,6 +253,8 @@ def main():
                     help="hand the brief to the WhatsApp function")
     ap.add_argument("--no-names", action="store_true",
                     help="leave the people off, hours and instructors only")
+    ap.add_argument("--markdown", metavar="PATH",
+                    help="also write the brief and its one-tap link as markdown")
     ap.add_argument("--keys", action="store_true",
                     help="print the keys of one real session row and stop")
     a = ap.parse_args()
@@ -283,14 +285,22 @@ def main():
 
     # A link that opens WhatsApp with the brief already written. This is the
     # only way into the actual crew group -- their API has no group endpoint --
-    # so it is one tap rather than an automation, and it is worth having.
+    # so it is one tap rather than an automation, and it is the whole delivery
+    # rather than a fallback: one message, to the group, the way the school
+    # asked for it.
     link = "https://wa.me/?text=" + urllib.parse.quote(text)
+    body = (f"**{date}**\n\n```\n{text}\n```\n\n"
+            f"### [→ Open WhatsApp with this written]({link})\n\n"
+            f"Tap it, pick the Shokogi crew group, send. Nothing is sent by "
+            f"itself: WhatsApp's API has no way to post into a group.\n")
 
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as f:
-            f.write(f"### {date}\n\n```\n{text}\n```\n\n"
-                    f"[Open WhatsApp with this written]({link})\n")
+            f.write(body)
+    if a.markdown:
+        with open(a.markdown, "w", encoding="utf-8") as f:
+            f.write(body)
 
     if a.send:
         try:
