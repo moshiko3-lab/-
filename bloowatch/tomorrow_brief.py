@@ -30,6 +30,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import sys
 import urllib.parse
 
@@ -99,8 +100,64 @@ def crew_on(row):
     for a in (row.get("assigned") or []):
         name = person(a)
         if name:
-            out.append(name)
+            out.append(cased(name))
     return out
+
+
+# Their board is not a list of sessions, and reading it as one produces a
+# message nobody finishes. Three things about the real day, all of them theirs:
+#
+#   * SHOKOGI - STAFF is not a session. It is an all-day availability block,
+#     one per staff group, sitting at 06:00 with a capacity of one. Five of
+#     them on an ordinary day, and none of them is anywhere anybody has to be.
+#   * The same class appears once per instructor. "CLASS 2024 - GALIA FRENKEL"
+#     at 08:30 is one lesson with two instructors on it, written down twice.
+#     Eighteen rows on 24 August are twelve real slots.
+#   * The customer's name is in the title, not in a field: "CLASS 2024 - NATAN
+#     LAVIE". Which is why a brief is worth sending even where the people on a
+#     session cannot be read -- the names are already there, behind a prefix
+#     that means nothing to anyone reading it at nine at night.
+SKIP_CATEGORIES = ("SHOKOGI - STAFF",)
+CLASS_PREFIX = re.compile(r"^\s*CLASS\s+\d{4}\s*-\s*", re.I)
+
+
+def cased(t):
+    """Their names are typed in whatever case the counter felt like, and both
+    extremes read badly in a message: SHOUTING at the crew, or a customer's
+    name in lower case. Anything mixed was deliberate and is left alone."""
+    t = (t or "").strip()
+    return t.title() if (t.isupper() or t.islower()) else t
+
+
+def clean_title(raw):
+    return cased(CLASS_PREFIX.sub("", (raw or "").strip())) or "Session"
+
+
+def tidy(rows):
+    """Fold the board into what a person would write down."""
+    kept = [r for r in rows
+            if not r.get("allDay")
+            and (r.get("title") or "").upper() not in SKIP_CATEGORIES
+            and (r.get("category") or "").upper() not in SKIP_CATEGORIES]
+    merged = {}
+    for r in kept:
+        key = (r["time"], clean_title(r["title"]))
+        at = merged.get(key)
+        if not at:
+            at = dict(r)
+            at["title"] = key[1]
+            at["crew"] = [cased(n) for n in (r.get("crew") or [])]
+            at["people"] = list(r.get("people") or [])
+            merged[key] = at
+            continue
+        for name in [cased(n) for n in (r.get("crew") or [])]:
+            if name not in at["crew"]:
+                at["crew"].append(name)
+        for name in (r.get("people") or []):
+            if name not in at["people"]:
+                at["people"].append(name)
+        at["seats"] = max(at.get("seats") or 0, r.get("seats") or 0)
+    return sorted(merged.values(), key=lambda r: r["time"])
 
 
 def sessions_for(s, base, sid, date):
@@ -113,14 +170,15 @@ def sessions_for(s, base, sid, date):
         out.append({
             "time": hhmm(x),
             "title": (x.get("name") or "").strip() or "Session",
+            "category": (x.get("category_name") or "").strip(),
+            "allDay": bool(x.get("all_day_event")),
             "crew": crew_on(x),
             "people": people_on(x),
             "seats": x.get("max_attendants") or x.get("allowed_attendants") or 0,
             "spot": x.get("spot_name") or "",
             "note": (x.get("description") or "").strip(),
         })
-    out.sort(key=lambda r: r["time"])
-    return out
+    return tidy(out)
 
 
 def compose(date, rows, names=True):
@@ -133,9 +191,28 @@ def compose(date, rows, names=True):
     head = f"{day} — {len(rows)} session{'' if len(rows) == 1 else 's'}"
     if pax:
         head += f", {pax} on the water"
+    first, last = rows[0]["time"], rows[-1]["time"]
+    if first != "--:--" and first != last:
+        head += f", {first}–{last}"
+
+    # The spot belongs on a line only where it is news. Twelve sessions at
+    # Playa Venao and one at Portio: naming the beach every time buries the
+    # one line that is somewhere else.
+    spots = [r.get("spot") or "" for r in rows if r.get("spot")]
+    usual = max(set(spots), key=spots.count) if spots else ""
+    if usual and len(set(spots)) > 1:
+        head += f" · {cased(usual)} unless said"
+
     lines = [head]
     for r in rows:
-        seats = f"{len(r['people'])}/{r['seats']}" if r["seats"] else str(len(r["people"]))
+        if r.get("spot") == usual:
+            r = dict(r, spot="")
+        # A capacity with nobody counted against it is worse than no number:
+        # "0/12" on a private lesson reads as an empty session when it is a
+        # full one whose people we could not read. So the count only appears
+        # where there is something to count.
+        seats = f"{len(r['people'])}/{r['seats']}" if r["people"] and r["seats"] \
+            else (str(len(r["people"])) if r["people"] else "")
         bits = [r["time"], r["title"], seats]
         bits.append(", ".join(r["crew"]) if r["crew"] else "unassigned")
         if r["spot"]:
