@@ -292,7 +292,8 @@ function cloudPull(db,guard){
    replication was never switched on -- nothing breaks: the poll behind it
    carries the day as before, just less promptly. */
 var CLOUD_LIVE={ws:null,ref:0,joined:false,beat:null,retry:0,timer:null,
-                token:null,onChange:null,onState:null,why:""};
+                token:null,onChange:null,onState:null,why:"",stage:0,
+                keyStage:null};
 function cloudLiveState(){ if(CLOUD_LIVE.onState) CLOUD_LIVE.onState(); }
 
 function cloudLiveSend(msg){
@@ -302,33 +303,78 @@ function cloudLiveSend(msg){
   try{ w.send(JSON.stringify(msg)); }catch(e){}
 }
 
+/* Which credential the socket introduces itself with.
+   The REST side takes the publishable key and always has. The socket is a
+   different service, and depending on how new it is, a key in the newer
+   sb_publishable_ shape may mean nothing to it -- so it hangs up before
+   answering anything, which looks from here exactly like a network that will
+   not connect. A signed-in person also has a token the socket definitely does
+   understand, so if the key is refused, introduce ourselves with that instead.
+   Whichever works is remembered, so a device does not spend a failed
+   connection working it out again every morning. */
+function cloudLiveKey(){
+  if((CLOUD_LIVE.keyStage||0)>0){
+    var s=cloudSession();
+    if(s && s.access_token) return s.access_token;
+  }
+  return CLOUD.key;
+}
+function cloudLiveKeyRecall(){
+  try{
+    CLOUD_LIVE.keyStage=Number(localStorage.getItem("shokogi.cloud.livekey"))||0;
+  }catch(e){ CLOUD_LIVE.keyStage=0; }
+}
+function cloudLiveKeyRemember(n){
+  CLOUD_LIVE.keyStage=n;
+  try{ localStorage.setItem("shokogi.cloud.livekey",String(n)); }catch(e){}
+}
+
+/* Asking to be told about changes is all-or-nothing: the whole subscription is
+   one request naming every table, and if the server objects to any single part
+   of it, the entire thing is refused and the school is left on the fifteen-
+   second fallback with no Live and no reason. Two parts it can object to, and
+   both are ordinary rather than exotic -- a table nobody remembered to publish,
+   and a filter it will not accept on a table whose changes carry only an id.
+
+   So ask for less rather than nothing. First the narrow request: this school's
+   rows only. If that is refused, the same tables without the filter, which is
+   safe -- the row policies decide what a device is allowed to be told, and they
+   are enforced whether or not anything was filtered here. Only if that is
+   refused too does it fall back to asking every fifteen seconds. */
+function cloudLiveJoin(){
+  var narrow=(CLOUD_LIVE.stage||0)===0;
+  cloudLiveSend({topic:"realtime:"+CLOUD.school,event:"phx_join",payload:{
+    config:{
+      broadcast:{self:false},
+      postgres_changes:CLOUD_TABLES.map(function(spec){
+        var c={event:"*",schema:"public",table:spec.t};
+        if(narrow) c.filter="school=eq."+CLOUD.school;
+        return c;
+      })
+    },
+    access_token:CLOUD_LIVE.token
+  }});
+}
+
 function cloudLiveStart(onChange){
   if(onChange) CLOUD_LIVE.onChange=onChange;
   if(!cloudConfigured() || !cloudSignedIn()) return;
   if(typeof WebSocket==="undefined") return;
   if(CLOUD_LIVE.ws) return;
+  if(CLOUD_LIVE.keyStage==null) cloudLiveKeyRecall();
   var w;
   try{
     w=new WebSocket(CLOUD.url.replace(/^http/,"ws")+
-      "/realtime/v1/websocket?apikey="+encodeURIComponent(CLOUD.key)+"&vsn=1.0.0");
+      "/realtime/v1/websocket?apikey="+encodeURIComponent(cloudLiveKey())+
+      "&vsn=1.0.0");
   }catch(e){ return; }
   CLOUD_LIVE.ws=w;
   w.onopen=function(){
     CLOUD_LIVE.retry=0;
     var s=cloudSession();
     CLOUD_LIVE.token=(s&&s.access_token)||null;
-    /* every table, this school only: an instructor's phone is told about this
-       school's day and nothing else, and the row policies say the same */
-    cloudLiveSend({topic:"realtime:"+CLOUD.school,event:"phx_join",payload:{
-      config:{
-        broadcast:{self:false},
-        postgres_changes:CLOUD_TABLES.map(function(spec){
-          return {event:"*",schema:"public",table:spec.t,
-                  filter:"school=eq."+CLOUD.school};
-        })
-      },
-      access_token:CLOUD_LIVE.token
-    }});
+    CLOUD_LIVE.stage=0;
+    cloudLiveJoin();
     CLOUD_LIVE.beat=setInterval(function(){
       cloudLiveSend({topic:"phoenix",event:"heartbeat",payload:{}});
       /* a refreshed token has to reach the socket too, or the server drops
@@ -355,20 +401,39 @@ function cloudLiveStart(onChange){
     if(m.event==="phx_reply" && m.payload && m.payload.status==="error"){
       var r=m.payload.response;
       CLOUD_LIVE.why=(r && (r.reason||r.message))||"the server refused the join";
+      /* ask for less before giving up: see cloudLiveJoin */
+      if(!CLOUD_LIVE.joined && (CLOUD_LIVE.stage||0)===0){
+        CLOUD_LIVE.stage=1;
+        CLOUD_LIVE.why+=" — asking again without the school filter";
+        cloudLiveJoin();
+      }
     }
     if(m.event==="phx_error") CLOUD_LIVE.why="the channel was dropped";
     if(m.event==="postgres_changes" && CLOUD_LIVE.onChange) CLOUD_LIVE.onChange();
   };
   w.onclose=function(e){
-    if(!CLOUD_LIVE.joined && !CLOUD_LIVE.why)
-      CLOUD_LIVE.why="the connection closed before it opened"+
-        (e && e.code ? " (code "+e.code+")" : "");
-    cloudLiveStop(true);
+    /* hung up before saying anything: the credential is the likely reason, so
+       try the other one straight away rather than after a backed-off wait */
+    var quick=false;
+    if(!CLOUD_LIVE.joined && (CLOUD_LIVE.keyStage||0)===0 && cloudSignedIn()){
+      cloudLiveKeyRemember(1);
+      CLOUD_LIVE.why="the key was not accepted by the live connection — "+
+                     "trying again with the sign-in token";
+      quick=true;
+    }else if(!CLOUD_LIVE.joined){
+      /* the other one did not work either: go back and alternate, so a device
+         that once failed on the token is not stuck on it for good */
+      if((CLOUD_LIVE.keyStage||0)>0) cloudLiveKeyRemember(0);
+      if(!CLOUD_LIVE.why)
+        CLOUD_LIVE.why="the connection closed before it opened"+
+          (e && e.code ? " (code "+e.code+")" : "");
+    }
+    cloudLiveStop(true,quick);
   };
   w.onerror=function(){ /* onclose follows and does the work */ };
 }
 
-function cloudLiveStop(reconnect){
+function cloudLiveStop(reconnect,quick){
   if(CLOUD_LIVE.beat){ clearInterval(CLOUD_LIVE.beat); CLOUD_LIVE.beat=null; }
   var w=CLOUD_LIVE.ws, was=CLOUD_LIVE.joined;
   CLOUD_LIVE.ws=null; CLOUD_LIVE.joined=false;
@@ -378,7 +443,7 @@ function cloudLiveStop(reconnect){
   if(reconnect && cloudSignedIn()){
     /* back off: a server having a bad minute should not be met by fifteen
        tills reconnecting in a loop */
-    var wait=Math.min(30000,1000*Math.pow(2,CLOUD_LIVE.retry++));
+    var wait=quick?120:Math.min(30000,1000*Math.pow(2,CLOUD_LIVE.retry++));
     CLOUD_LIVE.timer=setTimeout(function(){ cloudLiveStart(); },wait);
   }
 }
