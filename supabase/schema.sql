@@ -43,6 +43,20 @@ begin
   return new;
 end $$;
 
+-- ------------------------------------------------------- announcing changes
+-- Postgres only announces a change on a table that has been added to a
+-- publication, and Supabase's is normally already there. On a project where
+-- it is not, adding tables to it fails quietly and every device falls back to
+-- asking every fifteen seconds -- working, but never saying Live. So make
+-- sure it exists before anything is added to it.
+do $$
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+  then
+    create publication supabase_realtime;
+  end if;
+end $$;
+
 -- ------------------------------------------------------------ the tables
 do $$
 declare
@@ -81,6 +95,14 @@ begin
       when duplicate_object then null;
       when undefined_object then null;
     end;
+
+    -- And send the whole row when it changes, not just its id. Each device
+    -- only listens for its own school, and a change is only passed on to a
+    -- device the row policies would let read it -- both of those are judged
+    -- against the row itself. With only the id to go on there is nothing to
+    -- judge, so edits and deletions are quietly dropped and the day drifts
+    -- apart between two screens that both look connected.
+    execute format('alter table public.%I replica identity full', t);
 
     execute format('drop trigger if exists %I on public.%I',
                    t || '_touch', t);

@@ -292,7 +292,7 @@ function cloudPull(db,guard){
    replication was never switched on -- nothing breaks: the poll behind it
    carries the day as before, just less promptly. */
 var CLOUD_LIVE={ws:null,ref:0,joined:false,beat:null,retry:0,timer:null,
-                token:null,onChange:null,onState:null};
+                token:null,onChange:null,onState:null,why:""};
 function cloudLiveState(){ if(CLOUD_LIVE.onState) CLOUD_LIVE.onState(); }
 
 function cloudLiveSend(msg){
@@ -346,11 +346,25 @@ function cloudLiveStart(onChange){
     if(m.event==="phx_reply" && m.payload && m.payload.status==="ok" &&
        !CLOUD_LIVE.joined){
       CLOUD_LIVE.joined=true;
+      CLOUD_LIVE.why="";
       cloudLiveState();      /* the corner can say so now */
     }
+    /* A refused join is the case worth catching: the day keeps working on the
+       poll underneath, so nothing looks broken -- it is merely slow, for a
+       reason nobody can see. The server says why; keep its words. */
+    if(m.event==="phx_reply" && m.payload && m.payload.status==="error"){
+      var r=m.payload.response;
+      CLOUD_LIVE.why=(r && (r.reason||r.message))||"the server refused the join";
+    }
+    if(m.event==="phx_error") CLOUD_LIVE.why="the channel was dropped";
     if(m.event==="postgres_changes" && CLOUD_LIVE.onChange) CLOUD_LIVE.onChange();
   };
-  w.onclose=function(){ cloudLiveStop(true); };
+  w.onclose=function(e){
+    if(!CLOUD_LIVE.joined && !CLOUD_LIVE.why)
+      CLOUD_LIVE.why="the connection closed before it opened"+
+        (e && e.code ? " (code "+e.code+")" : "");
+    cloudLiveStop(true);
+  };
   w.onerror=function(){ /* onclose follows and does the work */ };
 }
 
@@ -369,6 +383,7 @@ function cloudLiveStop(reconnect){
   }
 }
 function cloudLiveUp(){ return !!(CLOUD_LIVE.ws && CLOUD_LIVE.joined); }
+function cloudLiveWhy(){ return CLOUD_LIVE.joined?"":(CLOUD_LIVE.why||""); }
 
 /* ------------------------ the first hand-over ------------------------
    A school starts with its whole book inside one browser. Getting it up there

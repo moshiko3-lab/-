@@ -11206,7 +11206,9 @@ function cloudMenu(){
   var b=el("div");
   var n=outboxCount();
   [["Signed in as",cloudWho()],
-   ["Live connection",cloudLiveUp()?"open":"not open"],
+   ["Live connection",cloudLiveUp()?"open":
+     ("not open — changes still arrive, within 15 seconds"+
+      (cloudLiveWhy()?": "+cloudLiveWhy():""))],
    ["Waiting to send",n?(n+" change"+(n===1?"":"s")):"nothing"],
    ["Last sync",cloudLast||"not yet"],
    ["Trouble",cloudError||"none"]].forEach(function(r){
@@ -11414,11 +11416,62 @@ function show(id){
   [].forEach.call(tabsBox.children,function(b){
     b.setAttribute("aria-selected",b.dataset.id===id?"true":"false");});
   try{ localStorage.setItem("shokogi.manager.tab",id); }catch(e){}
-  render();
+  render(false);
   scrollTo(0,0);
 }
-function render(){
-  for(var i=0;i<TABS.length;i++) if(TABS[i].id===cur){ TABS[i].r(); return; }
+/* A screen redrawn under somebody's hands must not move.
+   Every save redraws the whole panel, and now that the book is shared, so does
+   every change arriving from another device -- so a counter scrolled to four
+   in the afternoon was being thrown back to the top of the day each time the
+   phone saved a hire. The panel is rebuilt from scratch, so the scroll cannot
+   survive on its own: it is measured before and put back after, sideways as
+   well as down, because the board is scrolled across far more than it is
+   scrolled down. Switching screens still starts at the top -- show() resets
+   after this, which is the one time moving is what you want. */
+function scrollKey(n){
+  var k=n.tagName+"."+(n.className||""), i=0, p=n.parentNode;
+  if(p) for(var c=p.firstElementChild;c&&c!==n;c=c.nextElementSibling)
+    if(c.tagName+"."+(c.className||"")===k) i++;
+  return k+"#"+i;
+}
+function scrollPath(n,root){
+  var out=[];
+  for(var c=n;c&&c!==root;c=c.parentNode) out.unshift(scrollKey(c));
+  return out.join(">");
+}
+function scrollSnap(){
+  var sec=document.getElementById("p-"+cur);
+  if(!sec) return null;
+  var st={win:window.pageYOffset||0,box:[]};
+  [].forEach.call(sec.querySelectorAll("*"),function(n){
+    if(n.scrollLeft||n.scrollTop)
+      st.box.push([scrollPath(n,sec),n.scrollLeft,n.scrollTop]);
+  });
+  return st;
+}
+function scrollBack(st){
+  if(!st) return;
+  var sec=document.getElementById("p-"+cur);
+  if(!sec) return;
+  var seen={};
+  [].forEach.call(sec.querySelectorAll("*"),function(n){
+    seen[scrollPath(n,sec)]=n;
+  });
+  st.box.forEach(function(r){
+    var n=seen[r[0]];
+    if(!n) return;
+    if(r[1]) n.scrollLeft=r[1];
+    if(r[2]) n.scrollTop=r[2];
+  });
+  if(st.win) window.scrollTo(0,st.win);
+}
+/* keep===false is a deliberate move to another screen, which should start
+   where a screen starts. Everything else is a redraw of the screen somebody
+   is already looking at, and must leave it where they left it. */
+function render(keep){
+  var st=(keep===false)?null:scrollSnap();
+  for(var i=0;i<TABS.length;i++) if(TABS[i].id===cur){ TABS[i].r(); break; }
+  scrollBack(st);
 }
 
 /* The catalog was asked for, so it should simply be there. It loads once, on a
