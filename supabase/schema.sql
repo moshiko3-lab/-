@@ -92,7 +92,7 @@ end $$;
 -- Until a person has a row in members they see an empty book.
 --
 --   insert into public.members (user_id, school, name)
---   select id, 'shokogi', 'Moshe' from auth.users where email = 'you@example.com'
+--   select id, 'shokogi', 'Moshe' from auth.users where email = 'shokogipanama@gmail.com'
 --   on conflict (user_id) do update set school = excluded.school;
 
 -- ------------------------------------------------------------- a check
