@@ -1,0 +1,87 @@
+name: Evening brief
+
+# Tomorrow's board, out of Bloowatch, every evening.
+#
+# The school plans its days in Bloowatch, so that is where tomorrow lives. This
+# reads it at eight in the evening Panama time, writes the brief, and hands it
+# to the WhatsApp function, which sends it to whoever is on the list in the
+# manager's WhatsApp -> Automations.
+#
+# The run's summary page also carries the brief as text and a link that opens
+# WhatsApp with it already written -- which is the only way into the crew's
+# actual group, since WhatsApp's API has no group endpoint at all. One tap from
+# a phone, rather than typing the day out.
+#
+# Two things about GitHub's clock worth knowing: a scheduled run can be several
+# minutes late when the runners are busy, which does not matter for an evening
+# brief; and a repository with no pushes for sixty days has its schedules
+# switched off by GitHub until somebody runs one by hand.
+
+on:
+  schedule:
+    - cron: '0 1 * * *'      # 01:00 UTC = 20:00 in Panama, which has no DST
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Which day (YYYY-MM-DD). Empty means tomorrow.'
+        required: false
+      send:
+        description: 'Send it, rather than only showing it here'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evening-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet requests
+
+      # The credentials are repository secrets and are never printed. Without
+      # them there is nothing to read, so say so once rather than failing in a
+      # way that looks like Bloowatch is down.
+      - name: Check the credentials are there
+        id: creds
+        env:
+          BW: ${{ secrets.BLOOWATCH_EMAIL }}
+          WA: ${{ secrets.WA_TICK_SECRET }}
+        run: |
+          if [ -z "$BW" ]; then
+            echo "BLOOWATCH_EMAIL is not set as a repository secret — nothing to read." >&2
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          fi
+          # sending is only attempted where the function's secret exists
+          if [ -n "$WA" ]; then echo "send=yes" >> "$GITHUB_OUTPUT";
+          else echo "send=no" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Read tomorrow out of Bloowatch
+        if: steps.creds.outputs.ready == 'yes'
+        env:
+          BLOOWATCH_URL: ${{ secrets.BLOOWATCH_URL }}
+          BLOOWATCH_EMAIL: ${{ secrets.BLOOWATCH_EMAIL }}
+          BLOOWATCH_PASSWORD: ${{ secrets.BLOOWATCH_PASSWORD }}
+          WA_TICK_SECRET: ${{ secrets.WA_TICK_SECRET }}
+          WHEN: ${{ inputs.date }}
+          WANT_SEND: ${{ steps.creds.outputs.send }}
+          ASKED_SEND: ${{ inputs.send }}
+        working-directory: bloowatch
+        run: |
+          args=""
+          [ -n "$WHEN" ] && args="$args --date $WHEN"
+          # a scheduled run sends; a hand-started one sends unless it was told not to
+          if [ "$WANT_SEND" = "yes" ] && [ "$ASKED_SEND" != "false" ]; then
+            args="$args --send"
+          fi
+          python3 tomorrow_brief.py $args

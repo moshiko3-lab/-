@@ -52,9 +52,14 @@ a script can do and prints what is left;
   in both. Use a second number unless the school is ready to give the first one
   up.
 * **There is no group.** WhatsApp's own API cannot post into one, so the
-  morning brief is the same message to each person on a list, sent
-  individually — with a button that opens WhatsApp with the day already
-  written, for the times it has to be the real group.
+  evening brief — tomorrow's board, with the hours, the instructors and who is
+  on each session — is the same message to each person on a list, sent
+  individually. Where it has to be the real group, a link opens WhatsApp with
+  the day already written and somebody taps send.
+
+The brief can come from the manager's own book, or, since the school still
+plans in Bloowatch, straight out of Bloowatch every evening: `Evening brief` in
+Actions reads tomorrow at eight in the evening Panama time and hands it over.
 * **A free-form message only goes within 24 hours of the customer's own last
   message.** Outside that, only a template Meta approved beforehand — which is
   why the reply box closes itself rather than accepting something that would be

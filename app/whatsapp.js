@@ -35,8 +35,8 @@ var WA_DEFAULTS={
   tz:"America/Panama", bookingUrl:"",
   reminders:{on:false,hoursBefore:18,template:"session_reminder",lang:"en",
              quietFrom:21,quietTo:7},
-  brief:{on:false,at:"07:00",days:[0,1,2,3,4,5,6],to:[],
-         template:"daily_brief",lang:"en"},
+  brief:{on:false,at:"20:00",for:"tomorrow",names:true,
+         days:[0,1,2,3,4,5,6],to:[],template:"daily_brief",lang:"en"},
   bot:{on:false,hours:"",greeting:"",handover:"",rules:[]}
 };
 
@@ -513,22 +513,31 @@ function waAutomations(host){
 
   /* ---- the morning brief ---- */
   var p2=el("div","panel"); p2.style.padding="14px"; p2.style.marginTop="12px";
-  p2.appendChild(el("h3",null,"The morning brief"));
+  p2.appendChild(el("h3",null,"The brief"));
   p2.appendChild(el("p","muted",
-    "The day's board — every session with its time, its instructors and how "+
-    "many are on it — at a fixed hour, to each person on the list. WhatsApp's "+
-    "API cannot post into a group, so this is sent to each of them "+
-    "individually; an instructor not working today can simply be left off. "+
-    "For the real group there is Send to a group by hand: WhatsApp opens with "+
-    "today's board already written, and you pick the group."));
+    "The board for a day — every session with its time, its instructors, how "+
+    "many are on it and, if you want, who they are — at a fixed hour, to each "+
+    "person on the list. Sent in the evening it is tomorrow's day, which is "+
+    "what an instructor actually needs at nine at night. WhatsApp's API cannot "+
+    "post into a group, so this goes to each of them individually; an "+
+    "instructor not working that day can simply be left off. For the real "+
+    "group there is Send to a group by hand: WhatsApp opens with the board "+
+    "already written, and you pick the group."));
   var b2=cfg.brief;
   var bOn=input("checkbox"); bOn.checked=!!b2.on; bOn.style.width="auto";
-  var bAt=input("time",b2.at||"07:00");
+  var bAt=input("time",b2.at||"20:00");
+  var bFor=select([{v:"tomorrow",l:"Tomorrow"},{v:"today",l:"That same day"}],
+                  b2.for||"tomorrow");
+  var bNames=input("checkbox"); bNames.checked=b2.names!==false;
+  bNames.style.width="auto";
   var bTpl=input("text",b2.template,{placeholder:"daily_brief"});
   var bLang=input("text",b2.lang,{placeholder:"en"});
   var g2=el("div","grid2");
   g2.appendChild(field("On",bOn));
   g2.appendChild(field("At",bAt));
+  g2.appendChild(field("Which day",bFor,
+    "Sent in the evening, tomorrow is the one worth reading."));
+  g2.appendChild(field("Name who is on each session",bNames));
   g2.appendChild(field("Template name",bTpl,
     "Two variables: the date, and the day in one line."));
   g2.appendChild(field("Template language",bLang));
@@ -583,11 +592,11 @@ function waAutomations(host){
   add.appendChild(crew); add.appendChild(manual); add.appendChild(addb);
   p2.appendChild(field("To",tw)); p2.appendChild(add);
 
-  var prev=el("button","btn sm","Preview today's brief");
+  var prev=el("button","btn sm","Preview the brief");
   prev.style.marginTop="10px";
   prev.addEventListener("click",function(){
     var pb=el("div");
-    var pre=el("pre",null,waBriefText(todayISO()));
+    var pre=el("pre",null,waBriefText(waBriefDay(bFor.value),bNames.checked));
     pre.style.cssText="white-space:pre-wrap;font:inherit;background:var(--line);"+
       "padding:10px;border-radius:8px";
     pb.appendChild(pre);
@@ -599,14 +608,15 @@ function waAutomations(host){
      answer to "post it in the group" -- a person still presses send, but
      nobody types the day out. */
   var group=el("a","btn sm","Send to a group by hand");
-  group.href=waLink("",waBriefText(todayISO()));
+  group.href=waLink("",waBriefText(waBriefDay(bFor.value),bNames.checked));
   group.target="_blank"; group.rel="noopener";
   group.style.marginLeft="8px";
   var s2=el("button","btn primary","Save the brief");
   s2.style.marginLeft="8px";
   s2.addEventListener("click",function(){
     var next=waCfg();
-    next.brief={on:bOn.checked,at:bAt.value||"07:00",days:days.slice(),
+    next.brief={on:bOn.checked,at:bAt.value||"20:00",days:days.slice(),
+      for:bFor.value,names:bNames.checked,
       to:to.slice(),template:bTpl.value.trim(),lang:bLang.value.trim()||"en"};
     waSaveCfg(next,"Brief saved");
   });
@@ -708,21 +718,34 @@ function waNameFor(num){
   return out||waPretty(id);
 }
 
+/* Which day the brief is about. Sent in the evening it is tomorrow's, which
+   is the only version an instructor reads at nine at night and acts on. */
+function waBriefDay(which){
+  if(which==="today") return todayISO();
+  return iso(new Date(Date.now()+864e5));
+}
+
 /* The brief, worked out in the page exactly as the function works it out, so
    Preview shows what will actually be sent rather than something like it. */
-function waBriefText(dateStr){
+function waBriefText(dateStr,withNames){
   var day=DB.sessions.filter(function(s){
     return s&&s.date===dateStr&&!s.cancelled;
   }).sort(function(a,b){
     return String(a.time||"")<String(b.time||"")?-1:1;});
-  if(!day.length) return dateStr+" — nothing on the board today.";
+  if(!day.length) return dateStr+" — nothing on the board.";
   var pax=day.reduce(function(a,s){return a+(s.participants||[]).length;},0);
   var lines=day.map(function(s){
     var crew=(s.staffIds||[]).map(function(id){return staffName(id);})
       .filter(function(n){return n&&n!=="Unassigned";}).join(", ");
-    return (s.time||"--:--")+" "+(s.title||s.category||"Session")+" · "+
-           (s.participants||[]).length+"/"+(s.capacity||0)+
-           (crew?(" · "+crew):" · unassigned");
+    var line=(s.time||"--:--")+" "+(s.title||s.category||"Session")+" · "+
+             (s.participants||[]).length+"/"+(s.capacity||0)+
+             (crew?(" · "+crew):" · unassigned");
+    if(withNames){
+      var who=(s.participants||[]).map(function(ref){ return seatName(ref); })
+        .filter(function(n){ return n && n!=="—"; });
+      if(who.length) line+="\n   "+who.join(", ");
+    }
+    return line;
   });
   return dateStr+" — "+day.length+" session"+(day.length===1?"":"s")+", "+
          pax+" on the water\n"+lines.join("\n");

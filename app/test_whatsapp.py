@@ -50,6 +50,10 @@ def build():
 TODAY = subprocess.run(
     [sys.executable, "-c", "import datetime;print(datetime.date.today().isoformat())"],
     capture_output=True, text=True).stdout.strip()
+TOMORROW = subprocess.run(
+    [sys.executable, "-c",
+     "import datetime;print((datetime.date.today()+datetime.timedelta(days=1)).isoformat())"],
+    capture_output=True, text=True).stdout.strip()
 
 # A book with one client, one instructor and one session today. The client's
 # phone is written the way a person writes it; the conversation carries the
@@ -60,8 +64,12 @@ BOOK = {
                  "email": "", "country": "PA"}],
     "staff": [{"id": "s1", "name": "Marta", "role": "Instructor",
                "phone": "50760000001"}],
+    # one today and one tomorrow, so the preview proves which day it is about
     "sessions": [{"id": "se1", "title": "Surf lesson", "date": TODAY,
                   "time": "09:00", "duration": 90, "capacity": 6,
+                  "staffIds": ["s1"], "participants": ["c:c1"], "category": "Surf"},
+                 {"id": "se2", "title": "Sunset session", "date": TOMORROW,
+                  "time": "15:30", "duration": 90, "capacity": 4,
                   "staffIds": ["s1"], "participants": ["c:c1"], "category": "Surf"}],
     "products": [], "gear": [], "gearBlocks": [], "timeOff": [], "bookings": [],
     "spots": [], "invoices": [], "tides": [], "docs": [], "cash": [], "trips": [],
@@ -127,7 +135,8 @@ STUB = """
       return answer([{data: {tz: "America/Panama", bookingUrl: "",
         reminders: {on: true, hoursBefore: 18, template: "session_reminder", lang: "en",
                     quietFrom: 21, quietTo: 7},
-        brief: {on: false, at: "07:00", days: [1,2,3], to: ["__WARM__"],
+        brief: {on: false, at: "20:00", for: "tomorrow", names: true,
+                days: [1,2,3], to: ["__WARM__"],
                 template: "daily_brief", lang: "en"},
         bot: {on: false, greeting: "hello", hours: "", handover: "", rules: []}}}]);
     }
@@ -243,9 +252,15 @@ def main():
         pg.wait_for_timeout(700)
         pre = pg.inner_text("#modal")
         check("the preview is the day that is actually on the board",
-              "09:00" in pre and "surf lesson" in pre.lower() and
+              "15:30" in pre and "sunset session" in pre.lower() and
               "marta" in pre.lower(), pre[:200])
-        check("the preview counts the seats", "1/6" in pre, pre[:200])
+        check("the preview counts the seats", "1/4" in pre, pre[:200])
+        # sent in the evening, the brief is about tomorrow -- today's nine
+        # o'clock is exactly the line that must not be in it
+        check("an evening brief is about tomorrow, not today",
+              "09:00" not in pre and "surf lesson" not in pre.lower(), pre[:200])
+        check("it names who is on the session",
+              "nahum" in pre.lower(), pre[:200])
         pg.keyboard.press("Escape")
         pg.wait_for_timeout(400)
 

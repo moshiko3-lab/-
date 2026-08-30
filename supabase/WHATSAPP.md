@@ -37,9 +37,10 @@ message to each person on a list, sent individually and at the same moment. In
 practice that is better: an instructor who is not working today can be left off
 the list, and nobody can reply into a thread the whole school reads.
 
-If it has to be the actual group, the WhatsApp screen has **Send to a group by
-hand** beside the brief: WhatsApp opens with today's board already written and
-you pick the group. A person still presses send, but nobody types the day out.
+If it has to be the actual group, two things put the message one tap away
+without anybody typing the day out: **Send to a group by hand** beside the
+brief on the WhatsApp screen, and the same link on every run of the evening
+workflow below. A person still presses send, and picks the group.
 
 ### 3. Free-form messages only inside 24 hours
 
@@ -193,6 +194,49 @@ Open the manager → **WhatsApp** → *Setup*. Every line should say `set`. Then
 
 ---
 
+## The evening brief, out of Bloowatch
+
+The school plans its days in Bloowatch, so that is where tomorrow lives — not
+in the manager, which only knows what it has been told. So the brief has two
+sources, and they use the same sending rules:
+
+* **From the manager's own book.** `brief.on` in WhatsApp → Automations. The
+  tick works out the day and sends it. Nothing else to set up.
+* **From Bloowatch, every evening.** `.github/workflows/brief.yml` runs at
+  01:00 UTC — eight in the evening in Panama — reads tomorrow's sessions
+  through `bloowatch/tomorrow_brief.py`, writes the brief and hands it to
+  `POST /whatsapp/brief`, which sends it to the same list. The run's summary
+  page carries the text and a link that opens WhatsApp with it written, for
+  the crew's actual group.
+
+Four repository secrets make it run (Settings → Secrets and variables →
+Actions):
+
+```
+BLOOWATCH_URL       https://shokogi.bloowatch.com
+BLOOWATCH_EMAIL
+BLOOWATCH_PASSWORD
+WA_TICK_SECRET      the same one the function has
+```
+
+Without `WA_TICK_SECRET` it still runs and still shows the brief on the run's
+summary; it just does not send. Without the Bloowatch three it says so once
+and stops, rather than failing every night as though Bloowatch were down.
+
+Try it by hand first — Actions → Evening brief → Run workflow, with **send**
+unticked. And once, on a real day:
+
+```
+cd bloowatch && python3 tomorrow_brief.py --keys
+```
+
+That prints what one real session row carries. The names of the people on a
+session are read out of it by trying every key their API is known to use; if
+`--keys` shows a key that is not in `PEOPLE_KEYS`, adding it there is the whole
+fix.
+
+---
+
 ## What it costs
 
 Meta charges per template message, by category and by the country of the
@@ -237,4 +281,5 @@ order by start_time desc limit 20;` says whether the tick is running at all.
 | `POST /whatsapp/webhook` | messages and delivery reports, signed by Meta |
 | `POST /whatsapp/send` | `{to, text}` or `{to, template, lang, params}` — signed-in members only |
 | `POST /whatsapp/tick` | queue what is due, then send it — the tick secret, or a signed-in member |
+| `POST /whatsapp/brief` | `{text, date}` — a brief somebody else wrote, sent to the configured list |
 | `GET /whatsapp/health` | what is configured and what is missing |

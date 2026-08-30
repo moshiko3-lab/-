@@ -96,7 +96,9 @@ const DEFAULTS = {
   tz: "America/Panama",
   bookingUrl: "",
   reminders: { on: false, hoursBefore: 18, template: "session_reminder", lang: "en", quietFrom: 21, quietTo: 7 },
-  brief: { on: false, at: "07:00", days: [0, 1, 2, 3, 4, 5, 6], to: [] as any[], template: "daily_brief", lang: "en" },
+  brief: { on: false, at: "20:00", for: "tomorrow", names: true,
+           days: [0, 1, 2, 3, 4, 5, 6], to: [] as any[],
+           template: "daily_brief", lang: "en" },
   bot: { on: false, hours: "", greeting: "", handover: "", rules: [] as any[] },
 };
 
@@ -457,17 +459,29 @@ async function planReminders(cfg: any, now: Date): Promise<number> {
    the Cloud API at all -- so "the Shokogi group at seven" is the same message
    to each person on the list, sent individually. Which is arguably what you
    want anyway: an instructor who is not working today can be left off it. */
-function briefText(sessions: any[], staff: any[], dateStr: string): string {
+function briefText(sessions: any[], staff: any[], dateStr: string,
+                   opts: { names?: boolean; clients?: any[]; bookings?: any[] } = {}): string {
   const day = sessions
     .filter((s) => s && s.date === dateStr && !s.cancelled)
     .sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
-  if (!day.length) return `${dateStr} — nothing on the board today.`;
+  if (!day.length) return `${dateStr} — nothing on the board.`;
   const name = (id: string) => (staff.find((x) => x.id === id) || {}).name || "";
   const lines = day.map((s) => {
     const crew = (s.staffIds || []).map(name).filter(Boolean).join(", ");
     const seats = `${(s.participants || []).length}/${s.capacity || 0}`;
-    return `${s.time || "--:--"} ${s.title || s.category || "Session"} · ${seats}` +
-           (crew ? ` · ${crew}` : " · unassigned");
+    let line = `${s.time || "--:--"} ${s.title || s.category || "Session"} · ${seats}` +
+               (crew ? ` · ${crew}` : " · unassigned");
+    /* An instructor reading this at nine at night wants the names, not the
+       count: it is what tells them whether tomorrow is four beginners or one
+       returning family. */
+    if (opts.names) {
+      const who = (s.participants || [])
+        .map((ref: string) => seatPerson(ref, opts.clients || [], opts.bookings || []))
+        .map((p: any) => (p && p.name) || "")
+        .filter(Boolean);
+      if (who.length) line += `\n   ${who.join(", ")}`;
+    }
+    return line;
   });
   const pax = day.reduce((a, s) => a + (s.participants || []).length, 0);
   return `${dateStr} — ${day.length} session${day.length === 1 ? "" : "s"}, ${pax} on the water\n` +
@@ -481,21 +495,31 @@ async function planBrief(cfg: any, now: Date): Promise<number> {
   const here = localParts(now, tz);
   if (!(b.days || []).includes(here.dow)) return 0;
 
-  const due = localToUtc(here.date, b.at || "07:00", tz);
+  const due = localToUtc(here.date, b.at || "20:00", tz);
   if (due.getTime() > now.getTime() + 6 * 3600 * 1000) return 0;   /* not yet today */
   if (now.getTime() - due.getTime() > 6 * 3600 * 1000) return 0;   /* long past: not worth waking anyone */
 
-  const [sessions, staff] = await Promise.all([collection("sessions"), collection("staff")]);
-  const text = briefText(sessions, staff, here.date);
+  /* The evening brief is about tomorrow -- that is the whole point of sending
+     it in the evening. The day it covers, not the day it is sent, is what the
+     dedupe is keyed on, so moving the hour cannot make it go twice. */
+  const target = (b.for === "today") ? here.date : addDays(here.date, 1);
+
+  const [sessions, staff, clients, bookings] = await Promise.all([
+    collection("sessions"), collection("staff"),
+    b.names ? collection("clients") : Promise.resolve([] as any[]),
+    b.names ? collection("bookings") : Promise.resolve([] as any[]),
+  ]);
+  const text = briefText(sessions, staff, target,
+                         { names: !!b.names, clients, bookings });
   let made = 0;
   for (const raw of b.to || []) {
     const id = waId(typeof raw === "string" ? raw : (raw.phone || raw.wa_id || ""));
     if (!id) continue;
     await queue({
-      dedupe: `brief:${here.date}:${id}`,
+      dedupe: `brief:${target}:${id}`,
       wa_id: id, kind: "brief", run_after: due.toISOString(),
       payload: { template: b.template, lang: b.lang,
-                 params: [here.date, text.split("\n").slice(1).join(" · ") || "nothing on the board"],
+                 params: [target, text.split("\n").slice(1).join(" · ") || "nothing on the board"],
                  text },
     });
     made++;
@@ -643,6 +667,46 @@ Deno.serve(async (req) => {
       const brief = await planBrief(cfg, now);
       const out = await drain();
       return json({ ok: true, queued: { reminders, brief }, ...out });
+    }
+
+    /* ---- a brief somebody else wrote ----
+       The manager knows the day it was told about. Where the school still
+       plans in Bloowatch, the day lives there instead, so the nightly job
+       reads it, writes the brief and hands it over here -- and everything
+       about *sending* stays in one place: the same recipients, the same
+       dedupe, the same rule about templates outside the window. */
+    if (door === "brief" && req.method === "POST") {
+      const given = req.headers.get("x-wa-secret") || "";
+      const bySecret = !!TICK_SECRET && given === TICK_SECRET;
+      if (!bySecret) {
+        const who = await caller(req);
+        if (!who.ok) return json({ error: who.why }, 401);
+      }
+      const b = await req.json().catch(() => ({}));
+      const text = String(b.text || "").trim();
+      if (!text) return json({ error: "no text to send" }, 400);
+      const cfg = await config();
+      const date = String(b.date || localParts(new Date(), cfg.tz).date);
+      const to = (Array.isArray(b.to) && b.to.length) ? b.to : (cfg.brief.to || []);
+      if (!to.length) return json({ error: "nobody to send it to" }, 400);
+
+      let queued = 0;
+      for (const raw of to) {
+        const id = waId(typeof raw === "string" ? raw : (raw.phone || raw.wa_id || ""));
+        if (!id) continue;
+        await queue({
+          dedupe: `brief:${date}:${id}`,
+          wa_id: id, kind: "brief", run_after: new Date().toISOString(),
+          payload: {
+            template: cfg.brief.template, lang: cfg.brief.lang,
+            params: [date, text.split("\n").slice(1).join(" · ") || text],
+            text,
+          },
+        });
+        queued++;
+      }
+      const out = await drain();
+      return json({ ok: true, date, queued, ...out });
     }
 
     /* ---- what is set up and what is not ---- */

@@ -36,6 +36,11 @@ Five of them, and none belongs in this repository or in this container either:
     WA_APP_SECRET    the Meta app secret, so the webhook can be trusted
     WA_TICK_SECRET   what pg_cron sends with the tick
 
+The evening brief needs a fifth thing, in a different place: the three
+Bloowatch variables above and `WA_TICK_SECRET` have to exist as **repository
+secrets** (Settings → Secrets and variables → Actions) as well, because the
+nightly workflow runs on GitHub's machines rather than here.
+
 They live as secrets on the Supabase Edge Function (`supabase secrets set …`),
 which is the only thing that ever holds them: the page is public and the
 database is readable by every device that signs in. `supabase secrets list`
