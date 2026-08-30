@@ -87,11 +87,12 @@ SLOTS = {
     # the same disc as the cover, but only its crown, coming up out of the
     # bottom of the band -- a different sight of the same sun rather than the
     # cover's picture used twice
-    "beyond": lambda: art.stripes(1200, 300, ground=P["sand"],
-                                  colours=(P["amber"], "#F4894C", P["coral"],
-                                           P["pink"], P["rose"])),
-    "camps":  lambda: art.swell(1200, 420, seed=17, lines=12, stroke=P["amber"],
-                                ground=P["sea2"], width=1.9, opacity=.95),
+    "beyond": lambda: art.foil(1200, 452, deep=P["tube"], body=P["sea2"],
+                               foam=P["paper"], ground=P["sea"]),
+    # each inside page carries a picture of its own subject now, not a band of
+    # abstract texture: the walk down for the camps, a foil for the foil page
+    "camps":  lambda: art.walkers(1200, 460, ink=P["ink"], line=P["rose"],
+                                  ground=P["sand"]),
     "boards": lambda: art.boards_row(1200, 300, stroke=P["ink"],
                                      ground=P["sand"], width=1.0),
     "shop":   lambda: art.stripes(1200, 260, ground=P["paper"],
@@ -378,7 +379,7 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
 .row p.es { font-size: 10.3px; line-height: 1.52; margin-top: 5px; }
 
 /* --------------------------------------------------------------- beyond --- */
-.beyond .band { top: 0; height: 2.72in; }
+.beyond .band { top: 0; height: 3.18in; }
 .beyond .row { padding: 10px 0 11px; }
 .beyond .row p.en { font-size: 10.5px; }
 .beyond .row p.es { font-size: 9.9px; }
@@ -423,9 +424,9 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
 /* ---------------------------------------------------------------- camps ---
    Four durations, each led by its own number, because a number is what the
    reader is actually choosing between. */
-.camps .band { top: 0; height: 2.82in; }
+.camps .band { top: 0; height: 3.06in; }
 .camps .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.44in; }
-.camps .cell { border-top: 1px solid $rule; padding: 15px 0 17px; }
+.camps .cell { border-top: 1px solid $rule; padding: 12px 0 13px; }
 .camps .num {
   font-family: Archivo, sans-serif; font-variation-settings: "wdth" 112, "wght" 800;
   font-size: 31px; line-height: 1; letter-spacing: -.02em; color: $rose;
@@ -668,11 +669,11 @@ def camps_page():
     return """
 <section class="page sea camps">
   <div class="band">%s</div>
-  <div class="frame" style="top:3.38in">
+  <div class="frame" style="top:3.62in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:14px">%s</h2>
     <p class="d sub">%s</p>
-    <p class="en" style="margin-top:16px;max-width:5.2in">%s</p>
+    <p class="en" style="margin-top:14px;max-width:5.2in">%s</p>
     <p class="es" style="margin-top:5px;max-width:5.2in">%s</p>
     <div class="grid" style="margin-top:24px">%s</div>
     <p class="meta" style="margin-top:16px;max-width:6in">%s</p>
@@ -722,7 +723,7 @@ def beyond_page():
     return """
 <section class="page beyond">
   <div class="band">%s</div>
-  <div class="frame" style="top:3.28in">
+  <div class="frame" style="top:3.74in">
     <p class="eyebrow">%s</p>
     <h2 class="d" style="margin-top:14px">%s</h2>
     <p class="d sub">%s</p>

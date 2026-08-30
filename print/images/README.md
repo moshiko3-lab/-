@@ -1,10 +1,13 @@
 # Photographs
 
-Eight places in the brochure are pictures. Right now every one of them is drawn
-by [`../art.py`](../art.py) -- a wave with somebody in the barrel, the line-up
-seen from the water, swell coming in, the rack of rental boards -- because the
-machine this was built on cannot reach a photograph, and a booklet with grey
-boxes in it is not a booklet.
+Eight places in the brochure are pictures, and each one is of its own page's
+subject: a wave with somebody in the barrel, the line-up seen from the water,
+swell coming in, five people walking their boards down, a rider up on a foil,
+and the rack of rental boards. Every one of them is drawn by
+[`../art.py`](../art.py), because the machine this was built on cannot reach a
+photograph -- not the stock libraries, not the school's own site, not even the
+Shopify CDN the store's product shots sit on, all of which the egress policy
+refuses. A booklet with grey boxes in it is not a booklet, so they are drawn.
 
 Drawings are a decent default. They are not better than a photograph of this
 beach, taken by the people who already sell photography here. Replacing them
@@ -28,14 +31,16 @@ and a drawing fill the same box the same way, so the type does not move.
 | `cover`  | across the bottom of the cover     | 8.5 × 4.35 in   | 2550 × 1305 |
 | `place`  | across the lower half of p. 2      | 8.5 × 3.42 in   | 2550 × 1026 |
 | `surf`   | across the top of p. 3             | 8.5 × 3.36 in   | 2550 × 1008 |
-| `camps`  | across the top of p. 4             | 8.5 × 2.82 in   | 2550 × 846  |
-| `beyond` | across the top of p. 5             | 8.5 × 2.72 in   | 2550 × 816  |
+| `camps`  | across the top of p. 4             | 8.5 × 3.06 in   | 2550 × 918  |
+| `beyond` | across the top of p. 5             | 8.5 × 3.18 in   | 2550 × 954  |
 | `boards` | across the top of p. 6             | 8.5 × 1.78 in   | 2550 × 534  |
 | `shop`   | across the top of p. 7             | 8.5 × 1.82 in   | 2550 × 546  |
 | `back`   | across the bottom of the back      | 8.5 × 4.0 in    | 2550 × 1200 |
 
-`camps` wants people in it -- a group, not a wave. `shop` wants the racks or
-the counter.
+`camps` wants people in it -- the walk down to the water, a group rather than
+a wave, which is what the drawing there does now. `beyond` wants somebody up on
+a foil and sits on the deep ink page, so it needs a photograph that can hold
+its own next to that colour. `shop` wants the racks or the counter.
 
 Every one of them is a wide band, which is the shape a phone takes a photograph
 in when it is held the way people hold it at a beach. No slot wants a portrait

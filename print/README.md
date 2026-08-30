@@ -121,10 +121,16 @@ drift from the mark on screen, and its hexagon is reused for the bullets and
 the middle of the QR code. The fonts are base64'd into `fonts.css` so a build
 makes the same booklet on any machine, with or without a network.
 
-Every picture is drawn by [`art.py`](art.py) rather than photographed: a wave
+Every picture is drawn by [`art.py`](art.py) rather than photographed, and each
+page carries a drawing of its own subject rather than a band of texture: a wave
 with somebody in the barrel, the line-up seen from the water, swell coming in,
-the day's tide, and the eight rental boards at their real relative proportions
-in the order the list beside them names them.
+five people walking their boards down for the camps, a rider up on a foil, the
+day's tide, and the eight rental boards at their real relative proportions in
+the order the list beside them names them. Every figure in the booklet -- in
+the barrel, sitting the line-up, carrying a board, up on the foil -- is built
+from round-capped strokes of even weight, because at this size on paper a
+silhouette closes up and a stroke does not, and because they should all look
+like one hand drew them.
 [`images/README.md`](images/README.md) says how to replace any of them with a
 real photograph -- one file per slot, and no layout work.
 

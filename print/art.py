@@ -598,3 +598,99 @@ def stripes(w, h, colours=("#F2A03D", "#F4894C", "#F4735C", "#F4557F"),
                    % (i * pitch, w, max(th, 0.6),
                       colours[min(int(t * len(colours)), len(colours) - 1)]))
     return _svg(w, h, "".join(out), ground)
+
+
+def _walker(x, y, scale, ink, board=1.0, flip=False):
+    """Somebody carrying a board down to the water, seen side-on. Built from
+    the same round-capped strokes as the rider and the sitter, so all the
+    people in this booklet came off one hand."""
+    f = -1 if flip else 1
+    return ('<g transform="translate(%.1f %.1f) scale(%.3f %.3f)" stroke="%s" '
+            'stroke-linecap="round" fill="none">'
+            # the board, carried under the arm and tipped nose-up
+            '<path fill="%s" stroke="none" transform="rotate(-9)" '
+            'd="M-%.0f -34C-%.0f -44 %.0f -47 %.0f -40L%.0f -33C%.0f -26 -%.0f -24 -%.0f -34Z"/>'
+            '<circle cx="0" cy="-96" r="9" fill="%s" stroke="none"/>'
+            '<path stroke-width="12" d="M0-86V-46"/>'
+            '<path stroke-width="8" d="M0-46 -13-24 -18 0"/>'
+            '<path stroke-width="8" d="M0-46 12-26 10 0"/>'
+            '<path stroke-width="7" d="M-1-78C-13-72-19-58-19-44"/>'
+            '</g>' % (x, y, scale * f, scale, ink, ink,
+                      44., 26., 42., 50., 52., 40., 20., 44., ink))
+
+
+def walkers(w, h, ink="#14262C", line="#D24870", ground=None):
+    """The walk down. Every surf trip is mostly this, and it is the one picture
+    a camp page can carry that is about the people rather than the wave: the
+    sea behind them, the sand under them, and five of them going in."""
+    sea, sand = h * 0.26, h * 0.86
+    d = ['<path fill="none" stroke="%s" stroke-width="1.7" stroke-opacity=".55" '
+         'd="M0 %.1fH%.1f"/>' % (line, sea, w)]
+    for i in range(6):                                    # swell behind them
+        t = (i + 1) / 6.0
+        y = sea + (sand - sea) * (t ** 1.6) * 0.78
+        d.append('<path fill="none" stroke="%s" stroke-width="%.1f" '
+                 'stroke-opacity="%.2f" stroke-linecap="round" '
+                 'd="M-20 %.1fQ%.0f %.1f %.0f %.1f"/>'
+                 % (line, 1.0 + t * 1.4, 0.22 + 0.30 * t, y,
+                    w * 0.5, y - h * 0.016, w + 20, y))
+    for x, sc, fl in ((0.10, 1.00, False), (0.29, 0.70, False),
+                      (0.47, 0.95, False), (0.645, 0.62, True),
+                      (0.85, 1.06, False)):
+        d.append(_walker(w * x, sand, sc * h / 275.0, ink, flip=fl))
+    return _svg(w, h, "".join(d), ground)
+
+
+def foil(w, h, deep="#0A2129", body="#17515E", foam="#F5F0E6", ground=None):
+    """A rider up on the foil: the board a clear stretch of air above the water
+    and the wing still down in it. It is the one thing in surfing that looks
+    wrong in a photograph and right in a drawing."""
+    sea = h * 0.60
+    p = ['<path fill="%s" d="M0 %.1fC%.0f %.1f %.0f %.1f %.0f %.1f'
+         'C%.0f %.1f %.0f %.1f %.0f %.1fV%.0fH0Z"/>'
+         % (body, sea, w * .2, sea - h * .03, w * .4, sea + h * .026, w * .58, sea,
+            w * .72, sea - h * .026, w * .88, sea + h * .018, w, sea - h * .01, h)]
+
+    bx, by = w * 0.54, sea - h * 0.235
+    p.append('<g transform="rotate(-7 %.1f %.1f)">' % (bx, by))
+    p.append('<path fill="%s" d="M%.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1f'
+             'C%.1f %.1f %.1f %.1f %.1f %.1fZ"/>'
+             % (foam,
+                bx - w * .135, by, bx - w * .095, by - h * .026,
+                bx + w * .105, by - h * .028, bx + w * .145, by - h * .004,
+                bx + w * .105, by + h * .020, bx - w * .075, by + h * .024,
+                bx - w * .135, by))
+    p.append('</g>')
+
+    # the mast, and the wing hanging off the bottom of it
+    tip = sea + h * 0.155
+    p.append('<path stroke="%s" stroke-width="%.1f" stroke-linecap="round" '
+             'd="M%.1f %.1fV%.1f"/>' % (foam, w * .0075, bx, by + h * .04, tip))
+    p.append('<path fill="%s" d="M%.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1f'
+             'C%.1f %.1f %.1f %.1f %.1f %.1fZ"/>'
+             % (deep,
+                bx - w * .105, tip + h * .012, bx - w * .055, tip - h * .012,
+                bx + w * .055, tip - h * .012, bx + w * .105, tip + h * .012,
+                bx + w * .05, tip + h * .002, bx - w * .05, tip + h * .002,
+                bx - w * .105, tip + h * .012))
+    p.append('<path stroke="%s" stroke-width="%.1f" stroke-linecap="round" '
+             'd="M%.1f %.1fh%.1f"/>'
+             % (deep, w * .006, bx - w * .028, tip - h * .052, w * .056))
+
+    # the rider, low and over the front foot
+    p.append('<g transform="translate(%.1f %.1f) scale(%.3f) rotate(-7)" stroke="%s" '
+             'stroke-linecap="round" fill="none">'
+             '<circle cx="4" cy="-92" r="9" fill="%s" stroke="none"/>'
+             '<path stroke-width="12" d="M2-83 -4-50"/>'
+             '<path stroke-width="8" d="M-4-50 -22-28 -28-4"/>'
+             '<path stroke-width="8" d="M-4-50 12-30 18-4"/>'
+             '<path stroke-width="7" d="M-1-76C-17-71-30-61-37-49"/>'
+             '<path stroke-width="7" d="M4-77C18-81 31-80 42-75"/>'
+             '</g>' % (bx - w * .010, by - h * .016, h / 300.0 * 0.86, foam, foam))
+
+    # the line the mast is drawing behind it
+    p.append('<path fill="none" stroke="%s" stroke-opacity=".5" stroke-width="%.1f" '
+             'stroke-linecap="round" d="M%.1f %.1fq%.1f %.1f %.1f %.1f"/>'
+             % (foam, w * .005, bx - w * .015, sea + h * .012,
+                -w * .15, h * .016, -w * .32, h * .004))
+    return _svg(w, h, "".join(p), ground)
