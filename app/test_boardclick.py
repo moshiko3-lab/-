@@ -6,8 +6,10 @@ with that day, that hour and that lane -- the activity when the board is
 grouped by activity, the instructor when it is grouped by staff. Clicking a
 block still opens the block's card, not this.
 
-The board screen also takes the whole window: it is a diary, and an hour of the
-day is worth more than a tidy measure.
+Every screen takes the whole window -- the board because it is a diary and an
+hour of the day is worth more there than a comfortable measure, the rest
+because they are tables too, and the cap that once held them back left half a
+laptop screen empty while their columns sat squeezed together.
 """
 import datetime as dt
 import os
@@ -98,11 +100,25 @@ def main():
         pg.click('#tabs button[data-id="board"]')
         pg.wait_for_timeout(1600)
 
-        check("the board screen takes the whole window",
-              pg.locator(".wrap.wide").count() == 1)
+        # Measured, not asked about by class name: what matters is that the
+        # window is used, however that is arranged in the stylesheet.
+        room = pg.evaluate("() => window.innerWidth")
         wide = pg.evaluate("() => document.querySelector('#p-board').clientWidth")
-        check("which is wider than the measure the text screens keep",
-              wide > 1400, str(wide) + "px")
+        check("the board screen takes the whole window",
+              wide > room - 140, "%dpx of %dpx" % (wide, room))
+
+        # and so does a screen that is nothing but a table -- the cap that
+        # used to hold these back left half a laptop screen empty
+        pg.click('#tabs button[data-id="clients"]')
+        pg.wait_for_timeout(900)
+        text = pg.evaluate("() => document.querySelector('#p-clients').clientWidth")
+        check("and so does a plain table screen",
+              text > room - 140, "%dpx of %dpx" % (text, room))
+        check("the page still does not scroll sideways",
+              not pg.evaluate("() => document.documentElement.scrollWidth"
+                              " > window.innerWidth + 2"))
+        pg.click('#tabs button[data-id="board"]')
+        pg.wait_for_timeout(1400)
 
         blk = pg.locator('[data-session-id="seOne"]').first
         lane = blk.locator("xpath=..")

@@ -91,11 +91,13 @@ header.top .tbtn.solid{background:#fff;color:var(--accent);border-color:#fff}
 header.top .tbtn.solid:hover{background:rgba(255,255,255,.88)}
 header.top .tbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
-.wrap{margin-left:var(--rail);padding:calc(var(--topbar) + 18px) 22px 90px;
-  max-width:1400px}
-/* The board is the one screen that wants the whole window. A measure that
-   keeps a table of text readable only costs the diary hours of the day. */
-.wrap.wide{max-width:none}
+/* Every screen takes the whole window.
+   A measure that keeps running prose readable is the wrong instrument here:
+   there is no prose. These are tables -- bookings, clients, the catalogue --
+   and capping them left half a laptop screen empty while the columns they
+   were holding back sat squeezed against each other. The board was made an
+   exception to that cap first; the exception turned out to be the rule. */
+.wrap{margin-left:var(--rail);padding:calc(var(--topbar) + 18px) 22px 90px}
 section[hidden]{display:none!important}
 .panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);box-shadow:var(--shadow)}
 .sec-h{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:26px 0 13px}
@@ -515,8 +517,6 @@ td.strong{font-weight:700}
 body.locked > .wrap,body.locked > header.top,body.locked > aside.rail{display:none}
 
 @media (max-width:820px){
-  /* a phone reads the day as a list, so nothing here needs to be wide */
-  .wrap.wide{max-width:none}
   /* the header has to fit, or its own buttons end up under it and nothing
      in the corner can be pressed at all */
   header.top{gap:6px;padding:0 11px}
@@ -11407,8 +11407,6 @@ TABS.forEach(function(t){
 var screenName=document.getElementById("screen-name");
 function show(id){
   cur=id;
-  var wrapEl=document.querySelector(".wrap");
-  if(wrapEl) wrapEl.classList.toggle("wide",id==="board");
   TABS.forEach(function(t){
     document.getElementById("p-"+t.id).hidden = t.id!==id;
     if(t.id===id && screenName) screenName.textContent=t.l;
