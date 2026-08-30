@@ -5002,8 +5002,305 @@ function rentalsOutTable(host,dateStr){
     "Marking a board back frees it — the next booking stops seeing it as already out."));
 }
 
+/* ===================== the hire board =====================
+   The list answers "what is late". It does not answer the question the shop
+   actually asks twenty times a day, which is "who has which board, until
+   when, and what is free at four o'clock" -- for that you have to see the
+   boards down one side and the day across the top.
+
+   So: a lane per board, grouped by its gear; a block per hire, as wide as the
+   hire is long; and dragging one moves it -- along its lane to change the
+   hour, onto another lane to put that person on another board. A board that
+   is already out at that hour refuses, because two people cannot take the
+   same board at once, and that is the whole reason for looking at this. */
+var rentalView="board", rentalAll=false;
+function hireBlocksFor(unitId,dateStr){
+  return hiresOn(dateStr).filter(function(h){ return h.line.unitId===unitId; });
+}
+function unitBusy(unitId,dateStr,startMins,endMins,skipLine){
+  var clash=null;
+  hireBlocksFor(unitId,dateStr).forEach(function(h){
+    if(h.line===skipLine) return;
+    var a=h.start.getHours()*60+h.start.getMinutes();
+    var b=a+Math.max(15,h.hours*60);
+    if(startMins<b && endMins>a) clash=h;
+  });
+  return clash;
+}
+function rentalBoard(dateStr){
+  var LABEL=205;
+  var span=(BOARD_TO-BOARD_FROM)*60;
+  var box=el("div");
+
+  var head=el("div","sec-h");
+  head.appendChild(el("h2",null,"The boards"));
+  head.appendChild(el("span","sub",dowOf(dateStr)+", "+dm(dateStr)));
+  head.appendChild(el("span","spacer"));
+  var tog=el("button","btn sm",rentalView==="board"?"See the list":"See the board");
+  tog.addEventListener("click",function(){
+    rentalView=(rentalView==="board")?"list":"board"; renderBoard();});
+  head.appendChild(tog);
+  box.appendChild(head);
+
+  /* The school has two hundred and sixty boards. Drawing every one of them
+     every day is a page nobody can read: the useful board is the gear that is
+     actually out today, with all of its units so somebody can be moved onto a
+     free one. The rest is one click away. */
+  var all=DB.gear.filter(function(g){return (g.units||[]).length;});
+  var busyGear={};
+  hiresOn(dateStr).forEach(function(h){ if(h.gear) busyGear[h.gear.id]=1; });
+  var gears=rentalAll?all:all.filter(function(g){return busyGear[g.id];});
+  if(!gears.length && !rentalAll){ gears=all.slice(0,1); }
+  if(all.length>gears.length || rentalAll){
+    var more=el("button","btn sm",rentalAll
+      ? "Only the gear that is out"
+      : ("Show every board ("+all.reduce(function(a,g){
+          return a+(g.units||[]).length;},0)+")"));
+    more.addEventListener("click",function(){ rentalAll=!rentalAll; renderBoard(); });
+    head.insertBefore(more,tog);
+  }
+  if(!gears.length){
+    box.appendChild(el("div","note",
+      "No boards are listed yet. Add gear and its units in Gear, and each one "+
+      "gets a lane here."));
+    return box;
+  }
+
+  var wrap=el("div","panel");
+  wrap.style.cssText="overflow-x:auto;padding:0";
+  var stack=el("div");
+  stack.style.cssText="min-width:1100px";
+
+  /* the hour axis, the same one the sessions board is read against */
+  var axis=el("div");
+  axis.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
+    "border-bottom:1px solid var(--line);background:var(--panel-2);"+
+    "position:sticky;top:0;z-index:3";
+  var al=el("div",null,"BOARD");
+  al.style.cssText="padding:8px 12px;font-size:11px;font-weight:800;"+
+    "letter-spacing:.07em;color:var(--text-3);border-right:1px solid var(--line)";
+  axis.appendChild(al);
+  var hours=el("div");
+  hours.style.cssText="position:relative;height:30px";
+  for(var h=BOARD_FROM;h<=BOARD_TO;h++){
+    (function(hh){
+      var x=((hh-BOARD_FROM)*60)/span*100;
+      var l=el("div",null,String(hh).padStart(2,"0")+":00");
+      l.style.cssText="position:absolute;left:"+x+"%;bottom:4px;font-size:11px;"+
+        "font-family:'IBM Plex Mono',monospace;color:var(--text-3);"+
+        "transform:translateX(-50%)";
+      hours.appendChild(l);
+    })(h);
+  }
+  /* where the clock is now, on today */
+  if(dateStr===todayISO()){
+    var nowM=new Date().getHours()*60+new Date().getMinutes()-BOARD_FROM*60;
+    if(nowM>=0 && nowM<=span){
+      var nl=el("div");
+      nl.style.cssText="position:absolute;left:"+(nowM/span*100)+"%;top:0;bottom:0;"+
+        "width:2px;background:var(--accent);opacity:.8";
+      hours.appendChild(nl);
+    }
+  }
+  axis.appendChild(hours);
+  stack.appendChild(axis);
+
+  var lanesHost=el("div");
+  stack.appendChild(lanesHost);
+  var laneOf={};
+
+  gears.forEach(function(g){
+    var gh=el("div",null,g.name);
+    gh.style.cssText="padding:6px 12px;font-size:10.5px;font-weight:800;"+
+      "letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);"+
+      "background:var(--panel-2);border-bottom:1px solid var(--line-soft)";
+    lanesHost.appendChild(gh);
+
+    (g.units||[]).forEach(function(u){
+      var row=el("div");
+      row.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
+        "border-bottom:1px solid var(--line-soft);min-height:34px";
+      var lab=el("div");
+      lab.style.cssText="display:flex;align-items:center;gap:7px;padding:5px 12px;"+
+        "font-size:12.5px;font-weight:600;border-right:1px solid var(--line);"+
+        "overflow:hidden;white-space:nowrap";
+      lab.appendChild(el("span",null,u.name||"unnamed"));
+      var outNow=hireBlocksFor(u.id,dateStr).filter(function(x){
+        return !x.returnedAt;}).length;
+      if(!outNow) lab.appendChild(el("span","chip ok","free"));
+      lab.title=(u.name||"unnamed")+" · "+g.name;
+      row.appendChild(lab);
+
+      var lane=el("div");
+      lane.style.cssText="position:relative;min-height:34px;background-image:"+
+        "repeating-linear-gradient(to right,var(--line-soft) 0 1px,transparent 1px "+
+        (100/(BOARD_TO-BOARD_FROM))+"%)";
+      lane.dataset.unitId=u.id;
+      row.appendChild(lane);
+      lanesHost.appendChild(row);
+      laneOf[u.id]=lane;
+
+      hireBlocksFor(u.id,dateStr).forEach(function(x){
+        lane.appendChild(hireBlock(x,dateStr,span,lanesHost));
+      });
+    });
+  });
+
+  wrap.appendChild(stack);
+  box.appendChild(wrap);
+  box.appendChild(el("div","note",
+    "Drag a hire along its lane to change the hour it went out, or onto "+
+    "another board to move that person across. A board already out at that "+
+    "hour will not take it."));
+  return box;
+}
+function hireBlock(x,dateStr,span,lanesHost){
+  var st=hireState(x,dateStr);
+  var startM=x.start.getHours()*60+x.start.getMinutes()-BOARD_FROM*60;
+  var mins=Math.max(15,x.hours*60);
+  var left=Math.max(0,Math.min(97,startM/span*100));
+  var width=Math.max(4,Math.min(100-left,mins/span*100));
+  var tone = st==="late" ? "#d4183d" : st==="soon" ? "#c88a20"
+           : st==="back" ? "#8a8f98" : "#c81e4a";
+  var colour = st==="late" ? "var(--crit)"
+             : st==="soon" ? "var(--warn)"
+             : st==="back" ? "var(--text-3)" : "var(--accent)";
+  var blk=el("div");
+  blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:3px;"+
+    "bottom:3px;background:"+softColour(tone)+";"+
+    "border-left:3px solid "+colour+";border-radius:4px;padding:3px 8px;"+
+    "overflow:hidden;cursor:grab;color:var(--text);font-size:12px;font-weight:600;"+
+    "display:flex;align-items:center;gap:7px;touch-action:none;min-width:32px";
+  if(st==="back") blk.style.opacity=".55";
+  blk.dataset.hireLine=x.line.lid;
+  var who=el("span",null,clientName(x.booking.clientId));
+  who.style.cssText="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1";
+  blk.appendChild(who);
+  var when=el("span",null,hhmmOf(x.start)+"–"+hhmmOf(x.due));
+  when.style.cssText="font-size:10.5px;font-weight:700;color:var(--text-2);flex:none";
+  blk.appendChild(when);
+  blk.title=clientName(x.booking.clientId)+" · "+(x.gear?x.gear.name:"")+" "+
+    (x.unit?x.unit.name:"")+" · out "+hhmmOf(x.start)+", back "+hhmmOf(x.due)+
+    " · "+(st==="back"?"returned":hireWhen(x,dateStr));
+
+  /* ---- dragging: along the lane changes the hour, across lanes the board ---- */
+  var drag=null;
+  blk.addEventListener("pointerdown",function(e){
+    if(e.button && e.button!==0) return;
+    e.preventDefault();
+    var r=blk.getBoundingClientRect();
+    drag={dx:e.clientX-r.left,moved:false,x0:e.clientX,y0:e.clientY,
+          laneW:blk.parentNode.getBoundingClientRect().width};
+    blk.setPointerCapture(e.pointerId);
+    blk.style.cursor="grabbing"; blk.style.zIndex="5";
+    blk.style.boxShadow="0 8px 22px rgba(0,0,0,.28)";
+  });
+  blk.addEventListener("pointermove",function(e){
+    if(!drag) return;
+    if(!drag.moved){
+      if(Math.abs(e.clientX-drag.x0)<3 && Math.abs(e.clientY-drag.y0)<3) return;
+      drag.moved=true;
+    }
+    var under=document.elementFromPoint(e.clientX,e.clientY);
+    var lane=under&&under.closest?under.closest("[data-unit-id]"):null;
+    if(lane) drag.unitId=lane.dataset.unitId;
+    var rect=(lane||blk.parentNode).getBoundingClientRect();
+    var px=e.clientX-drag.dx-rect.left;
+    var frac=Math.max(0,Math.min(1,px/rect.width));
+    drag.mins=Math.round((BOARD_FROM*60+frac*span)/15)*15;
+    blk.style.left=(frac*100)+"%";
+    when.textContent=toHHMM(drag.mins)+"–"+toHHMM(drag.mins+Math.max(15,x.hours*60));
+    [].forEach.call(lanesHost.querySelectorAll("[data-unit-id]"),function(n){
+      n.style.background = (n.dataset.unitId===drag.unitId)?"var(--accent-soft)":"";
+    });
+  });
+  function done(){
+    if(!drag) return;
+    var d=drag; drag=null;
+    blk.style.cursor="grab"; blk.style.zIndex=""; blk.style.boxShadow="";
+    [].forEach.call(lanesHost.querySelectorAll("[data-unit-id]"),function(n){
+      n.style.background="";});
+    if(!d.moved){ hireCard(x,dateStr); return; }
+    var unitId=d.unitId||x.line.unitId;
+    var mins=(d.mins==null)?(x.start.getHours()*60+x.start.getMinutes()):d.mins;
+    var clash=unitBusy(unitId,dateStr,mins,mins+Math.max(15,x.hours*60),x.line);
+    if(clash){
+      renderBoard();
+      toast("That board is already out to "+clientName(clash.booking.clientId)+
+            " at "+hhmmOf(clash.start)+".");
+      return;
+    }
+    /* a board only stands in for one of its own kind */
+    var newGear=null,newUnit=null;
+    DB.gear.forEach(function(gg){
+      (gg.units||[]).forEach(function(uu){
+        if(uu.id===unitId){ newGear=gg; newUnit=uu; }});
+    });
+    var pr=product(x.line.productId);
+    if(pr && pr.gearId && newGear && newGear.id!==pr.gearId){
+      renderBoard();
+      toast(pr.name+" goes out on "+((by(pr.gearId,DB.gear)||{}).name||"its own gear")+
+            ", not "+newGear.name+".");
+      return;
+    }
+    x.line.unitId=unitId;
+    x.line.unitName=(newUnit&&newUnit.name)||"";
+    x.line.time=toHHMM(mins);
+    save(); renderBoard();
+    toast(clientName(x.booking.clientId)+" → "+(newUnit?newUnit.name:"board")+
+          " at "+toHHMM(mins));
+  }
+  blk.addEventListener("pointerup",done);
+  blk.addEventListener("pointercancel",done);
+  return blk;
+}
+/* clicking a hire: the few things a shop does to one, without leaving the board */
+function hireCard(x,dateStr){
+  var b=el("div");
+  [["Client",clientName(x.booking.clientId)],
+   ["Board",(x.gear?x.gear.name+" · ":"")+(x.unit?x.unit.name:"—")],
+   ["Out at",hhmmOf(x.start)],["Due back",hhmmOf(x.due)],
+   ["Hours",String(x.hours)],
+   ["State",x.returnedAt?("back at "+x.returnedAt):hireWhen(x,dateStr)]]
+  .forEach(function(r){
+    var row=el("div","slot"); row.style.gridTemplateColumns="120px 1fr";
+    row.appendChild(el("div","t",r[0]));
+    row.appendChild(el("div",null,r[1]));
+    b.appendChild(row);
+  });
+  var hrs=input("number",x.hours,{min:"0.5",step:"0.5"});
+  b.appendChild(field("Change the hours",hrs,
+    "The board's colour follows this: it turns amber half an hour before it is due and red after."));
+  openModal("Hire · "+clientName(x.booking.clientId),b,[
+    {label:"Close",on:closeModal},
+    {label:"Open booking",on:function(){closeModal();posStart(x.booking);}},
+    {label:x.returnedAt?"Not back after all":"Mark it back",cls:"primary",
+     on:function(){
+      x.line.returnedAt = x.returnedAt ? "" :
+        (new Date().toTimeString().slice(0,5));
+      save(); closeModal(); renderBoard();
+      toast(x.line.returnedAt?"Back on the rack":"Out again");
+    }},
+    {label:"Save hours",on:function(){
+      var v=Number(hrs.value)||x.hours;
+      x.line.hours=v; save(); closeModal(); renderBoard(); toast("Hours updated");
+    }}
+  ]);
+}
+
 function boardRentalTab(){
   var box=el("div");
+  if(rentalView==="board"){
+    box.appendChild(rentalBoard(boardDate));
+    rentalsOutTable(box,boardDate);
+    return box;
+  }
+  var back=el("div","sec-h");
+  back.appendChild(el("span","spacer"));
+  var tb=el("button","btn sm","See the board");
+  tb.addEventListener("click",function(){ rentalView="board"; renderBoard(); });
+  back.appendChild(tb);
+  box.appendChild(back);
   rentalsOutTable(box,boardDate);
   var to=addDays(boardDate,boardSpan-1);
   var rows=DB.gearBlocks.filter(function(b){
