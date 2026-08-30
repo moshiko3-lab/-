@@ -57,6 +57,7 @@ def render(template=None):
     logo = os.path.join(HERE, "logo.png")
     if os.path.exists(logo):
         with open(logo, "rb") as f:
+            # the badge appears twice now: the rail, and the sign-in card
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
     for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/",
                   "/*__PEOPLE__*/", "/*__CLOUD__*/"):
@@ -143,6 +144,21 @@ def check_runtime(path):
                               args=["--no-sandbox"])
         pg = b.new_context(viewport={"width": 1500, "height": 1000}).new_page()
         pg.on("pageerror", lambda e: errors.append(str(e)[:200]))
+        # The app does not draw until somebody has signed in. This check is
+        # about whether the screens throw, not about the sign-in itself, so it
+        # opens the way a device that already signed in opens: with a session
+        # in hand. test_gate is what checks the gate.
+        pg.add_init_script("""
+          try {
+            localStorage.setItem("shokogi.cloud.session", JSON.stringify({
+              access_token: "build-check", refresh_token: "build-check",
+              email: "build@check", expires_at: Date.now() + 36e5}));
+          } catch (e) {}
+          window.fetch = function() {
+            return Promise.resolve(new Response("[]", {status: 200,
+              headers: {"Content-Type": "application/json"}}));
+          };
+        """)
         pg.goto("file://" + os.path.abspath(path))
         pg.wait_for_timeout(2500)
         tabs = pg.query_selector_all("#tabs button")
