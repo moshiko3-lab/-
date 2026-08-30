@@ -41,8 +41,9 @@ import build_brochure as B  # noqa: E402
 import content as C  # noqa: E402
 import quiver  # noqa: E402
 
-PAGES = 6
-QR_ON = {4, 6}                  # the booking page's code, twice: mid-book and back
+PAGES = 8
+QR_ON = {5, 7, 8}               # the shop's code: beside the services,
+                                # on the shop page, and filling the back
 PT = {"letter": (612.0, 792.0), "a4": (595.276, 841.89)}
 SAFE_IN = 0.30                  # type may not come closer to the edge than this
 fails = []

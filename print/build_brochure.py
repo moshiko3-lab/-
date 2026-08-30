@@ -90,8 +90,13 @@ SLOTS = {
     "beyond": lambda: art.stripes(1200, 300, ground=P["sand"],
                                   colours=(P["amber"], "#F4894C", P["coral"],
                                            P["pink"], P["rose"])),
+    "camps":  lambda: art.swell(1200, 420, seed=17, lines=12, stroke=P["amber"],
+                                ground=P["sea2"], width=1.9, opacity=.95),
     "boards": lambda: art.boards_row(1200, 300, stroke=P["ink"],
                                      ground=P["sand"], width=1.0),
+    "shop":   lambda: art.stripes(1200, 260, ground=P["paper"],
+                                  colours=(P["amber"], "#F4894C", P["coral"],
+                                           P["pink"], P["rose"])),
     "back":   lambda: art.wave(1000, 640, deep=P["sea"], body="#153F4A",
                                foam="#295A65", spray="#295A65", rider=False,
                                ground=P["sea"]),
@@ -415,6 +420,45 @@ p.en + p.en, p.es + p.es { margin-top: 11px; }
 .guide p { margin: 8px 0 0; font-size: 10.2px; line-height: 1.45; color: $onink2; }
 .guide p i { display: block; font-style: normal; color: $onink3; font-size: 9.6px; margin-top: 3px; }
 
+/* ---------------------------------------------------------------- camps ---
+   Four durations, each led by its own number, because a number is what the
+   reader is actually choosing between. */
+.camps .band { top: 0; height: 2.82in; }
+.camps .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.44in; }
+.camps .cell { border-top: 1px solid $rule; padding: 15px 0 17px; }
+.camps .num {
+  font-family: Archivo, sans-serif; font-variation-settings: "wdth" 112, "wght" 800;
+  font-size: 31px; line-height: 1; letter-spacing: -.02em; color: $rose;
+}
+.camps .num em { font-style: normal; font-size: 15px; color: $ink3; margin-left: 6px; }
+.camps h3 {
+  margin: 9px 0 0; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 106, "wght" 700;
+  font-size: 13px; letter-spacing: .015em; text-transform: uppercase;
+}
+.camps h3 small {
+  display: block; font-family: "IBM Plex Mono", monospace; font-weight: 400;
+  font-size: 8.2px; letter-spacing: .15em; color: $ink3; margin-top: 4px;
+}
+.camps p { margin: 8px 0 0; }
+
+/* ----------------------------------------------------------------- shop --- */
+.shop .band { top: 0; height: 1.82in; }
+.shop .blocks { margin-top: 22px; }
+.shop .blk { border-top: 2px solid $ink; padding: 13px 0 16px; }
+.shop .blk + .blk { border-top-width: 1px; border-color: $rule; }
+.shop .blk b {
+  font-family: Archivo, sans-serif; font-variation-settings: "wdth" 110, "wght" 800;
+  font-size: 16px; letter-spacing: .01em; text-transform: uppercase;
+}
+.shop .blk b em { font-style: normal; color: $ink3; font-size: 11px; margin-left: 9px;
+  font-variation-settings: "wdth" 104, "wght" 500; }
+.shop .blk span {
+  display: block; margin-top: 9px; font-family: Archivo, sans-serif;
+  font-variation-settings: "wdth" 100, "wght" 600;
+  font-size: 11.4px; letter-spacing: .05em; line-height: 1.72; color: $ink2;
+}
+
 /* --------------------------------------------------------------- quiver --- */
 .rentals .band { top: 0; height: 1.78in; }
 .stats {
@@ -518,8 +562,8 @@ def build(size="letter"):
 
     _SIZE[0] = size
     css = CSS.substitute(fonts=fonts, w=w, h=h, m="0.72in", mt="0.72in", mb="0.72in", **P)
-    pages = [cover_page(logo), opening_page(), surf_page(),
-             beyond_page(), rentals_page(), back_page(logo)]
+    pages = [cover_page(logo), opening_page(), surf_page(), camps_page(),
+             beyond_page(), rentals_page(), shop_page(), back_page(logo)]
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
             '<title>Shokogi &middot; Brochure</title>\n<style>%s</style>\n</head>\n'
             '<body>\n%s\n</body>\n</html>\n' % (css, "\n".join(pages)))
@@ -613,6 +657,66 @@ def surf_page():
                  g["eyebrow"], guide, _rows(s["items"]), folio(2))
 
 
+def camps_page():
+    c = C.CAMPS
+    cells = "".join(
+        '<div class="cell"><p class="num">%s<em>%s</em></p>'
+        '<h3>%s<small>%s</small></h3>'
+        '<p class="en">%s</p><p class="es">%s</p></div>'
+        % (num, unit, en, es, ben, bes)
+        for en, es, num, unit, ben, bes in c["groups"])
+    return """
+<section class="page sea camps">
+  <div class="band">%s</div>
+  <div class="frame" style="top:3.38in">
+    <p class="eyebrow">%s</p>
+    <h2 class="d" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
+    <p class="en" style="margin-top:16px;max-width:5.2in">%s</p>
+    <p class="es" style="margin-top:5px;max-width:5.2in">%s</p>
+    <div class="grid" style="margin-top:24px">%s</div>
+    <p class="meta" style="margin-top:16px;max-width:6in">%s</p>
+    <p class="meta" style="margin-top:4px;max-width:6in">%s</p>
+  </div>
+  %s
+</section>""" % (picture("camps"), c["eyebrow"], c["title_en"], c["title_es"],
+                 c["lede_en"], c["lede_es"], cells,
+                 c["note_en"], c["note_es"], folio(3))
+
+
+def shop_page():
+    h = C.SHOP
+    blocks = "".join('<div class="blk"><b>%s<em>%s</em></b><span>%s</span></div>' % b
+                     for b in h["blocks"])
+    return """
+<section class="page shop">
+  <div class="band">%s</div>
+  <div class="frame" style="top:2.42in">
+    <p class="eyebrow">%s</p>
+    <h2 class="d" style="margin-top:14px">%s</h2>
+    <p class="d sub">%s</p>
+    <p class="en" style="margin-top:15px;max-width:5.6in">%s</p>
+    <p class="es" style="margin-top:5px;max-width:5.6in">%s</p>
+    <div class="blocks">%s</div>
+    <p class="meta" style="margin-top:15px;color:%s;max-width:6in">%s</p>
+    <p class="meta" style="margin-top:4px;max-width:6in">%s</p>
+    <div class="bookline">
+      %s
+      <div>
+        <b>%s</b><i>%s</i>
+        <span class="url">%s</span>
+      </div>
+    </div>
+  </div>
+  %s
+</section>""" % (picture("shop"), h["eyebrow"], h["title_en"], h["title_es"],
+                 h["lede_en"], h["lede_es"], blocks,
+                 P["ink2"], h["note_en"], h["note_es"],
+                 qr_svg(C.BOOKING_URL, "1.06in", quiet=2, light=P["paper"]),
+                 h["cta_en"], h["cta_es"], C.BOOKING_LABEL,
+                 folio(6))
+
+
 def beyond_page():
     b = C.BEYOND
     return """
@@ -636,7 +740,7 @@ def beyond_page():
                  b["title_en"].replace("\n", " "), b["title_es"],
                  _rows(b["items"]),
                  qr_svg(C.BOOKING_URL, "1.06in", quiet=2, light=P["paper"]),
-                 C.BOOK["inline_en"], C.BOOK["inline_es"], C.BOOKING_LABEL, folio(3))
+                 C.BOOK["inline_en"], C.BOOK["inline_es"], C.BOOKING_LABEL, folio(4))
 
 
 def rentals_page():

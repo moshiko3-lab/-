@@ -1,6 +1,6 @@
 # Photographs
 
-Six places in the brochure are pictures. Right now every one of them is drawn
+Eight places in the brochure are pictures. Right now every one of them is drawn
 by [`../art.py`](../art.py) -- a wave with somebody in the barrel, the line-up
 seen from the water, swell coming in, the rack of rental boards -- because the
 machine this was built on cannot reach a photograph, and a booklet with grey
@@ -21,16 +21,21 @@ drawing, `surf.jpg` the band on the lessons page, and so on. Then rebuild:
 found a photograph and which are still drawn. Nothing else changes -- a photo
 and a drawing fill the same box the same way, so the type does not move.
 
-## The six slots
+## The eight slots
 
 | file     | where it goes                      | shape           | 300 dpi     |
 |----------|------------------------------------|-----------------|-------------|
 | `cover`  | across the bottom of the cover     | 8.5 × 4.35 in   | 2550 × 1305 |
 | `place`  | across the lower half of p. 2      | 8.5 × 3.42 in   | 2550 × 1026 |
 | `surf`   | across the top of p. 3             | 8.5 × 3.36 in   | 2550 × 1008 |
-| `beyond` | across the top of p. 4             | 8.5 × 2.72 in   | 2550 × 816  |
-| `boards` | across the top of p. 5             | 8.5 × 1.78 in   | 2550 × 534  |
+| `camps`  | across the top of p. 4             | 8.5 × 2.82 in   | 2550 × 846  |
+| `beyond` | across the top of p. 5             | 8.5 × 2.72 in   | 2550 × 816  |
+| `boards` | across the top of p. 6             | 8.5 × 1.78 in   | 2550 × 534  |
+| `shop`   | across the top of p. 7             | 8.5 × 1.82 in   | 2550 × 546  |
 | `back`   | across the bottom of the back      | 8.5 × 4.0 in    | 2550 × 1200 |
+
+`camps` wants people in it -- a group, not a wave. `shop` wants the racks or
+the counter.
 
 Every one of them is a wide band, which is the shape a phone takes a photograph
 in when it is held the way people hold it at a beach. No slot wants a portrait

@@ -1,17 +1,20 @@
 # The room brochure
 
-`shokogi-brochure.pdf` is the six-page booklet that goes in guest rooms. It is
-in English and Spanish throughout, on US Letter, and it carries the booking
-page's QR code twice -- once beside the services on page four, once filling the
-back cover.
+`shokogi-brochure.pdf` is the eight-page booklet that goes in guest rooms. It
+is in English and Spanish throughout, on US Letter, and it carries the shop's
+QR code three times.
 
     01  cover           the name over a wave with somebody in it
     02  the place       Playa Venao, a first lesson, and the line-up
     03  in the water    where to start, then the four ways to have a lesson
-    04  the rest of     SUP, foil, yoga, ice bath, photo, kids, camps,
-        the day         trips -- and the code to book any of it
-    05  the quiver      every board the school owns, counted
-    06  reserve         what to bring, the code, and how to reach us
+    04  come for a week surf camps, and the young and teen camps
+    05  foil & the rest foil tow-in, SUP, yoga, ice bath, photo, trips
+    06  the quiver      every board the school owns, counted
+    07  the shop        what is for sale in the same building
+    08  reserve         what to bring, the code, and how to reach us
+
+Eight is also the right number: it is one signature, so a shop can fold and
+staple it. Six could not be.
 
 ## Building it
 
@@ -33,9 +36,9 @@ whenever the wording or the pictures change.
     pip install pypdfium2 opencv-python-headless
     python3 print/test_brochure.py
 
-Six pages, the right paper size, no type inside the trim, both QR codes read
-back off the rendered page and compared against the booking URL, and the board
-figures on page five checked against the catalogue they were counted from.
+Eight pages, the right paper size, no type inside the trim, all three QR codes
+read back off the rendered page and compared against the shop's URL, and the
+board figures on page six checked against the catalogue they were counted from.
 
 The codes are the only part of the booklet with a job to do and the only part
 that cannot be proof-read by looking at it. The quiver figures are the only
@@ -49,8 +52,8 @@ export shape would print zeroes rather than an error.
 * **Borderless if the printer offers it.** Two covers and three picture bands
   run to the paper's edge. A printer that cannot go borderless trims about an
   eighth of an inch; no type sits there, so it costs picture and nothing else.
-* **Six pages is three sheets, printed both sides.** Folded and stapled it is a
-  booklet; loose in a folder or a stand it still reads in order.
+* **Eight pages is two sheets folded, or four printed both sides.** Saddle
+  stitched it is a booklet; loose in a stand it still reads in order.
 * **The file is around 5 MB**, most of it the dot screen on the two poster
   pages. That is normal for print and small for a shop; it is only worth
   mentioning because emailing it may need a link rather than an attachment.
@@ -67,12 +70,27 @@ by side; `build_brochure.py` only decides how it looks. Nothing in there quotes
 a price on purpose -- a printed booklet cannot follow a price list, so the code
 carries a reader to the booking page where today's prices are.
 
-Page five is the exception, and deliberately so. Its numbers -- how many boards,
+Page six is the exception, and deliberately so. Its numbers -- how many boards,
 how short and how long, which shapers, how many of each length -- are not
 written anywhere. [`quiver.py`](quiver.py) counts them off `app/catalog.json`,
 the school's own inventory, so a rebuild after the next export prints what is
 true then. That page is the closest thing here to a wetsuit brand's spec sheet,
 and it is worth as much as it is accurate.
+
+## Where the offer came from
+
+Not from memory. The camps, the courses, the kids' and teens' camps and every
+brand named on the shop page were read off the school's own Shopify store at
+www.shokogi.com through the connected admin API -- 285 products, and the
+collections they sit in. The durations on page four are the products
+themselves: seven, ten and fifteen day surf camps; a young camp that runs from
+a single day to thirty-five; a teens camp at one, five, ten and fifteen.
+
+That is also why the QR code points at `shokogi.com` and not at the booking
+page this repository builds. Only two products in `app/catalog.json` carry the
+`soldOnline` flag, so that page sells two things -- and the back cover promises
+"the full list with today's prices". A brochure should not print a promise its
+own code cannot keep.
 
 ## Where the look comes from
 
