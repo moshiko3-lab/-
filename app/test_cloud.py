@@ -5,9 +5,11 @@ There is no network in here, and there should not be: this stubs fetch and
 watches what the page actually does. What matters is the behaviour a school
 depends on, not that a request was made.
 
-  * a write goes into the outbox, whatever screen made it;
+  * nothing is asked of the book before somebody signs in;
+  * a write made with the wifi down goes into the outbox, whatever screen
+    made it;
   * the outbox survives a reload -- a change made with no signal is not lost;
-  * signing in is what starts the traffic, and nothing is sent before;
+  * the connection coming back is what hands it over;
   * a push sends only what changed, carries the school, and marks a deleted
     record deleted rather than dropping it silently;
   * a pull merges somebody else's row into this browser and shows it;
@@ -46,16 +48,18 @@ def build():
 
 
 # Stand in for Supabase: remember every call, answer sign-in, and hand back
-# whatever rows the test has planted for the next pull.
-STUB = """() => {
+# whatever rows the test has planted for the next pull. __down is the wifi,
+# for the half of the morning the counter does not have any.
+STUB_BODY = """
   window.__calls = [];
   window.__inbox = {};          // table -> rows the next pull returns
-  const real = window.fetch;
+  window.__down = false;        // the connection, when the test takes it away
   window.fetch = function(url, opts) {
     opts = opts || {};
     const body = opts.body ? JSON.parse(opts.body) : null;
     window.__calls.push({url: String(url), method: opts.method || "GET",
                          body: body, headers: opts.headers || {}});
+    if (window.__down) return Promise.reject(new TypeError("Failed to fetch"));
     if (String(url).indexOf("/auth/v1/token") >= 0) {
       return Promise.resolve(new Response(JSON.stringify({
         access_token: "tok", refresh_token: "ref", expires_in: 3600,
@@ -71,8 +75,10 @@ STUB = """() => {
     return Promise.resolve(new Response(JSON.stringify(rows),
       {status: 200, headers: {"Content-Type": "application/json"}}));
   };
-  return true;
-}"""
+"""
+
+# the same thing to hand to evaluate(), for after a reload
+STUB = "() => {" + STUB_BODY + "return true; }"
 
 
 def main():
@@ -83,16 +89,29 @@ def main():
         pg = br.new_context(viewport={"width": 1680, "height": 1050}).new_page()
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
+        # the door itself calls out, so the stub has to be in place before the
+        # page's own script runs -- installing it after the load is too late
+        pg.add_init_script(STUB_BODY)
         pg.goto("file://" + build())
         pg.wait_for_timeout(2600)
-        pg.evaluate(STUB)
 
+        check("nothing is asked of the book before somebody signs in",
+              pg.evaluate("() => window.__calls.filter("
+                          "c => c.url.indexOf('/rest/') >= 0).length") == 0)
+
+        # --- in through the door -------------------------------------------
+        pg.fill("#gate-email", "moshe@shokogi.com")
+        pg.fill("#gate-pass", "whatever")
+        pg.click("#gate-go")
+        pg.wait_for_timeout(1800)
         check("the page knows where its book lives",
               pg.evaluate("() => !!document.getElementById('btn-cloud')"))
         label = (pg.inner_text("#btn-cloud") or "").lower()
-        check("and says it is not signed in yet", "sign in" in label, label)
+        check("and no longer asks to be signed in", "sign in" not in label, label)
 
-        # --- a write with nobody signed in still goes into the outbox ------
+        # --- a write with the wifi down goes into the outbox ---------------
+        # which is the state a counter in Playa Venao spends half the morning in
+        pg.evaluate("() => { window.__down = true; }")
         pg.click('#tabs button[data-id="clients"]')
         pg.wait_for_timeout(900)
         pg.click('#p-clients button:has-text("New client")')
@@ -103,33 +122,36 @@ def main():
 
         box = pg.evaluate(
             "() => JSON.parse(localStorage.getItem('shokogi.cloud.outbox')||'{}')")
-        # the seeded catalogue is in there too, and rightly: this browser made
-        # it, so it is this browser's to hand over
         check("the new client is in the outbox",
               len(box.get("clients", {})) >= 1, json.dumps(box)[:200])
-        check("and nothing was sent before signing in",
-              pg.evaluate("() => window.__calls.filter("
-                          "c => c.url.indexOf('/rest/') >= 0).length") == 0)
+        check("and the corner does not claim it is safe",
+              "synced" not in (pg.inner_text("#btn-cloud") or "").lower(),
+              pg.inner_text("#btn-cloud"))
 
         # the outbox is not a variable, it is a place
         pg.reload()
         pg.wait_for_timeout(2200)
-        pg.evaluate(STUB)
         box2 = pg.evaluate(
             "() => JSON.parse(localStorage.getItem('shokogi.cloud.outbox')||'{}')")
         check("it survives a reload", box2 == box, json.dumps(box2)[:200])
+        check("and the door does not ask again",
+              not pg.evaluate("""() => {
+                const n = document.getElementById("gate");
+                if (!n) return false;
+                const r = n.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+              }"""))
 
-        # --- signing in starts the traffic --------------------------------
+        # --- the connection comes back ------------------------------------
+        pg.evaluate("() => { window.__calls = []; }")
         pg.click("#btn-cloud")
         pg.wait_for_timeout(600)
-        pg.fill('#modal input[type=email]', "moshe@shokogi.com")
-        pg.fill('#modal input[type=password]', "whatever")
-        pg.locator('.modal-f button:has-text("Sign in")').first.click()
-        pg.wait_for_timeout(1500)
+        pg.locator('.modal-f button:has-text("Sync now")').first.click()
+        pg.wait_for_timeout(1800)
 
         calls = pg.evaluate("() => window.__calls")
         posts = [c for c in calls if c["method"] == "POST" and "/rest/v1/" in c["url"]]
-        check("signing in hands over what was waiting", bool(posts),
+        check("what was waiting goes over", bool(posts),
               str(len(calls)) + " calls")
         if posts:
             rows = [r for c in posts for r in (c["body"] or [])]

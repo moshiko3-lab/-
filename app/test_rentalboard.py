@@ -24,6 +24,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 fails = []
 
+# The app does not draw until somebody has signed in. These tests are about
+# what is behind that door, so they open the way a device that already signed
+# in opens: with a session in hand and the network stubbed out. test_gate is
+# the one that checks the door itself.
+SIGNED_IN = """
+  try {
+    localStorage.setItem("shokogi.cloud.session", JSON.stringify({
+      access_token: "test", refresh_token: "test", email: "test@shokogi",
+      expires_at: Date.now() + 36e5}));
+  } catch (e) {}
+  window.fetch = function() {
+    return Promise.resolve(new Response("[]", {status: 200,
+      headers: {"Content-Type": "application/json"}}));
+  };
+"""
+
 
 def check(name, cond, detail=""):
     print(("  ok   " if cond else "  FAIL ") + name +
@@ -118,6 +134,7 @@ def main():
         br = p.chromium.launch(headless=True, executable_path=CHROME,
                                args=["--no-sandbox"])
         pg = br.new_context(viewport={"width": 1680, "height": 1050}).new_page()
+        pg.add_init_script(SIGNED_IN)
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
         pg.goto("file://" + build())
