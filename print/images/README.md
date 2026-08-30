@@ -13,6 +13,9 @@ Drawings are a decent default. They are not better than a photograph of this
 beach, taken by the people who already sell photography here. Replacing them
 is one file each and no layout work at all.
 
+Both printed pieces share these slots. A photograph dropped in here shows up in
+the booklet and in the tri-fold, cropped to whichever band it lands in.
+
 ## Dropping one in
 
 Put a file in this folder named after the slot. `cover.jpg` replaces the cover

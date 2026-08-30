@@ -82,7 +82,7 @@ SLOTS = {
                                foam=P["paper"]),
     "place":  lambda: art.lineup(1200, 482, ink=P["ink"], line=P["rose"],
                                  ground=P["sand"]),
-    "surf":   lambda: art.swell(1200, 560, seed=5, lines=13, stroke=P["pink"],
+    "surf":   lambda: art.swell(1200, 470, seed=5, lines=12, stroke=P["pink"],
                                 ground=P["sea2"], width=1.9, opacity=.95),
     # the same disc as the cover, but only its crown, coming up out of the
     # bottom of the band -- a different sight of the same sun rather than the
@@ -93,8 +93,8 @@ SLOTS = {
     # abstract texture: the walk down for the camps, a foil for the foil page
     "camps":  lambda: art.walkers(1200, 460, ink=P["ink"], line=P["rose"],
                                   ground=P["sand"]),
-    "boards": lambda: art.boards_row(1200, 300, stroke=P["ink"],
-                                     ground=P["sand"], width=1.0),
+    "boards": lambda: art.boards_row(1200, 380, stroke=P["ink"],
+                                     ground=P["sand"], width=1.05),
     "shop":   lambda: art.stripes(1200, 260, ground=P["paper"],
                                   colours=(P["amber"], "#F4894C", P["coral"],
                                            P["pink"], P["rose"])),

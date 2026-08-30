@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Check the built brochure the way the room it ends up in will.
+"""Check the built pieces the way the room they end up in will.
 
-    python3 print/test_brochure.py
-    python3 print/test_brochure.py a4
+    python3 print/test_brochure.py          # the booklet, then the tri-fold
+    python3 print/test_brochure.py a4       # the booklet on A4
 
 Four things are worth failing a build over, and every one of them has been
 shipped wrong by somebody:
@@ -38,6 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import build_brochure as B  # noqa: E402
+import build_trifold as T  # noqa: E402
 import content as C  # noqa: E402
 import quiver  # noqa: E402
 
@@ -60,10 +61,11 @@ def margins(html, size):
     that reach into the trim."""
     probe = """
 <script>window.addEventListener('load',function(){
-  var W = document.querySelector('.page').getBoundingClientRect().width;
-  var H = document.querySelector('.page').getBoundingClientRect().height;
+  var sel = document.querySelector('.page') ? '.page' : '.sheet';
+  var W = document.querySelector(sel).getBoundingClientRect().width;
+  var H = document.querySelector(sel).getBoundingClientRect().height;
   var safe = %f * 96, out = [];
-  document.querySelectorAll('.page').forEach(function(pg, i){
+  document.querySelectorAll(sel).forEach(function(pg, i){
     var pr = pg.getBoundingClientRect();
     pg.querySelectorAll('*').forEach(function(el){
       if (el.children.length) return;                 /* leaves only */
@@ -166,11 +168,49 @@ def main():
             check("page %d keeps its type out of the trim" % pg, not here,
                   "; ".join("%r at %s" % (b["text"], b["box"]) for b in here[:3]))
 
+    # The tri-fold is a different sheet with the same job, so it gets the same
+    # three questions: right paper, code readable, nothing in the trim.
+    if size == "letter":
+        print()
+        print("the tri-fold")
+        tri = os.path.join(HERE, "shokogi-trifold.pdf")
+        thtml = T.build()
+        B.render(thtml, tri)
+        tdoc = pdfium.PdfDocument(tri)
+        check("2 sheets", len(tdoc) == 2, "got %d" % len(tdoc))
+        for i in range(len(tdoc)):
+            w, h = tdoc[i].get_size()
+            check("sheet %d is 11 x 8.5" % (i + 1),
+                  abs(w - 792) < 1 and abs(h - 612) < 1, "%.1f x %.1f pt" % (w, h))
+        if cv2 is not None:
+            det2 = cv2.QRCodeDetector()
+            for i in range(len(tdoc)):
+                img = np.array(tdoc[i].render(scale=200 / 72.0).to_pil().convert("RGB"))
+                _, dec, _, _ = det2.detectAndDecodeMulti(
+                    cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+                found = sorted({d for d in (dec or []) if d})
+                want = [C.BOOKING_URL] if i == 0 else []
+                check("sheet %d %s" % (i + 1, "points at the shop" if not i
+                                       else "carries no code"),
+                      found == want, "read %s" % (found or "nothing"))
+        tbad = margins(thtml, "trifold")
+        if tbad is None:
+            check("the browser reported the tri-fold's boxes", False, "no probe output")
+        else:
+            for pg in (1, 2):
+                here = [b for b in tbad if b["page"] == pg]
+                check("sheet %d keeps its type out of the trim" % pg, not here,
+                      "; ".join("%r at %s" % (b["text"], b["box"]) for b in here[:3]))
+
     print()
     if fails:
         print("%d check(s) failed: %s" % (len(fails), ", ".join(fails)))
         return 1
     print("all good -- %s (%.0f KB)" % (pdf, os.path.getsize(pdf) / 1024.0))
+    if size == "letter":
+        print("          -- %s (%.0f KB)"
+              % (os.path.join(HERE, "shokogi-trifold.pdf"),
+                 os.path.getsize(os.path.join(HERE, "shokogi-trifold.pdf")) / 1024.0))
     return 0
 
 

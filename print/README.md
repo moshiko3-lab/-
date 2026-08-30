@@ -1,3 +1,36 @@
+# The printed pieces
+
+Two of them, off one set of words and one set of drawings:
+
+* **`shokogi-trifold.pdf`** -- one sheet folded in three, for the rack by the
+  door and the counter. This is the one to print first.
+* **`shokogi-brochure.pdf`** -- the eight-page booklet, for a guest room where
+  somebody has time.
+
+Both are in English and Spanish, both carry the shop's QR code, and both are
+built from [`content.py`](content.py) and [`art.py`](art.py), so a change to
+the wording or a photograph dropped into `images/` lands in both.
+
+## The tri-fold
+
+    python3 print/build_trifold.py            # -> print/shokogi-trifold.pdf
+
+Two sheets of 11 x 8.5 landscape, three panels each:
+
+    outside   [ before you come ] [ find us ] [ FRONT COVER ]
+    inside    [ in the water ] [ come for a week ] [ the rack & the shop ]
+
+Folded, the front cover ends up on top and "before you come" tucks inside.
+The panels are drawn as equal thirds; a shop doing a tight letter-fold usually
+wants the tucking panel about 1.5 mm narrower, which is a conversation with the
+printer rather than a guess to bake in here. Fold marks show on screen and are
+gone in print.
+
+Its headings pair a line of Archivo with a line of brush script -- Kaushan
+Script, embedded in `fonts-script.css`. That pairing is what a surf school's
+sheet has looked like since somebody first hand-lettered one, and it is the
+thing the booklet did not have.
+
 # The room brochure
 
 `shokogi-brochure.pdf` is the eight-page booklet that goes in guest rooms. It
@@ -34,11 +67,15 @@ whenever the wording or the pictures change.
 ## Checking it
 
     pip install pypdfium2 opencv-python-headless
-    python3 print/test_brochure.py
+    python3 print/test_brochure.py            # checks both pieces
 
 Eight pages, the right paper size, no type inside the trim, all three QR codes
 read back off the rendered page and compared against the shop's URL, and the
 board figures on page six checked against the catalogue they were counted from.
+Then the tri-fold gets the same three questions: right sheet, code readable,
+nothing in the trim. That last one has already earned its keep -- the tri-fold's
+panel footers sat 1.8 px inside the trim and nothing but the test would have
+noticed before a print run did.
 
 The codes are the only part of the booklet with a job to do and the only part
 that cannot be proof-read by looking at it. The quiver figures are the only

@@ -35,6 +35,17 @@ COVER = {
     "patch_bottom": "PLAYA VENAO PANAMA",
     "patch2_top": "SCHOOL SINCE 2009",
     "patch2_bottom": "EVERY LEVEL WELCOME",
+    # The tri-fold's headings. Each panel gets a line of brush script under a
+    # line of Archivo -- the pairing every surf school's sheet has used since
+    # somebody first hand-lettered one, and the thing the booklet was missing.
+    "line_bold": "LEARN THE OCEAN,",
+    "line_script": "not just the wave.",
+    "find_script": "come and find us",
+    "before_title": "BEFORE YOU COME",
+    "before_script": "a few things first",
+    "water_script": "where it starts",
+    "week_script": "stay a while",
+    "rack_script": "take one out",
 }
 
 # ------------------------------------------------------------- 2. the place

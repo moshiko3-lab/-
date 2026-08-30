@@ -11,9 +11,10 @@ python3 app/build.py --out index.html            # the manager
 python3 app/build.py --minisite --out book.html  # the booking page
 ```
 
-There is one thing here that is not a web page: `print/shokogi-brochure.pdf`,
-the bilingual eight-page booklet that goes in guest rooms, carrying the shop's
-QR code three times. Its offer is read off the school's Shopify store and its
+Two things here are not web pages: `print/shokogi-trifold.pdf`, one sheet
+folded in three for the rack by the door, and `print/shokogi-brochure.pdf`, the
+bilingual eight-page booklet that goes in guest rooms. Both carry the shop's QR
+code. Its offer is read off the school's Shopify store and its
 board figures off `app/catalog.json`, so both are counted rather than typed.
 How to rebuild it, how to print it, and how to put real photographs into it is
 in [`print/README.md`](print/README.md).

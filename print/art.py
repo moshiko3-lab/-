@@ -208,10 +208,13 @@ def _svg(w, h, body, ground, box=None, fit="slice"):
     `fit` is "slice" for pictures, which should fill their box and lose their
     edges the way a photograph would, and "meet" for the chart, which must not:
     cropping a chart eats its axis labels, which is exactly what happened the
-    first time this shipped."""
+    first time this shipped. A fit with a space in it is passed through whole,
+    so a caller that needs the crop anchored somewhere other than the middle
+    can say "xMidYMax slice" and keep the bottom of the drawing."""
     bw, bh = box or (w, h)
+    fit = fit if " " in fit else ("xMidYMid " + fit)
     bg = '<rect width="%s" height="%s" fill="%s"/>' % (bw, bh, ground) if ground else ""
-    return ('<svg class="art" viewBox="0 0 %s %s" preserveAspectRatio="xMidYMid %s" '
+    return ('<svg class="art" viewBox="0 0 %s %s" preserveAspectRatio="%s" '
             'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">%s%s</svg>'
             % (bw, bh, fit, bg, body))
 
@@ -299,7 +302,7 @@ def boards_row(w, h, stroke="#C9436B", ground=None, width=0.85, pad=0.15):
 # reads as surfing; the same wave without one reads as weather.
 # --------------------------------------------------------------------------
 def wave(w, h, deep="#0A222A", body="#17515E", foam="#F5F0E6", spray=None,
-         rider=True, ground=None):
+         rider=True, ground=None, fit="slice"):
     # No rider, no spray: the back cover wants the shape of a wave behind the
     # type, and loose dots up in the air read as dirt on the page rather than
     # as water once there is nobody throwing them.
@@ -358,7 +361,7 @@ def wave(w, h, deep="#0A222A", body="#17515E", foam="#F5F0E6", spray=None,
              'C308 589 376 595 444 585C524 573 600 580 672 607'
              'C720 625 764 631 804 629V640Z"/>' % foam)
 
-    return _svg(w, h, "".join(p), ground, box=(1000, 640))
+    return _svg(w, h, "".join(p), ground, box=(1000, 640), fit=fit)
 
 
 # --------------------------------------------------------------------------
