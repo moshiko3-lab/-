@@ -54,12 +54,22 @@ STUB_BODY = """
   window.__calls = [];
   window.__inbox = {};          // table -> rows the next pull returns
   window.__down = false;        // the connection, when the test takes it away
+  window.__slow = 0;            // and how long it takes when it is there
   window.fetch = function(url, opts) {
     opts = opts || {};
     const body = opts.body ? JSON.parse(opts.body) : null;
     window.__calls.push({url: String(url), method: opts.method || "GET",
                          body: body, headers: opts.headers || {}});
     if (window.__down) return Promise.reject(new TypeError("Failed to fetch"));
+    if (window.__slow) {
+      const inner = window.__answer(url, opts, body);
+      return new Promise(function(res) {
+        setTimeout(function() { res(inner); }, window.__slow);
+      });
+    }
+    return window.__answer(url, opts, body);
+  };
+  window.__answer = function(url, opts, body) {
     if (String(url).indexOf("/auth/v1/token") >= 0) {
       return Promise.resolve(new Response(JSON.stringify({
         access_token: "tok", refresh_token: "ref", expires_in: 3600,
@@ -75,10 +85,41 @@ STUB_BODY = """
     return Promise.resolve(new Response(JSON.stringify(rows),
       {status: 200, headers: {"Content-Type": "application/json"}}));
   };
+
+  // The other end of the live connection, held by the test. It opens, answers
+  // the join the way the server does, and then sits there until the test says
+  // a row changed.
+  window.__ws = null;
+  window.WebSocket = function(url) {
+    const self = this;
+    this.url = String(url);
+    this.readyState = 0;
+    this.sent = [];
+    this.send = function(m) { self.sent.push(JSON.parse(m)); };
+    this.close = function() { self.readyState = 3; };
+    window.__ws = this;
+    setTimeout(function() {
+      self.readyState = 1;
+      if (self.onopen) self.onopen({});
+      if (self.onmessage) self.onmessage({data: JSON.stringify({
+        topic: "realtime:shokogi", event: "phx_reply", ref: "1",
+        payload: {status: "ok", response: {}}})});
+    }, 20);
+  };
 """
 
 # the same thing to hand to evaluate(), for after a reload
 STUB = "() => {" + STUB_BODY + "return true; }"
+
+
+def new_client(pg, name):
+    pg.click('#tabs button[data-id="clients"]')
+    pg.wait_for_timeout(500)
+    pg.click('#p-clients button:has-text("New client")')
+    pg.wait_for_timeout(500)
+    pg.fill('#modal input[type=text] >> nth=0', name)
+    pg.locator('.modal-f button:has-text("Save")').first.click()
+    pg.wait_for_timeout(400)
 
 
 def main():
@@ -109,15 +150,58 @@ def main():
         label = (pg.inner_text("#btn-cloud") or "").lower()
         check("and no longer asks to be signed in", "sign in" not in label, label)
 
+        # --- the live connection ------------------------------------------
+        join = pg.evaluate("""() => {
+          const w = window.__ws;
+          if (!w) return null;
+          const j = w.sent.filter(m => m.event === "phx_join")[0];
+          return j ? {topic: j.topic,
+                      tables: (j.payload.config.postgres_changes || [])
+                                .map(c => c.table),
+                      filters: (j.payload.config.postgres_changes || [])
+                                .map(c => c.filter),
+                      token: j.payload.access_token} : null;
+        }""")
+        check("signing in opens a live connection", join is not None)
+        if join:
+            check("it listens for every collection", len(join["tables"]) == 15,
+                  str(len(join["tables"])))
+            check("for this school only",
+                  all(f == "school=eq.shokogi" for f in join["filters"]),
+                  str(join["filters"][:2]))
+            check("and signs the request, so the policies still apply",
+                  bool(join["token"]))
+        check("and the corner says it is live",
+              "live" in (pg.inner_text("#btn-cloud") or "").lower(),
+              pg.inner_text("#btn-cloud"))
+
+        # --- the first hand-over, which nobody had to know to ask for -------
+        # A school's book starts inside one browser. Signing in is what puts it
+        # on the server; there is no button to remember, and a second device
+        # signing in tomorrow finds it there rather than finding nothing.
+        up = {}
+        for c in pg.evaluate("() => window.__calls"):
+            if c["method"] == "POST" and "/rest/v1/" in c["url"]:
+                t = c["url"].split("/rest/v1/")[1].split("?")[0]
+                up[t] = up.get(t, 0) + len(c["body"] or [])
+        check("signing in puts the book up there without being asked",
+              up.get("products", 0) > 0 and up.get("gear", 0) > 0, str(up))
+
+        # and a table the server already holds is left alone: taking what is
+        # there is the normal path, and this must never run over it
+        pg.evaluate("""() => {
+          window.__calls = [];
+          window.__seenBefore = JSON.parse(
+            localStorage.getItem("shokogi.cloud.seeded") || "{}");
+        }""")
+        check("every collection is accounted for after the first sync",
+              len(pg.evaluate("() => window.__seenBefore")) == 15,
+              str(len(pg.evaluate("() => window.__seenBefore"))))
+
         # --- a write with the wifi down goes into the outbox ---------------
         # which is the state a counter in Playa Venao spends half the morning in
         pg.evaluate("() => { window.__down = true; }")
-        pg.click('#tabs button[data-id="clients"]')
-        pg.wait_for_timeout(900)
-        pg.click('#p-clients button:has-text("New client")')
-        pg.wait_for_timeout(600)
-        pg.fill('#modal input[type=text] >> nth=0', "Nuria Cloud")
-        pg.locator('.modal-f button:has-text("Save")').first.click()
+        new_client(pg, "Nuria Cloud")
         pg.wait_for_timeout(800)
 
         box = pg.evaluate(
@@ -168,11 +252,38 @@ def main():
         check("the outbox is empty once it is sent",
               pg.evaluate("() => JSON.parse("
                           "localStorage.getItem('shokogi.cloud.outbox')||'{}')") == {})
-        check("the button says so", "sync" in (pg.inner_text("#btn-cloud") or "").lower()
-              or "synced" in (pg.inner_text("#btn-cloud") or "").lower(),
-              pg.inner_text("#btn-cloud"))
+        corner = (pg.inner_text("#btn-cloud") or "").lower()
+        check("the button says so", "sync" in corner or "live" in corner, corner)
 
-        # --- somebody else's work arrives ---------------------------------
+        # --- a change typed while a sync is in the air ---------------------
+        # This was the reason somebody had to press the button. A save landing
+        # during a sync was dropped and left to wait for the next poll, and at
+        # a counter taking bookings that is the normal case, not the rare one.
+        pg.evaluate("() => { window.__calls = []; window.__slow = 1200; }")
+        new_client(pg, "During One")     # starts a sync a moment from now
+        new_client(pg, "During Two")     # saved while that sync is in flight
+        pg.wait_for_timeout(8000)
+        pg.evaluate("() => { window.__slow = 0; }")
+        rows = [r for c in pg.evaluate("() => window.__calls")
+                if c["method"] == "POST" and "/rest/v1/clients" in c["url"]
+                for r in (c["body"] or [])]
+        names = [(r.get("data") or {}).get("name") for r in rows]
+        check("the one saved during the sync is not dropped",
+              "During Two" in names, str(names))
+        check("and nothing is left waiting",
+              pg.evaluate("() => JSON.parse("
+                          "localStorage.getItem('shokogi.cloud.outbox')||'{}')") == {},
+              pg.evaluate("() => localStorage.getItem('shokogi.cloud.outbox')"))
+
+        # --- somebody else's work arrives, with nobody pressing anything ----
+        # The poll deliberately does nothing while the tab is in the background.
+        # Putting the page there is what makes this a test of the socket rather
+        # than a test of waiting long enough: with the poll provably switched
+        # off, anything that lands here arrived because the socket said so.
+        pg.evaluate("""() => {
+          Object.defineProperty(document, "hidden",
+            {get: () => true, configurable: true});
+        }""")
         pg.evaluate("""() => {
           window.__inbox.sessions = [{
             id: "seFromPhone", school: "shokogi", deleted: false,
@@ -182,17 +293,30 @@ def main():
                    category:"", note:"", staffIds: [], participants: [],
                    spot:"", level:"", ageFrom:"", ageTo:"", allDay:false,
                    isPublic:true}}];
+          window.__calls = [];
         }""" % today)
-        pg.click("#btn-cloud")
-        pg.wait_for_timeout(500)
-        pg.locator('.modal-f button:has-text("Sync now")').first.click()
+        pg.wait_for_timeout(1500)
+        check("nothing arrives while nothing has changed",
+              pg.evaluate("() => window.__calls.length") == 0,
+              str(pg.evaluate("() => window.__calls.length")) + " calls")
+
+        # the server says a row changed, which is all it says
+        pg.evaluate("""() => {
+          window.__ws.onmessage({data: JSON.stringify({
+            topic: "realtime:shokogi", event: "postgres_changes",
+            payload: {data: {table: "sessions", type: "UPDATE"}}})});
+        }""")
         pg.wait_for_timeout(1600)
+        pg.evaluate("""() => {
+          Object.defineProperty(document, "hidden",
+            {get: () => false, configurable: true});
+        }""")
 
         stored = pg.evaluate(
             "() => JSON.parse(localStorage.getItem('shokogi.manager.v1'))")
         got = [s for s in stored["sessions"] if s["id"] == "seFromPhone"]
-        check("a session made on another device lands here", len(got) == 1,
-              str(len(stored["sessions"])) + " sessions")
+        check("a session made on another device arrives on its own",
+              len(got) == 1, str(len(stored["sessions"])) + " sessions")
         pg.click('#tabs button[data-id="board"]')
         pg.wait_for_timeout(1400)
         check("and shows on the board",
@@ -242,9 +366,10 @@ def main():
               mine and mine[0]["title"] == "MINE, NOT SENT YET",
               mine[0]["title"] if mine else "gone")
 
-        # --- deleting says deleted ----------------------------------------
+        # --- deleting says deleted, and nobody presses anything -------------
         # through the app, so the page's own copy loses it too: writing to
         # localStorage under a running page changes nothing it is holding
+        pg.evaluate("() => { window.__calls = []; }")
         pg.locator('[data-session-id="seFromPhone"]').first.click()
         pg.wait_for_timeout(500)
         pg.locator(".sess-pop .kebab").first.click()
@@ -252,18 +377,18 @@ def main():
         pg.locator('.rowmenu button:has-text("Delete session")').first.click()
         pg.wait_for_timeout(500)
         pg.locator('.modal-f button:has-text("Delete")').first.click()
-        pg.wait_for_timeout(900)
-        pg.evaluate("() => { window.__calls = []; }")
-        pg.click("#btn-cloud")
-        pg.wait_for_timeout(500)
-        pg.locator('.modal-f button:has-text("Sync now")').first.click()
-        pg.wait_for_timeout(1600)
+        # no Sync now: a change made in the app hands itself over. This is the
+        # whole of what the school asked for -- nothing to remember to press.
+        pg.wait_for_timeout(2500)
         calls = pg.evaluate("() => window.__calls")
         sent = [c for c in calls
                 if c["method"] == "POST" and "/rest/v1/sessions" in c["url"]]
-        check("a removed record is sent as deleted",
+        check("a removed record goes over by itself, as deleted",
               bool(sent) and sent[0]["body"][0].get("deleted") is True,
               json.dumps(sent[0]["body"][0])[:160] if sent else "nothing sent")
+        check("and the outbox is empty after it",
+              pg.evaluate("() => JSON.parse("
+                          "localStorage.getItem('shokogi.cloud.outbox')||'{}')") == {})
 
         check("no uncaught errors", not errs, "; ".join(errs[:3]))
         br.close()

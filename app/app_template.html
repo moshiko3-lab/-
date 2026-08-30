@@ -11057,7 +11057,7 @@ function backupForm(){
    what changed since the last save, when to hand it over, and what the button
    in the corner says about it. */
 var cloudShadow=null, cloudTimer=null, cloudBusy=false, cloudLast=null,
-    cloudError=null;
+    cloudError=null, cloudNudgeTimer=null, cloudAgain=false;
 /* What changed, worked out by comparing this save with the last one. Doing it
    here rather than at every one of the hundreds of places that write a record
    means no write can quietly escape the outbox. */
@@ -11092,18 +11092,40 @@ function cloudPaint(){
   else if(cloudBusy){ txt="Syncing…"; title="Handing over what changed."; }
   else if(cloudError){ txt="Sync error"; title=cloudError; }
   else if(n){ txt=n+" to send"; title=n+" change"+(n===1?"":"s")+" waiting for a network."; }
-  else { txt="Synced"; title=cloudLast?("Last synced "+cloudLast):"Up to date."; }
+  else if(cloudLiveUp()){
+    txt="Live";
+    title="Connected. What anyone changes shows up here as they do it."+
+          (cloudLast?(" Last synced "+cloudLast+"."):"");
+  }
+  else {
+    txt="Synced";
+    title=(cloudLast?("Last synced "+cloudLast+". "):"")+
+          "Checking every few seconds -- the live connection is not open.";
+  }
   b.textContent=txt;
   b.style.opacity=(cloudError||(!cloudSignedIn()&&cloudConfigured()))?"1":".9";
 }
 function cloudRun(loud){
-  if(!cloudConfigured()||!cloudSignedIn()||cloudBusy) { cloudPaint(); return; }
+  if(!cloudConfigured()||!cloudSignedIn()) { cloudPaint(); return; }
+  /* Asked while one is already in the air: remember it and go again after.
+     Dropping it was the reason a change sometimes sat there until somebody
+     pressed the button -- at a counter taking bookings, a save landing during
+     a sync is the normal case, not the rare one. */
+  if(cloudBusy){ cloudAgain=true; cloudPaint(); return; }
   cloudBusy=true; cloudError=null; cloudPaint();
   cloudSync(DB,function(err,info){
     cloudBusy=false;
     if(err){
       cloudError=err.message||"Sync failed";
       if(loud) toast("Sync: "+cloudError);
+      /* the session is gone, not the network: ask for it again rather than
+         letting the day pile up in a browser nobody is watching */
+      if(err.gone){
+        cloudLiveStop(false); cloudAgain=false;
+        cloudPaint();
+        if(gateNeeded()) showGate();
+        return;
+      }
     } else {
       cloudLast=new Date().toTimeString().slice(0,5);
       if(info && info.got){
@@ -11116,14 +11138,20 @@ function cloudRun(loud){
         ("Sent "+((info&&info.sent)||0)+", received "+((info&&info.got)||0)));
     }
     cloudPaint();
+    /* a full page means the server had more than one turn could carry: come
+       straight back for the rest instead of waiting for the next poll */
+    if(info && info.more) cloudAgain=true;
+    if(cloudAgain){ cloudAgain=false; setTimeout(function(){ cloudRun(false); },60); }
   });
 }
-/* a burst of edits is one hand-over, not twenty */
+/* a burst of edits is one hand-over, not twenty -- but short enough that the
+   other end hears about it while the person who typed it is still standing
+   there, because the other end is now told rather than asked */
 function cloudSoon(){
   cloudPaint();
   if(!cloudConfigured()||!cloudSignedIn()) return;
   clearTimeout(cloudTimer);
-  cloudTimer=setTimeout(function(){ cloudRun(false); },2500);
+  cloudTimer=setTimeout(function(){ cloudRun(false); },900);
 }
 function cloudSignInForm(){
   var b=el("div");
@@ -11142,12 +11170,35 @@ function cloudSignInForm(){
       err.textContent="Signing in…";
       cloudSignIn(em.value.trim(),pw.value).then(function(){
         closeModal(); toast("Signed in as "+cloudWho());
-        cloudRun(true); render();
+        cloudRun(true); cloudLiveStart(cloudNudge); render();
       }).catch(function(e){
         err.textContent=(e&&e.message)||"Sign-in failed";
       });
     }}
   ]);
+}
+/* The server's own words are written for whoever wrote the server. This is
+   the same fact said to somebody standing at a counter, with what to do about
+   it -- because "Sync error" on its own is a thing you can only stare at. */
+function cloudWhy(msg){
+  var m=String(msg||"");
+  if(!m) return "";
+  if(/does not exist|schema cache|PGRST205|42P01/i.test(m))
+    return "The tables have not been made yet. Open Supabase → SQL Editor and "+
+           "run supabase/schema.sql once.";
+  if(/row-level security|violates row-level|PGRST301|permission denied|42501/i.test(m))
+    return "This user is signed in but is not a member of the school yet, so "+
+           "the book will not take their writes. In Supabase → SQL Editor:  "+
+           "insert into public.members (user_id, school, name) select id, "+
+           "'"+CLOUD.school+"', 'name' from auth.users where email = '"+
+           (cloudWho()||"the email")+"' on conflict (user_id) do update set "+
+           "school = excluded.school;";
+  if(/JWT|token is expired|invalid claim|401/i.test(m))
+    return "The sign-in on this device has expired. Sign out and back in.";
+  if(/Failed to fetch|NetworkError|network/i.test(m))
+    return "No connection to the book. Everything typed here is kept and goes "+
+           "over when there is one.";
+  return "";
 }
 function cloudMenu(){
   if(!cloudConfigured()){ toast("No shared book is set up in this build."); return; }
@@ -11155,6 +11206,7 @@ function cloudMenu(){
   var b=el("div");
   var n=outboxCount();
   [["Signed in as",cloudWho()],
+   ["Live connection",cloudLiveUp()?"open":"not open"],
    ["Waiting to send",n?(n+" change"+(n===1?"":"s")):"nothing"],
    ["Last sync",cloudLast||"not yet"],
    ["Trouble",cloudError||"none"]].forEach(function(r){
@@ -11163,6 +11215,15 @@ function cloudMenu(){
     row.appendChild(el("div",r[1]?null:"muted",r[1]||"—"));
     b.appendChild(row);
   });
+  var why=cloudWhy(cloudError);
+  if(why){
+    var w=el("div","hint",why);
+    w.style.borderLeft="3px solid var(--crit)";
+    w.style.padding="8px 10px";
+    w.style.margin="8px 0";
+    w.style.whiteSpace="pre-wrap";
+    b.appendChild(w);
+  }
   b.appendChild(el("div","hint",
     "Everything is written here first and handed over after, so the till keeps "+
     "working with no signal. Send everything re-uploads this browser's whole "+
@@ -11170,7 +11231,8 @@ function cloudMenu(){
   openModal("The shared book",b,[
     {label:"Close",on:closeModal},
     {label:"Sign out",on:function(){
-      cloudSignOut(); closeModal(); cloudPaint(); toast("Signed out");
+      cloudSignOut(); cloudLiveStop(false);
+      closeModal(); cloudPaint(); toast("Signed out");
       if(gateNeeded()) showGate(); }},
     {label:"Send everything",on:function(){
       cloudMarkEverything(); closeModal(); cloudRun(true); }},
@@ -11216,6 +11278,7 @@ if(gateEl){
       document.getElementById("gate-pass").value="";
       hideGate();
       render(); cloudPaint(); cloudRun(false);
+      cloudLiveStart(cloudNudge);
       toast("Signed in as "+cloudWho());
     }).catch(function(e2){
       go.disabled=false; go.textContent="Sign in";
@@ -11235,12 +11298,35 @@ if(gateEl){
 document.getElementById("btn-cloud").addEventListener("click",cloudMenu);
 cloudMark();            /* the baseline: what this browser already had */
 cloudPaint();
-/* take what other people did, on a quiet loop, only while the tab is looked at */
+
+/* Being told, rather than asking. The socket says a row changed and the page
+   pulls; everything below is a net under that, for the socket being down, a
+   phone that slept through the notice, and the minute after a tunnel. */
+function cloudNudge(){
+  clearTimeout(cloudNudgeTimer);
+  /* one booking touches six tables and arrives as six notices: one pull */
+  cloudNudgeTimer=setTimeout(function(){ cloudRun(false); },350);
+}
+CLOUD_LIVE.onState=cloudPaint;
+cloudLiveStart(cloudNudge);
+
+var cloudPollTick=0;
 setInterval(function(){
   if(document.hidden) return;
-  cloudRun(false);
-},20000);
-addEventListener("online",function(){ cloudRun(false); });
+  cloudPollTick++;
+  /* while the socket is doing its job this is a slow check for anything it
+     missed; while it is not, it is the whole mechanism */
+  if(!cloudLiveUp() || cloudPollTick%4===0) cloudRun(false);
+},15000);
+
+/* coming back to a tab is the moment somebody most wants the truth on it */
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden) return;
+  cloudLiveStart(cloudNudge);       /* a slept phone drops the socket */
+  cloudNudge();
+});
+addEventListener("focus",function(){ if(!document.hidden) cloudNudge(); });
+addEventListener("online",function(){ cloudLiveStart(cloudNudge); cloudNudge(); });
 /* turning a phone on its side crosses the width where the board changes shape */
 (function(){
   var was=narrow();

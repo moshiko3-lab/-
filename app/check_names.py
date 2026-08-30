@@ -27,8 +27,9 @@ ALLOW = {
     "addEventListener", "removeEventListener", "scrollTo", "alert", "confirm",
     # writing a spreadsheet is bytes, and handing it over is a blob
     "Blob", "URL", "Uint8Array", "Int32Array", "unescape", "escape",
-    # the shared book talks over the network and waits for answers
-    "fetch", "Response", "navigator", "matchMedia",
+    # the shared book talks over the network and waits for answers, and holds
+    # a socket open so it is told about a change rather than asking
+    "fetch", "Response", "navigator", "matchMedia", "WebSocket",
     # CSS function syntax survives inside style strings
     "rgba", "rgb", "hsl", "hsla", "calc", "minmax", "repeat", "url",
     "translateX", "translateY", "translate", "scale", "rotate",

@@ -69,6 +69,19 @@ begin
 
     execute format('alter table public.%I enable row level security', t);
 
+    -- Say it out loud the moment a row changes. Without this the other
+    -- devices have to keep asking, and a booking taken at the counter takes
+    -- up to a minute to reach the instructor's phone. Already-published and
+    -- no-such-publication are both fine to walk past: the app falls back to
+    -- asking, which is what it did before.
+    begin
+      execute format(
+        'alter publication supabase_realtime add table public.%I', t);
+    exception
+      when duplicate_object then null;
+      when undefined_object then null;
+    end;
+
     execute format('drop trigger if exists %I on public.%I',
                    t || '_touch', t);
     execute format($f$
@@ -88,13 +101,30 @@ begin
 end $$;
 
 -- --------------------------------------------------------------- the crew
--- Add each person in Authentication → Users, then give them the school here.
--- Until a person has a row in members they see an empty book.
+-- Everyone who may open the book. A person can sign in perfectly well and
+-- still see nothing and save nothing until they have a row here -- their
+-- writes are refused by the policies above, which is what "sync error" in the
+-- corner of the app means nine times out of ten.
 --
---   insert into public.members (user_id, school, name)
---   select id, 'shokogi', 'Moshe' from auth.users where email = 'shokogipanama@gmail.com'
---   on conflict (user_id) do update set school = excluded.school;
+-- Add each person under Authentication → Users first (tick Auto Confirm User),
+-- then add their email to this list and run the file again. Running it twice
+-- is safe; an email with no user yet is simply skipped, and picked up the next
+-- time this runs.
+insert into public.members (user_id, school, name)
+select u.id, 'shokogi', split_part(u.email, '@', 1)
+  from auth.users u
+ where u.email in (
+         'shokogipanama@gmail.com'
+         -- , 'the.next.person@example.com'
+       )
+    on conflict (user_id) do update set school = excluded.school;
 
 -- ------------------------------------------------------------- a check
--- After signing in from the app, this should return 'shokogi':
+-- Both of these should come back with something after running the above.
+--
+-- Who may open the book:
+--   select m.school, m.name, u.email
+--     from public.members m join auth.users u on u.id = m.user_id;
+--
+-- And, once signed in from the app itself, this returns 'shokogi':
 --   select public.my_school();

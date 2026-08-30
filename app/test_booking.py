@@ -36,6 +36,13 @@ SIGNED_IN = """
     return Promise.resolve(new Response("[]", {status: 200,
       headers: {"Content-Type": "application/json"}}));
   };
+  // and no socket reaching out of a test: the live connection has its own,
+  // in test_cloud, where the test holds the other end of it
+  window.WebSocket = function() {
+    this.readyState = 0;
+    this.send = function() {};
+    this.close = function() {};
+  };
 """
 
 
