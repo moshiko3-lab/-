@@ -1544,6 +1544,17 @@ function staffForm(existing){
   onPlan.checked=s.onPlanning!==false;
   b.appendChild(field("Show on the planning",onPlan,
     "Off keeps them in the crew list but off the board."));
+
+  /* A divider in the crew list: the school groups its people -- full,
+     freelance, assistants, yoga, photographers -- and until now that was done
+     by inventing a person with the group's name, who then sat there as an
+     ordinary lane you could accidentally schedule somebody onto. */
+  var isSec=input("checkbox"); isSec.style.width="auto";
+  isSec.checked=!!s.section;
+  b.appendChild(field("This is a heading, not a person",isSec,
+    "Draws a coloured band across the board to separate the crew below it. "+
+    "A heading holds no sessions and takes no drops. Use the order number to "+
+    "put it above its group."));
   var legal=el("textarea"); legal.value=s.legal||"";
   legal.setAttribute("rows","2");
   b.appendChild(field("Legal information",legal,
@@ -1562,6 +1573,7 @@ function staffForm(existing){
       rec.pos=pos.value===""?null:Number(pos.value);
       rec.activities=acts.slice(); rec.langs=langs.slice();
       rec.onPlanning=!!onPlan.checked;
+      rec.section=!!isSec.checked;
       if(!existing) DB.staff.push(rec);
       save(); closeModal(); render(); toast(existing?"Crew updated":"Crew member added");
     }}
@@ -3735,7 +3747,8 @@ function boardRows(){
         return x.onPlanning!==false ||
           DB.sessions.some(function(se){return staffIdsOf(se).indexOf(x.id)>=0;});
       }).sort(crewOrder)
-      .map(function(x){return {key:x.id,label:x.name,color:""};}));
+      .map(function(x){
+        return {key:x.id,label:x.name,color:"",section:!!x.section};}));
   }
   var seen={},out=[];
   (cfg().kinds||[]).forEach(function(k){
@@ -4424,6 +4437,10 @@ function laneRows(dayISO){
      on top of each other -- which is why SURF PACK shows six times on theirs. */
   var out=[];
   boardRows().forEach(function(row){
+    /* a heading is a band across the board, never a lane: it carries nothing
+       and nothing can be dropped on it */
+    if(row.section){ out.push({row:row,lane:0,items:[],first:true,section:true});
+      return; }
     var items=DB.sessions.filter(function(x){
       return x.date===(dayISO||boardDate) && sessionInRow(x,row);})
       .sort(function(a,b){return a.time<b.time?-1:1;});
@@ -4882,15 +4899,32 @@ function boardDay(dayISO){
     if(boardSpan>1 && !rec.items.length && boardGroup!=="staff") return;
     /* a second lane for a double-booked person only when they are */
     if(boardGroup==="staff" && !rec.first && !rec.items.length) return;
+
+    /* A heading: one band the width of the board, in the school's colour
+       rather than the lane grey, so the eye finds the group it is looking for
+       without reading twenty names. It has no lane, so there is nothing to
+       drop on and nothing to click an hour of. */
+    if(rec.section){
+      var sec=el("div",null,rec.row.label);
+      sec.style.cssText="padding:4px 12px;font-size:10.5px;font-weight:800;"+
+        "letter-spacing:.09em;text-transform:uppercase;color:var(--accent-ink);"+
+        "background:var(--accent);border-bottom:1px solid var(--line);"+
+        "position:sticky;left:0;overflow:hidden;text-overflow:ellipsis;"+
+        "white-space:nowrap";
+      sec.title=rec.row.label;
+      lanesHost.appendChild(sec);
+      return;
+    }
+
     var r=el("div");
     r.style.cssText="display:grid;grid-template-columns:"+LABEL+"px minmax(0,1fr);"+
-      "border-bottom:1px solid var(--line-soft);min-height:36px";
+      "border-bottom:1px solid var(--line-soft);min-height:26px";
     r.dataset.rowKey=rec.row.key;
     r.dataset.ri=String(ri);
 
     var lab=el("div");
-    lab.style.cssText="display:flex;align-items:center;gap:7px;padding:6px 12px;"+
-      "font-size:12.5px;font-weight:600;border-right:1px solid var(--line);"+
+    lab.style.cssText="display:flex;align-items:center;gap:6px;padding:2px 10px;"+
+      "font-size:11.5px;font-weight:600;border-right:1px solid var(--line);"+
       "overflow:hidden;white-space:nowrap";
     var dot=el("span");
     dot.style.cssText="width:9px;height:9px;border-radius:3px;flex:none;background:"+
@@ -4917,7 +4951,7 @@ function boardDay(dayISO){
     r.appendChild(lab);
 
     var lane=el("div");
-    lane.style.cssText="position:relative;min-height:36px;background-image:"+
+    lane.style.cssText="position:relative;min-height:26px;background-image:"+
       "repeating-linear-gradient(to right,var(--line-soft) 0 1px,transparent 1px "+
       (100/(BOARD_TO-BOARD_FROM))+"%)";
     r.appendChild(lane);
@@ -4966,11 +5000,11 @@ function boardDay(dayISO){
       var outside=(st<0)||(st/span*100>100);
       var colour=catColor(x.category)||"var(--accent-hot)";
       var blk=el("div");
-      blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:3px;bottom:3px;"+
+      blk.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:2px;bottom:2px;"+
         "background:"+softColour(colour)+";border-left:3px solid "+colour+";"+
-        "border-radius:4px;padding:3px 8px;overflow:hidden;cursor:grab;"+
-        "color:var(--text);font-size:12.5px;font-weight:600;line-height:1.25;"+
-        "display:flex;align-items:center;gap:7px;touch-action:none;min-width:30px";
+        "border-radius:4px;padding:1px 6px;overflow:hidden;cursor:grab;"+
+        "color:var(--text);font-size:11px;font-weight:600;line-height:1.2;"+
+        "display:flex;align-items:center;gap:5px;touch-action:none;min-width:30px";
       blk.dataset.sessionId=x.id;
       blk.title=x.time+" · "+x.title+" · "+instructorNames(x)+
         " · "+x.participants.length+"/"+x.capacity+
