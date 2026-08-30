@@ -8,6 +8,11 @@ app/booking.html
 index.html
 booking.html
 
+# the flyers' markup and their lossless masters come back out of
+# build_flyers.py; the JPEGs are the thing that gets posted, so those stay
+marketing/out/*.html
+marketing/out/*.png
+
 # never commit credentials
 .env
 secrets/
