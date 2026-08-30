@@ -16,17 +16,20 @@ python3 app/build.py --minisite --out book.html  # the booking page
 Every push to `main` or to the working branch rebuilds both pages and publishes
 them, so the platform can be worked on while it is live:
 
-* the manager at `https://shokogimanager.com/`
-* the booking page at `https://shokogimanager.com/book.html`
+* the manager at `https://moshiko3-lab.github.io/-/`
+* the booking page at `https://moshiko3-lab.github.io/-/book.html`
 
 GitHub's own address, `https://moshiko3-lab.github.io/-/`, keeps working and
 redirects there.
 
-The domain is `shokogimanager.com`, bought for this. Its four A records point
-at GitHub (185.199.108–111.153), and the `CNAME` file in this repository is
-what tells Pages to answer to that name; the two have to say the same thing or
-the site answers on neither. `manage.shokogimanager.com` still resolves to the
-same place and is kept as a way back in if the apex ever needs changing.
+The domain `shokogimanager.com` is bought and its A records already point at
+GitHub, but it is not attached yet: one of the registrar's two nameservers was
+still serving the old record, so the name answered correctly about half the
+time and wrongly the rest. Attaching it also makes GitHub redirect the
+github.io address to it, which turns a half-working domain into no working
+address at all -- so the domain waits until both nameservers agree. To attach
+it: put `shokogimanager.com` in a `CNAME` file here and in the repository's
+Pages settings, which must say the same thing.
 
 This needs GitHub Pages switched on once, by the repository's owner:
 **Settings → Pages → Build and deployment → Source: GitHub Actions**. Until
