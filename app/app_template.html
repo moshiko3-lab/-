@@ -2616,8 +2616,15 @@ function participantsForm(sess){
               (sess.category||"this")+".");
             return; }
           sess.participants.push(x.ref);
+          /* say which lesson of theirs this was, or their course never ticks */
+          var ln=seatLineFor(x.ref,sess);
+          if(ln){
+            sess.fromLines=sess.fromLines||[];
+            if(sess.fromLines.indexOf(ln.lid)<0) sess.fromLines.push(ln.lid);
+          }
         } else {
           sess.participants=sess.participants.filter(function(r){return r!==x.ref;});
+          pruneFromLines(sess);
         }
         save(); refreshHead(); draw(); render();
       });
@@ -3903,6 +3910,39 @@ function seatActivities(ref){
   });
   return out;
 }
+/* Which order line a seat is owed a place from, for a session of this
+   activity. Seating somebody is only half the fact: the other half is which of
+   the lessons they bought this one was. Without it the session holds the person
+   but nothing is struck off their course, so the card still reads 1/10 with ten
+   empty boxes and the school hands out a lesson it has already been paid for --
+   or worse, gives it twice. Oldest unplaced first, so a ten-lesson course is
+   worked through in order rather than from the middle. */
+function seatLineFor(ref,se){
+  var want=(se&&se.category)||"", found=null;
+  DB.bookings.forEach(function(bk){
+    if(found || bk.status==="cancelled") return;
+    activityLines(bk).forEach(function(l){
+      if(found) return;
+      if(want && lineActivity(l) && lineActivity(l)!==want) return;
+      var owes=lineSlots(bk,l).some(function(s){
+        return s.ref===ref && !s.session; });
+      if(owes) found=l;
+    });
+  });
+  return found;
+}
+/* The link belongs to the session only while somebody from that line sits in
+   it: take the last of them out and the line is owed its lesson back. */
+function pruneFromLines(se){
+  se.fromLines=(se.fromLines||[]).filter(function(lid){
+    return DB.bookings.some(function(bk){
+      return (bk.lines||[]).some(function(l){
+        return l.lid===lid && lineSeats(bk,l).some(function(s){
+          return se.participants.indexOf(s.ref)>=0; });
+      });
+    });
+  });
+}
 function seatFitsSession(ref,se){
   var owed=seatActivities(ref), got=(se&&se.category)||"";
   if(!owed.length || !got) return true;
@@ -4347,6 +4387,7 @@ function slotRow(s){
       ev.stopPropagation();
       var se=s.session;
       se.participants=se.participants.filter(function(x){return x!==s.ref;});
+      pruneFromLines(se);
       save(); renderBoard(); toast("Unassigned");
     });
     row.appendChild(off);
