@@ -10614,6 +10614,20 @@ function renderSettings(){
   host.appendChild(grid);
   fiscalSection(host);
 
+  /* Lessons taught before a session recorded which course they came from.
+     The card counts those two facts separately, so such a lesson shows in the
+     person's list of sessions and still leaves their course reading 0 of 10 --
+     which is a card that invites the school to teach a lesson twice. */
+  var repair=el("div","note");
+  repair.appendChild(document.createTextNode(
+    "Lessons already taught can be missing the course they belong to, so a "+
+    "card shows the session but the course still reads 0 of 10. This finds "+
+    "them and shows you the list before changing anything. "));
+  var rb=el("button","btn sm","Check course links");
+  rb.addEventListener("click",repairLinksForm);
+  repair.appendChild(rb);
+  host.appendChild(repair);
+
   var danger=el("div","note");
   danger.style.borderLeftColor="var(--crit)";
   danger.appendChild(document.createTextNode(
@@ -10632,6 +10646,101 @@ function renderSettings(){
   host.appendChild(danger);
 }
 
+
+/* ===================== repairing old course links =====================
+   A lesson taught before the session recorded which course it came from sits
+   in the person's list of sessions while their course still reads 0 of 10.
+   Nothing here guesses: a lesson is linked only when exactly one course could
+   own it -- the person is in the session, that course still owes them a place,
+   and the activity matches. Anything with two possible answers is counted and
+   left alone for somebody to decide. Oldest lesson first, so a ten-lesson
+   course fills from its first lesson rather than from the middle. */
+function findLooseLinks(){
+  var out=[], ambiguous=0, unmatched=0;
+  DB.sessions.slice().sort(function(a,b){
+    return (a.date+a.time)<(b.date+b.time)?-1:1;
+  }).forEach(function(se){
+    (se.participants||[]).forEach(function(ref){
+      /* already accounted for by some line of this session? */
+      if(seatPlaceInSession(se,ref)) return;
+      var cands=[];
+      DB.bookings.forEach(function(bk){
+        if(bk.status==="cancelled") return;
+        activityLines(bk).forEach(function(l){
+          var a=lineActivity(l), want=se.category||"";
+          if(want && a && a!==want) return;
+          var owes=lineSlots(bk,l).some(function(s){
+            return s.ref===ref && !s.session; });
+          if(owes) cands.push({bk:bk,line:l});
+        });
+      });
+      if(!cands.length){ unmatched++; return; }
+      if(cands.length>1){ ambiguous++; return; }
+      var c=cands[0];
+      out.push({se:se,lid:c.line.lid,ref:ref,
+        who:seatName(ref)||clientName(c.bk.clientId)||"someone",
+        what:(product(c.line.productId)||{}).name||"a course"});
+      /* apply as we go, so the next lesson of the same course sees this one
+         taken and fills the slot after it rather than the same one twice */
+      se.fromLines=se.fromLines||[];
+      if(se.fromLines.indexOf(c.line.lid)<0) se.fromLines.push(c.line.lid);
+    });
+  });
+  return {found:out,ambiguous:ambiguous,unmatched:unmatched};
+}
+function repairLinksForm(){
+  /* work on a copy: the scan has to apply links as it goes to get the order
+     right, and nothing may reach the real book until this is confirmed */
+  var snapshot=JSON.stringify(DB.sessions);
+  var r=findLooseLinks();
+  var planned=DB.sessions.map(function(s){return (s.fromLines||[]).slice();});
+  DB.sessions=JSON.parse(snapshot);        /* put it back, untouched */
+
+  var b=el("div");
+  if(!r.found.length){
+    b.appendChild(el("p",null,
+      "Nothing to repair — every lesson already knows the course it came from."));
+    if(r.ambiguous||r.unmatched){
+      b.appendChild(el("p","hint",
+        r.ambiguous+" could belong to more than one course and "+r.unmatched+
+        " to none, so both are left alone."));
+    }
+    openModal("Course links",b,[{label:"Close",on:closeModal}]);
+    return;
+  }
+  b.appendChild(el("p",null,r.found.length+" lesson"+(r.found.length===1?"":"s")+
+    " can be put back on the course "+(r.found.length===1?"it":"they")+
+    " came from:"));
+  var w=el("div","panel tbl-wrap");
+  w.style.maxHeight="46vh"; w.style.overflowY="auto";
+  var t=el("table"),th=el("thead"),tr=el("tr");
+  ["Date","Lesson","Who","Course"].forEach(function(h){
+    tr.appendChild(el("th",null,h));});
+  th.appendChild(tr); t.appendChild(th);
+  var tb=el("tbody");
+  r.found.forEach(function(x){
+    var row=el("tr");
+    row.appendChild(el("td",null,dmy(x.se.date)));
+    row.appendChild(el("td",null,x.se.title||x.se.category||"session"));
+    row.appendChild(el("td",null,x.who));
+    row.appendChild(el("td",null,x.what));
+    tb.appendChild(row);
+  });
+  t.appendChild(tb); w.appendChild(t); b.appendChild(w);
+  if(r.ambiguous||r.unmatched){
+    b.appendChild(el("div","hint",
+      "Left alone: "+r.ambiguous+" that could belong to more than one course, "+
+      r.unmatched+" that match none. Those need a person to decide."));
+  }
+  openModal("Course links",b,[
+    {label:"Cancel",on:closeModal},
+    {label:"Repair "+r.found.length,cls:"primary",on:function(){
+      DB.sessions.forEach(function(s,i){ s.fromLines=planned[i]; });
+      save(); closeModal(); render();
+      toast(r.found.length+" lesson"+(r.found.length===1?"":"s")+" put back");
+    }}
+  ]);
+}
 
 /* ============================ fiscal archive ============================
    A sealed copy of a stretch of the ticket journal, with a fingerprint over
