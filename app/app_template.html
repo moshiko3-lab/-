@@ -2616,6 +2616,8 @@ function participantsForm(sess){
             toast(x.name+" has "+seatActivities(x.ref).join(", ")+" to place, not "+
               (sess.category||"this")+".");
             return; }
+          var busy=seatBusyAt(x.ref,sess);
+          if(busy){ cb.checked=false; toast(busyWhy(x.name,busy)); return; }
           sess.participants.push(x.ref);
           /* say which lesson of theirs this was, or their course never ticks */
           var ln=seatLineFor(x.ref,sess);
@@ -3975,6 +3977,41 @@ function pruneFromLines(se){
     });
   });
 }
+/* Two lessons at the same hour is one lesson nobody turns up to: an instructor
+   waiting on the beach for somebody already in the water with someone else.
+   A board has been protected from this since the rental board was built -- it
+   cannot go out to two people at once -- and a person is worth the same care.
+   Touching at the edges is fine: an eight o'clock hour and a nine o'clock hour
+   are two lessons, not a clash. */
+function seatBusyAt(ref,se){
+  if(!ref||!se) return null;
+  var st=minsOf(se.time), en=st+Math.max(15,se.duration||60), hit=null;
+  DB.sessions.forEach(function(x){
+    if(hit || x.id===se.id || x.date!==se.date) return;
+    if((x.participants||[]).indexOf(ref)<0) return;
+    var a=minsOf(x.time), b=a+Math.max(15,x.duration||60);
+    if(st<b && a<en) hit=x;
+  });
+  return hit;
+}
+/* The same question asked of a booking still being typed: nothing is in the
+   book yet, so the clash is against the other lessons chosen on this line. */
+function pickedClash(line,se){
+  var st=minsOf(se.time), en=st+Math.max(15,se.duration||60), hit=null;
+  (line&&line.sessionIds||[]).forEach(function(id){
+    if(hit || id===se.id) return;
+    var o=by(id,DB.sessions);
+    if(!o || o.date!==se.date) return;
+    var a=minsOf(o.time), b=a+Math.max(15,o.duration||60);
+    if(st<b && a<en) hit=o;
+  });
+  return hit;
+}
+/* the same sentence wherever it is refused, so it reads the same everywhere */
+function busyWhy(name,clash){
+  return name+" is already in "+(clash.title||clash.category||"a session")+
+         " at "+clash.time+".";
+}
 function seatFitsSession(ref,se){
   var owed=seatActivities(ref), got=(se&&se.category)||"";
   if(!owed.length || !got) return true;
@@ -4491,6 +4528,8 @@ function slotRow(s){
       toast("That session is full ("+se.capacity+").");
       return;
     }
+    var busy=seatBusyAt(s.ref,se);
+    if(busy){ toast(busyWhy(s.seat.name,busy)); return; }
     se.participants.push(s.ref);
     se.fromLines=se.fromLines||[];
     if(se.fromLines.indexOf(s.line.lid)<0) se.fromLines.push(s.line.lid);
@@ -6143,10 +6182,20 @@ function assignSessionsForm(bk,line,onDone){
         } else {
           var room=se.capacity-se.participants.length;
           if(room<=0){ toast(se.title+" is full."); return; }
-          var take=seats.filter(function(x){
-            return se.participants.indexOf(x.ref)<0;}).slice(0,room);
-          if(take.length<seats.length)
+          /* somebody already in the water at that hour is left out of this
+             one rather than booked into both */
+          var clash=null;
+          var free=seats.filter(function(x){
+            if(se.participants.indexOf(x.ref)>=0) return false;
+            var b2=seatBusyAt(x.ref,se);
+            if(b2){ clash=clash||busyWhy(x.name||"Somebody",b2); return false; }
+            return true;
+          });
+          var take=free.slice(0,room);
+          if(clash) toast(clash);
+          else if(take.length<seats.length)
             toast("Only "+take.length+" of "+seats.length+" fitted.");
+          if(!take.length) return;
           take.forEach(function(x){ se.participants.push(x.ref); });
           se.fromLines=(se.fromLines||[]).concat([line.lid]);
         }
@@ -6827,14 +6876,20 @@ function courseFields(body,l,p){
         any=true;
         var on=(l.sessionIds||[]).indexOf(se.id)>=0;
         var full=se.participants.length>=se.capacity;
+        /* An hour already chosen on this line cannot be chosen again on
+           another lesson: the same person would be in two places. The seats
+           are not in any session yet -- nothing is saved until the booking is
+           -- so this is asked of what has been picked here, not of the book. */
+        var picked=on?null:pickedClash(l,se);
         var card=el("button","cfg-ses"+(on?" on":""));
         card.type="button";
         card.appendChild(el("span","who",instructorNames(se)));
         card.appendChild(el("span","t",se.time));
         card.appendChild(el("span","n",se.participants.length+"/"+se.capacity));
         card.title=se.title+" · "+instructorNames(se)+
-          (full?" · full":"")+(on?" · chosen":"");
-        if(full&&!on){ card.style.opacity=".55"; }
+          (full?" · full":"")+(on?" · chosen":"")+
+          (picked?(" · same hour as "+picked.time):"");
+        if((full||picked)&&!on){ card.style.opacity=".55"; }
         card.addEventListener("click",function(){
           l.sessionIds=l.sessionIds||[];
           var at=l.sessionIds.indexOf(se.id);
@@ -6842,6 +6897,12 @@ function courseFields(body,l,p){
           else{
             if(l.sessionIds.length>=want){
               toast("You have selected "+want+" of "+want+" sessions.");
+              return;
+            }
+            var cl=pickedClash(l,se);
+            if(cl){
+              toast("That is the same hour as the "+cl.time+" lesson already "+
+                    "chosen. One person cannot be in both.");
               return;
             }
             l.sessionIds.push(se.id);
