@@ -2512,6 +2512,7 @@ function sessionForm(existing,preset){
             if(k>repUntil.value) break;
             var copy=JSON.parse(JSON.stringify(rec));
             copy.id=uid("se"); copy.date=k; copy.participants=[];
+            copy.fromLines=[];   /* empty, so owed to nobody — see Clone */
             DB.sessions.push(copy); made++;
           }
         }
@@ -3441,7 +3442,9 @@ function sessionsList(host){
     act("Clone",null,function(sel){
       sel.forEach(function(x){
         var copy=JSON.parse(JSON.stringify(x));
-        copy.id=uid("se"); copy.participants=[];
+        /* a copy starts empty, so it is owed to nobody: carrying the original's
+           lines across would have it claiming lessons it holds no one from */
+        copy.id=uid("se"); copy.participants=[]; copy.fromLines=[];
         DB.sessions.push(copy);
       });
       planPicked={}; save(); render();
@@ -3811,8 +3814,11 @@ function clientRowMenu(x){
     {l:"Cancel booking",danger:true,on:function(){cancelBookingForm(bk);}},
     {l:"Delete booking",danger:true,on:function(){
       confirmDelete("this booking",function(){
+        var freed=dropBookingFromSessions(bk);
         DB.bookings=DB.bookings.filter(function(y){return y.id!==bk.id;});
-        save();render();toast("Booking deleted");
+        save();render();
+        toast("Booking deleted"+(freed?(", "+freed+" seat"+(freed===1?"":"s")+
+          " freed"):""));
       });}}
   ];
 }
@@ -3930,6 +3936,32 @@ function seatLineFor(ref,se){
     });
   });
   return found;
+}
+/* A session outlives the booking that filled it, and deleting the booking used
+   to leave its people sitting in sessions that no longer know who they are: a
+   lesson reading 3/12 with two people actually in the water, and lines claimed
+   by sessions that can never strike them off again.
+
+   Only this booking's own seats are touched -- both shapes of them, the named
+   participants and the plain client, because a booking can carry lines of each
+   -- so nobody else's place is ever disturbed. Cancelling deliberately does not
+   do this: a cancelled booking still exists and can be reopened, and throwing
+   its people out of the water would not be undoable. */
+function dropBookingFromSessions(bk){
+  var refs={}, lids={};
+  seatsOfBooking(bk).forEach(function(s){ refs[s.ref]=1; });
+  (bk.lines||[]).forEach(function(l){
+    lids[l.lid]=1;
+    lineSeats(bk,l).forEach(function(s){ refs[s.ref]=1; });
+  });
+  var freed=0;
+  DB.sessions.forEach(function(se){
+    var before=(se.participants||[]).length;
+    se.participants=(se.participants||[]).filter(function(r){ return !refs[r]; });
+    freed+=before-se.participants.length;
+    se.fromLines=(se.fromLines||[]).filter(function(l){ return !lids[l]; });
+  });
+  return freed;
 }
 /* The link belongs to the session only while somebody from that line sits in
    it: take the last of them out and the line is owed its lesson back. */
@@ -4342,6 +4374,7 @@ function sessionPop(anchor,se){
       x.title="Take them out of this session";
       x.addEventListener("click",function(){
         se.participants=se.participants.filter(function(y){return y!==ref;});
+        pruneFromLines(se);
         save(); closeSessionPop(); renderBoard(); toast("Unassigned");
       });
       row.appendChild(x);
@@ -7417,8 +7450,11 @@ function renderBookings(){
     var dl=el("button","btn sm danger","Del");
     dl.addEventListener("click",function(){
       confirmDelete("this booking",function(){
+        var freed=dropBookingFromSessions(bk);
         DB.bookings=DB.bookings.filter(function(x){return x.id!==bk.id;});
-        save(); render(); toast("Booking deleted");
+        save(); render();
+        toast("Booking deleted"+(freed?(", "+freed+" seat"+(freed===1?"":"s")+
+          " freed"):""));
       });
     });
     box.appendChild(e); box.appendChild(box2Invoice); box.appendChild(box2Cancel);
