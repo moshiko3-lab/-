@@ -1482,6 +1482,19 @@ function staffDoes(s,category){
 }
 /* Their staff list is hand-ordered: a position on the card puts the people you
    roster every day at the top, and everyone else falls back to alphabetical. */
+/* A number WhatsApp can actually be asked to deliver to: international, with
+   the country code, and nothing else in it. Returns "" for anything else, so
+   a caller can tell "not reachable" from "no number given" -- the two want
+   different words in front of a person. Panama's own numbers are eight digits
+   and read fine locally while being useless to a messaging service, which is
+   exactly the trap this exists to catch. */
+function waNumber(s){
+  var t=String(s||"").replace(/[^\d+]/g,"");
+  if(t.indexOf("+")>0) t=t.replace(/\+/g,"");        /* a stray + mid-number */
+  if(t.charAt(0)!=="+") return "";                    /* no country code */
+  var digits=t.slice(1).replace(/\D/g,"");
+  return (digits.length>=8 && digits.length<=15) ? ("+"+digits) : "";
+}
 function crewOrder(a,b){
   var pa=(a.pos==null||a.pos==="")?Infinity:Number(a.pos),
       pb=(b.pos==null||b.pos==="")?Infinity:Number(b.pos);
@@ -1509,7 +1522,13 @@ function staffForm(existing){
   b.appendChild(field("Name",name));
   b.appendChild(field("Role",role));
   var g=el("div","grid2");
-  g.appendChild(field("Phone",phone)); g.appendChild(field("Email",email));
+  /* This is the number a rota or a reminder is sent to, so it has to be the
+     one WhatsApp answers on, written the way the world dials it. A number
+     without its country code does not fail loudly -- it simply never arrives,
+     and nobody finds out until an instructor misses a lesson. */
+  g.appendChild(field("Phone / WhatsApp",phone,
+    "With the country code, e.g. +507 6123 4567. Reminders go here."));
+  g.appendChild(field("Email",email));
   b.appendChild(g);
 
   var addr=input("text",s.address||"",{placeholder:"Street"});
@@ -1579,6 +1598,12 @@ function staffForm(existing){
       rec.activities=acts.slice(); rec.langs=langs.slice();
       rec.onPlanning=!!onPlan.checked;
       rec.section=!!isSec.checked;
+      /* Said once, on the way past. A local number is not refused -- the
+         school may have a reason -- but nobody should find out months later
+         that the reminders were going nowhere. */
+      if(rec.phone && !waNumber(rec.phone))
+        toast("That number has no country code, so WhatsApp cannot reach it. "+
+              "It should start with + , e.g. +507.");
       if(!existing) DB.staff.push(rec);
       save(); closeModal(); render(); toast(existing?"Crew updated":"Crew member added");
     }}
@@ -1619,7 +1644,26 @@ function renderCrew(){
     }
     r.appendChild(nc);
     var rt=el("td"); rt.appendChild(el("span","chip pink",s.role)); r.appendChild(rt);
-    r.appendChild(el("td","muted",[s.phone,s.email].filter(Boolean).join(" · ")||"—"));
+    /* Whether a reminder can reach this person, said in the list rather than
+       one card at a time. With twenty-one of them, "who still needs a number"
+       is a question you answer by looking, not by opening every card. A
+       heading is not a person and is not asked for one. */
+    var cc=el("td","muted");
+    cc.appendChild(el("span",null,[s.phone,s.email].filter(Boolean).join(" · ")||"—"));
+    if(!s.section && s.onPlanning!==false){
+      if(!String(s.phone||"").trim()){
+        var no=el("span","chip warnc","no number");
+        no.style.marginLeft="7px";
+        no.title="WhatsApp reminders cannot be sent to them";
+        cc.appendChild(no);
+      }else if(!waNumber(s.phone)){
+        var bad=el("span","chip critc","no country code");
+        bad.style.marginLeft="7px";
+        bad.title="WhatsApp needs the country code, e.g. +507 6123 4567";
+        cc.appendChild(bad);
+      }
+    }
+    r.appendChild(cc);
     var ac=el("td");
     var acts=staffActivities(s);
     if(!acts.length) ac.appendChild(el("span","muted","all"));
