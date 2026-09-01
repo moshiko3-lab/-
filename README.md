@@ -22,14 +22,18 @@ them, so the platform can be worked on while it is live:
 GitHub's own address, `https://moshiko3-lab.github.io/-/`, keeps working and
 redirects there.
 
-The domain `shokogimanager.com` is bought and its A records already point at
-GitHub, but it is not attached yet: one of the registrar's two nameservers was
-still serving the old record, so the name answered correctly about half the
-time and wrongly the rest. Attaching it also makes GitHub redirect the
-github.io address to it, which turns a half-working domain into no working
-address at all -- so the domain waits until both nameservers agree. To attach
-it: put `shokogimanager.com` in a `CNAME` file here and in the repository's
-Pages settings, which must say the same thing.
+The domain `shokogimanager.com` no longer answers half wrongly. The reason it
+waited -- one of the registrar's two nameservers still serving an old record --
+is gone: the apex and `www` both resolve to all four of GitHub's Pages
+addresses, consistently. The `CNAME` file here carries the name and the build
+copies it into the published site, which is what attaches it; the repository's
+Pages settings must say the same thing. Once attached, GitHub redirects the
+github.io address to the domain, so the two are one site and not two.
+
+A repository gets **one** custom domain. That matters now that a second
+business publishes from here: the studio under `/studio/` can only ever live
+on this domain, and if it is to have a name of its own it needs a repository
+of its own.
 
 This needs GitHub Pages switched on once, by the repository's owner:
 **Settings → Pages → Build and deployment → Source: GitHub Actions**. Until
