@@ -84,10 +84,55 @@ route to the same number is worth having -- and that is all they are for.
 a different till in a different system, are not whole numbers, and appear nowhere
 in this report. They are never derived or guessed.
 
+## The activity split: `ledger.py`
+
+```
+python3 ledger.py --verify 2026-08-30
+```
+
+```
+2026-08-30   11 payments
+  web                   0
+  credit lesson       661
+  cash lesson          60
+  total               721
+
+  lessons             429
+  rentals             292
+  note: 87 on order YESCX filed as rentals — that tab holds lessons and rentals
+```
+
+The report's own category block says board hire took 312.9375 that day. Nobody
+took 312.9375. An order in Bloowatch is a running tab -- seven board hires on
+one order, paid off in parts -- and the report divides each payment across the
+tab's lines by their value, which is where the decimals come from.
+
+The office does it the other way: read the payment list, see what the order was
+for, file the whole payment under that heading. That gives whole dollars, and it
+is what gets written down at the end of the day. `ledger.py` does the same thing
+from the same rows, and reproduces those figures exactly.
+
+**Where the judgement is.** Two of the nine tabs settled on 30/08 held more than
+one kind of thing, so a payment against them is not attributable on its own: 87
+paid against a tab holding 198 of board hire, 54 of lesson and 100 of yoga. The
+rule is the first thing on the tab. That is a convention, not a fact, so every
+payment where the rule actually had to decide is listed as a `note:` and carried
+into the closing rather than buried.
+
+`--verify` reads the official report as well and checks the two agree on the
+day's takings and on every payment method. They are independent routes to the
+same day; a disagreement means one is wrong and neither should be quoted.
+
+Bloowatch's API accepts and then ignores every filter, so the orders behind a
+day's payments are found by binary search over the school's own order list --
+about forty small requests for a day, with probes shared between orders and
+between days. Roughly twenty seconds per day.
+
 ## Tests
 
 ```
 python3 test_split.py
+python3 test_ledger.py
 ```
 
 Runs on handwritten rows rather than a real workbook, so a day that does not add
