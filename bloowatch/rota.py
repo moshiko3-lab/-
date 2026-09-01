@@ -149,6 +149,53 @@ def personal(name, lessons, date, lang="he"):
     return "\n".join(L)
 
 
+def starting_between(lessons, lo, hi, now=None):
+    """Lessons starting between lo and hi minutes from now.
+
+    The window matters more than it looks. A reminder that fires on an
+    overlapping window sends the same lesson twice, and one that fires on a
+    window with a gap in it silently skips a lesson nobody then turns up to.
+    So the caller steps the window by exactly its own width: (45, 105] every
+    hour covers every minute of the day once and only once.
+    """
+    now = now or dt.datetime.now(PANAMA)
+    out = []
+    for l in lessons:
+        h, m = l["time"].split(":")
+        start = now.replace(hour=int(h), minute=int(m), second=0, microsecond=0)
+        ahead = (start - now).total_seconds() / 60.0
+        if lo < ahead <= hi:
+            out.append(l)
+    return out
+
+
+def remind(name, lessons, lang="he"):
+    """The nudge an hour or so before. Says the hour, never "in an hour".
+
+    The window it fires in is wider than the words "in an hour" would be, and
+    an instructor who reads "in an hour" at 08:15 for a nine o'clock lesson
+    stops trusting the next one. The time itself is always true.
+    """
+    if not lessons:
+        return ""
+    first = (name or "").split()[0].title()
+    L = []
+    if lang == "en":
+        L.append("Hey %s 👋" % first)
+        L.append("")
+        L.append("*Coming up today:*")
+    else:
+        L.append("היי %s 👋" % first)
+        L.append("")
+        L.append("*עוד מעט אצלך:*")
+    L.append("")
+    for l in lessons:
+        L.append("*%s* · %s" % (l["time"], _line(l, lang)))
+    L.append("")
+    L.append("See you out there 🤙" if lang == "en" else "נתראה בים 🤙")
+    return "\n".join(L)
+
+
 def group(lessons, date, lang="he"):
     """The whole day for the staff group, in the order it happens."""
     when = _heading(date, lang)
@@ -175,14 +222,36 @@ def main():
     ap.add_argument("--who", default="", help="only this person's message")
     ap.add_argument("--group", action="store_true",
                     help="only the staff group's message")
+    ap.add_argument("--remind", action="store_true",
+                    help="today's reminders: whoever has a lesson starting "
+                         "inside the window. Prints nothing when nobody does.")
+    ap.add_argument("--from", dest="lo", type=int, default=45,
+                    help="window starts this many minutes ahead (default 45)")
+    ap.add_argument("--to", dest="hi", type=int, default=105,
+                    help="and ends this many (default 105). Step the window "
+                         "by its own width or a lesson is reminded twice, or "
+                         "not at all.")
     a = ap.parse_args()
-    date = a.date or tomorrow()
+    date = a.date or (dt.datetime.now(PANAMA).date().isoformat() if a.remind
+                      else tomorrow())
     try:
         s, base = login()
         lessons = lessons_for(s, base, date)
     except BloowatchError as e:
         print("error: " + str(e), file=sys.stderr)
         return 1
+
+    if a.remind:
+        soon = starting_between(lessons, a.lo, a.hi)
+        if not soon:
+            print("nothing starting between %d and %d minutes from now"
+                  % (a.lo, a.hi))
+            return 0
+        for name, mine in sorted(by_person(soon).items()):
+            print("======== %s ========" % name)
+            print(remind(name, mine, a.lang))
+            print()
+        return 0
 
     if a.who:
         want = a.who.strip().upper()

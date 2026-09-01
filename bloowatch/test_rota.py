@@ -122,6 +122,37 @@ def main():
     check("and its counts read as English",
           "1 student" in en and "12 students" in en, en)
 
+    # --- the reminder window ------------------------------------------------
+    # An hourly run steps a 60-minute window by 60 minutes. Every lesson in
+    # the day has to fall in exactly one of those steps: land in two and the
+    # instructor is reminded twice, land in none and nobody turns up.
+    import datetime as _dt
+    day = [L("%02d:%02d" % (h, m), "SURF PACK", 1, ["NAFTUL"])
+           for h in range(6, 20) for m in (0, 30)]
+    seen = {}
+    for hour in range(0, 24):
+        now = _dt.datetime(2026, 9, 1, hour, 0, tzinfo=rota.PANAMA)
+        for l in rota.starting_between(day, 45, 105, now):
+            seen[l["time"]] = seen.get(l["time"], 0) + 1
+    twice = sorted(t for t, n in seen.items() if n > 1)
+    never = sorted(l["time"] for l in day if l["time"] not in seen)
+    check("no lesson is reminded twice in a day", not twice, str(twice))
+    check("and none is missed", not never, str(never))
+
+    now = _dt.datetime(2026, 9, 1, 8, 0, tzinfo=rota.PANAMA)
+    soon = rota.starting_between(day, 45, 105, now)
+    check("at eight, the nine and the half nine are what is coming",
+          [l["time"] for l in soon] == ["09:00", "09:30"],
+          str([l["time"] for l in soon]))
+    check("the one already under way is not 'coming up'",
+          "08:00" not in [l["time"] for l in soon], str([l["time"] for l in soon]))
+
+    r = rota.remind("NAFTUL", soon)
+    check("the reminder names the hour, never 'in an hour'",
+          "09:00" in r and "בעוד שעה" not in r, r)
+    check("and it is addressed to them", r.startswith("היי Naftul"), r[:30])
+    check("nobody coming up gets no message", rota.remind("NAFTUL", []) == "")
+
     print()
     if fails:
         print("%d failed: %s" % (len(fails), ", ".join(fails)))
