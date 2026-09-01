@@ -50,14 +50,7 @@ jobs:
           # on its github.io address -- so the copy is conditional, or removing
           # the domain breaks the build that was meant to remove it.
           [ -f CNAME ] && cp CNAME site/CNAME || echo "no custom domain"
-      # The brow and lash studio is a separate business on the same address:
-      # its diary, its booking page and the release clients sign, under
-      # /studio/. There is no browser on this runner, so the build parses the
-      # pages and does not drive them; the test files do that locally.
-      - name: Build the studio's three pages
-        run: |
-          python3 brows/build.py --out site/studio
-          ls -l site site/studio
+          ls -l site
       - name: Refuse to publish anything carrying real people
         run: python3 .github/no_pii.py site
       - uses: actions/upload-pages-artifact@v3

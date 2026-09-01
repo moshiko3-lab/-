@@ -58,20 +58,18 @@ pages and fails the publish rather than trusting that.
 
 ## The brow and lash studio
 
-A second business shares the address. Its three pages -- the therapist's diary
-in Hebrew, a booking page and a release form that clients sign, both in English
-or Hebrew -- are built the same way and published under `/studio/`:
+It used to be published from here, under `/studio/`. It is not any more: it
+has its own repository and its own name.
 
-```
-python3 brows/build.py --out site/studio
-```
+* code -- [moshiko3-lab/Romyhovav](https://github.com/moshiko3-lab/Romyhovav)
+* live -- <https://romyhovav.com>
 
-They are written up, in Hebrew, in [`brows/README.md`](brows/README.md). Same
-two truths as above apply until a shared book is set up: the data lives in the
-browser that entered it, and a booking made on a client's phone reaches the
-studio through WhatsApp rather than through the page. `brows/supabase.sql` is
-what changes that, and what it allows a guest to read is deliberately almost
-nothing.
+The reason is not tidiness. GitHub Pages gives a repository one custom
+domain, and this one was already `shokogimanager.com` -- so a studio wanting
+a name of its own needed a repository of its own. Two businesses also have
+no reason to rebuild each other's site on every push, and the release form
+handles health information, which does not belong beside a surf school's
+till.
 
 ## Tests
 
