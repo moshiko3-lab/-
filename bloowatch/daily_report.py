@@ -230,6 +230,31 @@ def cross_table(rep):
     return _ordered(names), methods, lambda c, m: cross.get(m, {}).get(c, 0.0)
 
 
+def whole_split(values, total):
+    """Whole dollars that still add to the day's total exactly.
+
+    The category figures arrive with four decimal places, and the decimals are
+    not money: Bloowatch divides an order that covers a lesson and a board hire
+    between the two by proportion. Those shares even drift between one reading
+    and the next, which is how a summary ends up reporting that a finished day
+    changed when nothing about it did.
+
+    So they are stated in whole dollars. Rounding each one on its own would
+    lose or gain a dollar against the day's takings, which is the one number
+    that is beyond doubt -- instead the dollar goes to whichever category has
+    the largest fraction left over, so the parts always add to the whole.
+    """
+    if not values:
+        return {}
+    floors = {k: int(v // 1) for k, v in values.items()}
+    short = int(round(total)) - sum(floors.values())
+    # hand out (or take back) the odd dollars, biggest leftover first
+    order = sorted(values, key=lambda k: (values[k] - floors[k], k), reverse=short > 0)
+    for k in order[:abs(short)]:
+        floors[k] += 1 if short > 0 else -1
+    return floors
+
+
 def cash_up(rep):
     """The three figures the office writes out by hand at the end of the day.
 
@@ -266,11 +291,13 @@ def summarise(rep):
     # just need a column of their own, or their money would vanish from the
     # method breakdown while still counting toward the total.
     other_pay = {m: v["amount"] for m, v in rep["methods"].items() if m not in METHODS}
+    # stated in whole dollars, and still adding to the day: see whole_split
+    whole = whole_split(cats, rep["total"])
     notes = list(rep["warnings"])
     if other_pay:
-        notes.append("also paid by " + ", ".join(f"{k} {v:.2f}" for k, v in sorted(other_pay.items())))
+        notes.append("also paid by " + ", ".join(f"{k} {v:.0f}" for k, v in sorted(other_pay.items())))
     if other:
-        notes.append("other categories: " + ", ".join(f"{k} {v:.2f}" for k, v in sorted(other.items())))
+        notes.append("other categories: " + ", ".join(f"{k} {whole[k]}" for k in sorted(other)))
     if rep["refunds"]:
         notes.append(f"refunds {rep['refunds']:.2f}")
     if rep["cancellations"]:
@@ -284,12 +311,12 @@ def summarise(rep):
         "Credit": round(rep["methods"].get("Credit card", {}).get("amount", 0.0), 2),
         "Cash": round(rep["methods"].get("Cash", {}).get("amount", 0.0), 2),
         "Web": round(rep["methods"].get("Payment gateway", {}).get("amount", 0.0), 2),
-        "OtherPay": round(sum(other_pay.values()), 2),
-        "Packages": round(cats.get("PACKAGES", 0.0), 2),
-        "Lessons": round(cats.get("LESSONS", 0.0), 2),
-        "Rentals": round(cats.get("BOARD RENTALS", 0.0), 2),
-        "Photography": round(cats.get("PHOTOGRAPHY", 0.0), 2),
-        "Other": round(sum(other.values()), 2),
+        "OtherPay": round(sum(other_pay.values())),
+        "Packages": whole.get("PACKAGES", 0),
+        "Lessons": whole.get("LESSONS", 0),
+        "Rentals": whole.get("BOARD RENTALS", 0),
+        "Photography": whole.get("PHOTOGRAPHY", 0),
+        "Other": sum(whole[k] for k in other),
         "Refunds": round(rep["refunds"], 2),
         "Check": "CHECK!" if rep["warnings"] else "OK",
         "Notes": "; ".join(notes),
@@ -313,11 +340,15 @@ def get_days(dates, reports=False):
 def print_cash_up(rep):
     """The end-of-day block, laid out the way it is written by hand."""
     lines, total = cash_up(rep)
-    width = max(len(n) for n, _ in lines)
+    cats = whole_split(rep["categories"], rep["total"])
+    rows = lines + [("total", total)] + \
+        [(k.lower(), v) for k, v in sorted(cats.items(), key=lambda kv: -kv[1])]
+    width = max(len(n) for n, _ in rows)
     print(rep["date"] or "?")
-    for name, amt in lines:
+    for i, (name, amt) in enumerate(rows):
+        if i == len(lines) + 1:
+            print()
         print(f"  {name.ljust(width)}  {amt:>8,.0f}")
-    print(f"  {'total'.ljust(width)}  {total:>8,.0f}")
     for w in rep["warnings"]:
         print(f"  CHECK! {w}")
 

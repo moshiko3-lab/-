@@ -131,6 +131,24 @@ def main():
     check("the shop is not in it — it is a different till",
           not any("shop" in n for n, _ in lines), str(lines))
 
+    # --- the categories are whole too, and still add to the day -------------
+    # a real day: four categories whose shares carry four decimal places and
+    # whose floors fall a dollar short of the takings
+    whole = dr.whole_split({"BOARD RENTALS": 503.0, "LESSONS": 301.0296,
+                            "PACKAGES": 219.3103, "PHOTOGRAPHY": 2.6601}, 1026.0)
+    check("the categories are stated in whole dollars",
+          all(isinstance(v, int) for v in whole.values()), str(whole))
+    check("and they add to the day's takings exactly",
+          sum(whole.values()) == 1026, str(sum(whole.values())))
+    check("the odd dollar goes where the largest fraction was",
+          whole["PHOTOGRAPHY"] == 3 and whole["LESSONS"] == 301, str(whole))
+    check("a day whose parts already fit is left alone",
+          dr.whole_split({"LESSONS": 60.0, "BOARD RENTALS": 35.0}, 95.0) ==
+          {"LESSONS": 60, "BOARD RENTALS": 35})
+    check("and a dollar too many is taken back, not left over",
+          sum(dr.whole_split({"A": 10.9, "B": 10.9, "C": 10.9}, 32.0).values()) == 32)
+    check("nothing to split is not an error", dr.whole_split({}, 0.0) == {})
+
     # --- the decimals stay out of the sheet ---------------------------------
     row = dr.summarise(rep)
     check("the sheet keeps the columns it always had",
@@ -139,9 +157,15 @@ def main():
     check("and its money columns are the cash-up's own",
           (row["Credit"], row["Cash"], row["Web"]) == (225.0, 95.0, 0.0),
           str((row["Credit"], row["Cash"], row["Web"])))
+    money = ("Total", "Credit", "Cash", "Web", "OtherPay", "Packages",
+             "Lessons", "Rentals", "Photography", "Other")
     check("nothing with cents in it reached the row",
-          all(float(row[c]).is_integer() for c in ("Total", "Credit", "Cash", "Web")),
-          str({c: row[c] for c in ("Total", "Credit", "Cash", "Web")}))
+          all(float(row[c]).is_integer() for c in money),
+          str({c: row[c] for c in money}))
+    check("and the categories in the row add to its total",
+          row["Packages"] + row["Lessons"] + row["Rentals"] +
+          row["Photography"] + row["Other"] == row["Total"],
+          str({c: row[c] for c in money}))
 
     # --- the split is still read, as a second route to the same number ------
     cats, methods, cell = dr.cross_table(rep)

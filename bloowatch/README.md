@@ -65,6 +65,14 @@ number of dollars, so every method's daily takings are whole too. A total with
 cents in it means the report did arithmetic of its own, and is called out rather
 than presented as takings.
 
+The category columns are whole dollars for the same reason. They arrive from the
+report with four decimal places, and those decimals are not money -- an order
+covering a lesson and a board hire is divided between the two by proportion, and
+the shares even drift between one reading of a finished day and the next, which
+is how a summary ends up announcing that a closed day changed when nothing about
+it did. `whole_split` states them in dollars and hands the odd dollar to the
+largest remaining fraction, so the parts still add to the day's takings exactly.
+
 **Do not use Bloowatch's cross-tab as cash-up figures.** The report also cuts
 each method across lessons and board hire, in `Account = <method>` blocks, and
 those arrive with four decimal places because a mixed order is split between its
