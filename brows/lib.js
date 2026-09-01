@@ -100,21 +100,35 @@ function uid(){ return Date.now().toString(36) + Math.random().toString(36).slic
    וכל דבר עם + נשמר כפי שהוא. בדיקה רופפת בכוונה — עדיף לקבל מספר זר
    מוזר מאשר לחסום לקוחה אמיתית. */
 function digits(s){ return String(s || "").replace(/\D+/g, ""); }
+/* פנמה לא משתמשת ב-0 מוביל: מספר מקומי שם הוא שמונה ספרות שמתחילות ב-6,
+   או שבע ספרות של קו נייח. לכן 0 בהתחלה אומר מספר לאומי של מדינה אחרת,
+   וכאן זו כמעט תמיד ישראל — לקוחה שקוראת את הדף בעברית מקלידה 054 ולא
+   +972. בלי הכלל הזה wa.me/0546902515 הוא קישור שבור, והיא פשוט לא
+   מקבלת תשובה. */
+var HOME_CC = "972";                /* לאן ממופה 0 מוביל */
 function normPhone(s){
   var raw = String(s || "").trim();
   var d = digits(raw);
   if (!d) return "";
-  if (raw.charAt(0) === "+" || d.length > 8) return d;   /* כבר בינלאומי */
-  return CC + d;                                          /* מקומי */
+  if (raw.charAt(0) === "+") return d;             /* נמסר במפורש */
+  if (d.indexOf("00") === 0) return d.slice(2);    /* חיוג בינלאומי */
+  if (d.charAt(0) === "0") return HOME_CC + d.slice(1);
+  if (d.length <= 8) return CC + d;                /* מקומי, פנמה */
+  return d;                                        /* כבר נושא קידומת */
 }
 function validPhone(s){
   var d = normPhone(s);
   return d.length >= 8 && d.length <= 15;
 }
+/* "+972546902515" הוא קיר של ספרות ואי אפשר לקרוא ממנו מספר. שתי
+   המדינות שבאמת מופיעות כאן מקבלות את הצורה שקוראים בה; כל השאר חוזר
+   עם + ובלי ניחושים, כי חלוקה שגויה גרועה מאין חלוקה. */
 function showPhone(s){
   var d = normPhone(s);
   if (d.indexOf(CC) === 0 && d.length === CC.length + 8)
     return d.slice(3, 7) + "-" + d.slice(7);              /* 6123-4567 */
+  if (d.indexOf("972") === 0 && d.length === 12)
+    return "+972 " + d.slice(3, 5) + "-" + d.slice(5, 8) + "-" + d.slice(8);
   return "+" + d;
 }
 function waLink(phone, text){
@@ -163,7 +177,7 @@ function defaultSettings(){
   return {
     name:      "Romy Brows & Lashes",
     owner:     "",
-    phone:     "",
+    phone:     "972546902515",   /* הוואטסאפ שאליו נוסעות בקשות התור */
     address:   "",
     instagram: "",
     maps:      "",

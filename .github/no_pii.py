@@ -26,8 +26,10 @@ PATTERNS = [
         r"[\w.+-]+@(?!bloowatch\.com|shokogi|example\.)[\w-]+\.[\w.]{2,}")),
     ("a phone number", re.compile(r"\+507[  ]?\d[\d  -]{5,}")),
     # the studio pages store numbers as bare digits with the country code,
-    # which is how they reach wa.me and how a leaked client list would look
+    # which is how they reach wa.me and how a leaked client list would look.
+    # Half its clients are Israeli, so that shape has to be caught too.
     ("a phone number", re.compile(r"\b507\d{7,8}\b")),
+    ("a phone number", re.compile(r"\b972\d{8,9}\b")),
 ]
 # The seeded catalogue legitimately names the school's own staff, and the page
 # names its author and its own domain; nothing here is a customer.
@@ -35,19 +37,23 @@ ALLOW = re.compile(r"(shokogipanama|noreply@|@bloowatch\.com|@2x|@media|@font-fa
 
 
 def studio_own_numbers():
-    """The studio's own contact number is meant to be on the page."""
+    """The studio's own contact number is meant to be on the page.
+
+    It is read from both places that carry it -- the snapshot the public
+    pages are built from, and the defaults compiled into every page -- so
+    that a build made without the snapshot does not fail over the studio's
+    own number while still failing over anybody else's."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     out = set()
-    for path in (os.path.join(here, "brows", "salon.json"),):
-        if not os.path.exists(path):
-            continue
-        with open(path, encoding="utf-8") as f:
-            phone = (json.load(f).get("settings") or {}).get("phone") or ""
-        digits = re.sub(r"\D+", "", phone)
-        if digits:
-            out.add(digits)
-            out.add(digits[3:] if digits.startswith("507") else "507" + digits)
-    return out
+    salon = os.path.join(here, "brows", "salon.json")
+    if os.path.exists(salon):
+        with open(salon, encoding="utf-8") as f:
+            out.add((json.load(f).get("settings") or {}).get("phone") or "")
+    lib = os.path.join(here, "brows", "lib.js")
+    if os.path.exists(lib):
+        with open(lib, encoding="utf-8") as f:
+            out.update(re.findall(r'phone:\s*"(\d+)"', f.read()))
+    return {re.sub(r"\D+", "", p) for p in out if re.sub(r"\D+", "", p)}
 
 
 def each_file(root):

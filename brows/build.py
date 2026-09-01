@@ -252,6 +252,19 @@ def main():
     if not a.quiet:
         print("shared book:", cloud["url"] or "none -- the pages work on one phone")
 
+    # Without a shared book, this number is the whole delivery mechanism: a
+    # booking page with nowhere to send a request can only copy the details
+    # to the clipboard and hope. Worth saying out loud at build time rather
+    # than discovering it from a client who never got an answer.
+    salon = data_file("salon.json") or {}
+    dest = (salon.get("settings") or {}).get("phone") or ""
+    if not a.quiet:
+        if dest:
+            print("requests go to: wa.me/%s" % re.sub(r"\D+", "", dest))
+        elif not cloud["url"]:
+            print("requests go to: NOBODY -- salon.json has no phone, so the "
+                  "booking page can only copy the details to the clipboard")
+
     # The icons and the manifest go down first: the pages point at them, and
     # the runtime check below fails a page that asks for a file that is not
     # there -- which is how this ordering was found in the first place.
