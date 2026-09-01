@@ -590,6 +590,7 @@ body.locked > .wrap,body.locked > header.top,body.locked > aside.rail{display:no
   <section id="p-trips" role="tabpanel" hidden></section>
   <section id="p-bookings" role="tabpanel" hidden></section>
   <section id="p-clients" role="tabpanel" hidden></section>
+  <section id="p-whatsapp" role="tabpanel" hidden></section>
   <section id="p-catalog" role="tabpanel" hidden></section>
   <section id="p-gear" role="tabpanel" hidden></section>
   <section id="p-crew" role="tabpanel" hidden></section>
@@ -1338,6 +1339,13 @@ function renderClients(){
     var act=el("td"),box=el("div","rowbtns");
     var e=el("button","btn sm","Card");
     e.addEventListener("click",function(){clientCard(c);});
+    /* the conversation is a screen away; from here it is one click with the
+       number already in it */
+    var wa=null;
+    if(c.phone){
+      wa=el("button","btn sm","WhatsApp");
+      wa.addEventListener("click",function(){ waComposeForm(c.phone); });
+    }
     var dv=el("button","btn sm","Docs");
     dv.addEventListener("click",function(){clientDocsView(c);});
     var d=el("button","btn sm danger","Delete");
@@ -1348,7 +1356,8 @@ function renderClients(){
         save(); render(); toast("Client deleted");
       });
     });
-    box.appendChild(e); box.appendChild(dv); box.appendChild(d);
+    box.appendChild(e); if(wa) box.appendChild(wa);
+    box.appendChild(dv); box.appendChild(d);
     act.appendChild(box); r.appendChild(act);
     tb.appendChild(r);
   });
@@ -1727,6 +1736,7 @@ function renderCrew(){
 
 /*__PRICING__*/
 /*__CLOUD__*/
+/*__WHATSAPP__*/
 
 /* ============================ catalog ============================ */
 /* Their price_unit values. A tier means a different thing under each, so the
@@ -11763,6 +11773,7 @@ var ICONS={
   money:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/>'+
         '<path d="M6 12h.01M18 12h.01"/>',
   chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  chat:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 21l1.9-5.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/>',
   cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3'+
       'M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'
 };
@@ -11781,6 +11792,7 @@ var TABS=[
   {id:"trips",l:"Trips",icon:"boat",r:renderTrips},
   {id:"bookings",l:"Bookings",icon:"receipt",r:renderBookings},
   {id:"clients",l:"Clients",icon:"people",r:renderClients},
+  {id:"whatsapp",l:"WhatsApp",icon:"chat",r:renderWhatsapp},
   {id:"catalog",l:"Catalog",icon:"tag",r:renderCatalog},
   {id:"gear",l:"Gear",icon:"surf",r:renderGear},
   {id:"crew",l:"Crew",icon:"badge",r:renderCrew},

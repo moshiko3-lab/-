@@ -1,0 +1,11 @@
+# Supabase CLI, for the one function this project has.
+#
+# verify_jwt is off because Meta's webhook cannot carry a Supabase token, and a
+# gate that refuses it would refuse every message the school is sent. The
+# function checks each door itself instead: a signed-in member for /send and
+# /health, Meta's signature for /webhook, a shared secret for /tick.
+
+project_id = "bxjwqvoscbzhetuwhyvk"
+
+[functions.whatsapp]
+verify_jwt = false

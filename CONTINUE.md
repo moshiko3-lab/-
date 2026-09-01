@@ -26,6 +26,27 @@ permanent and visible to anyone with repository access; `.gitignore` already
 refuses `.env`, `secrets/`, `*.enc` and `*.key`, but the real safeguard is not
 writing them down in the first place.
 
+## The WhatsApp secrets
+
+Five of them, and none belongs in this repository or in this container either:
+
+    WA_TOKEN         the permanent Meta System User token
+    WA_PHONE_ID      the number's id, not the number
+    WA_VERIFY_TOKEN  whatever string was typed into Meta's webhook panel
+    WA_APP_SECRET    the Meta app secret, so the webhook can be trusted
+    WA_TICK_SECRET   what pg_cron sends with the tick
+
+The evening brief needs a fifth thing, in a different place: the three
+Bloowatch variables above and `WA_TICK_SECRET` have to exist as **repository
+secrets** (Settings → Secrets and variables → Actions) as well, because the
+nightly workflow runs on GitHub's machines rather than here.
+
+They live as secrets on the Supabase Edge Function (`supabase secrets set …`),
+which is the only thing that ever holds them: the page is public and the
+database is readable by every device that signs in. `supabase secrets list`
+says which are set without showing them. The whole setup is in
+`supabase/WHATSAPP.md`.
+
 ## Getting going in a new session
 
     git fetch origin claude/new-session-d0r3xc

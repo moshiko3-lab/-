@@ -30,6 +30,11 @@ def render(template=None):
     # else that talks to it speak to one implementation
     with open(os.path.join(HERE, "cloud.js"), encoding="utf-8") as f:
         out = out.replace("/*__CLOUD__*/", f.read())
+    # the WhatsApp screen: the same inlining, and it is only in the manager --
+    # the booking site has no business holding a conversation
+    if "/*__WHATSAPP__*/" in out:
+        with open(os.path.join(HERE, "whatsapp.js"), encoding="utf-8") as f:
+            out = out.replace("/*__WHATSAPP__*/", f.read())
     cat = os.path.join(HERE, "catalog.json")
     if os.path.exists(cat):
         with open(cat, encoding="utf-8") as f:
@@ -60,7 +65,7 @@ def render(template=None):
             # the badge appears twice now: the rail, and the sign-in card
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
     for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/",
-                  "/*__PEOPLE__*/", "/*__CLOUD__*/"):
+                  "/*__PEOPLE__*/", "/*__CLOUD__*/", "/*__WHATSAPP__*/"):
         if token in out:
             raise RuntimeError(f"template placeholder {token} was not replaced")
     return out

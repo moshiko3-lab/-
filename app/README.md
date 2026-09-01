@@ -45,6 +45,7 @@ the rest of the app never touches storage directly.
 | Trips | A boat or van going out: departure, skipper, seats, and a manifest that flags who has no waiver on file |
 | Bookings | Sessions assigned from the booking, so a three-lesson course is three seats and the list says how many are still owed. Products chosen from the catalogue rather than a dropdown, priced by tier, with discounts that keep the original price visible. Named participants with age, level and wetsuit size. Payments, deposits, balance, cancellation and refunds; search and filter by status or date |
 | Clients | Contact details, booking count, lifetime spend, documents and when they expire |
+| WhatsApp | The school's own number: every message in and out in one thread per person, with the reply box closed when WhatsApp would refuse a free-form message. Reminders before a session, a brief on the day's board each morning to whoever is working, and a bot that answers what it recognises and hands over what it does not. Nothing is on until it is switched on; the setup is in `supabase/WHATSAPP.md` |
 | Catalog | Every product setting Bloowatch has, across four tabs: information, price, calendar, online sale. Eight product types, tiered pricing, deposits, tax, stock, weekdays and start hours, availability window, meeting spot. Search, filter and archive |
 | Gear | Each board and suit by name, with service dates, what is out and until when |
 | Crew | Instructors and assistants, role, session count, time off |
@@ -128,4 +129,6 @@ missing, in rough order of how much of their locale each accounts for:
 iCalendar feeds answer nothing until this sits on a server (the URLs are
 generated, the feed is not served), the fiscal archive exports and verifies but
 is not a certified format, and there is no e-commerce settings screen, no email
-or SMS sending, and no POS receipt printing.
+or SMS sending, and no POS receipt printing. WhatsApp is the one message
+channel that is built, and it needs the Edge Function deployed before it does
+anything.
