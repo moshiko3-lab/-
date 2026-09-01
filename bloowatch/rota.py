@@ -223,16 +223,14 @@ def remind(name, lessons, lang="he"):
     if lang == "en":
         L.append("Hey %s 👋" % first)
         L.append("")
-        L.append("*Coming up today:*")
+        L.append("*A reminder for your lesson, please be there on time* 🤙")
     else:
         L.append("היי %s 👋" % first)
         L.append("")
-        L.append("*עוד מעט אצלך:*")
+        L.append("*תזכורת לשיעור שלך, להגיע בזמן ולא לאחר* 🤙")
     L.append("")
     for l in lessons:
         L.append("*%s* · %s" % (l["time"], _line(l, lang)))
-    L.append("")
-    L.append("See you out there 🤙" if lang == "en" else "נתראה בים 🤙")
     return "\n".join(L)
 
 
