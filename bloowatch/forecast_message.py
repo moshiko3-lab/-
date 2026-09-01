@@ -119,20 +119,87 @@ def span(w):
     return "%s-%s" % w
 
 
-def build(date, waves, period, compare, rain, spot_note):
+def mid(waves):
+    """The middle of a range like 0.6-0.9, for comparing one day to the next."""
+    try:
+        parts = [float(x) for x in str(waves).replace(",", ".").split("-")]
+        return sum(parts) / len(parts)
+    except Exception:
+        return None
+
+
+def compare_line(today, tomorrow):
+    """The school's own call, in their words: is tomorrow bigger or smaller
+    than today, and is that good news. Written only when both are known --
+    guessing at the sea in a message to customers is not on."""
+    a, b = mid(today), mid(tomorrow)
+    if a is None or b is None:
+        return ""
+    diff = b - a
+    if abs(diff) < 0.15:
+        how = "ים דומה להיום"
+    elif diff > 0:
+        how = "ים יותר גבוה מהיום"
+    else:
+        how = "ים יותר נמוך מהיום"
+    # the second half is about the size itself, not the change
+    if b < 0.5:
+        mood = "קטן ונוח – מושלם למתחילים"
+    elif b < 1.0:
+        mood = "יום ממש כיפי לגלישה"
+    elif b < 1.5:
+        mood = "יום טוב לגולשים עם ניסיון"
+    else:
+        mood = "רק לגולשים מנוסים"
+    return "מחר צפוי להיות %s – %s" % (how, mood)
+
+
+def tide_range_note(t):
+    """Free intelligence from the table we already hold: how far the water
+    moves. A three-metre swing in six hours is a lot of water leaving the bay,
+    and that is when the current down the beach is worth a word. A small swing
+    is a gentle, forgiving day. Nobody has to look this up -- it is arithmetic
+    on the numbers already in front of us."""
+    hs = [float(x.get("m") or 0) for x in (t.get("highs") or [])]
+    ls = [float(x.get("m") or 0) for x in (t.get("lows") or [])]
+    if not hs or not ls:
+        return "", None
+    rng = max(hs) - min(ls)
+    if rng >= 3.2:
+        return ("*⚠️ הפרשי גאות גדולים היום (%.1f מטר) – זרם חזק יותר, "
+                "במיוחד סביב אמצע הגאות. להישאר מול הצוות.*" % rng), rng
+    if rng <= 2.3:
+        return ("*הפרשי גאות קטנים היום (%.1f מטר) – ים נוח וזרם חלש.*"
+                % rng), rng
+    return "", rng
+
+
+def build(date, waves, period, compare, rain, spot_note, note=""):
     t = tides_for(date)
     if not t:
         return None, "no tide table for " + date
     low_w, high_w, mid_w = windows(t)
     d = dt.date.fromisoformat(date)
-    highs = " ".join(x["t"] for x in sorted(t.get("highs") or [],
-                                            key=lambda x: x["t"], reverse=True))
-    lows = " ".join(x["t"] for x in sorted(t.get("lows") or [],
-                                           key=lambda x: x["t"]))
 
+    # Only the tides anybody is going in for. A low at half past midnight is a
+    # real low and no use to a surfer reading this at bedtime, and putting it
+    # in the message is how a reader loses trust in the rest of the numbers.
+    def daytime(rows):
+        return [x for x in rows if DAY_FROM <= mins(x["t"]) <= DAY_TO]
+
+    hi_rows = daytime(t.get("highs") or []) or (t.get("highs") or [])
+    lo_rows = daytime(t.get("lows") or []) or (t.get("lows") or [])
+    highs = " ".join(x["t"] for x in sorted(hi_rows,
+                                            key=lambda x: x["t"], reverse=True))
+    lows = " ".join(x["t"] for x in sorted(lo_rows, key=lambda x: x["t"]))
+
+    # Feet alongside metres, the way they write it. When the swell is not
+    # known the line says so loudly rather than quietly carrying yesterday's
+    # number: a forecast nobody checked, sent to two hundred customers as if
+    # it were checked, is worse than no forecast.
     feet = ""
     try:
-        a, b = [float(x) for x in waves.split("-")]
+        a, b = [float(x) for x in str(waves).split("-")]
         feet = " (%d-%d פיט)" % (round(a * 3.28), round(b * 3.28))
     except Exception:
         pass
@@ -177,6 +244,9 @@ def build(date, waves, period, compare, rain, spot_note):
     L.append("*חתירה בסאפ*")
     L.append("קרוב לשיאי הגאות/שפל")
     L.append("")
+    if note:
+        L.append(note)
+        L.append("")
     if rain:
         L.append(rain)
         L.append("")
@@ -190,10 +260,16 @@ def main():
     ap.add_argument("--waves", default="0.6-0.9",
                     help="wave height in metres, e.g. 0.6-0.9")
     ap.add_argument("--period", default="12", help="swell period in seconds")
+    ap.add_argument("--waves-today", default="",
+                    help="today's height, so the 'bigger or smaller' line "
+                         "writes itself instead of being typed each evening")
     ap.add_argument("--compare", default="",
-                    help="the one-line call, e.g. 'מחר צפוי להיות ים יותר נמוך מהיום – יום ממש כיפי לגלישה'")
+                    help="override that line by hand")
     ap.add_argument("--rain", default="",
                     help="the rain line, when there is one")
+    ap.add_argument("--tide-note", action="store_true",
+                    help="add a line when the tide range is unusually big or "
+                         "small — worked out from the table, not forecast")
     ap.add_argument("--spot", default="צד שמאל של החוף מול סלינה נמוך ונוח יותר לתרגול")
     a = ap.parse_args()
 
@@ -203,7 +279,15 @@ def main():
         now = dt.datetime.utcnow() - dt.timedelta(hours=5)
         date = (now.date() + dt.timedelta(days=1)).isoformat()
 
-    msg, err = build(date, a.waves, a.period, a.compare, a.rain, a.spot)
+    compare = a.compare or compare_line(a.waves_today, a.waves)
+
+    note = ""
+    if a.tide_note:
+        t = tides_for(date)
+        if t:
+            note, _rng = tide_range_note(t)
+
+    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note)
     if err:
         print("error: " + err, file=sys.stderr)
         return 1
