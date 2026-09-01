@@ -668,7 +668,7 @@ function renderSettings(){
         '<button class="mini" id="lk-book-en">הזמנת תור · EN</button>' +
         '<button class="mini" id="lk-book-he">הזמנת תור · עברית</button></div>' +
       '<div class="small muted" style="word-break:break-all;margin-top:8px">' +
-        esc(siteUrl("book.html")) + "</div></div>" +
+        esc(siteUrl("")) + "</div></div>" +
 
     '<div class="card"><h2>הענן</h2><div id="st-cloud"></div></div>' +
 
@@ -704,8 +704,8 @@ function renderSettings(){
     db.settings.autoConfirm = $("#st-auto").checked;
     persist(); cloudDirty("settings", "settings"); cloudSync();
   };
-  $("#lk-book-en").onclick = function(){ copy(siteUrl("book.html", "en"), "הקישור הועתק"); };
-  $("#lk-book-he").onclick = function(){ copy(siteUrl("book.html", "he"), "הקישור הועתק"); };
+  $("#lk-book-en").onclick = function(){ copy(siteUrl("", "en"), "הקישור הועתק"); };
+  $("#lk-book-he").onclick = function(){ copy(siteUrl("", "he"), "הקישור הועתק"); };
   $("#st-svc-add").onclick = function(){
     db.services.push({id: uid(), he: "טיפול חדש", en: "New treatment", minutes: 30,
                       form: false, active: true});

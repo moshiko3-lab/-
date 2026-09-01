@@ -5,8 +5,9 @@
 
 Three pages come out:
 
-    index.html   the therapist's own diary, in Hebrew
-    book.html    the page a client books from, English or Hebrew
+    index.html   the page a client books from, English or Hebrew -- the root,
+                 because whoever types the address is a client
+    diary.html   the therapist's own diary, in Hebrew
     form.html    the release, waiver and health declaration she signs
 
 Nothing is fetched at runtime -- no CDN, no font, no framework. A page that
@@ -37,9 +38,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 
 # template, app script, output, extra placeholders it needs
+# The root is the booking page, not the diary. Whoever types the address is
+# a client; the therapist opens her diary from the icon on her home screen
+# and never types anything.
 PAGES = [
-    ("manager_template.html", "manager.js", "index.html", []),
-    ("book_template.html",    "book.js",    "book.html",  ["i18n", "salon"]),
+    ("book_template.html",    "book.js",    "index.html", ["i18n", "salon"]),
+    ("manager_template.html", "manager.js", "diary.html", []),
     ("form_template.html",    "form.js",    "form.html",  ["i18n", "consent", "salon"]),
 ]
 
@@ -61,7 +65,7 @@ def head_for(name):
     # so the same picture is not carried twice in every download.
     out = ['<link rel="apple-touch-icon" href="%s">' % icon_data_uri("icon-180.png"),
            '<link rel="icon" href="icon-192.png">']
-    if name == "index.html":
+    if name == "diary.html":
         out += ['<link rel="manifest" href="manifest.webmanifest">',
                 '<meta name="apple-mobile-web-app-title" content="היומן">']
     return "\n".join(out)
@@ -69,7 +73,7 @@ def head_for(name):
 
 MANIFEST = {
     "name": "היומן", "short_name": "היומן", "lang": "he", "dir": "rtl",
-    "start_url": "./index.html", "scope": "./", "display": "standalone",
+    "start_url": "./diary.html", "scope": "./", "display": "standalone",
     "orientation": "portrait", "background_color": "#faf7f4",
     "theme_color": "#faf7f4",
     "icons": [
@@ -164,7 +168,7 @@ def drive(page, name):
     """Walk the page the way a thumb would. Each page gets its own walk --
     node --check only parses, and a name that does not exist is invisible
     until the line runs. That is exactly how a page ships blank."""
-    if name == "index.html":
+    if name == "diary.html":
         for tab in page.query_selector_all("#tabs button"):
             tab.click()
             page.wait_for_timeout(220)
@@ -172,7 +176,7 @@ def drive(page, name):
         page.click("#btn-new")
         page.wait_for_timeout(300)
         page.click("#modal [data-close]")
-    elif name == "book.html":
+    elif name == "index.html":
         page.click("#lang")                      # both languages, one page load
         page.wait_for_timeout(150)
         page.click("#lang")

@@ -53,7 +53,7 @@ def main():
             pg = ctx.new_page()
 
             # ---- the diary, every screen and two of its dialogs
-            open_page(pg, "index.html")
+            open_page(pg, "diary.html")
             for tab in ["today", "agenda", "clients", "forms", "settings"]:
                 pg.click('#tabs button[data-tab="%s"]' % tab)
                 pg.wait_for_timeout(220)
@@ -70,7 +70,7 @@ def main():
 
             # ---- what the client sees, in both languages
             for lang in ["en", "he"]:
-                open_page(pg, "book.html", "?lang=" + lang)
+                open_page(pg, "index.html", "?lang=" + lang)
                 check(pg, "%dpx booking/%s treatments" % (w, lang))
                 pg.click(".pick")
                 pg.wait_for_timeout(300)

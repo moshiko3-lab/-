@@ -42,7 +42,7 @@ def main():
         b = browser(p)
 
         # ------------------------------------------------------- the diary
-        pg = open_page(phone(b, seed=legacy_book()), "index.html")
+        pg = open_page(phone(b, seed=legacy_book()), "diary.html")
         ok("$" not in pg.inner_text("#d-list"), "no figure beside the appointment")
         ok("$" not in pg.inner_text("#d-sum"),
            "the day is counted in appointments and hours")
@@ -80,7 +80,7 @@ def main():
 
         # -------------------------------------------------- the client's page
         for lang in ("en", "he"):
-            pg2 = open_page(phone(b, seed=legacy_book(), lang=lang), "book.html")
+            pg2 = open_page(phone(b, seed=legacy_book(), lang=lang), "index.html")
             ok("$" not in pg2.inner_text("body"),
                "nothing on the client's treatment list either (%s)" % lang)
             pg2.click(".pick")

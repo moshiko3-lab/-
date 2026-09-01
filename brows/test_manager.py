@@ -44,7 +44,7 @@ def main():
         # ------------------------------------------------- booking one in
         pg = phone(b, seed=book())
         watch_open(pg)
-        open_page(pg, "index.html")
+        open_page(pg, "diary.html")
         ok("אין תורים ביום הזה" in pg.inner_text("#d-list"), "an empty day says so")
 
         pg.click("#btn-new")
@@ -121,7 +121,7 @@ def main():
             "source": "online", "lang": "he"}]
         pg = phone(b, seed=seeded)
         watch_open(pg)
-        open_page(pg, "index.html")
+        open_page(pg, "diary.html")
         ok("ממתינות לאישור (1)" in pg.inner_text("#pending-box"),
            "a request from the site is waiting at the top of the day")
         pg.click("[data-ok='p1']")
@@ -141,7 +141,7 @@ def main():
                         {"id": "lens", "q": "Lenses?", "yes": False, "note": "", "flag": False}],
             "photos": True, "signature": "data:image/png;base64,iVBORw0KGgo=", "notes": ""}]
         pg = phone(b, seed=seeded)
-        open_page(pg, "index.html")
+        open_page(pg, "diary.html")
         pg.click('#tabs button[data-tab="forms"]')
         pg.wait_for_timeout(300)
         ok("לשים לב" in pg.inner_text("#f-list"),

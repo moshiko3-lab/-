@@ -41,7 +41,7 @@ def main():
 
         pg = phone(b, seed=book(), lang="en")
         watch_open(pg)
-        open_page(pg, "book.html")
+        open_page(pg, "index.html")
 
         names = pg.eval_on_selector_all(".pick b", "els => els.map(e => e.textContent)")
         ok(names == ["Brow shaping", "Lash lift"],
@@ -111,7 +111,7 @@ def main():
             svc["form"] = True
         pg3 = phone(b, seed=allform, lang="en")
         watch_open(pg3)
-        open_page(pg3, "book.html")
+        open_page(pg3, "index.html")
         ok("Before your first treatment" in pg3.inner_text("#stage"),
            "with every treatment needing a release, it is stated once at the top")
         ok("consent form required" not in pg3.inner_text(".pick:nth-of-type(1)"),
@@ -126,7 +126,7 @@ def main():
         # a treatment that needs the release offers the link straight after
         pg = phone(b, seed=book(), lang="en")
         watch_open(pg)
-        open_page(pg, "book.html")
+        open_page(pg, "index.html")
         pg.click(".pick:nth-of-type(2)")
         pg.wait_for_timeout(300)
         pg.click(".slot")
@@ -143,7 +143,7 @@ def main():
         # what she typed survives a change of language
         pg = phone(b, seed=book(), lang="en")
         watch_open(pg)
-        open_page(pg, "book.html")
+        open_page(pg, "index.html")
         pg.click(".pick:nth-of-type(1)")
         pg.wait_for_timeout(300)
         pg.click(".slot")
@@ -160,7 +160,7 @@ def main():
         # the same page in Hebrew
         pg = phone(b, seed=book())
         watch_open(pg)
-        open_page(pg, "book.html", "?lang=he")
+        open_page(pg, "index.html", "?lang=he")
         ok(pg.evaluate("document.documentElement.dir") == "rtl", "Hebrew flips the page")
         ok("מה עושים היום?" in pg.inner_text("#stage"), "and speaks Hebrew")
         ok(pg.eval_on_selector_all(".pick b", "els => els.map(e => e.textContent)")

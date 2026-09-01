@@ -51,7 +51,7 @@ def main():
         monday = d.isoformat()
         sunday = (d - datetime.timedelta(days=1)).isoformat()
 
-        pg = open_page(phone(b, seed=book()), "book.html")
+        pg = open_page(phone(b, seed=book()), "index.html")
         free = slots(pg, monday, 30)
         ok(free[0] == "09:00" and free[-1] == "16:30",
            "an open day runs from opening to the last slot that still fits")
@@ -68,7 +68,7 @@ def main():
             "id": "a1", "clientName": "Ana", "phone": "50761111111",
             "serviceId": "s-a", "date": monday, "time": "11:00",
             "minutes": 30, "price": 25, "status": "confirmed"})
-        pg = open_page(phone(b, seed=seeded), "book.html")
+        pg = open_page(phone(b, seed=seeded), "index.html")
         free = slots(pg, monday, 30)
         ok("11:00" not in free, "the booked hour is gone")
         ok("10:30" not in free,
@@ -81,7 +81,7 @@ def main():
             "id": "a2", "clientName": "Ana", "phone": "50761111111",
             "serviceId": "s-a", "date": monday, "time": "11:30",
             "minutes": 30, "price": 25, "status": "confirmed"})
-        pg = open_page(phone(b, seed=seeded2), "book.html")
+        pg = open_page(phone(b, seed=seeded2), "index.html")
         free = slots(pg, monday, 30)
         ok("12:00" not in free,
            "ten minutes of tidying up after a 12:00 finish blocks the 12:00 slot")
@@ -93,20 +93,20 @@ def main():
             "id": "a3", "clientName": "Ana", "phone": "50761111111",
             "serviceId": "s-a", "date": monday, "time": "11:00",
             "minutes": 30, "price": 25, "status": "cancelled"})
-        pg = open_page(phone(b, seed=seeded3), "book.html")
+        pg = open_page(phone(b, seed=seeded3), "index.html")
         ok("11:00" in slots(pg, monday, 30), "a cancelled appointment frees its hour")
 
         # a block is time off, and it disappears from the client's view too
         seeded4 = book()
         seeded4["blocks"].append({"id": "b1", "date": monday, "from": "09:00",
                                   "to": "12:00", "reason": "dentist"})
-        pg = open_page(phone(b, seed=seeded4), "book.html")
+        pg = open_page(phone(b, seed=seeded4), "index.html")
         free = slots(pg, monday, 30)
         ok(free[0] == "12:00", "a blocked morning is not offered")
 
         # a treatment that does not fit the short Saturday window
         saturday = (d + datetime.timedelta(days=5)).isoformat()
-        pg = open_page(phone(b, seed=book()), "book.html")
+        pg = open_page(phone(b, seed=book()), "index.html")
         ok(slots(pg, saturday, 90)[-1] == "11:30",
            "Saturday closes at one, so the last long slot starts at 11:30")
 

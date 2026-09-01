@@ -23,7 +23,7 @@ SAME_PANAMA = ["61234567", "6123-4567", "+507 6123-4567", "00507 6123 4567",
 def main():
     with sync_playwright() as p:
         b = browser(p)
-        pg = open_page(phone(b), "book.html")
+        pg = open_page(phone(b), "index.html")
 
         def norm(x):
             return pg.evaluate("s => normPhone(s)", x)
