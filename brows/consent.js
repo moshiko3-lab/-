@@ -24,8 +24,10 @@ var TREATMENTS = [
    he:"הרמת גבות / למינציה",         en:"Brow lamination"},
   {id:"tint", groups:["eyes","brows"],
    he:"צביעת גבות או ריסים",          en:"Brow or lash tint"},
-  {id:"wax",  groups:["brows"],
-   he:"עיצוב גבות / שעווה / חוט",     en:"Brow shaping, waxing or threading"},
+  {id:"wax",  groups:["brows","hair"],
+   he:"עיצוב גבות / שפם / שעווה בפנים", en:"Brows, upper lip or facial waxing"},
+  {id:"bodywax", groups:["hair"],
+   he:"שעווה בגוף (רגליים, ידיים, בית שחי)", en:"Body waxing (legs, arms, underarms)"},
   {id:"ext",  groups:["eyes"],
    he:"תוספות ריסים",                 en:"Lash extensions"}
 ];
@@ -89,7 +91,18 @@ var QUESTIONS = [
    en:"Is there hair loss, thinning or plucking damage in your brows?"},
   {id:"pmu", g:"brows", flag:true,
    he:"האם יש איפור קבוע, מיקרובליידינג או שרטוט שבוצע בחודש האחרון?",
-   en:"Do you have permanent makeup, microblading or brow tattooing done in the last month?"}
+   en:"Do you have permanent makeup, microblading or brow tattooing done in the last month?"},
+
+  /* ---- הסרת שיער, בפנים ובגוף ---- */
+  {id:"sun", g:"hair", flag:true,
+   he:"האם באזור יש כוויית שמש, שיזוף טרי, גירוי או עור פגום?",
+   en:"Is the area sunburnt, freshly tanned, irritated or broken?"},
+  {id:"laser", g:"hair", flag:true,
+   he:"האם עברת באזור לייזר להסרת שיער, אלקטרוליזה או פילינג בשבועיים האחרונים?",
+   en:"Have you had laser hair removal, electrolysis or a peel on this area in the last two weeks?"},
+  {id:"veins", g:"hair", flag:false,
+   he:"האם יש באזור דליות, שומות בולטות או ורידים מורחבים?",
+   en:"Are there varicose veins, raised moles or broken capillaries in the area?"}
 ];
 
 var RISKS = {

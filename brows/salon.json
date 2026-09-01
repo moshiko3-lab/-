@@ -1,0 +1,133 @@
+{
+ "_note": "נכתב ביד מהרשימה שהסטודיו מסר. אחרי שהמחירים והפרטים ימולאו ביומן, הגדרות → גיבוי → ייצוא לאתר מייצר את הקובץ הזה מחדש ומחליף אותו.",
+ "settings": {
+  "name": "Brows & Lashes",
+  "owner": "",
+  "phone": "",
+  "address": "",
+  "instagram": "",
+  "maps": "",
+  "hours": {
+   "0": [
+    {
+     "from": "09:00",
+     "to": "18:00"
+    }
+   ],
+   "1": [
+    {
+     "from": "09:00",
+     "to": "18:00"
+    }
+   ],
+   "2": [
+    {
+     "from": "09:00",
+     "to": "18:00"
+    }
+   ],
+   "3": [
+    {
+     "from": "09:00",
+     "to": "18:00"
+    }
+   ],
+   "4": [
+    {
+     "from": "09:00",
+     "to": "18:00"
+    }
+   ],
+   "5": [
+    {
+     "from": "09:00",
+     "to": "14:00"
+    }
+   ],
+   "6": []
+  },
+  "step": 30,
+  "buffer": 10,
+  "leadHours": 2,
+  "horizon": 45,
+  "cancelHours": 24,
+  "autoConfirm": true,
+  "showPrices": false,
+  "noteHe": "",
+  "noteEn": ""
+ },
+ "services": [
+  {
+   "id": "s-brows-lip",
+   "he": "עיצוב גבות + שפם",
+   "en": "Brow shaping + upper lip",
+   "minutes": 30,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "wax"
+   ]
+  },
+  {
+   "id": "s-lift",
+   "he": "הרמת ריסים",
+   "en": "Lash lift",
+   "minutes": 60,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "lift"
+   ]
+  },
+  {
+   "id": "s-lam",
+   "he": "הרמת גבות",
+   "en": "Brow lamination",
+   "minutes": 45,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "lam"
+   ]
+  },
+  {
+   "id": "s-leg",
+   "he": "שעווה חצי רגל",
+   "en": "Half leg wax",
+   "minutes": 30,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "bodywax"
+   ]
+  },
+  {
+   "id": "s-arm",
+   "he": "שעווה חצי יד",
+   "en": "Half arm wax",
+   "minutes": 30,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "bodywax"
+   ]
+  },
+  {
+   "id": "s-pit",
+   "he": "שעווה בית שחי",
+   "en": "Underarm wax",
+   "minutes": 10,
+   "price": 0,
+   "form": true,
+   "active": true,
+   "treat": [
+    "bodywax"
+   ]
+  }
+ ]
+}

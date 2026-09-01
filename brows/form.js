@@ -78,7 +78,12 @@ function openGroups(){
   TREATMENTS.forEach(function(tr){
     if (chosen[tr.id]) { any = true; tr.groups.forEach(function(x){ g[x] = true; }); }
   });
-  if (!any) { g.eyes = true; g.brows = true; }
+  /* עוד לא סומן כלום — מציגים את הכול, כדי שאף אחת לא תחשוב שהטופס
+     קצר משהוא. הקבוצות נספרות מהטיפולים עצמם, כך שטיפול חדש לא נשאר
+     בלי השאלות שלו. */
+  if (!any) TREATMENTS.forEach(function(tr){
+    tr.groups.forEach(function(x){ g[x] = true; });
+  });
   return g;
 }
 function visibleQuestions(){

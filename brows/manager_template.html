@@ -32,7 +32,12 @@
 .svccard label.inline{ display:flex; align-items:center; gap:5px; font-size:.8rem;
                        margin:0; font-weight:500; white-space:nowrap; }
 .hourrow{ display:flex; gap:5px; align-items:center; margin-bottom:5px; }
-.hourrow input{ padding:8px; border-radius:10px; flex:1; font-size:15px; }
+/* min-width:0 הוא מה שמרשה לשדה שעה להתכווץ. בלעדיו הוא מתעקש על
+   הרוחב הפנימי שלו, ושורת שעות שלמה דוחפת את כפתור המחיקה אל מחוץ
+   למסך — בטלפון זה נראה כמו עמוד שבור, וזה בדיוק מה שהיה. */
+.hourrow input{ padding:8px; border-radius:10px; flex:1 1 0; min-width:0; font-size:15px; }
+.hourrow button{ flex:0 0 auto; }
+.svccard input{ min-width:0; }
 .daybox{ display:flex; gap:9px; align-items:flex-start; padding:9px 0;
          border-bottom:1px solid var(--line); }
 .daybox .dn{ flex:0 0 52px; font-weight:600; font-size:.86rem; padding-top:9px; }

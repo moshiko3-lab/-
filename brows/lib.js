@@ -123,27 +123,30 @@ function money(n){
    הם נערכים במסך ההגדרות, ושם הם אמורים להשתנות. */
 function defaultServices(){
   return [
-    {id:"s-brows", he:"עיצוב גבות",             en:"Brow shaping",           minutes:30,  price:25, form:false, active:true},
-    {id:"s-lip",   he:"שעוות שפם",              en:"Upper lip wax",          minutes:10,  price:8,  form:false, active:true},
-    {id:"s-bl",    he:"גבות + שפם",             en:"Brows + upper lip",      minutes:35,  price:30, form:false, active:true},
-    {id:"s-fix",   he:"שיפוץ גבות",             en:"Brow touch-up",          minutes:20,  price:18, form:false, active:true},
-    {id:"s-tint",  he:"צביעת גבות",             en:"Brow tint",              minutes:20,  price:15, form:true,  active:true},
-    {id:"s-lam",   he:"הרמת גבות (למינציה)",    en:"Brow lamination",        minutes:60,  price:70, form:true,  active:true},
-    {id:"s-lift",  he:"הרמת ריסים",             en:"Lash lift",              minutes:75,  price:80, form:true,  active:true},
-    {id:"s-both",  he:"הרמת ריסים + גבות",      en:"Lash lift + lamination", minutes:105, price:130,form:true,  active:true},
-    {id:"s-face",  he:"הסרת שיער בפנים",        en:"Facial waxing",          minutes:15,  price:12, form:false, active:true}
+    {id:"s-brows-lip", he:"עיצוב גבות + שפם", en:"Brow shaping + upper lip",
+     minutes:30, price:0, form:true, active:true, treat:["wax"]},
+    {id:"s-lift",      he:"הרמת ריסים",       en:"Lash lift",
+     minutes:60, price:0, form:true, active:true, treat:["lift"]},
+    {id:"s-lam",       he:"הרמת גבות",        en:"Brow lamination",
+     minutes:45, price:0, form:true, active:true, treat:["lam"]},
+    {id:"s-leg",       he:"שעווה חצי רגל",    en:"Half leg wax",
+     minutes:30, price:0, form:true, active:true, treat:["bodywax"]},
+    {id:"s-arm",       he:"שעווה חצי יד",     en:"Half arm wax",
+     minutes:30, price:0, form:true, active:true, treat:["bodywax"]},
+    {id:"s-pit",       he:"שעווה בית שחי",    en:"Underarm wax",
+     minutes:10, price:0, form:true, active:true, treat:["bodywax"]}
   ];
 }
-/* שני עד שבת פתוח, ראשון סגור — הרגיל בפנמה. משנים בהגדרות. */
+/* ראשון עד חמישי מלא, שישי קצר, שבת סגור. משנים בהגדרות. */
 function defaultHours(){
   return {
-    "0":[],
+    "0":[{from:"09:00", to:"18:00"}],
     "1":[{from:"09:00", to:"18:00"}],
     "2":[{from:"09:00", to:"18:00"}],
     "3":[{from:"09:00", to:"18:00"}],
     "4":[{from:"09:00", to:"18:00"}],
-    "5":[{from:"09:00", to:"18:00"}],
-    "6":[{from:"09:00", to:"14:00"}]
+    "5":[{from:"09:00", to:"14:00"}],
+    "6":[]
   };
 }
 function defaultSettings(){
@@ -181,7 +184,8 @@ function svcName(s){
    treat משלו; ברירת המחדל מכסה את הקטלוג שהמערכת מגיעה איתו. */
 var SERVICE_TREATMENTS = {
   "s-lift":["lift"], "s-lam":["lam"], "s-both":["lift","lam"], "s-tint":["tint"],
-  "s-brows":["wax"], "s-fix":["wax"], "s-bl":["wax"], "s-face":["wax"]
+  "s-brows":["wax"], "s-fix":["wax"], "s-bl":["wax"], "s-face":["wax"],
+  "s-brows-lip":["wax"], "s-leg":["bodywax"], "s-arm":["bodywax"], "s-pit":["bodywax"]
 };
 function treatmentsFor(s){
   if (!s) return [];

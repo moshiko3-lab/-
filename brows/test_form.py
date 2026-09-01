@@ -61,8 +61,9 @@ def main():
         watch_open(pg)
         open_page(pg, "form.html")
 
-        ok(len(pg.query_selector_all("#q-box .q")) == 18,
-           "with no treatment chosen yet, every question is on show")
+        shown = len(pg.query_selector_all("#q-box .q"))
+        ok(shown == 21,
+           "with no treatment chosen yet, every question is on show (%d)" % shown)
 
         pg.click("#send")
         pg.wait_for_timeout(300)
@@ -79,6 +80,20 @@ def main():
         ids = pg.eval_on_selector_all("#q-box .q", "els => els.map(e => e.dataset.q)")
         ok("eyesurg" in ids, "a lash lift asks about eye surgery")
         ok("pmu" not in ids, "and does not ask about brow tattooing")
+        ok("veins" not in ids, "nor about varicose veins")
+
+        pg.uncheck('#t-box input[data-t="lift"]')
+        pg.check('#t-box input[data-t="bodywax"]')
+        pg.wait_for_timeout(250)
+        ids = pg.eval_on_selector_all("#q-box .q", "els => els.map(e => e.dataset.q)")
+        ok("sun" in ids and "laser" in ids,
+           "half a leg in wax asks about sunburn and recent laser")
+        ok("eyesurg" not in ids and "pmu" not in ids,
+           "and about neither eyes nor brows")
+        ok("roacc" in ids,
+           "but still about Accutane, which is the one that lifts skin off with the wax")
+        pg.uncheck('#t-box input[data-t="bodywax"]')
+        pg.check('#t-box input[data-t="lift"]')      # back where the next check starts
 
         pg.check('#t-box input[data-t="wax"]')
         pg.wait_for_timeout(250)

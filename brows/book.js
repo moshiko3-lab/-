@@ -110,14 +110,20 @@ function draw(){
 
 function drawServices(){
   var list = activeServices();
+  /* כשכל הטיפולים דורשים כתב שחרור, שורה זהה מתחת לכל אחד מהם היא רעש
+     שמפסיק להיקרא. אז היא נאמרת פעם אחת למעלה, ומופיעה ליד טיפול בודד
+     רק כשהיא באמת מבדילה אותו מהשאר. */
+  var allNeed = list.length > 0 && list.every(function(s){ return s.form; });
   $("#stage").innerHTML = "<h2>" + esc(t("pickService")) + "</h2>" +
+    (allNeed ? '<p class="policy" style="margin:-6px 0 14px">' +
+               esc(t("formOnce")) + "</p>" : "") +
     (list.length ? list.map(function(s){
       return '<button class="pick" data-s="' + s.id + '"><div class="svc">' +
         "<b>" + esc(svcName(s)) + "</b>" +
         (priceOn() ? '<span class="price">' + money(s.price) + "</span>" : "") +
         "</div>" +
         '<div class="dur">' + s.minutes + " " + esc(t("minutes")) +
-        (s.form ? " · " + esc(t("needsForm")) : "") + "</div></button>";
+        (s.form && !allNeed ? " · " + esc(t("needsForm")) : "") + "</div></button>";
     }).join("") : "<p class=\"muted\">" + esc(t("noServices")) + "</p>");
   $("#stage").querySelectorAll("[data-s]").forEach(function(b){
     b.onclick = function(){

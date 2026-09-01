@@ -50,6 +50,8 @@ def main():
            "the studio's own note reaches the client")
         ok("consent form required" in pg.inner_text(".pick:nth-of-type(2)"),
            "a treatment that needs a signed release says so before booking")
+        ok("consent form required" not in pg.inner_text(".pick:nth-of-type(1)"),
+           "and one that does not, does not")
         ok("$" not in pg.inner_text("#stage"),
            "prices are off by default, so the client sees treatments and no numbers")
 
@@ -102,6 +104,18 @@ def main():
         ok(appts[0]["phone"] == "50761234567",
            "the number is stored with its country code, once, in one shape")
         ok(saved["clients"][0]["name"] == "Ana Perez", "and the client card is created")
+
+        # when every treatment needs one, it is said once at the top instead
+        allform = book()
+        for svc in allform["services"]:
+            svc["form"] = True
+        pg3 = phone(b, seed=allform, lang="en")
+        watch_open(pg3)
+        open_page(pg3, "book.html")
+        ok("Before your first treatment" in pg3.inner_text("#stage"),
+           "with every treatment needing a release, it is stated once at the top")
+        ok("consent form required" not in pg3.inner_text(".pick:nth-of-type(1)"),
+           "and not repeated under each one")
 
         # switching language mid-form must not empty it
         pg.evaluate("document.querySelector('.langpick button[data-l=\"he\"]').click()")
