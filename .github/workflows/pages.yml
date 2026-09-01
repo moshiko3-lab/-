@@ -1,8 +1,9 @@
 name: Publish
 
-# Every push rebuilds both pages and puts them online, so the platform can be
+# Every push rebuilds the pages and puts them online, so the platform can be
 # worked on while it is live. The manager is the site root; the booking page
-# the school sends to customers sits beside it at /book.html.
+# the school sends to customers sits beside it at /book.html; the brow and
+# lash studio's own three pages sit under /studio/.
 #
 # clients.json is not in the repository, so a build made here can never carry
 # real names, phone numbers or email addresses -- the pages go up empty, which
@@ -49,7 +50,14 @@ jobs:
           # on its github.io address -- so the copy is conditional, or removing
           # the domain breaks the build that was meant to remove it.
           [ -f CNAME ] && cp CNAME site/CNAME || echo "no custom domain"
-          ls -l site
+      # The brow and lash studio is a separate business on the same address:
+      # its diary, its booking page and the release clients sign, under
+      # /studio/. There is no browser on this runner, so the build parses the
+      # pages and does not drive them; the test files do that locally.
+      - name: Build the studio's three pages
+        run: |
+          python3 brows/build.py --out site/studio
+          ls -l site site/studio
       - name: Refuse to publish anything carrying real people
         run: python3 .github/no_pii.py site
       - uses: actions/upload-pages-artifact@v3

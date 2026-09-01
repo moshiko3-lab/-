@@ -52,6 +52,23 @@ numbers and email addresses; it is not in the repository, so a build made by CI
 cannot contain it, and [`.github/no_pii.py`](.github/no_pii.py) reads the built
 pages and fails the publish rather than trusting that.
 
+## The brow and lash studio
+
+A second business shares the address. Its three pages -- the therapist's diary
+in Hebrew, a booking page and a release form that clients sign, both in English
+or Hebrew -- are built the same way and published under `/studio/`:
+
+```
+python3 brows/build.py --out site/studio
+```
+
+They are written up, in Hebrew, in [`brows/README.md`](brows/README.md). Same
+two truths as above apply until a shared book is set up: the data lives in the
+browser that entered it, and a booking made on a client's phone reaches the
+studio through WhatsApp rather than through the page. `brows/supabase.sql` is
+what changes that, and what it allows a guest to read is deliberately almost
+nothing.
+
 ## Tests
 
 Sixteen of them, each driving the built page in a real browser rather than

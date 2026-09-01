@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>היומן</title>
+<meta name="theme-color" content="#faf7f4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>/*__STYLE__*/
+/* --- מה ששייך ליומן בלבד --- */
+.daynav{ display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+.daynav .t{ flex:1; text-align:center; font-weight:700; font-size:.95rem; }
+.appt{ display:flex; gap:11px; padding:12px; border:1px solid var(--line);
+       border-radius:14px; background:#fff; margin-bottom:8px; align-items:flex-start;
+       width:100%; text-align:start; }
+.appt .time{ flex:0 0 50px; font-weight:700; font-variant-numeric:tabular-nums;
+             font-size:.95rem; }
+.appt.cancelled{ opacity:.5; }
+.appt.cancelled .name{ text-decoration:line-through; }
+.appt.pending{ border-inline-start:4px solid var(--warn); }
+.appt.done{ border-inline-start:4px solid var(--ok); }
+.name{ font-weight:600; }
+.sum{ font-size:.83rem; color:var(--muted); margin:0 0 12px; }
+.svccard{ border:1px solid var(--line); border-radius:13px; padding:10px;
+          margin-bottom:8px; background:#fff; }
+.svccard .two{ display:flex; gap:6px; margin-bottom:6px; }
+.svccard input{ padding:9px; border-radius:10px; font-size:15px; }
+.svccard .nums{ display:flex; gap:6px; align-items:center; }
+.svccard .nums input[type=number]{ width:72px; }
+.svccard label.inline{ display:flex; align-items:center; gap:5px; font-size:.8rem;
+                       margin:0; font-weight:500; white-space:nowrap; }
+.hourrow{ display:flex; gap:5px; align-items:center; margin-bottom:5px; }
+.hourrow input{ padding:8px; border-radius:10px; flex:1; font-size:15px; }
+.daybox{ display:flex; gap:9px; align-items:flex-start; padding:9px 0;
+         border-bottom:1px solid var(--line); }
+.daybox .dn{ flex:0 0 52px; font-weight:600; font-size:.86rem; padding-top:9px; }
+.agday h3{ margin:16px 0 6px; font-size:.86rem; color:var(--muted); }
+.empty{ text-align:center; color:var(--muted); padding:26px 10px; }
+.sugg{ border:1px solid var(--line); border-radius:12px; background:#fff;
+       max-height:160px; overflow:auto; margin:-8px 0 12px; }
+.sugg button{ width:100%; border:none; border-radius:0; justify-content:flex-start;
+              min-height:42px; }
+.badge{ position:absolute; top:6px; inset-inline-end:22%; background:var(--warn);
+        color:#fff; border-radius:999px; font-size:.62rem; padding:1px 5px; }
+.formdoc dt{ font-weight:600; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="in">
+    <div class="grow">
+      <div class="brandname" id="bizname">היומן</div>
+      <div class="small muted" id="subline"></div>
+    </div>
+    <button class="mini primary" id="btn-new">+ תור</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-today">
+    <div id="pending-box"></div>
+    <div class="daynav">
+      <button class="mini" id="d-prev">אתמול</button>
+      <div class="t" id="d-title"></div>
+      <button class="mini" id="d-next">מחר</button>
+    </div>
+    <div class="row between" style="margin-bottom:8px">
+      <button class="mini ghost" id="d-today">היום</button>
+      <button class="mini ghost" id="d-block">חסימת זמן</button>
+    </div>
+    <div class="sum" id="d-sum"></div>
+    <div id="d-list"></div>
+  </section>
+
+  <section id="tab-agenda" class="hidden">
+    <div class="row between" style="margin-bottom:4px">
+      <h2 style="margin:0">השבועיים הקרובים</h2>
+      <button class="mini ghost" id="a-remind">תזכורות למחר</button>
+    </div>
+    <div id="a-list"></div>
+  </section>
+
+  <section id="tab-clients" class="hidden">
+    <div class="field"><input id="c-search" placeholder="חיפוש לפי שם או טלפון"></div>
+    <div class="sum" id="c-sum"></div>
+    <div id="c-list"></div>
+  </section>
+
+  <section id="tab-forms" class="hidden">
+    <div class="card">
+      <b>כתב שחרור והצהרת בריאות</b>
+      <p class="small muted" style="margin:6px 0 10px">
+        הקישור נשלח ללקוחה לפני הטיפול. מה שהיא חותמת עליו מגיע לכאן.
+      </p>
+      <div class="row wrapped">
+        <button class="mini" id="f-link-en">קישור באנגלית</button>
+        <button class="mini" id="f-link-he">קישור בעברית</button>
+        <button class="mini ghost" id="f-open">פתיחה</button>
+      </div>
+    </div>
+    <div id="f-list"></div>
+  </section>
+
+  <section id="tab-settings" class="hidden"></section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="today" class="on"><span class="ic">📅</span>היום</button>
+  <button data-tab="agenda"><span class="ic">🗓️</span>יומן</button>
+  <button data-tab="clients"><span class="ic">👤</span>לקוחות</button>
+  <button data-tab="forms"><span class="ic">📝</span>טפסים</button>
+  <button data-tab="settings"><span class="ic">⚙️</span>הגדרות</button>
+</nav>
+
+<div id="modal" class="modal hidden"><div class="box" id="modal-box"></div></div>
+<div id="toast" class="hidden"><div></div></div>
+
+<script>
+/*__LIB__*/
+/*__CLOUD__*/
+/*__APP__*/
+</script>
+</body>
+</html>

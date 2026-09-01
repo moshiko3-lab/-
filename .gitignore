@@ -25,3 +25,9 @@ clients.json
 # check refuses any build carrying them.
 app/crew.json
 crew.json
+
+# the studio's own settings snapshot and cloud handle: both are written by
+# the app rather than by hand. salon.json is meant to be committed once it
+# has been exported; cloud.json holds only the publishable key, and is
+# ignored so a half-filled one never ships by accident.
+brows/cloud.json
