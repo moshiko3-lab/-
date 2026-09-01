@@ -73,7 +73,7 @@ function activeServices(){
 function svc(){ return serviceById(db, pick.service); }
 /* הסטודיו בוחר אם מחיר מופיע ללקוחה. כשהוא לא מופיע, גם השורה שהוא
    ישב בה נעלמת — לא נשאר " · " תלוי באוויר. */
-function priceOn(){ return db.settings.showPrices === true; }
+function priceOn(){ return db.settings.showPrices === true && hasMoney(db); }
 function withPrice(s, sep){
   return priceOn() ? (sep || " · ") + money(s.price) : "";
 }

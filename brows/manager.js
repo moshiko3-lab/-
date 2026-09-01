@@ -201,7 +201,7 @@ function renderDay(){
   var mins = live.reduce(function(t, a){ return t + (+a.minutes || 0); }, 0);
   $("#d-sum").innerHTML = live.length
     ? plural(live.length, "תור אחד", "תורים") + " · " +
-      (Math.round(mins / 6) / 10) + " שעות · " + money(m) : "";
+      (Math.round(mins / 6) / 10) + " שעות" + (hasMoney(db) ? " · " + money(m) : "") : "";
 
   var blocks = db.blocks.filter(function(b){ return b.date === day; });
   var html;
@@ -245,7 +245,8 @@ function apptCard(a){
       '<div class="till">' + ltr(hm12(apptEnd(db, a)).replace(/ [AP]M$/, "")) + "</div></div>" +
     '<div class="grow"><div class="row between"><span class="name">' +
       esc(a.clientName || "ללא שם") + "</span>" + chip + "</div>" +
-    '<div class="small muted">' + esc(svcLabel(a, "he")) + " · " + money(a.price) +
+    '<div class="small muted">' + esc(svcLabel(a, "he")) +
+      (hasMoney(db) ? " · " + money(a.price) : "") +
       (a.source === "online" ? " · מהאתר" : "") + "</div>" +
     (a.note ? '<div class="small" style="color:#8a544f">' + esc(a.note) + "</div>" : "") +
     "</div></button>";
@@ -264,7 +265,8 @@ function apptSheet(id){
       '<button class="ghost mini" data-close>סגירה</button></div>' +
     '<p class="muted small">' + niceDate(a.date) + " · " +
       ltr(hm12(a.time) + " – " + hm12(apptEnd(db, a))) +
-      " · " + esc(svcLabel(a, "he")) + " · " + money(a.price) + "</p>" +
+      " · " + esc(svcLabel(a, "he")) +
+      (hasMoney(db) ? " · " + money(a.price) : "") + "</p>" +
     (s && s.form && !f ? '<div class="chip warn" style="margin-bottom:10px">עוד לא חתמה על כתב שחרור</div>' : "") +
     (f ? '<div class="chip ok" style="margin-bottom:10px">חתמה על כתב שחרור · ' +
          esc(stampDate(f.signedAt)) + "</div>" : "") +
@@ -307,7 +309,8 @@ function apptEditor(id){
   }
   var opts = db.services.map(function(s){
     return '<option value="' + s.id + '"' + (s.id === a.serviceId ? " selected" : "") +
-           ">" + esc(svcName(s)) + " · " + s.minutes + "׳ · " + money(s.price) + "</option>";
+           ">" + esc(svcName(s)) + " · " + s.minutes + "׳" +
+           (hasMoney(db) ? " · " + money(s.price) : "") + "</option>";
   }).join("");
   openModal(
     '<div class="row between"><h2>' + (isNew ? "תור חדש" : "עריכת תור") + "</h2>" +
@@ -326,8 +329,10 @@ function apptEditor(id){
       '<input id="e-time" type="time" step="300" value="' + a.time + '"></div></div>' +
     '<div class="row"><div class="field grow"><label>דקות</label>' +
       '<input id="e-min" type="number" min="5" step="5" value="' + (a.minutes || 30) + '"></div>' +
-      '<div class="field grow"><label>מחיר ($)</label>' +
-      '<input id="e-price" type="number" min="0" step="1" value="' + (a.price || 0) + '"></div></div>' +
+      (hasMoney(db)
+        ? '<div class="field grow"><label>מחיר ($)</label>' +
+          '<input id="e-price" type="number" min="0" step="1" value="' + (a.price || 0) + '"></div>'
+        : "") + "</div>" +
     '<div class="field"><label>שפת הלקוחה</label><select id="e-lang">' +
       '<option value="en"' + (langOf(a) === "en" ? " selected" : "") + ">English</option>" +
       '<option value="he"' + (langOf(a) === "he" ? " selected" : "") + ">עברית</option>" +
@@ -342,7 +347,10 @@ function apptEditor(id){
   function svcNow(){ return serviceById(db, $("#e-svc").value); }
   $("#e-svc").onchange = function(){
     var s = svcNow();
-    if (s) { $("#e-min").value = s.minutes; $("#e-price").value = s.price; }
+    if (s) {
+      $("#e-min").value = s.minutes;
+      if ($("#e-price")) $("#e-price").value = s.price;
+    }
     checkClash();
   };
   if (isNew) $("#e-svc").onchange();
@@ -399,7 +407,7 @@ function apptEditor(id){
     a.date = $("#e-date").value;
     a.time = $("#e-time").value;
     a.minutes = +$("#e-min").value || 30;
-    a.price = +$("#e-price").value || 0;
+    a.price = $("#e-price") ? (+$("#e-price").value || 0) : (s ? +s.price || 0 : 0);
     a.lang = $("#e-lang").value;
     a.note = $("#e-note").value.trim();
     if (phone) a.clientId = upsertClient(db, name, phone, {lang: a.lang}).id;
@@ -531,7 +539,8 @@ function clientSheet(id){
     '<div class="row between"><h2>' + esc(c.name) + "</h2>" +
       '<button class="ghost mini" data-close>סגירה</button></div>' +
     '<p class="muted small">' + esc(showPhone(c.phone)) + " · " +
-      plural(s.visits, "ביקור אחד", "ביקורים") + " · " + money(s.spent) + " בסך הכול</p>" +
+      plural(s.visits, "ביקור אחד", "ביקורים") +
+      (hasMoney(db) ? " · " + money(s.spent) + " בסך הכול" : "") + "</p>" +
     '<div class="acts" style="margin:10px 0">' +
       '<a class="btn mini" href="tel:+' + esc(normPhone(c.phone)) + '">חיוג</a>' +
       '<a class="btn mini" target="_blank" href="' + esc(waLink(c.phone, "")) + '">וואטסאפ</a>' +
@@ -546,8 +555,8 @@ function clientSheet(id){
       : '<div class="chip warn" style="margin-bottom:8px">אין כתב שחרור חתום</div>') +
     "<h3>היסטוריה</h3>" +
     (hist.length ? '<ul class="list">' + hist.map(function(a){
-      return "<li>" + shortDate(a.date) + " · " + esc(svcLabel(a, "he")) + " · " +
-        money(a.price) +
+      return "<li>" + shortDate(a.date) + " · " + esc(svcLabel(a, "he")) +
+        (hasMoney(db) ? " · " + money(a.price) : "") +
         (a.status === "cancelled" ? ' <span class="chip bad">בוטל</span>' : "") + "</li>";
     }).join("") + "</ul>" : '<p class="muted small">עדיין לא הייתה.</p>')
   );
@@ -653,7 +662,9 @@ function renderSettings(){
     '<div class="card"><h2>הטיפולים</h2><div id="st-svc"></div>' +
       '<button class="mini" id="st-svc-add">+ טיפול</button>' +
       '<p class="small muted" style="margin-top:8px">' +
-        '"טופס" = טיפול שדורש כתב שחרור חתום לפני שמתחילים.</p></div>' +
+        '"טופס" = טיפול שדורש כתב שחרור חתום לפני שמתחילים.<br>' +
+        "מחיר 0 = היומן לא מנהל כסף בכלל. ברגע שיש מחיר אחד, סיכומי הכסף " +
+        "מופיעים לבד.</p></div>" +
 
     '<div class="card"><h2>שעות עבודה</h2><div id="st-hours"></div></div>' +
 
@@ -666,11 +677,12 @@ function renderSettings(){
       '<label class="row" style="margin-top:6px;font-weight:400">' +
         '<input type="checkbox" id="st-auto"' + (s.autoConfirm ? " checked" : "") + ">" +
         "<span class=\"small\">תור מהאתר נכנס מאושר מיד (אחרת ממתין לאישור שלך)</span></label>" +
-      '<label class="row" style="margin-top:6px;font-weight:400">' +
-        '<input type="checkbox" id="st-prices"' + (s.showPrices ? " checked" : "") + ">" +
-        "<span class=\"small\">להציג מחירים ללקוחות בדף ההזמנה" +
-        "<br><span class=\"muted\">כבוי: הלקוחה רואה טיפול ואורך, בלי מחיר. " +
-        "ביומן שלך המחירים תמיד מופיעים.</span></span></label>" +
+      (hasMoney(db)
+        ? '<label class="row" style="margin-top:6px;font-weight:400">' +
+          '<input type="checkbox" id="st-prices"' + (s.showPrices ? " checked" : "") + ">" +
+          "<span class=\"small\">להציג מחירים ללקוחות בדף ההזמנה" +
+          "<br><span class=\"muted\">כבוי: הלקוחה רואה טיפול ואורך בלבד.</span></span></label>"
+        : "") +
     "</div>" +
 
     '<div class="card"><h2>הקישורים ללקוחות</h2>' +
@@ -715,7 +727,7 @@ function renderSettings(){
     db.settings.autoConfirm = $("#st-auto").checked;
     persist(); cloudDirty("settings", "settings"); cloudSync();
   };
-  $("#st-prices").onchange = function(){
+  if ($("#st-prices")) $("#st-prices").onchange = function(){
     db.settings.showPrices = $("#st-prices").checked;
     persist(); cloudDirty("settings", "settings"); cloudSync();
   };
