@@ -161,7 +161,7 @@ function defaultHours(){
 }
 function defaultSettings(){
   return {
-    name:      "Brows & Lashes",
+    name:      "Romy Brows & Lashes",
     owner:     "",
     phone:     "",
     address:   "",
