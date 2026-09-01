@@ -24,6 +24,7 @@ Notes for whoever maintains this:
     browser.
 """
 import argparse
+import csv
 import datetime as dt
 import json
 import os
@@ -112,10 +113,11 @@ def parse_report(data, expect_date=None):
     flat = [[c for c in r] for r in rows]
 
     out = {"date": None, "total": 0.0, "transactions": 0,
-           "methods": {}, "categories": {}, "refunds": 0.0,
+           "methods": {}, "categories": {}, "cross": {}, "refunds": 0.0,
            "cancellations": 0.0, "warnings": []}
 
     section = None
+    method = None          # which "Account = <method>" block we are inside
     for r in flat:
         cells = [c for c in r if c not in ("", None)]
         if not cells:
@@ -147,9 +149,18 @@ def parse_report(data, expect_date=None):
             section = "methods"; continue
         if head == "Account":
             section = "account"; continue
-        if head == "TVA" or head.startswith("Account = ") or head in ("Refunds", "Payment Cancellations"):
-            # the per-method cross-tab and the tax block are detail we don't
-            # need for the summary; skip until the next section we care about
+        m = re.match(r"^Account = (.+)$", head)
+        if m:
+            # the same money as "Methods", cut the other way: how much of the
+            # credit card came from lessons and how much from board hire. This
+            # is the split the office writes out by hand every evening.
+            method = m.group(1).strip()
+            out["cross"].setdefault(method, {})
+            section = "cross"
+            continue
+        if head == "TVA" or head in ("Refunds", "Payment Cancellations"):
+            # the tax block and the refund listing are detail the summary does
+            # not use; skip until the next section we care about
             section = None
             continue
 
@@ -161,6 +172,10 @@ def parse_report(data, expect_date=None):
             amt = _num(cells[2])
             if amt is not None:
                 out["categories"][head] = amt
+        elif section == "cross" and method and len(cells) >= 2:
+            amt = _num(cells[1])
+            if amt is not None:
+                out["cross"][method][head] = out["cross"][method].get(head, 0.0) + amt
 
     out["transactions"] = sum(v["count"] for v in out["methods"].values())
 
@@ -171,9 +186,55 @@ def parse_report(data, expect_date=None):
     cs = sum(out["categories"].values())
     if out["categories"] and abs(cs - out["total"]) > 0.01:
         out["warnings"].append(f"categories sum {cs:.2f} != total {out['total']:.2f}")
+    # The split has to add back up to the method it came out of, and no method
+    # may be missing a block -- otherwise the office would be reading a
+    # breakdown that quietly leaves money out.
+    if out["cross"]:
+        for name, cats in sorted(out["cross"].items()):
+            want = out["methods"].get(name, {}).get("amount")
+            got = sum(cats.values())
+            if want is None:
+                out["warnings"].append(f"split for {name} {got:.2f} has no method row")
+            elif abs(got - want) > 0.01:
+                out["warnings"].append(
+                    f"split for {name} {got:.2f} != method {want:.2f}")
+        for name in sorted(out["methods"]):
+            if name not in out["cross"]:
+                out["warnings"].append(f"no split for {name}")
     if expect_date and out["date"] and out["date"] != expect_date:
         out["warnings"].append(f"report is for {out['date']}, asked for {expect_date}")
     return out
+
+
+def _ordered(names):
+    """Main categories first, in their usual order, then the rest by name."""
+    known = [c for c in MAIN_CATEGORIES if c in names]
+    return known + sorted(n for n in names if n not in MAIN_CATEGORIES)
+
+
+def cross_table(rep):
+    """The split as a table: (categories, methods, cell(cat, method))."""
+    cross = rep.get("cross") or {}
+    methods = [m for m in METHODS if m in cross] + \
+              sorted(m for m in cross if m not in METHODS)
+    names = set()
+    for cats in cross.values():
+        names.update(cats)
+    return _ordered(names), methods, lambda c, m: cross.get(m, {}).get(c, 0.0)
+
+
+def split_text(rep):
+    """The same split on one line, for the summary sheet's own column.
+
+    Commas are deliberately avoided: this value lands in a CSV cell.
+    """
+    rows, methods, cell = cross_table(rep)
+    parts = []
+    for m in methods:
+        bits = [f"{c} {cell(c, m):.2f}" for c in rows if cell(c, m)]
+        if bits:
+            parts.append(m + " " + " + ".join(bits))
+    return "; ".join(parts)
 
 
 def summarise(rep):
@@ -209,15 +270,20 @@ def summarise(rep):
         "Rentals": round(cats.get("BOARD RENTALS", 0.0), 2),
         "Photography": round(cats.get("PHOTOGRAPHY", 0.0), 2),
         "Other": round(sum(other.values()), 2),
+        "Split": split_text(rep),
         "Refunds": round(rep["refunds"], 2),
         "Check": "CHECK!" if rep["warnings"] else "OK",
         "Notes": "; ".join(notes),
+        # not a sheet column: the same split with its shape kept, so the
+        # closing email can lay it out as a table instead of re-reading text
+        "Cross": {m: {c: round(v, 2) for c, v in sorted(cs.items())}
+                  for m, cs in sorted((rep.get("cross") or {}).items())},
     }
 
 
 COLUMNS = ["Date", "Day", "Transactions", "Total", "Credit", "Cash", "Web",
            "OtherPay", "Packages", "Lessons", "Rentals", "Photography",
-           "Other", "Refunds", "Check", "Notes"]
+           "Other", "Split", "Refunds", "Check", "Notes"]
 
 
 def get_days(dates):
@@ -238,9 +304,11 @@ def main():
     if a.json:
         print(json.dumps(rows, indent=2))
     else:
-        print(",".join(COLUMNS))
+        # a proper writer, because Notes carries commas of its own
+        w = csv.writer(sys.stdout, lineterminator="\n")
+        w.writerow(COLUMNS)
         for r in rows:
-            print(",".join(str(r[c]) for c in COLUMNS))
+            w.writerow([r[c] for c in COLUMNS])
     return 0
 
 

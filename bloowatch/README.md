@@ -30,14 +30,47 @@ the Claude Code environment so they survive a container restart.
 
 ## Output columns
 
-`Date, Day, Transactions, Total, Credit, Cash, Web, Packages, Lessons, Rentals,
-Photography, Other, Refunds, Check, Notes`
+`Date, Day, Transactions, Total, Credit, Cash, Web, OtherPay, Packages, Lessons,
+Rentals, Photography, Other, Split, Refunds, Check, Notes`
 
-`Check` is `OK` only when the payment methods add up to the total *and* the
-categories add up to the total. Otherwise it is `CHECK!` and `Notes` says what
+`Check` is `OK` only when the payment methods add up to the total, the
+categories add up to the total, *and* each payment method's own breakdown adds
+back up to that method. Otherwise it is `CHECK!` and `Notes` says what
 disagreed. A category Bloowatch reports that has no column of its own (for
 example `VIDEO ANALYSIS`) is added into `Other` and named in `Notes`, so nothing
 is ever dropped silently.
+
+## The split (`Split` / `Cross`)
+
+The report states the day's money twice: once by payment method, and once cut
+the other way -- of the card takings, how much was lessons and how much was
+board hire. That second cut is what the office writes out by hand every evening
+(*web / credit lesson / cash lesson*). The parser used to skip it.
+
+`Split` is that breakdown on one line, for the summary sheet; `--json` also
+carries `Cross` as `{method: {category: amount}}` so the closing email can lay
+it out as a table. Every method's rows must add back up to the method's own
+total and every method must have a block, or the day is marked `CHECK!` -- a
+breakdown missing a line is worse than none, because it still looks complete.
+
+What is **not** here: the shop's own `credit shop` / `cash shop` figures. They
+come from a different system and appear nowhere in this report, so they are
+never derived or guessed.
+
+## Tests
+
+```
+python3 test_split.py
+```
+
+Runs on handwritten rows rather than a real workbook, so a day that does not add
+up can be tested and no real takings live in the repository.
+
+## The daily run
+
+`CLOSING.md` holds the full procedure the 19:30 routine follows. The routine
+itself carries only the credentials and points at that file, so the procedure
+can be changed without ever reprinting them.
 
 ## Things that will bite you
 
