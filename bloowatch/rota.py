@@ -19,6 +19,8 @@ then ignored for ever after.
 """
 import argparse
 import datetime as dt
+import json
+import os
 import re
 import sys
 
@@ -95,7 +97,8 @@ def lessons_for(session, base, date, sid=SCHOOL):
             when = dt.datetime.strptime(raw, "%a, %d %b %Y %H:%M:%S").strftime("%H:%M")
         except ValueError:
             continue
-        out.append({"time": when, "title": title, "category": cat,
+        out.append({"id": x.get("id"),
+                    "time": when, "title": title, "category": cat,
                     "students": len(x.get("attendants") or []),
                     "names": student_names(x.get("attendants")),
                     "capacity": x.get("max_attendants") or 0,
@@ -234,6 +237,118 @@ def remind(name, lessons, lang="he"):
     return "\n".join(L)
 
 
+def changes(before, after):
+    """What moved between the rota that was sent and the rota as it stands.
+
+    Keyed on the session's own id, so a lesson that shifts an hour is one
+    change and not a cancellation plus a new booking -- an instructor reading
+    "cancelled 09:00, added 10:00" has to work out for themselves that it is
+    the same lesson, and at eleven at night they will get it wrong.
+
+    Only what somebody would act on: a lesson appearing or disappearing from
+    their day, moving, or being taken off them. A student joining a group of
+    twelve is not worth waking anybody for.
+    """
+    was = {l["id"]: l for l in before if l.get("id") is not None}
+    now = {l["id"]: l for l in after if l.get("id") is not None}
+    out = []
+    for sid, l in now.items():
+        old = was.get(sid)
+        if not old:
+            out.append({"kind": "added", "lesson": l, "staff": set(l["staff"])})
+            continue
+        moved = old["time"] != l["time"]
+        gained = set(l["staff"]) - set(old["staff"])
+        lost = set(old["staff"]) - set(l["staff"])
+        if moved:
+            out.append({"kind": "moved", "lesson": l, "from": old["time"],
+                        "staff": set(l["staff"]) | set(old["staff"])})
+        if gained:
+            out.append({"kind": "added", "lesson": l, "staff": gained})
+        if lost:
+            out.append({"kind": "off", "lesson": l, "staff": lost})
+    for sid, old in was.items():
+        if sid not in now:
+            out.append({"kind": "cancelled", "lesson": old,
+                        "staff": set(old["staff"])})
+    return out
+
+
+def change_lines(chg, lang="he", named=False):
+    """Each change as one line somebody can act on.
+
+    `named` is for the staff group, where "no longer yours" means nothing
+    without a name attached -- the group needs to see the handover, while the
+    person themselves already knows who they are.
+
+    A move is written as the new time with the old one after it. An arrow
+    between two times reads backwards in a right-to-left message, and a
+    reader who takes it the wrong way turns up at the wrong hour.
+    """
+    out = []
+    for c in chg:
+        l = c["lesson"]
+        what = _line(l, lang)
+        who = ", ".join(sorted(n.split()[0].title() for n in c["staff"]))
+        tail = (" — %s" % who) if named and who else ""
+        if lang == "en":
+            if c["kind"] == "added":
+                out.append("➕ *%s* · %s%s" % (l["time"], what, tail))
+            elif c["kind"] == "cancelled":
+                out.append("❌ *%s* · %s — cancelled%s"
+                           % (l["time"], what, (" (%s)" % who) if named else ""))
+            elif c["kind"] == "moved":
+                out.append("🕒 *%s* (was %s) · %s%s"
+                           % (l["time"], c["from"], what, tail))
+            else:
+                out.append("➖ *%s* · %s — %s" % (
+                    l["time"], what, ("off %s" % who) if named
+                    else "no longer yours"))
+        else:
+            if c["kind"] == "added":
+                out.append("➕ *%s* · %s%s" % (l["time"], what, tail))
+            elif c["kind"] == "cancelled":
+                out.append("❌ *%s* · %s — בוטל%s"
+                           % (l["time"], what, (" (%s)" % who) if named else ""))
+            elif c["kind"] == "moved":
+                out.append("🕒 *%s* (היה %s) · %s%s"
+                           % (l["time"], c["from"], what, tail))
+            else:
+                # the crew's names are in Latin letters, so the Hebrew prefix
+                # needs the hyphen it would take before any foreign word
+                out.append("➖ *%s* · %s — %s" % (
+                    l["time"], what, ("ירד מ-%s" % who) if named
+                    else "כבר לא אצלך"))
+    return out
+
+
+def update_group(chg, date, lang="he"):
+    if not chg:
+        return ""
+    when = _heading(date, lang)
+    head = ("*Schedule update for %s*" % when if lang == "en"
+            else "*עדכון בלו״ז ל%s*" % when)
+    return "\n".join([head, ""] + change_lines(chg, lang, named=True))
+
+
+def update_personal(name, chg, date, lang="he"):
+    """Only the changes that touch this person."""
+    mine = [c for c in chg if name in c["staff"]]
+    if not mine:
+        return ""
+    first = (name or "").split()[0].title()
+    when = _heading(date, lang)
+    if lang == "en":
+        head = ["Hey %s 👋" % first, "",
+                "*Your schedule for %s has changed:*" % when, ""]
+        tail = ["", "Sorry for the late change 🤙"]
+    else:
+        head = ["היי %s 👋" % first, "",
+                "*חל שינוי בלו״ז שלך ל%s:*" % when, ""]
+        tail = ["", "מצטערים על השינוי המאוחר 🤙"]
+    return "\n".join(head + change_lines(mine, lang) + tail)
+
+
 def group(lessons, date, lang="he"):
     """The whole day for the staff group, in the order it happens."""
     when = _heading(date, lang)
@@ -261,6 +376,12 @@ def main():
     ap.add_argument("--who", default="", help="only this person's message")
     ap.add_argument("--group", action="store_true",
                     help="only the staff group's message")
+    ap.add_argument("--snapshot", default="",
+                    help="write tomorrow's rota to this file, so a later run "
+                         "can tell what changed since it was sent")
+    ap.add_argument("--diff", default="",
+                    help="compare against a snapshot and print only what "
+                         "changed, for the group and per instructor")
     ap.add_argument("--remind", action="store_true",
                     help="today's reminders: whoever has a lesson starting "
                          "inside the window. Prints nothing when nobody does.")
@@ -279,6 +400,38 @@ def main():
     except BloowatchError as e:
         print("error: " + str(e), file=sys.stderr)
         return 1
+
+    if a.snapshot:
+        with open(a.snapshot, "w", encoding="utf-8") as f:
+            json.dump({"date": date, "lessons": lessons}, f, ensure_ascii=False)
+        print("saved %d lessons for %s to %s" % (len(lessons), date, a.snapshot))
+        return 0
+
+    if a.diff:
+        if not os.path.exists(a.diff):
+            # No baseline means no way to know what changed. Saying nothing is
+            # right: a "here is the whole rota again" message at eight at night
+            # reads as a fault, and guessing at changes is worse.
+            print("no snapshot at %s — nothing to compare against" % a.diff)
+            return 0
+        with open(a.diff, encoding="utf-8") as f:
+            snap = json.load(f)
+        if snap.get("date") != date:
+            print("snapshot is for %s, not %s — nothing to compare"
+                  % (snap.get("date"), date))
+            return 0
+        chg = changes(snap.get("lessons") or [], lessons)
+        if not chg:
+            print("nothing changed since the rota was sent")
+            return 0
+        print("======== GROUP ========")
+        print(update_group(chg, date, a.lang))
+        for name in sorted({n for c in chg for n in c["staff"]}):
+            msg = update_personal(name, chg, date, a.lang)
+            if msg:
+                print("\n======== %s ========" % name)
+                print(msg)
+        return 0
 
     if a.remind:
         soon = starting_between(lessons, a.lo, a.hi)

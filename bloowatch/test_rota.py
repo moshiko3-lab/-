@@ -191,6 +191,69 @@ def main():
     check("and it is addressed to them", r.startswith("היי Naftul"), r[:30])
     check("nobody coming up gets no message", rota.remind("NAFTUL", []) == "")
 
+    # --- what changed since the rota went out ------------------------------
+    # The eight o'clock check exists so somebody who was told one thing at
+    # seven is not left with it. Everything here is about reaching exactly
+    # the people a change touches, and nobody else.
+    def S(sid, time, staff, title="SURF PACK", students=1):
+        return {"id": sid, "time": time, "title": title, "category": title,
+                "students": students, "names": [], "capacity": 12,
+                "staff": list(staff)}
+
+    base = [S(1, "09:00", ["NAFTUL"]), S(2, "10:00", ["VLADI"]),
+            S(3, "15:00", ["ELLA", "DYLAN"])]
+
+    check("an unchanged rota produces nothing at all",
+          rota.changes(base, [S(1, "09:00", ["NAFTUL"]), S(2, "10:00", ["VLADI"]),
+                              S(3, "15:00", ["ELLA", "DYLAN"])]) == [])
+
+    # a lesson that moves is one change, not a cancellation plus a booking
+    moved = rota.changes(base, [S(1, "11:00", ["NAFTUL"]), S(2, "10:00", ["VLADI"]),
+                                S(3, "15:00", ["ELLA", "DYLAN"])])
+    check("a lesson that moves is a single change", len(moved) == 1, str(moved))
+    check("and it is described as a move, not a cancellation",
+          moved[0]["kind"] == "moved" and moved[0]["from"] == "09:00",
+          str(moved[0]))
+    check("the person who has it is the one told",
+          moved[0]["staff"] == {"NAFTUL"}, str(moved[0]["staff"]))
+
+    gone = rota.changes(base, [S(2, "10:00", ["VLADI"]), S(3, "15:00", ["ELLA", "DYLAN"])])
+    check("a cancelled lesson is reported", len(gone) == 1 and
+          gone[0]["kind"] == "cancelled", str(gone))
+
+    new = rota.changes(base, base + [S(4, "16:00", ["SHAKED"])])
+    check("a new lesson reaches whoever got it",
+          len(new) == 1 and new[0]["kind"] == "added" and
+          new[0]["staff"] == {"SHAKED"}, str(new))
+
+    # a handover has to reach both ends, and only those two
+    swap = rota.changes(base, [S(1, "09:00", ["NAFTUL"]), S(2, "10:00", ["SHAKED"]),
+                               S(3, "15:00", ["ELLA", "DYLAN"])])
+    kinds = {c["kind"]: c["staff"] for c in swap}
+    check("a handover is told to the one who gained it",
+          kinds.get("added") == {"SHAKED"}, str(kinds))
+    check("and to the one who lost it", kinds.get("off") == {"VLADI"}, str(kinds))
+    check("and to nobody else", len(swap) == 2, str(swap))
+
+    # the messages themselves
+    g = rota.update_group(swap, "2026-09-02")
+    check("the group message names who gained and who lost",
+          "Shaked" in g and "Vladi" in g, g)
+    mine = rota.update_personal("VLADI", swap, "2026-09-02")
+    check("the person who lost it is told in their own message",
+          "כבר לא אצלך" in mine, mine)
+    check("and is not told about the other person's gain",
+          "Shaked" not in mine, mine)
+    check("somebody untouched by the change gets no message at all",
+          rota.update_personal("ELLA", swap, "2026-09-02") == "")
+    check("no changes means no group message",
+          rota.update_group([], "2026-09-02") == "")
+
+    # a move is written so it cannot be read backwards in a Hebrew message
+    line = rota.change_lines(moved)[0]
+    check("a move states the new hour and puts the old one behind it",
+          line.index("11:00") < line.index("09:00") and "היה" in line, line)
+
     print()
     if fails:
         print("%d failed: %s" % (len(fails), ", ".join(fails)))
