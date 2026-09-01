@@ -281,7 +281,7 @@ def tide_range_note(t, lang="he"):
     return "", rng
 
 
-def _build_en(d, highs, lows, waves, feet, period, compare, rain, spot_note,
+def _build_en(d, highs, lows, waves, feet, period, compare, spot_note,
               note, wind, low_w, high_w, mid_w):
     """The same message for the English-speaking group.
 
@@ -335,14 +335,11 @@ def _build_en(d, highs, lows, waves, feet, period, compare, rain, spot_note,
     if note:
         L.append(note)
         L.append("")
-    if rain:
-        L.append(rain)
-        L.append("")
     L.append("Have a good one out there! 🤙🌊")
     return "\n".join(L)
 
 
-def build(date, waves, period, compare, rain, spot_note, note="", wind="",
+def build(date, waves, period, compare, spot_note, note="", wind="",
           lang="he"):
     t = tides_for(date)
     if not t:
@@ -387,7 +384,7 @@ def build(date, waves, period, compare, rain, spot_note, note="", wind="",
     waves = shown
 
     if lang == "en":
-        return _build_en(d, highs, lows, waves, feet, period, compare, rain,
+        return _build_en(d, highs, lows, waves, feet, period, compare,
                          spot_note, note, wind, low_w, high_w, mid_w), None
 
     L = []
@@ -435,9 +432,6 @@ def build(date, waves, period, compare, rain, spot_note, note="", wind="",
     if note:
         L.append(note)
         L.append("")
-    if rain:
-        L.append(rain)
-        L.append("")
     L.append("בהצלחה בים! 🤙🌊")
     return "\n".join(L), None
 
@@ -453,8 +447,6 @@ def main():
                          "writes itself instead of being typed each evening")
     ap.add_argument("--compare", default="",
                     help="override that line by hand")
-    ap.add_argument("--rain", default="",
-                    help="the rain line, when there is one")
     ap.add_argument("--wind", default="",
                     help="wind speed in knots over the surfable hours, e.g. 2-5")
     ap.add_argument("--wind-dir", default="",
@@ -492,7 +484,7 @@ def main():
 
     wind = (wind_line(a.wind, a.wind_dir, a.faces, a.lang)
             if a.wind and a.wind_dir else "")
-    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note,
+    msg, err = build(date, a.waves, a.period, compare, a.spot, note,
                      wind, a.lang)
     if err:
         print("error: " + err, file=sys.stderr)
