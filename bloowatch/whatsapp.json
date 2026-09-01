@@ -38,7 +38,7 @@
   },
 
   "how_to_send": {
-    "to_a_group": "Composio tool TIMELINESAI_SEND_MESSAGE with chat_id and message.",
+    "to_a_group": "Composio tool TIMELINESAI_SEND_MESSAGE. The two fields are chat_id and message — chat_id must be a STRING (\"59734285\", not 59734285) and the body goes under `message`, not `text`. Get either wrong and the call is rejected 400 before it reaches WhatsApp, so nothing is sent and it is safe to correct and retry.",
     "to_a_person": "Composio tool TIMELINESAI_POST_MESSAGE with phone, whatsapp_account_phone '+50769027049' and text. Works for any number, no chat needed first.",
     "_why_not_direct": "app.timelines.ai is not reachable from this container (the egress proxy refuses it). The Composio tools run on Composio's own infrastructure, so they get through. Direct API calls only work from a Composio sandbox.",
     "_composio_bug": "TIMELINESAI_GET_CHATS drops every parameter it accepts — types, search, limit, offset and sort are all ignored and it always returns the same first 50 chats alphabetically. That is why the group ids are written down here instead of being looked up. The real REST API honours group=true, name= and page=."
