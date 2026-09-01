@@ -68,9 +68,16 @@ def hour_window(centre, half):
     return hhmm(max(0, a)), hhmm(min(24 * 60 - 1, b))
 
 
-# the hours anybody is actually going in: the school's message never mentions
-# the small hours, and neither does its board
+# The hours anybody is actually going in, which is what the windows are cut
+# to. The school's message never mentions the small hours, and neither does
+# its board.
 DAY_FROM, DAY_TO = 6 * 60, 19 * 60
+
+# Listing a tide is a wider question than recommending an hour. A high at
+# 19:17 is the evening tide everybody plans the last surf around; cutting it
+# because the recommendation window stops at seven leaves the message saying
+# the day has one high tide when it has two.
+LIST_FROM, LIST_TO = 5 * 60, 21 * 60
 
 
 def windows(t):
@@ -185,7 +192,7 @@ def build(date, waves, period, compare, rain, spot_note, note=""):
     # real low and no use to a surfer reading this at bedtime, and putting it
     # in the message is how a reader loses trust in the rest of the numbers.
     def daytime(rows):
-        return [x for x in rows if DAY_FROM <= mins(x["t"]) <= DAY_TO]
+        return [x for x in rows if LIST_FROM <= mins(x["t"]) <= LIST_TO]
 
     hi_rows = daytime(t.get("highs") or []) or (t.get("highs") or [])
     lo_rows = daytime(t.get("lows") or []) or (t.get("lows") or [])
@@ -198,11 +205,20 @@ def build(date, waves, period, compare, rain, spot_note, note=""):
     # number: a forecast nobody checked, sent to two hundred customers as if
     # it were checked, is worse than no forecast.
     feet = ""
+    shown = str(waves)
     try:
         a, b = [float(x) for x in str(waves).split("-")]
-        feet = " (%d-%d פיט)" % (round(a * 3.28), round(b * 3.28))
+        fa, fb = round(a * 3.28), round(b * 3.28)
+        # "1.0-1.0 metres (3-3 feet)" is a range with nothing in it. When the
+        # sea is the same all day, say so once.
+        if abs(a - b) < 0.05:
+            shown = ("%.1f" % a)
+            feet = " (%d פיט)" % fa
+        else:
+            feet = " (%d-%d פיט)" % (fa, fb) if fa != fb else " (%d פיט)" % fa
     except Exception:
         pass
+    waves = shown
 
     L = []
     L.append("*ערב טוב חברים🌞*")
