@@ -207,7 +207,9 @@ def build(date, waves, period, compare, rain, spot_note, note=""):
     feet = ""
     shown = str(waves)
     try:
-        a, b = [float(x) for x in str(waves).split("-")]
+        parts = [float(x) for x in str(waves).split("-")]
+        # a single number is a range whose ends happen to meet
+        a, b = (parts[0], parts[-1])
         fa, fb = round(a * 3.28), round(b * 3.28)
         # "1.0-1.0 metres (3-3 feet)" is a range with nothing in it. When the
         # sea is the same all day, say so once.
