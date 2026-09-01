@@ -135,7 +135,7 @@ def mid(waves):
         return None
 
 
-def compare_line(today, tomorrow):
+def compare_line(today, tomorrow, lang="he"):
     """The school's own call, in their words: is tomorrow bigger or smaller
     than today, and is that good news. Written only when both are known --
     guessing at the sea in a message to customers is not on."""
@@ -143,6 +143,22 @@ def compare_line(today, tomorrow):
     if a is None or b is None:
         return ""
     diff = b - a
+    if lang == "en":
+        if abs(diff) < 0.15:
+            how = "Similar to today"
+        elif diff > 0:
+            how = "Bigger than today"
+        else:
+            how = "Smaller than today"
+        if b < 0.5:
+            mood = "small and easy — perfect for beginners"
+        elif b < 1.0:
+            mood = "a really fun day out there"
+        elif b < 1.5:
+            mood = "a good day for experienced surfers"
+        else:
+            mood = "experienced surfers only"
+        return "Tomorrow: %s — %s" % (how, mood)
     if abs(diff) < 0.15:
         how = "ים דומה להיום"
     elif diff > 0:
@@ -170,13 +186,15 @@ BEACH_FACES = 180
 
 HEB_COMPASS = ["צפון", "צפון-מזרח", "מזרח", "דרום-מזרח",
                "דרום", "דרום-מערב", "מערב", "צפון-מערב"]
+EN_COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
 
-def compass(deg):
-    return HEB_COMPASS[int((float(deg) + 22.5) % 360 // 45)]
+def compass(deg, lang="he"):
+    i = int((float(deg) + 22.5) % 360 // 45)
+    return (EN_COMPASS if lang == "en" else HEB_COMPASS)[i]
 
 
-def wind_line(speed, direction, faces=BEACH_FACES):
+def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
     """Wind is the half of a surf forecast the school was not sending, and
     the half that decides whether a metre of swell is a clean wall or a mess.
     Offshore holds the wave up; onshore knocks it over. Speed alone says
@@ -193,6 +211,22 @@ def wind_line(speed, direction, faces=BEACH_FACES):
 
     # the angle between where the wind comes from and where the beach looks
     off = abs(((d - faces) + 180) % 360 - 180)
+    fast = max(lo, hi)
+    rng_ = ("%g" % lo) if abs(hi - lo) < 0.6 else ("%g-%g" % (lo, hi))
+    if lang == "en":
+        if off < 60:
+            side = "onshore"
+            mood = "sea a little messy" if fast < 8 else "strong onshore — choppy"
+        elif off > 120:
+            side = "offshore"
+            mood = ("clean and groomed 🪞" if fast < 8
+                    else "strong offshore — steep faces")
+        else:
+            side = "cross-shore"
+            mood = "less effect on the wave"
+        return "*Wind* - %s kt from %s (%s) — %s" % (
+            rng_, compass(d, "en"), side, mood)
+
     if off < 60:
         side, how = "אונשור", "מהים"
     elif off > 120:
@@ -200,7 +234,6 @@ def wind_line(speed, direction, faces=BEACH_FACES):
     else:
         side, how = "רוח צד", ""
 
-    fast = max(lo, hi)
     if side == "אופשור":
         mood = "ים חלק ומסודר 🪞" if fast < 8 else "אופשור חזקה – גלים תלולים"
     elif side == "אונשור":
@@ -213,7 +246,7 @@ def wind_line(speed, direction, faces=BEACH_FACES):
         rng, compass(d), side, (" " + how) if how else "", mood)
 
 
-def tide_range_note(t):
+def tide_range_note(t, lang="he"):
     """Free intelligence from the table we already hold: how far the water
     moves. A three-metre swing in six hours is a lot of water leaving the bay,
     and that is when the current down the beach is worth a word. A small swing
@@ -224,6 +257,15 @@ def tide_range_note(t):
     if not hs or not ls:
         return "", None
     rng = max(hs) - min(ls)
+    if lang == "en":
+        if rng >= 3.2:
+            return ("*⚠️ Big tidal range today (%.1f m) — stronger current, "
+                    "especially around mid tide. Stay in front of the crew.*"
+                    % rng), rng
+        if rng <= 2.3:
+            return ("*Small tidal range today (%.1f m) — easy sea, weak "
+                    "current.*" % rng), rng
+        return "", rng
     if rng >= 3.2:
         return ("*⚠️ הפרשי גאות גדולים היום (%.1f מטר) – זרם חזק יותר, "
                 "במיוחד סביב אמצע הגאות. להישאר מול הצוות.*" % rng), rng
@@ -233,7 +275,69 @@ def tide_range_note(t):
     return "", rng
 
 
-def build(date, waves, period, compare, rain, spot_note, note="", wind=""):
+def _build_en(d, highs, lows, waves, feet, period, compare, rain, spot_note,
+              note, wind, low_w, high_w, mid_w):
+    """The same message for the English-speaking group.
+
+    Same numbers, same windows, same order -- translated, not re-invented, so
+    that two groups reading side by side never see two different forecasts.
+    """
+    L = []
+    L.append("*Good evening everyone🌞*")
+    L.append("")
+    L.append("🏄‍♀️Surf forecast for %d/%d🏄‍♂️" % (d.day, d.month))
+    L.append("")
+    L.append("*High tide* - " + highs)
+    L.append("*Low tide* - " + lows)
+    L.append("")
+    L.append("*Wave height* - %s m%s" % (waves, feet))
+    L.append("*Period* - %s seconds" % period)
+    if wind:
+        L.append(wind)
+    L.append("")
+    if compare:
+        L.append("*🌞🏄‍♀️🎉 %s 😎🏄‍♂️🌊*" % compare)
+        L.append("")
+
+    L.append("*Best hours for experienced surfers*")
+    L.append("")
+    for w in mid_w:
+        L.append(span(w))
+    L.append("")
+    if low_w:
+        L.append("*Around low tide (%s) the wave is faster, hollower and "
+                 "shallower – shortboards and performance.*"
+                 % ", ".join(span(w) for w in low_w))
+    if high_w:
+        L.append("*Around mid and high tide (%s) the wave is softer and more "
+                 "forgiving – more volume.*"
+                 % ", ".join(span(w) for w in high_w))
+    L.append("")
+    L.append("*Best hours for beginners*")
+    L.append("")
+    for w in mid_w:
+        L.append(span(w))
+    L.append("")
+    L.append("*🏄‍♀️%s🏄‍♂️*" % spot_note)
+    L.append("")
+    L.append("*Near high tide: soft and slow.*")
+    L.append("*Near low tide: hollow and fast – good for whitewater.*")
+    L.append("")
+    L.append("*SUP paddling*")
+    L.append("Around the tide peaks")
+    L.append("")
+    if note:
+        L.append(note)
+        L.append("")
+    if rain:
+        L.append(rain)
+        L.append("")
+    L.append("Have a good one out there! 🤙🌊")
+    return "\n".join(L)
+
+
+def build(date, waves, period, compare, rain, spot_note, note="", wind="",
+          lang="he"):
     t = tides_for(date)
     if not t:
         return None, "no tide table for " + date
@@ -265,14 +369,20 @@ def build(date, waves, period, compare, rain, spot_note, note="", wind=""):
         fa, fb = round(a * 3.28), round(b * 3.28)
         # "1.0-1.0 metres (3-3 feet)" is a range with nothing in it. When the
         # sea is the same all day, say so once.
+        unit = "ft" if lang == "en" else "פיט"
         if abs(a - b) < 0.05:
             shown = ("%.1f" % a)
-            feet = " (%d פיט)" % fa
+            feet = " (%d %s)" % (fa, unit)
         else:
-            feet = " (%d-%d פיט)" % (fa, fb) if fa != fb else " (%d פיט)" % fa
+            feet = (" (%d-%d %s)" % (fa, fb, unit) if fa != fb
+                    else " (%d %s)" % (fa, unit))
     except Exception:
         pass
     waves = shown
+
+    if lang == "en":
+        return _build_en(d, highs, lows, waves, feet, period, compare, rain,
+                         spot_note, note, wind, low_w, high_w, mid_w), None
 
     L = []
     L.append("*ערב טוב חברים🌞*")
@@ -350,8 +460,15 @@ def main():
     ap.add_argument("--tide-note", action="store_true",
                     help="add a line when the tide range is unusually big or "
                          "small — worked out from the table, not forecast")
-    ap.add_argument("--spot", default="צד שמאל של החוף מול סלינה נמוך ונוח יותר לתרגול")
+    ap.add_argument("--lang", choices=("he", "en"), default="he",
+                    help="he for the Hebrew group, en for the English one — "
+                         "same numbers, same windows, translated")
+    ap.add_argument("--spot", default="")
     a = ap.parse_args()
+    if not a.spot:
+        a.spot = ("The left side of the beach in front of Selina is lower "
+                  "and easier to practise on" if a.lang == "en" else
+                  "צד שמאל של החוף מול סלינה נמוך ונוח יותר לתרגול")
 
     date = a.date
     if not date:
@@ -359,16 +476,18 @@ def main():
         now = dt.datetime.utcnow() - dt.timedelta(hours=5)
         date = (now.date() + dt.timedelta(days=1)).isoformat()
 
-    compare = a.compare or compare_line(a.waves_today, a.waves)
+    compare = a.compare or compare_line(a.waves_today, a.waves, a.lang)
 
     note = ""
     if a.tide_note:
         t = tides_for(date)
         if t:
-            note, _rng = tide_range_note(t)
+            note, _rng = tide_range_note(t, a.lang)
 
-    wind = wind_line(a.wind, a.wind_dir, a.faces) if a.wind and a.wind_dir else ""
-    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note, wind)
+    wind = (wind_line(a.wind, a.wind_dir, a.faces, a.lang)
+            if a.wind and a.wind_dir else "")
+    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note,
+                     wind, a.lang)
     if err:
         print("error: " + err, file=sys.stderr)
         return 1
