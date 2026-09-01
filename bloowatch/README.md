@@ -31,31 +31,50 @@ the Claude Code environment so they survive a container restart.
 ## Output columns
 
 `Date, Day, Transactions, Total, Credit, Cash, Web, OtherPay, Packages, Lessons,
-Rentals, Photography, Other, Split, Refunds, Check, Notes`
+Rentals, Photography, Other, Refunds, Check, Notes`
 
 `Check` is `OK` only when the payment methods add up to the total, the
-categories add up to the total, *and* each payment method's own breakdown adds
-back up to that method. Otherwise it is `CHECK!` and `Notes` says what
-disagreed. A category Bloowatch reports that has no column of its own (for
-example `VIDEO ANALYSIS`) is added into `Other` and named in `Notes`, so nothing
-is ever dropped silently.
+categories add up to the total, each method's own breakdown adds back up to that
+method, *and* every method's takings are a whole number of dollars. Otherwise it
+is `CHECK!` and `Notes` says what disagreed. A category Bloowatch reports that
+has no column of its own (for example `VIDEO ANALYSIS`) is added into `Other`
+and named in `Notes`, so nothing is ever dropped silently.
 
-## The split (`Split` / `Cross`)
+## The cash-up
 
-The report states the day's money twice: once by payment method, and once cut
-the other way -- of the card takings, how much was lessons and how much was
-board hire. That second cut is what the office writes out by hand every evening
-(*web / credit lesson / cash lesson*). The parser used to skip it.
+```
+python3 daily_report.py --cash-up 2026-08-29
+```
 
-`Split` is that breakdown on one line, for the summary sheet; `--json` also
-carries `Cross` as `{method: {category: amount}}` so the closing email can lay
-it out as a table. Every method's rows must add back up to the method's own
-total and every method must have a block, or the day is marked `CHECK!` -- a
-breakdown missing a line is worse than none, because it still looks complete.
+```
+2026-08-29
+  web                  15
+  credit lesson       513
+  cash lesson          25
+  total               553
+```
 
-What is **not** here: the shop's own `credit shop` / `cash shop` figures. They
-come from a different system and appear nowhere in this report, so they are
-never derived or guessed.
+Three figures, written the way the office writes them by hand at the end of the
+day. They are the day's payments added up by how they were paid, which is what
+the report's `Methods` block already states and what `Web` / `Credit` / `Cash`
+hold. Verified against the raw ledger: the twelve payments recorded on
+2026-08-29 are each a whole number and group to exactly 513 / 25 / 15.
+
+**Whole numbers are the check.** Every price the school charges is a whole
+number of dollars, so every method's daily takings are whole too. A total with
+cents in it means the report did arithmetic of its own, and is called out rather
+than presented as takings.
+
+**Do not use Bloowatch's cross-tab as cash-up figures.** The report also cuts
+each method across lessons and board hire, in `Account = <method>` blocks, and
+those arrive with four decimal places because a mixed order is split between its
+categories by proportion. They are shares of a payment, not money anybody took.
+`parse_report` reads them and checks them against the method totals -- a second
+route to the same number is worth having -- and that is all they are for.
+
+**No shop.** The `credit shop` / `cash shop` figures written alongside come from
+a different till in a different system, are not whole numbers, and appear nowhere
+in this report. They are never derived or guessed.
 
 ## Tests
 

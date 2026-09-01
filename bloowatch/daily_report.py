@@ -186,6 +186,13 @@ def parse_report(data, expect_date=None):
     cs = sum(out["categories"].values())
     if out["categories"] and abs(cs - out["total"]) > 0.01:
         out["warnings"].append(f"categories sum {cs:.2f} != total {out['total']:.2f}")
+    # Every price the school charges is a whole number of dollars, so every
+    # method's takings are whole too -- 513, 25, 15, never 512.87. A method
+    # that comes back with cents in it is the report doing arithmetic of its
+    # own, not the day's money, and the closing must not state it as takings.
+    for name, v in sorted(out["methods"].items()):
+        if abs(v["amount"] - round(v["amount"])) > 0.004:
+            out["warnings"].append(f"{name} {v['amount']:.4f} is not a whole number")
     # The split has to add back up to the method it came out of, and no method
     # may be missing a block -- otherwise the office would be reading a
     # breakdown that quietly leaves money out.
@@ -223,18 +230,31 @@ def cross_table(rep):
     return _ordered(names), methods, lambda c, m: cross.get(m, {}).get(c, 0.0)
 
 
-def split_text(rep):
-    """The same split on one line, for the summary sheet's own column.
+def cash_up(rep):
+    """The three figures the office writes out by hand at the end of the day.
 
-    Commas are deliberately avoided: this value lands in a CSV cell.
+    Not a new calculation: the day's payments added up by how they were paid,
+    which is what the report's own "Methods" block already states. They are
+    whole numbers because every price the school charges is whole -- and that
+    is the point of stating them this way. The report's *other* breakdown, of
+    each method across lessons and board hire, arrives with four decimal places
+    because Bloowatch splits a mixed order across its categories by proportion.
+    Those are shares of a payment, not money anybody took, so they have no
+    place in a cash-up. They are still read, and still checked against these
+    totals, because a second route to the same number is worth having.
+
+    Returns [(label, amount)] in the order the office writes them, then the
+    total. "Shop" takings are not here: they are a different till in a
+    different system, and nothing in this report knows about them.
     """
-    rows, methods, cell = cross_table(rep)
-    parts = []
-    for m in methods:
-        bits = [f"{c} {cell(c, m):.2f}" for c in rows if cell(c, m)]
-        if bits:
-            parts.append(m + " " + " + ".join(bits))
-    return "; ".join(parts)
+    m = rep["methods"]
+    out = [("web", m.get("Payment gateway", {}).get("amount", 0.0)),
+           ("credit lesson", m.get("Credit card", {}).get("amount", 0.0)),
+           ("cash lesson", m.get("Cash", {}).get("amount", 0.0))]
+    for name in sorted(m):
+        if name not in METHODS:
+            out.append((name.lower(), m[name]["amount"]))
+    return out, sum(v for _, v in out)
 
 
 def summarise(rep):
@@ -270,37 +290,54 @@ def summarise(rep):
         "Rentals": round(cats.get("BOARD RENTALS", 0.0), 2),
         "Photography": round(cats.get("PHOTOGRAPHY", 0.0), 2),
         "Other": round(sum(other.values()), 2),
-        "Split": split_text(rep),
         "Refunds": round(rep["refunds"], 2),
         "Check": "CHECK!" if rep["warnings"] else "OK",
         "Notes": "; ".join(notes),
-        # not a sheet column: the same split with its shape kept, so the
-        # closing email can lay it out as a table instead of re-reading text
-        "Cross": {m: {c: round(v, 2) for c, v in sorted(cs.items())}
-                  for m, cs in sorted((rep.get("cross") or {}).items())},
     }
 
 
 COLUMNS = ["Date", "Day", "Transactions", "Total", "Credit", "Cash", "Web",
            "OtherPay", "Packages", "Lessons", "Rentals", "Photography",
-           "Other", "Split", "Refunds", "Check", "Notes"]
+           "Other", "Refunds", "Check", "Notes"]
 
 
-def get_days(dates):
+def get_days(dates, reports=False):
     s, base = login()
-    return [summarise(parse_report(fetch_report(s, base, d), expect_date=d)) for d in dates]
+    out = []
+    for d in dates:
+        rep = parse_report(fetch_report(s, base, d), expect_date=d)
+        out.append(rep if reports else summarise(rep))
+    return out
+
+
+def print_cash_up(rep):
+    """The end-of-day block, laid out the way it is written by hand."""
+    lines, total = cash_up(rep)
+    width = max(len(n) for n, _ in lines)
+    print(rep["date"] or "?")
+    for name, amt in lines:
+        print(f"  {name.ljust(width)}  {amt:>8,.0f}")
+    print(f"  {'total'.ljust(width)}  {total:>8,.0f}")
+    for w in rep["warnings"]:
+        print(f"  CHECK! {w}")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("dates", nargs="+", help="dates as YYYY-MM-DD")
     ap.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    ap.add_argument("--cash-up", action="store_true",
+                    help="print the end-of-day block instead of a table")
     a = ap.parse_args()
     try:
-        rows = get_days(a.dates)
+        rows = get_days(a.dates, reports=a.cash_up)
     except BloowatchError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
+    if a.cash_up:
+        for rep in rows:
+            print_cash_up(rep)
+        return 0
     if a.json:
         print(json.dumps(rows, indent=2))
     else:

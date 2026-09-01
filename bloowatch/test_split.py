@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""The split the office writes out by hand: web / credit lesson / cash lesson.
+"""The cash-up the office writes out by hand: web / credit lesson / cash lesson.
 
-Bloowatch's daily report already carries it. The report says the day took 320
-by card and 95 in cash, and then says it again the other way round -- of that
-card money, how much was lessons and how much was board hire. Until now the
-parser skipped those blocks, so every evening somebody read them off the screen
-and wrote them in the margin.
+Every price the school charges is a whole number of dollars, so the day's
+takings are whole too: 320 by card, 95 in cash. That is the test the office
+applies without thinking about it, and it is why the figures written in the
+margin are the payment-method totals and nothing else.
 
-The numbers matter more than most: they are what the day's cash gets counted
-against. So the parser refuses to hand over a split it cannot prove -- each
-method's own rows have to add back up to the method's total, and a method with
-no block at all is said out loud rather than quietly left out. A breakdown that
-is missing a line is worse than no breakdown, because it still looks complete.
+The report also states the same money cut the other way -- of the card takings,
+how much was lessons and how much was board hire -- and that block arrives with
+four decimal places, because a mixed order is split across its categories by
+proportion. Those are shares of a payment, not money anybody took. So the
+parser reads them and checks them against the method totals, and the closing
+states the whole numbers.
+
+A cash-up figure with cents in it means the report did arithmetic of its own,
+and is called out rather than presented as takings. Likewise a split that does
+not add back up, and a method with no split at all: a breakdown missing a line
+is worse than no breakdown, because it still looks complete.
 
 No real workbook is used here: the rows are written by hand so a day that does
 not add up can be tested, which is the case that has to work.
@@ -109,17 +114,36 @@ def main():
           not any("Clients" in cs for cs in rep["cross"].values()),
           str(rep["cross"]))
 
-    # --- the sheet's column, and the table the email lays out ---------------
+    # --- the cash-up: three whole numbers, and no shop ----------------------
+    lines, total = dr.cash_up(rep)
+    check("the cash-up is written in the office's own order",
+          [n for n, _ in lines] == ["web", "credit lesson", "cash lesson"],
+          str(lines))
+    check("credit lesson is the card takings", dict(lines)["credit lesson"] == 225.0,
+          str(lines))
+    check("cash lesson is the cash takings", dict(lines)["cash lesson"] == 95.0,
+          str(lines))
+    check("web is nil on a day nothing came through the gateway",
+          dict(lines)["web"] == 0.0, str(lines))
+    check("and it adds to the day's total", total == 320.0, str(total))
+    check("every figure in it is a whole number",
+          all(float(v).is_integer() for _, v in lines), str(lines))
+    check("the shop is not in it — it is a different till",
+          not any("shop" in n for n, _ in lines), str(lines))
+
+    # --- the decimals stay out of the sheet ---------------------------------
     row = dr.summarise(rep)
-    check("the sheet gets the split as one line",
-          row["Split"] == "Credit card LESSONS 112.73 + BOARD RENTALS 112.27; "
-                          "Cash LESSONS 60.00 + BOARD RENTALS 35.00",
-          repr(row["Split"]))
-    check("with no comma in it to break the CSV", "," not in row["Split"],
-          repr(row["Split"]))
-    check("the split is a column of the sheet", "Split" in dr.COLUMNS)
-    check("and the shaped copy is not, so the sheet keeps its columns",
-          "Cross" not in dr.COLUMNS)
+    check("the sheet keeps the columns it always had",
+          "Split" not in dr.COLUMNS and "Cross" not in dr.COLUMNS,
+          str(dr.COLUMNS))
+    check("and its money columns are the cash-up's own",
+          (row["Credit"], row["Cash"], row["Web"]) == (225.0, 95.0, 0.0),
+          str((row["Credit"], row["Cash"], row["Web"])))
+    check("nothing with cents in it reached the row",
+          all(float(row[c]).is_integer() for c in ("Total", "Credit", "Cash", "Web")),
+          str({c: row[c] for c in ("Total", "Credit", "Cash", "Web")}))
+
+    # --- the split is still read, as a second route to the same number ------
     cats, methods, cell = dr.cross_table(rep)
     check("the table names its rows and columns",
           cats == ["LESSONS", "BOARD RENTALS"] and
@@ -128,11 +152,13 @@ def main():
           abs(sum(cell(c, "Cash") for c in cats) - 95.0) < 0.01,
           str([cell(c, "Cash") for c in cats]))
 
-    # --- what Yuval reads off it -------------------------------------------
-    check("credit lessons is a number the closing can state",
-          abs(rep["cross"]["Credit card"]["LESSONS"] - 112.7273) < 0.01)
-    check("cash lessons likewise",
-          abs(rep["cross"]["Cash"]["LESSONS"] - 60.0) < 0.01)
+    # --- a figure with cents in it is not takings ---------------------------
+    cents = parse(swap(DAY, "Cash", ["Cash", 4.0, 94.8700]))
+    check("a method total with cents in it is called out",
+          any("not a whole number" in w for w in cents["warnings"]),
+          str(cents["warnings"]))
+    check("and the day is marked for checking",
+          dr.summarise(cents)["Check"] == "CHECK!")
 
     # --- a split that does not add up is refused ----------------------------
     bad = parse(swap(DAY, "Cash", ["Cash", 4.0, 120.0]))
@@ -166,9 +192,18 @@ def main():
                                  ["BOARD RENTALS", 35.0], ["LESSONS", 60.0])])
     check("a report without the blocks is not treated as broken",
           plain["warnings"] == [], str(plain["warnings"]))
-    check("and its sheet row simply has nothing in the column",
-          dr.summarise(plain)["Split"] == "",
-          repr(dr.summarise(plain)["Split"]))
+    check("and the cash-up still states the day in full",
+          dr.cash_up(plain)[1] == 320.0, str(dr.cash_up(plain)))
+
+    # --- a method the office has no line for still gets one -----------------
+    moved = swap(DAY, "Cash", ["Money transfer", 4.0, 95.0])
+    moved = swap(moved, "Account = Cash", ["Account = Money transfer", "Qty"])
+    extra = parse(moved)
+    names = [n for n, _ in dr.cash_up(extra)[0]]
+    check("an unusual payment method gets a line of its own",
+          "money transfer" in names, str(names))
+    check("so the cash-up still adds to the day", dr.cash_up(extra)[1] == 320.0,
+          str(dr.cash_up(extra)))
 
     print()
     if fails:
