@@ -44,6 +44,16 @@
     "_composio_bug": "TIMELINESAI_GET_CHATS drops every parameter it accepts — types, search, limit, offset and sort are all ignored and it always returns the same first 50 chats alphabetically. That is why the group ids are written down here instead of being looked up. The real REST API honours group=true, name= and page=."
   },
 
+  "no_personal_message": {
+    "_note": "Crew who deliberately get no automatic WhatsApp. Not an oversight and not a gap to be filled: the owner said so on 2026-09-01. They still appear in the staff group's rota, because the team needs to know who is on; they just are not messaged directly. Do not report them as missing a number.",
+    "names": ["EDEN", "YOCHAI", "PAZ"],
+    "yuval": {
+      "name": "YUVAL VILENSKY",
+      "phone": "+50769027049",
+      "why": "this is the number the messages are sent FROM. Messaging him is the system talking to itself."
+    }
+  },
+
   "rules": [
     "Nothing goes to a group without the owner having approved that exact message going to that exact group.",
     "A group only appears in TimelinesAI once a message arrives in it; it does not backfill history.",
