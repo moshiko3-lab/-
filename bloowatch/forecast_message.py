@@ -143,37 +143,40 @@ def compare_line(today, tomorrow, lang="he"):
     if a is None or b is None:
         return ""
     diff = b - a
+    # The school's message goes out to bring people to the beach, so every
+    # sea is described by what you can do in it rather than by what it is
+    # missing. The numbers above it are never softened -- only the words are.
     if lang == "en":
         if abs(diff) < 0.15:
             how = "Similar to today"
         elif diff > 0:
             how = "Bigger than today"
         else:
-            how = "Smaller than today"
+            how = "Calmer than today"
         if b < 0.5:
-            mood = "small and easy — perfect for beginners"
+            mood = "small and friendly — perfect for beginners"
         elif b < 1.0:
             mood = "a really fun day out there"
         elif b < 1.5:
-            mood = "a good day for experienced surfers"
+            mood = "a great day for experienced surfers"
         else:
-            mood = "experienced surfers only"
+            mood = "a proper day for the experienced crew"
         return "Tomorrow: %s — %s" % (how, mood)
     if abs(diff) < 0.15:
         how = "ים דומה להיום"
     elif diff > 0:
         how = "ים יותר גבוה מהיום"
     else:
-        how = "ים יותר נמוך מהיום"
+        how = "ים רגוע יותר מהיום"
     # the second half is about the size itself, not the change
     if b < 0.5:
         mood = "קטן ונוח – מושלם למתחילים"
     elif b < 1.0:
         mood = "יום ממש כיפי לגלישה"
     elif b < 1.5:
-        mood = "יום טוב לגולשים עם ניסיון"
+        mood = "יום מעולה לגולשים עם ניסיון"
     else:
-        mood = "רק לגולשים מנוסים"
+        mood = "יום רציני לגולשים מנוסים"
     return "מחר צפוי להיות %s – %s" % (how, mood)
 
 
@@ -216,14 +219,15 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
     if lang == "en":
         if off < 60:
             side = "onshore"
-            mood = "sea a little messy" if fast < 8 else "strong onshore — choppy"
+            mood = ("plenty of whitewater — great for beginners" if fast < 8
+                    else "lively sea — the inside will be working")
         elif off > 120:
             side = "offshore"
             mood = ("clean and groomed 🪞" if fast < 8
-                    else "strong offshore — steep faces")
+                    else "strong offshore — steep, fast faces")
         else:
             side = "cross-shore"
-            mood = "less effect on the wave"
+            mood = "barely touches the wave"
         return "*Wind* - %s kt from %s (%s) — %s" % (
             rng_, compass(d, "en"), side, mood)
 
@@ -235,11 +239,13 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
         side, how = "רוח צד", ""
 
     if side == "אופשור":
-        mood = "ים חלק ומסודר 🪞" if fast < 8 else "אופשור חזקה – גלים תלולים"
+        mood = ("ים חלק ומסודר 🪞" if fast < 8
+                else "אופשור חזקה – גלים תלולים ומהירים")
     elif side == "אונשור":
-        mood = "ים קצת מבולגן" if fast < 8 else "אונשור חזקה – ים מרוסק"
+        mood = ("הרבה גלי קצף – מעולה למתחילים" if fast < 8
+                else "ים תוסס – הפנים יעבוד יפה")
     else:
-        mood = "משפיע פחות על הגל"
+        mood = "כמעט לא נוגעת בגל"
 
     rng = ("%g" % lo) if abs(hi - lo) < 0.6 else ("%g-%g" % (lo, hi))
     return "*רוח* - %s קשר מ%s (%s%s) – %s" % (
