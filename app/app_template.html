@@ -604,6 +604,7 @@ body.locked > .wrap,body.locked > header.top,body.locked > aside.rail{display:no
 <div class="toast" id="toast" role="status"></div>
 <script id="seed" type="application/json">/*__SEED__*/</script>
 <script id="people" type="application/json">/*__PEOPLE__*/</script>
+<script id="crew" type="application/json">/*__CREW__*/</script>
 
 <script>
 (function(){
@@ -1527,7 +1528,7 @@ function staffForm(existing){
      without its country code does not fail loudly -- it simply never arrives,
      and nobody finds out until an instructor misses a lesson. */
   g.appendChild(field("Phone / WhatsApp",phone,
-    "With the country code, e.g. +507 6123 4567. Reminders go here."));
+    "With the country code, e.g. +507 6XXX XXXX. Reminders go here."));
   g.appendChild(field("Email",email));
   b.appendChild(g);
 
@@ -1659,7 +1660,7 @@ function renderCrew(){
       }else if(!waNumber(s.phone)){
         var bad=el("span","chip critc","no country code");
         bad.style.marginLeft="7px";
-        bad.title="WhatsApp needs the country code, e.g. +507 6123 4567";
+        bad.title="WhatsApp needs the country code, e.g. +507 6XXX XXXX";
         cc.appendChild(bad);
       }
     }
@@ -10805,6 +10806,18 @@ function renderSettings(){
   repair.appendChild(rb);
   host.appendChild(repair);
 
+  /* A reminder can only reach somebody it has a number for. */
+  if(crewData()){
+    var wa=el("div","note");
+    wa.appendChild(document.createTextNode(
+      "Crew WhatsApp numbers can be filled in from the school's own staff "+
+      "records. A number you have already typed is never replaced. "));
+    var wb=el("button","btn sm","Fill in crew numbers");
+    wb.addEventListener("click",fillCrewNumbers);
+    wa.appendChild(wb);
+    host.appendChild(wa);
+  }
+
   var danger=el("div","note");
   danger.style.borderLeftColor="var(--crit)";
   danger.appendChild(document.createTextNode(
@@ -11222,7 +11235,7 @@ function importCatalog(){
   (d.staff||[]).forEach(function(st){
     if(DB.staff.some(function(x){return x.name===st.name;})) return;
     DB.staff.push({id:uid("s"),name:st.name,role:st.role||"Instructor",
-      phone:"",email:"",
+      phone:crewPhoneFor(st.name),email:"",
       activities:(st.activities||[]),langs:(st.langs||[]),
       pos:(st.pos==null?null:Number(st.pos)),
       seasonFrom:st.seasonFrom||"",seasonTo:st.seasonTo||"",
@@ -11290,6 +11303,51 @@ function importCatalog(){
    A booking here is rebuilt from one of their orders -- the products by name,
    the board that went out by its unit name, the dates and what was paid -- so
    the lines behave like lines the counter made, not like a frozen receipt. */
+/* ============================ crew numbers ============================
+   A reminder message is only worth building if it can reach somebody, and a
+   crew list of twenty-one names with no numbers in it reaches nobody. These
+   come from the school's own staff records, and they travel beside the
+   catalogue rather than inside it: the catalogue names the staff, which is
+   fine on a public page, and their mobile numbers are not.
+
+   Filling them in never overwrites a number somebody typed. A number in the
+   app is the one the office corrected; the export is only a starting point,
+   and quietly putting the old one back is how a message goes to the wrong
+   person a month later. */
+function crewData(){
+  try{
+    var n=document.getElementById("crew");
+    if(!n) return null;
+    var d=JSON.parse(n.textContent||"null");
+    return (d&&d.length)?d:null;
+  }catch(e){ return null; }
+}
+function crewPhoneFor(name){
+  var d=crewData(); if(!d) return "";
+  var want=(name||"").trim().toUpperCase();
+  for(var i=0;i<d.length;i++){
+    if((d[i].name||"").trim().toUpperCase()===want) return d[i].phone||"";
+  }
+  return "";
+}
+function fillCrewNumbers(){
+  var d=crewData();
+  if(!d){ toast("No crew numbers are bundled with this build."); return; }
+  var filled=0, kept=0, missing=[];
+  DB.staff.forEach(function(s){
+    var p=crewPhoneFor(s.name);
+    if(!p) { if(!s.phone) missing.push(s.name); return; }
+    if(s.phone){ if(s.phone!==p) kept++; return; }   /* theirs wins */
+    s.phone=p; filled++;
+  });
+  if(filled) save();
+  var said=filled+" number"+(filled===1?"":"s")+" filled in";
+  if(kept) said+=", "+kept+" left as you had them";
+  if(missing.length) said+=", still none for "+missing.join(", ");
+  toast(said);
+  render();
+}
+
 function peopleData(){
   try{
     var n=document.getElementById("people");

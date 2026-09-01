@@ -54,13 +54,27 @@ def render(template=None):
         else:
             out = out.replace("/*__PEOPLE__*/", "null")
 
+    # The crew's own WhatsApp numbers, for the same reason and on the same
+    # terms. The catalogue names the staff, which is public enough; their
+    # mobile numbers are not, so they travel beside it and never in it.
+    crew = os.path.join(HERE, "crew.json")
+    if "/*__CREW__*/" in out:
+        if os.path.exists(crew):
+            with open(crew, encoding="utf-8") as f:
+                blob = json.dumps(json.load(f), ensure_ascii=False,
+                                  separators=(",", ":"))
+            out = out.replace("/*__CREW__*/",
+                              blob.replace("</script>", "<\\/script>"))
+        else:
+            out = out.replace("/*__CREW__*/", "null")
+
     logo = os.path.join(HERE, "logo.png")
     if os.path.exists(logo):
         with open(logo, "rb") as f:
             # the badge appears twice now: the rail, and the sign-in card
             out = out.replace("/*__LOGO__*/", base64.b64encode(f.read()).decode())
     for token in ("/*__LOGO__*/", "/*__SEED__*/", "/*__PRICING__*/",
-                  "/*__PEOPLE__*/", "/*__CLOUD__*/"):
+                  "/*__PEOPLE__*/", "/*__CREW__*/", "/*__CLOUD__*/"):
         if token in out:
             raise RuntimeError(f"template placeholder {token} was not replaced")
     return out

@@ -19,3 +19,9 @@ secrets/
 # the repository and the page built from it does not belong on a public URL.
 app/clients.json
 clients.json
+
+# the crew's own WhatsApp numbers, for the same reason. The catalogue names
+# the staff, which is fine; their mobile numbers are not, and the publish
+# check refuses any build carrying them.
+app/crew.json
+crew.json

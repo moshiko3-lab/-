@@ -300,17 +300,54 @@ def build():
             "spots": spots, "staff": staff, "sessions": sessions, "tides": tides}
 
 
+def crew_numbers(session=None, base=None, sid=None):
+    """The crew's own WhatsApp numbers, on their own, kept out of the catalogue.
+
+    A reminder that cannot reach anybody is not a reminder, so these have to
+    come across -- but they are the one thing in the staff record that must
+    not be inlined into a page that can be shared by URL. They go in a file of
+    their own, which the build picks up if it is there and the publish check
+    refuses if it ever reaches a public build.
+    """
+    if session is None:
+        session, base = login()
+    if sid is None:
+        sid = school_id(session, base)
+    out = []
+    for st in _rows(_get(session, base, f"/schools/{sid}/staff/",
+                         show_archived="false")):
+        name = " ".join(x for x in (st.get("first_name"), st.get("last_name"))
+                        if x).strip()
+        phone = (st.get("phone") or "").strip()
+        if name and phone:
+            out.append({"name": name, "phone": phone})
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="catalog.json")
+    ap.add_argument("--crew-out", default="",
+                    help="also write the crew's WhatsApp numbers here, e.g. "
+                         "crew.json. Gitignored on purpose: this file holds "
+                         "personal mobile numbers and the catalogue does not.")
     a = ap.parse_args()
     try:
         data = build()
+        crew = crew_numbers() if a.crew_out else None
     except BloowatchError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
+    if crew is not None:
+        with open(a.crew_out, "w", encoding="utf-8") as f:
+            json.dump(crew, f, ensure_ascii=False, indent=1)
+        no = [s["name"] for s in data["staff"]
+              if not any(c["name"] == s["name"] for c in crew)]
+        print("wrote %s: %d crew with a number%s" % (
+            a.crew_out, len(crew),
+            (", none for " + ", ".join(no)) if no else ""))
     units = sum(len(g["units"]) for g in data["gear"])
     tiers = sum(len(p["prices"]) for p in data["products"])
     print(f"wrote {a.out}: {len(data['products'])} products ({tiers} price tiers), "
