@@ -122,6 +122,44 @@ def main():
     check("and its counts read as English",
           "1 student" in en and "12 students" in en, en)
 
+    # --- who is actually coming ---------------------------------------------
+    # Bloowatch numbers the people on an order, and a group booked under one
+    # name arrives as twelve copies of it. Both have to be dealt with before
+    # a name is worth putting in a message.
+    check("the participant number is stripped off the name",
+          rota.student_names([{"first_name": "P1 yedidia  k", "last_name": ""}])
+          == ["Yedidia K"],
+          str(rota.student_names([{"first_name": "P1 yedidia  k", "last_name": ""}])))
+    check("a name without one is left alone",
+          rota.student_names([{"first_name": "noa", "last_name": ""}]) == ["Noa"])
+    check("a double-digit index too",
+          rota.student_names([{"first_name": "P14 young guns", "last_name": ""}])
+          == ["Young Guns"])
+    twelve = [{"first_name": "P%d young guns sep 26" % i} for i in range(1, 13)]
+    check("twelve of the same booking collapse to one name",
+          rota.student_names(twelve) == ["Young Guns Sep 26"],
+          str(rota.student_names(twelve)))
+    check("two different people stay two",
+          len(rota.student_names([{"first_name": "P1 ibai a"},
+                                  {"first_name": "P2 dana b"}])) == 2)
+    check("nobody booked is an empty list", rota.student_names([]) == [])
+    check("and a missing attendants field does not explode",
+          rota.student_names(None) == [])
+
+    # a name is worth saying while it tells you something, and not past that
+    named = L("09:00", "SURF PACK", 1, ["NAFTUL"])
+    named["names"] = ["Itay A"]
+    check("one student is named", "Itay A" in rota._line(named, "he"),
+          rota._line(named, "he"))
+    crowd = L("15:00", "SURF PACK", 12, ["NAFTUL"])
+    crowd["names"] = ["A One", "B Two", "C Three", "D Four", "E Five"]
+    check("five names are a list, so the count carries it alone",
+          "A One" not in rota._line(crowd, "he") and
+          "12 תלמידים" in rota._line(crowd, "he"), rota._line(crowd, "he"))
+    check("a lesson with no names recorded still reads cleanly",
+          rota._line(L("09:00", "SURF PACK", 1, ["N"]), "he")
+          == "SURF PACK · תלמיד אחד")
+
     # --- the reminder window ------------------------------------------------
     # An hourly run steps a 60-minute window by 60 minutes. Every lesson in
     # the day has to fall in exactly one of those steps: land in two and the

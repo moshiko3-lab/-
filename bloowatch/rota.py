@@ -19,6 +19,7 @@ then ignored for ever after.
 """
 import argparse
 import datetime as dt
+import re
 import sys
 
 from daily_report import BloowatchError, login
@@ -38,6 +39,27 @@ EN_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 
 def tomorrow():
     return (dt.datetime.now(PANAMA).date() + dt.timedelta(days=1)).isoformat()
+
+
+def student_names(attendants):
+    """Who is actually coming, in words an instructor can use on the beach.
+
+    Bloowatch numbers the people on an order -- "P1 mica m", "P2 ibai a" --
+    so the prefix is stripped: the instructor needs the name, not its index.
+
+    A group booked under one name arrives as twelve of it ("P1 young guns sep
+    26" through "P14"), so identical names collapse to one. Twelve repeats of
+    the same words is not twelve pieces of information, and a message that
+    long stops being read.
+    """
+    out = []
+    for a in attendants or []:
+        nm = " ".join(((a.get("first_name") or "") + " " +
+                       (a.get("last_name") or "")).split())
+        nm = re.sub(r"^P\d+\s+", "", nm).strip().title()
+        if nm and nm not in out:
+            out.append(nm)
+    return out
 
 
 def _is_placeholder(name):
@@ -75,6 +97,7 @@ def lessons_for(session, base, date, sid=SCHOOL):
             continue
         out.append({"time": when, "title": title, "category": cat,
                     "students": len(x.get("attendants") or []),
+                    "names": student_names(x.get("attendants")),
                     "capacity": x.get("max_attendants") or 0,
                     "staff": crew})
     out.sort(key=lambda r: (r["time"], r["title"]))
@@ -105,8 +128,25 @@ def _students(n, lang):
     return "%d תלמידים" % n
 
 
+MANY = 4
+
+
+def _who(l, lang):
+    """The students by name, while naming them still tells you something.
+
+    One name is the whole point of the message: an instructor walking down to
+    the beach wants to know who they are meeting. Four is still a class you
+    can picture. Past that it is a list, and a list of strangers' names is
+    worse than the number -- so above four the count carries it alone.
+    """
+    names = l.get("names") or []
+    if not names or len(names) > MANY:
+        return ""
+    return ", ".join(names)
+
+
 def _line(l, lang, sep=" · "):
-    bits = [l["title"], _students(l["students"], lang)]
+    bits = [l["title"], _students(l["students"], lang), _who(l, lang)]
     return sep.join(x for x in bits if x)
 
 
@@ -209,9 +249,10 @@ def group(lessons, date, lang="he"):
             L.append("")
         last = l["time"]
         who = ", ".join(n.split()[0].title() for n in l["staff"])
-        n = _students(l["students"], lang)
+        inner = " · ".join(x for x in (_students(l["students"], lang),
+                                       _who(l, lang)) if x)
         L.append("*%s* %s%s — %s" % (l["time"], l["title"],
-                                     (" (%s)" % n) if n else "", who))
+                                     (" (%s)" % inner) if inner else "", who))
     return "\n".join(L)
 
 
