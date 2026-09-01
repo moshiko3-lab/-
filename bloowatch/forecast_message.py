@@ -161,6 +161,58 @@ def compare_line(today, tomorrow):
     return "מחר צפוי להיות %s – %s" % (how, mood)
 
 
+# Which way the beach looks out to sea, in compass degrees. Playa Venao sits
+# on the Pacific side of the Azuero peninsula and faces roughly south, so a
+# wind out of the north blows off the land and into the face of the wave --
+# offshore, which grooms it. Get this number wrong and every call below
+# inverts, so it is a setting and not a buried constant.
+BEACH_FACES = 180
+
+HEB_COMPASS = ["צפון", "צפון-מזרח", "מזרח", "דרום-מזרח",
+               "דרום", "דרום-מערב", "מערב", "צפון-מערב"]
+
+
+def compass(deg):
+    return HEB_COMPASS[int((float(deg) + 22.5) % 360 // 45)]
+
+
+def wind_line(speed, direction, faces=BEACH_FACES):
+    """Wind is the half of a surf forecast the school was not sending, and
+    the half that decides whether a metre of swell is a clean wall or a mess.
+    Offshore holds the wave up; onshore knocks it over. Speed alone says
+    nothing -- fifteen knots offshore is a good day and fifteen onshore is a
+    write-off -- so the two are always said together."""
+    if speed in (None, "", "?"):
+        return ""
+    try:
+        parts = [float(x) for x in str(speed).split("-")]
+        lo, hi = parts[0], parts[-1]
+        d = float(direction)
+    except (TypeError, ValueError):
+        return ""
+
+    # the angle between where the wind comes from and where the beach looks
+    off = abs(((d - faces) + 180) % 360 - 180)
+    if off < 60:
+        side, how = "אונשור", "מהים"
+    elif off > 120:
+        side, how = "אופשור", "מהיבשה"
+    else:
+        side, how = "רוח צד", ""
+
+    fast = max(lo, hi)
+    if side == "אופשור":
+        mood = "ים חלק ומסודר 🪞" if fast < 8 else "אופשור חזקה – גלים תלולים"
+    elif side == "אונשור":
+        mood = "ים קצת מבולגן" if fast < 8 else "אונשור חזקה – ים מרוסק"
+    else:
+        mood = "משפיע פחות על הגל"
+
+    rng = ("%g" % lo) if abs(hi - lo) < 0.6 else ("%g-%g" % (lo, hi))
+    return "*רוח* - %s קשר מ%s (%s%s) – %s" % (
+        rng, compass(d), side, (" " + how) if how else "", mood)
+
+
 def tide_range_note(t):
     """Free intelligence from the table we already hold: how far the water
     moves. A three-metre swing in six hours is a lot of water leaving the bay,
@@ -181,7 +233,7 @@ def tide_range_note(t):
     return "", rng
 
 
-def build(date, waves, period, compare, rain, spot_note, note=""):
+def build(date, waves, period, compare, rain, spot_note, note="", wind=""):
     t = tides_for(date)
     if not t:
         return None, "no tide table for " + date
@@ -232,6 +284,8 @@ def build(date, waves, period, compare, rain, spot_note, note=""):
     L.append("")
     L.append("*גובה גלים* - %s מטר%s" % (waves, feet))
     L.append("*פריוד גלים* - %s שניות" % period)
+    if wind:
+        L.append(wind)
     L.append("")
     if compare:
         L.append("*🌞🏄‍♀️🎉 %s 😎🏄‍♂️🌊*" % compare)
@@ -285,6 +339,14 @@ def main():
                     help="override that line by hand")
     ap.add_argument("--rain", default="",
                     help="the rain line, when there is one")
+    ap.add_argument("--wind", default="",
+                    help="wind speed in knots over the surfable hours, e.g. 2-5")
+    ap.add_argument("--wind-dir", default="",
+                    help="the direction it blows FROM, in degrees")
+    ap.add_argument("--faces", type=int, default=BEACH_FACES,
+                    help="which way the beach looks out to sea, in degrees "
+                         "(180 = south). Getting this wrong inverts every "
+                         "offshore/onshore call.")
     ap.add_argument("--tide-note", action="store_true",
                     help="add a line when the tide range is unusually big or "
                          "small — worked out from the table, not forecast")
@@ -305,7 +367,8 @@ def main():
         if t:
             note, _rng = tide_range_note(t)
 
-    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note)
+    wind = wind_line(a.wind, a.wind_dir, a.faces) if a.wind and a.wind_dir else ""
+    msg, err = build(date, a.waves, a.period, compare, a.rain, a.spot, note, wind)
     if err:
         print("error: " + err, file=sys.stderr)
         return 1
