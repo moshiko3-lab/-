@@ -216,6 +216,11 @@ td.strong{font-weight:700}
   background:var(--panel);display:flex;align-items:center;justify-content:center;
   font-size:9px;line-height:1;color:transparent}
 .cl-slot .tick.on{background:var(--good);border-color:var(--good);color:#fff}
+/* green is done and cannot move; the school's own pink is picked up to go
+   together on the next drag -- two different facts, two different colours */
+.cl-slot .tick.pick{background:var(--accent);border-color:var(--accent);
+  color:var(--accent-ink)}
+.cl-slot .tick:not(.on):hover{border-color:var(--accent)}
 .cl-done{margin-left:auto;font-weight:600;color:var(--text-3);
   font-variant-numeric:tabular-nums}
 
@@ -4430,6 +4435,32 @@ function sessionPop(anchor,se){
   sessPop=p;
 }
 
+/* Two brothers on the same course go in the same lesson, and dragging them one
+   at a time is the same drag twice. The empty box on a slot that has not been
+   placed is a way of saying "this one too": tick as many as are going in
+   together -- from one course or from four different ones -- and dragging any
+   of them carries the whole set. A slot already placed shows a green tick
+   instead and cannot be dragged at all, so the box never means two things at
+   once. The set is dropped as soon as it lands, so it cannot be carried into
+   the next thing by accident. */
+var slotPicked={};
+function slotKey(s){
+  return s.booking.id+"|"+s.line.lid+"|"+s.ref+"|"+s.idx;
+}
+function slotPickedList(){
+  var out=[];
+  Object.keys(slotPicked).forEach(function(k){
+    var s=slotPicked[k];
+    /* a booking deleted since it was ticked takes its slots with it */
+    if(!s || !DB.bookings.some(function(bk){
+      return bk.id===s.booking.id &&
+             (bk.lines||[]).some(function(l){return l.lid===s.line.lid;});
+    })) { delete slotPicked[k]; return; }
+    out.push(s);
+  });
+  return out;
+}
+function slotPickedCount(){ return slotPickedList().length; }
 /* One session of one person's course: ticked when it has a session, showing
    the date it landed on, and draggable onto the board when it has not. */
 function slotRow(s){
@@ -4437,8 +4468,21 @@ function slotRow(s){
   row.style.borderLeftColor=s.line&&product(s.line.productId)
     ? posTileColour(product(s.line.productId)) : "var(--text-3)";
   /* a box that fills when the slot is placed, the way theirs does */
-  var tick=el("span","tick"+(s.session?" on":""));
-  tick.textContent=s.session?"✓":"";
+  var key=slotKey(s), chosen=!s.session && !!slotPicked[key];
+  var tick=el("span","tick"+(s.session?" on":"")+(chosen?" pick":""));
+  tick.textContent=s.session?"✓":(chosen?"✓":"");
+  if(!s.session){
+    tick.title="Tick to take this one along with the next drag";
+    tick.style.cursor="pointer";
+    /* the box must not start the drag the row is listening for */
+    tick.addEventListener("pointerdown",function(e){ e.stopPropagation(); });
+    tick.addEventListener("click",function(e){
+      e.stopPropagation();
+      if(slotPicked[key]) delete slotPicked[key];
+      else slotPicked[key]=s;
+      renderBoard();
+    });
+  }
   row.appendChild(tick);
   /* The name is shown as it is stored. Bloowatch writes "P1 nahum c" itself
      when nobody typed a name, so prefixing our own P1 would say it twice. */
@@ -4475,7 +4519,9 @@ function slotRow(s){
     moved=false;
     row.setPointerCapture(e.pointerId);
     row.style.opacity=".45";
-    ghost=el("div",null,s.seat.name+"  "+s.idx+"/"+s.of);
+    var n=slotPicked[slotKey(s)] ? slotPickedCount() : 1;
+    ghost=el("div",null, n>1 ? (n+" students together")
+                             : (s.seat.name+"  "+s.idx+"/"+s.of));
     ghost.style.cssText="position:fixed;z-index:80;pointer-events:none;"+
       "background:var(--accent);color:var(--accent-ink);padding:6px 11px;"+
       "border-radius:8px;font-size:12.5px;font-weight:600;"+
@@ -4515,26 +4561,52 @@ function slotRow(s){
     if(!blk) return;
     var se=by(blk.dataset.sessionId,DB.sessions);
     if(!se) return;
-    if(!slotFitsSession(s.line,se)){
-      toast(lineActivity(s.line)+" only goes in a "+lineActivity(s.line)+
-            " session"+(se.category?(" -- that one is "+se.category+"."):"."));
+
+    /* dragging one of the ticked slots carries all of them; dragging one that
+       is not ticked carries only itself and leaves the ticks alone */
+    var group=slotPicked[slotKey(s)] ? slotPickedList() : [s];
+    if(group.length>1){
+      /* everyone's first lesson before anyone's second, so a group that books
+         together stays together as the days go on */
+      group.sort(function(a,b){
+        return a.idx!==b.idx ? a.idx-b.idx
+             : String(a.seat.name||"").localeCompare(String(b.seat.name||""));
+      });
+    }
+
+    var went=[], stuck=[];
+    group.forEach(function(g){
+      if(!slotFitsSession(g.line,se)){
+        stuck.push(g.seat.name+": "+(lineActivity(g.line)||"another activity")+
+                   ", not "+(se.category||"this"));
+        return;
+      }
+      if(se.participants.indexOf(g.ref)>=0){
+        stuck.push(g.seat.name+" is already in it");
+        return;
+      }
+      if(se.participants.length>=se.capacity){
+        stuck.push(g.seat.name+": the session is full ("+se.capacity+")");
+        return;
+      }
+      var b2=seatBusyAt(g.ref,se);
+      if(b2){ stuck.push(busyWhy(g.seat.name,b2)); return; }
+      se.participants.push(g.ref);
+      se.fromLines=se.fromLines||[];
+      if(se.fromLines.indexOf(g.line.lid)<0) se.fromLines.push(g.line.lid);
+      went.push(g.seat.name);
+    });
+
+    if(!went.length){
+      toast(stuck[0]||"Nobody could go in that one.");
       return;
     }
-    if(se.participants.indexOf(s.ref)>=0){
-      toast(s.seat.name+" is already in that session.");
-      return;
-    }
-    if(se.participants.length>=se.capacity){
-      toast("That session is full ("+se.capacity+").");
-      return;
-    }
-    var busy=seatBusyAt(s.ref,se);
-    if(busy){ toast(busyWhy(s.seat.name,busy)); return; }
-    se.participants.push(s.ref);
-    se.fromLines=se.fromLines||[];
-    if(se.fromLines.indexOf(s.line.lid)<0) se.fromLines.push(s.line.lid);
+    /* the set is spent once it lands, so the next drag starts clean */
+    slotPicked={};
     save(); renderBoard();
-    toast(s.seat.name+" → "+se.title+" "+se.time);
+    var said=(went.length===1 ? went[0]
+              : went.length+" in")+" → "+se.title+" "+se.time;
+    toast(said+(stuck.length?("  ·  "+stuck.length+" left out: "+stuck[0]):""));
   }
   row.addEventListener("pointerup",drop);
   row.addEventListener("pointercancel",function(){
