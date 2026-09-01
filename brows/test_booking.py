@@ -20,11 +20,11 @@ def book():
                      "noteHe": "שלום", "noteEn": "Hello there"},
         "services": [
             {"id": "s-a", "he": "עיצוב גבות", "en": "Brow shaping", "minutes": 30,
-             "price": 25, "form": False, "active": True},
+             "form": False, "active": True},
             {"id": "s-lift", "he": "הרמת ריסים", "en": "Lash lift", "minutes": 75,
-             "price": 80, "form": True, "active": True},
+             "form": True, "active": True},
             {"id": "s-off", "he": "מוסתר", "en": "Hidden", "minutes": 30,
-             "price": 10, "form": False, "active": False}],
+             "form": False, "active": False}],
         "clients": [], "appointments": [], "blocks": [], "forms": []
     }
 
@@ -53,7 +53,7 @@ def main():
         ok("consent form required" not in pg.inner_text(".pick:nth-of-type(1)"),
            "and one that does not, does not")
         ok("$" not in pg.inner_text("#stage"),
-           "prices are off by default, so the client sees treatments and no numbers")
+           "a treatment list is a name and a length; test_money holds the rest")
 
         pg.click(".pick:nth-of-type(1)")
         pg.wait_for_timeout(300)
@@ -122,15 +122,6 @@ def main():
         pg.wait_for_timeout(300)
         ok(pg.evaluate("document.documentElement.dir") == "rtl",
            "the switch at the top of the page flips it")
-
-        # prices, when the studio wants them shown
-        priced = book()
-        priced["settings"]["showPrices"] = True
-        pg2 = phone(b, seed=priced, lang="en")
-        watch_open(pg2)
-        open_page(pg2, "book.html")
-        ok("$25" in pg2.inner_text("#stage"),
-           "turning prices on in settings puts them back on the treatment list")
 
         # a treatment that needs the release offers the link straight after
         pg = phone(b, seed=book(), lang="en")

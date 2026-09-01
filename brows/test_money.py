@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""A studio that does not keep prices should not be shown any.
+"""There is no money in this system, and there is no way to make some appear.
 
-"$0" beside every appointment is worse than nothing at all -- it reads as
-a treatment nobody paid for. So money is absent from the interface until
-one real price exists, and then it appears everywhere on its own. There is
-no setting to find and nothing to explain: type a price, money wakes up.
+It manages appointments. It is not a till and it is not a price list: no
+figure beside a treatment, no total for the day, no takings on a client
+card, no price to fill in when booking, and nothing on the client's page.
+
+The awkward case is a backup made by an older build, which still carries
+price fields in its data. Loading one must not bring money back to the
+screen -- old data is data, not a setting.
 """
 import datetime
 import sys
@@ -14,21 +17,21 @@ from harness import browser, phone, open_page, ok, done
 TODAY = datetime.date.today().isoformat()
 
 
-def book(priced):
+def legacy_book():
+    """A book from before, prices and all."""
     return {
         "v": 1,
         "settings": {"name": "Romy", "phone": "972546902515",
                      "hours": {str(d): [{"from": "09:00", "to": "18:00"}] for d in range(7)},
                      "step": 30, "buffer": 0, "leadHours": 0, "horizon": 30,
-                     "cancelHours": 24, "autoConfirm": True, "showPrices": True},
+                     "cancelHours": 24, "autoConfirm": True,
+                     "showPrices": True},              # and it was even switched on
         "services": [{"id": "s-a", "he": "הרמת ריסים", "en": "Lash lift",
-                      "minutes": 60, "price": 70 if priced else 0,
-                      "form": True, "active": True}],
+                      "minutes": 60, "price": 70, "form": True, "active": True}],
         "clients": [{"id": "c1", "name": "Ana", "phone": "50761111111", "lang": "en"}],
         "appointments": [{"id": "a1", "clientId": "c1", "clientName": "Ana",
                           "phone": "50761111111", "serviceId": "s-a", "date": TODAY,
-                          "time": "10:00", "minutes": 60,
-                          "price": 70 if priced else 0,
+                          "time": "10:00", "minutes": 60, "price": 70,
                           "status": "confirmed", "lang": "en"}],
         "blocks": [], "forms": []
     }
@@ -38,57 +41,63 @@ def main():
     with sync_playwright() as p:
         b = browser(p)
 
-        # ---------------------------------------------- a studio without prices
-        pg = open_page(phone(b, seed=book(False)), "index.html")
-        ok("$" not in pg.inner_text("#d-list"), "no price beside the appointment")
+        # ------------------------------------------------------- the diary
+        pg = open_page(phone(b, seed=legacy_book()), "index.html")
+        ok("$" not in pg.inner_text("#d-list"), "no figure beside the appointment")
         ok("$" not in pg.inner_text("#d-sum"),
-           "the day is counted in appointments and hours, not in money")
-        ok("שעות" in pg.inner_text("#d-sum"), "and the hours are still there")
+           "the day is counted in appointments and hours")
+        ok("שעות" in pg.inner_text("#d-sum"), "and the hours are still counted")
 
         pg.click('[data-appt="a1"]')
         pg.wait_for_timeout(300)
         ok("$" not in pg.inner_text("#modal"), "nor on the appointment itself")
         pg.click("#m-edit")
         pg.wait_for_timeout(300)
-        ok(pg.query_selector("#e-price") is None,
-           "and the editor does not ask for one")
-        ok(pg.query_selector("#e-min") is not None, "though it still asks how long")
+        ok(pg.query_selector("#e-price") is None, "the editor does not ask for one")
+        ok(pg.query_selector("#e-min") is not None, "it asks how long, which is the point")
+        ok("$" not in pg.inner_text("#modal"),
+           "and the treatment list in it is minutes only")
         pg.click("#e-save")
         pg.wait_for_timeout(300)
-        ok(pg.evaluate("apptById('a1') !== null"),
-           "saving without a price field still saves the appointment")
+        ok(pg.evaluate("apptById('a1') !== null"), "and it still saves")
 
         pg.click('#tabs button[data-tab="clients"]')
         pg.wait_for_timeout(250)
         pg.click("[data-cl='c1']")
         pg.wait_for_timeout(300)
-        ok("$" not in pg.inner_text("#modal"), "the client card counts visits, not takings")
+        ok("$" not in pg.inner_text("#modal"),
+           "the client card counts visits, never takings")
         pg.click("[data-close]")
 
         pg.click('#tabs button[data-tab="settings"]')
-        pg.wait_for_timeout(300)
+        pg.wait_for_timeout(350)
+        ok("$" not in pg.inner_text("#tab-settings"),
+           "the treatment editor has a name and a length and no third number")
         ok(pg.query_selector("#st-prices") is None,
-           "and the switch for showing clients prices is not offered when there are none")
+           "and there is no switch to turn money on")
+        ok(pg.eval_on_selector_all("#st-svc input", "els => els.length") == 5,
+           "five fields per treatment: two names, a length, a form tick, active")
 
-        # the client's own page, even with the setting left on
-        pg2 = open_page(phone(b, seed=book(False), lang="en"), "book.html")
-        ok("$" not in pg2.inner_text("#stage"),
-           "a price the studio never set is not shown to a client either")
+        # -------------------------------------------------- the client's page
+        for lang in ("en", "he"):
+            pg2 = open_page(phone(b, seed=legacy_book(), lang=lang), "book.html")
+            ok("$" not in pg2.inner_text("body"),
+               "nothing on the client's treatment list either (%s)" % lang)
+            pg2.click(".pick")
+            pg2.wait_for_timeout(350)
+            ok("$" not in pg2.inner_text("body"), "nor when picking a time (%s)" % lang)
+            slot = pg2.query_selector(".slot")
+            if slot:
+                slot.click()
+                pg2.wait_for_timeout(300)
+                ok("$" not in pg2.inner_text("body"),
+                   "nor on the details she fills in (%s)" % lang)
 
-        # ---------------------------------------------- and once one price exists
-        pg3 = open_page(phone(b, seed=book(True)), "index.html")
-        ok("$70" in pg3.inner_text("#d-list"), "one real price and money is back")
-        ok("$70" in pg3.inner_text("#d-sum"), "the day totals again")
-        pg3.click('#tabs button[data-tab="settings"]')
-        pg3.wait_for_timeout(300)
-        ok(pg3.query_selector("#st-prices") is not None,
-           "and the switch for the client's page reappears with it")
+        # -------------------------------------------- and none in the code
+        ok(pg.evaluate("typeof window.money") == "undefined",
+           "the page does not even carry a way to format a sum")
 
-        pg4 = open_page(phone(b, seed=book(True), lang="en"), "book.html")
-        ok("$70" in pg4.inner_text("#stage"),
-           "which is what puts it on the client's page")
-
-        done("test_money", pg3)
+        done("test_money", pg)
         b.close()
     return 0
 

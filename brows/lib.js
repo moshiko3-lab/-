@@ -135,41 +135,23 @@ function waLink(phone, text){
   return "https://wa.me/" + normPhone(phone) + "?text=" + encodeURIComponent(text || "");
 }
 
-/* ---------------------------------------------------------------- כסף
-   פנמה עובדת בדולר (הבלבואה צמודה 1:1 ובפועל משלמים בשטרות דולר). */
-/* יש בכלל כסף במערכת הזאת?
-
-   סטודיו שלא מנהל מחירים לא אמור לראות "$0" ליד כל תור — זה גרוע יותר
-   מלא לראות כלום, כי זה נראה כמו טיפול שלא שולם עליו. אז הכסף פשוט לא
-   קיים בממשק עד שיש מחיר אחד אמיתי, ואז הוא מופיע לבד בכל מקום. אין
-   הגדרה להדליק, אין מה להסביר: מקלידים מחיר לטיפול, והכסף מתעורר. */
-function hasMoney(db){
-  if (!db) return false;
-  return (db.services || []).some(function(s){ return (+s.price || 0) > 0; }) ||
-         (db.appointments || []).some(function(a){ return (+a.price || 0) > 0; });
-}
-function money(n){
-  var v = Math.round((+n || 0) * 100) / 100;
-  return "$" + (v === Math.round(v) ? v : v.toFixed(2));
-}
-
 /* --------------------------------------------------------- ברירות מחדל */
 /* השירותים והמחירים הם נקודת פתיחה סבירה לסטודיו גבות וריסים בפנמה.
    הם נערכים במסך ההגדרות, ושם הם אמורים להשתנות. */
 function defaultServices(){
   return [
     {id:"s-brows-lip", he:"עיצוב גבות + שפם", en:"Brow shaping + upper lip",
-     minutes:30, price:0, form:true, active:true, treat:["wax"]},
+     minutes:30, form:true, active:true, treat:["wax"]},
     {id:"s-lift",      he:"הרמת ריסים",       en:"Lash lift",
-     minutes:60, price:0, form:true, active:true, treat:["lift"]},
+     minutes:60, form:true, active:true, treat:["lift"]},
     {id:"s-lam",       he:"הרמת גבות",        en:"Brow lamination",
-     minutes:45, price:0, form:true, active:true, treat:["lam"]},
+     minutes:45, form:true, active:true, treat:["lam"]},
     {id:"s-leg",       he:"שעווה חצי רגל",    en:"Half leg wax",
-     minutes:30, price:0, form:true, active:true, treat:["bodywax"]},
+     minutes:30, form:true, active:true, treat:["bodywax"]},
     {id:"s-arm",       he:"שעווה חצי יד",     en:"Half arm wax",
-     minutes:30, price:0, form:true, active:true, treat:["bodywax"]},
+     minutes:30, form:true, active:true, treat:["bodywax"]},
     {id:"s-pit",       he:"שעווה בית שחי",    en:"Underarm wax",
-     minutes:10, price:0, form:true, active:true, treat:["bodywax"]}
+     minutes:10, form:true, active:true, treat:["bodywax"]}
   ];
 }
 /* ראשון עד חמישי מלא, שישי קצר, שבת סגור. משנים בהגדרות. */
@@ -199,8 +181,6 @@ function defaultSettings(){
     horizon:   45,      /* עד כמה ימים קדימה אפשר להזמין */
     cancelHours: 24,    /* מדיניות ביטול, מוצגת ללקוחה */
     autoConfirm: true,  /* תור מהאתר נכנס מאושר, או ממתין לאישור */
-    showPrices: false,  /* האם דף ההזמנה מציג מחירים ללקוחה. ביומן הם
-                           תמיד מוצגים — שם זה הכסף שלה, לא שיווק */
     noteHe:    "",      /* הודעה ללקוחה בדף ההזמנה */
     noteEn:    ""
   };

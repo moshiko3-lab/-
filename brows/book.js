@@ -71,12 +71,6 @@ function activeServices(){
   return db.services.filter(function(s){ return s.active !== false; });
 }
 function svc(){ return serviceById(db, pick.service); }
-/* הסטודיו בוחר אם מחיר מופיע ללקוחה. כשהוא לא מופיע, גם השורה שהוא
-   ישב בה נעלמת — לא נשאר " · " תלוי באוויר. */
-function priceOn(){ return db.settings.showPrices === true && hasMoney(db); }
-function withPrice(s, sep){
-  return priceOn() ? (sep || " · ") + money(s.price) : "";
-}
 function note(){ return LANG === "he" ? db.settings.noteHe : db.settings.noteEn; }
 
 function setStep(n){
@@ -119,9 +113,7 @@ function drawServices(){
                esc(t("formOnce")) + "</p>" : "") +
     (list.length ? list.map(function(s){
       return '<button class="pick" data-s="' + s.id + '"><div class="svc">' +
-        "<b>" + esc(svcName(s)) + "</b>" +
-        (priceOn() ? '<span class="price">' + money(s.price) + "</span>" : "") +
-        "</div>" +
+        "<b>" + esc(svcName(s)) + "</b></div>" +
         '<div class="dur">' + s.minutes + " " + esc(t("minutes")) +
         (s.form && !allNeed ? " · " + esc(t("needsForm")) : "") + "</div></button>";
     }).join("") : "<p class=\"muted\">" + esc(t("noServices")) + "</p>");
@@ -150,8 +142,7 @@ function drawWhen(){
   $("#stage").innerHTML =
     '<button class="back">‹ ' + esc(t("backToServices")) + "</button>" +
     '<div class="recap"><div><b>' + esc(svcName(s)) + "</b></div>" +
-    '<div class="small">' + s.minutes + " " + esc(t("minutes")) + withPrice(s) +
-      "</div></div>" +
+    '<div class="small">' + s.minutes + " " + esc(t("minutes")) + "</div></div>" +
     "<h2>" + esc(t("pickWhen")) + "</h2>" +
     '<div class="days">' + days.slice(0, 21).map(function(d){
       var dt = parseYmd(d.date);
@@ -183,8 +174,7 @@ function drawDetails(){
     '<button class="back">‹ ' + esc(t("changeTime")) + "</button>" +
     '<div class="recap"><div><b>' + esc(svcName(s)) + "</b></div>" +
     "<div>" + esc(niceDate(pick.date)) + " · " + hm12(pick.time) + "</div>" +
-    '<div class="small">' + s.minutes + " " + esc(t("minutes")) + withPrice(s) +
-      "</div></div>" +
+    '<div class="small">' + s.minutes + " " + esc(t("minutes")) + "</div></div>" +
     "<h2>" + esc(t("yourDetails")) + "</h2>" +
     '<div class="field"><label>' + esc(t("fullName")) + "</label>" +
       '<input id="b-name" autocomplete="name"><div class="errmsg">' +
@@ -228,7 +218,7 @@ function submit(){
   var appt = {
     id: uid(), clientName: name, phone: normPhone(phone),
     serviceId: s.id, serviceName: svcName(s), date: pick.date, time: pick.time,
-    minutes: s.minutes, price: s.price, note: $("#b-note").value.trim(),
+    minutes: s.minutes, note: $("#b-note").value.trim(),
     status: db.settings.autoConfirm ? "confirmed" : "pending",
     source: "online", lang: LANG, created: new Date().toISOString()
   };

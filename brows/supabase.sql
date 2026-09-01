@@ -177,7 +177,7 @@ grant execute on function public.free_busy(date, date) to anon, authenticated;
 -- היו מקבלים "נקבע", ושתי לקוחות היו מגיעות לאותה שעה.
 create or replace function public.book_slot(
   p_name text, p_phone text, p_service text, p_service_name text,
-  p_date date, p_time text, p_minutes int, p_price numeric,
+  p_date date, p_time text, p_minutes int,
   p_note text default '', p_lang text default 'en')
 returns text
 language plpgsql security definer set search_path = public as $$
@@ -238,15 +238,15 @@ begin
     'id', new_id, 'clientName', trim(p_name), 'phone', trim(p_phone),
     'serviceId', p_service, 'serviceName', p_service_name,
     'date', to_char(p_date, 'YYYY-MM-DD'), 'time', p_time,
-    'minutes', p_minutes, 'price', p_price, 'note', coalesce(p_note, ''),
+    'minutes', p_minutes, 'note', coalesce(p_note, ''),
     'lang', coalesce(p_lang, 'en'),
     'status', case when auto then 'confirmed' else 'pending' end,
     'source', 'online', 'created', now()
   ));
   return new_id;
 end $$;
-revoke all on function public.book_slot(text,text,text,text,date,text,int,numeric,text,text) from public;
-grant execute on function public.book_slot(text,text,text,text,date,text,int,numeric,text,text)
+revoke all on function public.book_slot(text,text,text,text,date,text,int,text,text) from public;
+grant execute on function public.book_slot(text,text,text,text,date,text,int,text,text)
   to anon, authenticated;
 
 -- ------------------------------------------------------- כתב שחרור חתום

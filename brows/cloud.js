@@ -222,7 +222,7 @@ function cloudBook(a){
   return clFetch("/rest/v1/rpc/book_slot", {method: "POST", auth: false, body: {
     p_name: a.clientName, p_phone: a.phone, p_service: a.serviceId,
     p_service_name: a.serviceName, p_date: a.date, p_time: a.time,
-    p_minutes: a.minutes, p_price: a.price, p_note: a.note || "",
+    p_minutes: a.minutes, p_note: a.note || "",
     p_lang: a.lang || "en"
   }});
 }

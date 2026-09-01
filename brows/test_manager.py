@@ -23,9 +23,9 @@ def book(**over):
                      "cancelHours": 24, "autoConfirm": True, "owner": "", "address": ""},
         "services": [
             {"id": "s-a", "he": "עיצוב גבות", "en": "Brow shaping", "minutes": 30,
-             "price": 25, "form": False, "active": True},
+             "form": False, "active": True},
             {"id": "s-lift", "he": "הרמת ריסים", "en": "Lash lift", "minutes": 75,
-             "price": 80, "form": True, "active": True}],
+             "form": True, "active": True}],
         "clients": [], "appointments": [], "blocks": [], "forms": []
     }
     b.update(over)
@@ -56,8 +56,8 @@ def main():
         pg.fill("#e-time", "10:00")
         pg.select_option("#e-lang", "en")
         pg.wait_for_timeout(150)
-        ok(pg.input_value("#e-min") == "75" and pg.input_value("#e-price") == "80",
-           "choosing a treatment fills in its length and price")
+        ok(pg.input_value("#e-min") == "75",
+           "choosing a treatment fills in how long it takes")
         pg.click("#e-save")
         pg.wait_for_timeout(400)
 
@@ -117,7 +117,7 @@ def main():
         seeded["appointments"] = [{
             "id": "p1", "clientName": "Rita", "phone": "50762222222",
             "serviceId": "s-a", "serviceName": "Brow shaping", "date": TOMORROW,
-            "time": "14:00", "minutes": 30, "price": 25, "status": "pending",
+            "time": "14:00", "minutes": 30, "status": "pending",
             "source": "online", "lang": "he"}]
         pg = phone(b, seed=seeded)
         watch_open(pg)
