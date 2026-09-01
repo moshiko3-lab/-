@@ -11,6 +11,9 @@ var db = loadDb();
 var day = todayYmd();
 var tab = "today";
 
+/* עברית סופרת אחרת: "1 ביקורים" נראה כמו באג, כי זה באג. */
+function plural(n, one, many){ return n === 1 ? one : n + " " + many; }
+
 function persist(){ if (!saveDb(db)) toast("אין מקום לשמור — ייצאי גיבוי"); }
 function esc(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
@@ -196,8 +199,9 @@ function renderDay(){
   var live = list.filter(ACTIVE);
   var m = live.reduce(function(t, a){ return t + (+a.price || 0); }, 0);
   var mins = live.reduce(function(t, a){ return t + (+a.minutes || 0); }, 0);
-  $("#d-sum").textContent = live.length
-    ? live.length + " תורים · " + (Math.round(mins / 6) / 10) + " שעות · " + money(m) : "";
+  $("#d-sum").innerHTML = live.length
+    ? plural(live.length, "תור אחד", "תורים") + " · " +
+      (Math.round(mins / 6) / 10) + " שעות · " + money(m) : "";
 
   var blocks = db.blocks.filter(function(b){ return b.date === day; });
   var html;
@@ -206,12 +210,19 @@ function renderDay(){
       (workWindows(db, day).length ? "אין תורים ביום הזה." : "יום סגור לפי שעות העבודה.") +
       '<div style="margin-top:12px"><button class="mini primary" id="d-add">+ תור חדש</button></div></div>';
   } else {
-    html = list.map(apptCard).join("") + blocks.map(function(b){
-      return '<button class="appt" data-block="' + b.id + '" style="background:#f6f3f1">' +
-        '<div class="time">' + hm12(b.from) + "</div>" +
+    /* היום נקרא מלמעלה למטה. הפסקת צהריים שנערמת אחרי תור של ארבע
+       אומרת לה משהו לא נכון על הסדר של היום שלה. */
+    var rows = list.map(function(a){
+      return {at: hm2min(a.time), html: apptCard(a)};
+    }).concat(blocks.map(function(b){
+      return {at: hm2min(b.from), html:
+        '<button class="appt block" data-block="' + b.id + '">' +
+        '<div class="time">' + ltr(hm12(b.from)) +
+          '<div class="till">' + ltr(hm12(b.to).replace(/ [AP]M$/, "")) + "</div></div>" +
         '<div class="grow"><div class="name">' + esc(b.reason || "חסום") + "</div>" +
-        '<div class="small muted">' + hm12(b.from) + " – " + hm12(b.to) + "</div></div></button>";
-    }).join("");
+        '<div class="small muted">זמן חסום</div></div></button>'};
+    })).sort(function(x, y){ return x.at - y.at; });
+    html = rows.map(function(r){ return r.html; }).join("");
   }
   $("#d-list").innerHTML = html;
   var add = $("#d-add"); if (add) add.onclick = function(){ apptEditor(null); };
@@ -230,8 +241,8 @@ function apptCard(a){
              a.status === "done"    ? '<span class="chip ok">בוצע</span>'   :
              a.status === "cancelled" ? '<span class="chip bad">בוטל</span>' : "";
   return '<button class="appt ' + (a.status || "confirmed") + '" data-appt="' + a.id + '">' +
-    '<div class="time">' + hm12(a.time) +
-      '<div class="small muted" style="font-weight:400">' + hm12(apptEnd(db, a)) + "</div></div>" +
+    '<div class="time">' + ltr(hm12(a.time)) +
+      '<div class="till">' + ltr(hm12(apptEnd(db, a)).replace(/ [AP]M$/, "")) + "</div></div>" +
     '<div class="grow"><div class="row between"><span class="name">' +
       esc(a.clientName || "ללא שם") + "</span>" + chip + "</div>" +
     '<div class="small muted">' + esc(svcLabel(a, "he")) + " · " + money(a.price) +
@@ -251,13 +262,14 @@ function apptSheet(id){
   openModal(
     '<div class="row between"><h2>' + esc(a.clientName) + "</h2>" +
       '<button class="ghost mini" data-close>סגירה</button></div>' +
-    '<p class="muted small">' + niceDate(a.date) + " · " + hm12(a.time) + " – " +
-      hm12(apptEnd(db, a)) + " · " + esc(svcLabel(a, "he")) + " · " + money(a.price) + "</p>" +
+    '<p class="muted small">' + niceDate(a.date) + " · " +
+      ltr(hm12(a.time) + " – " + hm12(apptEnd(db, a))) +
+      " · " + esc(svcLabel(a, "he")) + " · " + money(a.price) + "</p>" +
     (s && s.form && !f ? '<div class="chip warn" style="margin-bottom:10px">עוד לא חתמה על כתב שחרור</div>' : "") +
-    (f ? '<div class="chip ok" style="margin-bottom:10px">חתמה · ' +
-         esc(String(f.signedAt || "").slice(0, 10)) + "</div>" : "") +
+    (f ? '<div class="chip ok" style="margin-bottom:10px">חתמה על כתב שחרור · ' +
+         esc(stampDate(f.signedAt)) + "</div>" : "") +
     (a.note ? "<p>" + esc(a.note) + "</p>" : "") +
-    '<div class="row wrapped" style="margin:12px 0">' +
+    '<div class="acts" style="margin:12px 0">' +
       (a.phone ? '<a class="btn mini" href="tel:+' + esc(normPhone(a.phone)) + '">חיוג</a>' +
                  '<a class="btn mini" target="_blank" href="' +
                    esc(waLink(a.phone, confirmText(a))) + '">אישור</a>' +
@@ -266,12 +278,12 @@ function apptSheet(id){
                  '<a class="btn mini" target="_blank" href="' +
                    esc(waLink(a.phone, formInvite(a))) + '">שליחת טופס</a>' : "") +
     "</div>" +
-    '<div class="row wrapped">' +
+    '<div class="acts">' +
       (a.status !== "done" ? '<button class="mini primary" id="m-done">בוצע</button>' : "") +
       '<button class="mini" id="m-edit">עריכה</button>' +
       (a.status !== "cancelled" ? '<button class="mini danger" id="m-cancel">ביטול</button>' : "") +
-      (c ? '<button class="mini ghost" id="m-client">כרטיס לקוחה</button>' : "") +
-      (f ? '<button class="mini ghost" id="m-form">הטופס שלה</button>' : "") +
+      (c ? '<button class="mini" id="m-client">כרטיס לקוחה</button>' : "") +
+      (f ? '<button class="mini" id="m-form">כתב השחרור שלה</button>' : "") +
     "</div>"
   );
   var d = $("#m-done");   if (d) d.onclick = function(){ closeModal(); setStatus(id, "done"); };
@@ -490,15 +502,17 @@ function renderClients(){
            (digits(q) && normPhone(c.phone).indexOf(digits(q)) >= 0);
   });
   list.sort(function(a, b){ return (a.name || "").localeCompare(b.name || "", "he"); });
-  $("#c-sum").textContent = db.clients.length + " לקוחות" +
+  $("#c-sum").textContent = plural(db.clients.length, "לקוחה אחת", "לקוחות") +
     (q ? " · " + list.length + " תואמות" : "");
   $("#c-list").innerHTML = list.length ? '<ul class="list">' + list.map(function(c){
     var s = clientStats(c);
     return '<li data-cl="' + c.id + '"><div class="row between">' +
       '<div class="grow"><div class="name">' + esc(c.name || "ללא שם") + "</div>" +
-      '<div class="small muted">' + esc(showPhone(c.phone)) + " · " + s.visits + " ביקורים" +
+      '<div class="small muted">' + esc(showPhone(c.phone)) + " · " +
+      plural(s.visits, "ביקור אחד", "ביקורים") +
       (s.next ? " · הבא: " + shortDate(s.next.date) : "") + "</div></div>" +
-      (s.next ? '<span class="chip ok">תור קבוע</span>' : "") + "</div></li>";
+      (s.next ? '<span class="chip ok">' + shortDate(s.next.date) + "</span>" : "") +
+      "</div></li>";
   }).join("") + "</ul>" : '<div class="empty">אין עדיין לקוחות.</div>';
   $("#c-list").querySelectorAll("[data-cl]").forEach(function(el){
     el.onclick = function(){ clientSheet(el.dataset.cl); };
@@ -516,9 +530,9 @@ function clientSheet(id){
   openModal(
     '<div class="row between"><h2>' + esc(c.name) + "</h2>" +
       '<button class="ghost mini" data-close>סגירה</button></div>' +
-    '<p class="muted small">' + esc(showPhone(c.phone)) + " · " + s.visits + " ביקורים · " +
-      money(s.spent) + " בסך הכול</p>" +
-    '<div class="row wrapped" style="margin:10px 0">' +
+    '<p class="muted small">' + esc(showPhone(c.phone)) + " · " +
+      plural(s.visits, "ביקור אחד", "ביקורים") + " · " + money(s.spent) + " בסך הכול</p>" +
+    '<div class="acts" style="margin:10px 0">' +
       '<a class="btn mini" href="tel:+' + esc(normPhone(c.phone)) + '">חיוג</a>' +
       '<a class="btn mini" target="_blank" href="' + esc(waLink(c.phone, "")) + '">וואטסאפ</a>' +
       '<button class="mini primary" id="cl-new">תור חדש</button>' +
@@ -528,7 +542,7 @@ function clientSheet(id){
       '<button class="mini" id="cl-save" style="margin-top:6px">שמירת הערות</button></div>' +
     (forms.length
       ? '<button class="chip ok" id="cl-doc" style="border:none;margin-bottom:8px">חתמה על כתב שחרור · ' +
-        esc(String(forms[0].signedAt || "").slice(0, 10)) + "</button>"
+        esc(stampDate(forms[0].signedAt)) + "</button>"
       : '<div class="chip warn" style="margin-bottom:8px">אין כתב שחרור חתום</div>') +
     "<h3>היסטוריה</h3>" +
     (hist.length ? '<ul class="list">' + hist.map(function(a){
@@ -562,14 +576,14 @@ function renderForms(){
   var list = db.forms.slice().sort(function(a, b){
     return String(b.signedAt || "").localeCompare(String(a.signedAt || ""));
   });
-  $("#f-list").innerHTML = list.length ? '<ul class="list">' + list.map(function(f){
-    return '<li data-f="' + f.id + '"><div class="row between">' +
-      '<div class="grow"><div class="name">' + esc(f.name) + "</div>" +
-      '<div class="small muted">' + esc((f.treatments || []).join(", ")) + " · " +
-      esc(String(f.signedAt || "").slice(0, 10)) + "</div></div>" +
+  $("#f-list").innerHTML = list.length ? list.map(function(f){
+    return '<button class="appt" data-f="' + f.id + '"><div class="grow">' +
+      '<div class="row between"><span class="name">' + esc(f.name) + "</span>" +
       (flagged(f).length ? '<span class="chip warn">לשים לב</span>'
-                         : '<span class="chip ok">תקין</span>') + "</div></li>";
-  }).join("") + "</ul>" : '<div class="empty">עדיין לא הגיעו טפסים.</div>';
+                         : '<span class="chip ok">תקין</span>') + "</div>" +
+      '<div class="small muted">' + esc((f.treatments || []).join(", ")) + " · נחתם " +
+      esc(stampDate(f.signedAt)) + "</div></div></button>";
+  }).join("") : '<div class="empty">עדיין לא הגיעו טפסים.</div>';
   $("#f-list").querySelectorAll("[data-f]").forEach(function(el){
     el.onclick = function(){ formSheet(el.dataset.f); };
   });

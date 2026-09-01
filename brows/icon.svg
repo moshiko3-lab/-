@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7cfc9"/>
+      <stop offset="1" stop-color="#a5645f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <!-- הגבה: קשת אחת, עבה בהתחלה ודקה בסוף, כמו שהיא באמת -->
+  <path d="M112 214 C 176 150, 306 138, 404 186"
+        fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round"/>
+  <!-- העין והריסים מתחת -->
+  <path d="M126 322 C 190 268, 322 268, 386 322 C 322 376, 190 376, 126 322 Z"
+        fill="none" stroke="#fff" stroke-width="20" stroke-linejoin="round"/>
+  <circle cx="256" cy="322" r="34" fill="#fff"/>
+  <g stroke="#fff" stroke-width="17" stroke-linecap="round">
+    <path d="M150 286 L 128 250"/>
+    <path d="M204 266 L 192 224"/>
+    <path d="M256 258 L 256 214"/>
+    <path d="M308 266 L 320 224"/>
+    <path d="M362 286 L 384 250"/>
+  </g>
+</svg>

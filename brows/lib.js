@@ -75,6 +75,16 @@ function shortDate(s){
 function nowMinutes(){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
 /* חותמת זמן על מסמך חתום נקראת בשעון של מי שקוראת אותו, לא ב-UTC.
    מה שנשמר נשאר ISO — זה מה שממיין נכון; מה שמוצג הוא מקומי. */
+/* טווח שעות בתוך משפט עברי: "12:30 PM – 1:30 PM" הוא רצף של קטעים
+   לטיניים עם מקף ניטרלי ביניהם, וההקשר הימני-לשמאלי מסדר אותם מחדש —
+   על המסך זה יוצא "PM – 1:30 PM 12:30". span עם dir=ltr נועל את הסדר. */
+function ltr(text){ return '<span dir="ltr">' + text + "</span>"; }
+/* התאריך שרשום על מסמך חתום, קצר וקריא: 28/8 ולא 2026-08-28 */
+function stampDate(iso){
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso || "").slice(0, 10);
+  return d.getDate() + "/" + (d.getMonth() + 1);
+}
 function localStamp(iso){
   var d = new Date(iso);
   if (isNaN(d.getTime())) return String(iso || "");

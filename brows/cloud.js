@@ -235,7 +235,7 @@ function cloudSubmitForm(f){
 
 /* ------------------------------------------------- מה שהיומן מציג */
 function cloudLine(){
-  if (!cloudConfigured()) return "מכשיר זה בלבד";
+  if (!cloudConfigured()) return "היומן שמור בטלפון הזה";
   if (!cloudSignedIn()) return "לא מחוברת";
   var n = outboxCount();
   if (CL_STATE.error) return CL_STATE.error;

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>היומן</title>
 <meta name="theme-color" content="#faf7f4">
+/*__HEAD__*/
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,8 +16,16 @@
 .appt{ display:flex; gap:11px; padding:12px; border:1px solid var(--line);
        border-radius:14px; background:#fff; margin-bottom:8px; align-items:flex-start;
        width:100%; text-align:start; }
-.appt .time{ flex:0 0 50px; font-weight:700; font-variant-numeric:tabular-nums;
-             font-size:.95rem; }
+/* "12:45 PM" על שתי שורות נראה כמו תקלה. העמודה רחבה מספיק לשעה
+   שלמה, ושעת הסיום מתחתיה בלי AM/PM — באותה שורה זה כבר ברור. */
+.appt .time{ flex:0 0 66px; font-weight:700; font-variant-numeric:tabular-nums;
+             font-size:.88rem; white-space:nowrap; line-height:1.35; }
+.appt .till{ font-weight:400; font-size:.78rem; color:var(--muted); }
+.appt.block{ background:#f6f3f1; }
+/* פעולות בגיליון: שתיים בשורה, שוות. ארבעה כפתורים שנשברים איפה שיוצא
+   נראים כמו ערימה, לא כמו תפריט. */
+.acts{ display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.acts .btn, .acts button{ width:100%; }
 .appt.cancelled{ opacity:.5; }
 .appt.cancelled .name{ text-decoration:line-through; }
 .appt.pending{ border-inline-start:4px solid var(--warn); }

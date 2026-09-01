@@ -24,9 +24,11 @@ Supabase's publishable key, which is meant to sit in a public page; what
 guards the data is supabase.sql, not the key.
 """
 import argparse
+import base64
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -40,6 +42,43 @@ PAGES = [
     ("book_template.html",    "book.js",    "book.html",  ["i18n", "salon"]),
     ("form_template.html",    "form.js",    "form.html",  ["i18n", "consent", "salon"]),
 ]
+
+
+def icon_data_uri(name):
+    with open(os.path.join(HERE, name), "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode()
+
+
+def head_for(name):
+    """What turns a page into something that lives on a home screen.
+
+    The touch icon is inlined, so a page opened from a file or a memory
+    stick still has one. The manifest is a real file beside the pages --
+    Android wants one to open the diary full screen, without a browser bar
+    around it, and it is the diary that is opened forty times a day."""
+    # inlined once: iOS reads this one, and it is the phone most likely to
+    # be holding the diary. The favicon points at the file beside the page,
+    # so the same picture is not carried twice in every download.
+    out = ['<link rel="apple-touch-icon" href="%s">' % icon_data_uri("icon-180.png"),
+           '<link rel="icon" href="icon-192.png">']
+    if name == "index.html":
+        out += ['<link rel="manifest" href="manifest.webmanifest">',
+                '<meta name="apple-mobile-web-app-title" content="היומן">']
+    return "\n".join(out)
+
+
+MANIFEST = {
+    "name": "היומן", "short_name": "היומן", "lang": "he", "dir": "rtl",
+    "start_url": "./index.html", "scope": "./", "display": "standalone",
+    "orientation": "portrait", "background_color": "#faf7f4",
+    "theme_color": "#faf7f4",
+    "icons": [
+        {"src": "icon-192.png", "sizes": "192x192", "type": "image/png",
+         "purpose": "any"},
+        {"src": "icon-512.png", "sizes": "512x512", "type": "image/png",
+         "purpose": "any maskable"},
+    ],
+}
 
 
 def read(name):
@@ -71,9 +110,10 @@ def js_literal(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def render(template, app, extras):
+def render(template, app, extras, name):
     out = read(template)
     subs = {
+        "/*__HEAD__*/": head_for(name),
         "/*__STYLE__*/": read("style.css"),
         "/*__LIB__*/": read("lib.js"),
         # the whole declaration is replaced, so cloud.js still parses on its own
@@ -212,8 +252,19 @@ def main():
     if not a.quiet:
         print("shared book:", cloud["url"] or "none -- the pages work on one phone")
 
+    # The icons and the manifest go down first: the pages point at them, and
+    # the runtime check below fails a page that asks for a file that is not
+    # there -- which is how this ordering was found in the first place.
+    with open(os.path.join(outdir, "manifest.webmanifest"), "w",
+              encoding="utf-8") as f:
+        json.dump(MANIFEST, f, ensure_ascii=False, indent=1)
+    for icon in ("icon-192.png", "icon-512.png"):
+        shutil.copyfile(os.path.join(HERE, icon), os.path.join(outdir, icon))
+    if not a.quiet:
+        print("  manifest.webmanifest + icons")
+
     for template, app, name, extras in PAGES:
-        html = render(template, app, extras)
+        html = render(template, app, extras, name)
         note = check_js(html, name)
         path = os.path.join(outdir, name)
         with open(path, "w", encoding="utf-8") as f:
@@ -221,6 +272,7 @@ def main():
         run = check_runtime(path, name)
         if not a.quiet:
             print(f"  {name:<12} {len(html)//1024:>4} KB   {note}, {run}")
+
     return 0
 
 
