@@ -211,3 +211,41 @@ function setLang(l){
   document.documentElement.dir = T[l].dir;
 }
 function t(k){ return T[LANG][k]; }
+
+/* ------------------------------------------------------- מתג השפה
+   שני מקטעים ולא כפתור אחד: לקוחה שרואה "עברית" על דף אנגלי צריכה
+   לנחש אם זה מה שהיא מקבלת או מה שהיא תקבל. כאן רואים את שתיהן ואיזו
+   מהן דולקת. הפקד עצמו נשאר LTR תמיד, כך שהוא לא מתהפך מתחת לאצבע
+   ברגע שמחליפים. */
+var GLOBE = '<svg class="globe" viewBox="0 0 24 24" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/>' +
+  '<path d="M12 3c2.6 2.7 2.6 15.3 0 18C9.4 18.3 9.4 5.7 12 3z"/></svg>';
+
+function langPick(host, onChange){
+  var el = typeof host === "string" ? document.querySelector(host) : host;
+  if (!el) return;
+  el.className = "langpick";
+  el.setAttribute("dir", "ltr");
+  el.setAttribute("role", "group");
+  el.setAttribute("aria-label", "Language");
+  el.innerHTML = GLOBE +
+    '<button type="button" data-l="en">EN</button>' +
+    '<button type="button" data-l="he">עב</button>';
+  function paint(){
+    Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){
+      var on = b.dataset.l === LANG;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){
+    b.onclick = function(){
+      if (b.dataset.l === LANG) return;
+      setLang(b.dataset.l);
+      paint();
+      onChange();
+    };
+  });
+  paint();
+}

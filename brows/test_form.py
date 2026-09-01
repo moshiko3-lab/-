@@ -27,7 +27,13 @@ def watch_open(pg):
 
 
 def sign(pg):
-    """Draw on the signature pad the way a finger does."""
+    """Draw on the signature pad the way a finger does.
+
+    The pad has to be on screen first: the mouse is aimed at viewport
+    coordinates, so signing a canvas that is scrolled past draws on nothing
+    and looks exactly like a page that ignores the finger."""
+    pg.eval_on_selector("#sig", "e => e.scrollIntoView({block: 'center'})")
+    pg.wait_for_timeout(150)
     box = pg.query_selector("#sig").bounding_box()
     pg.mouse.move(box["x"] + 40, box["y"] + 110)
     pg.mouse.down()
@@ -141,6 +147,27 @@ def main():
            "and it leads with what she answered yes to")
         ok("data%3Aimage" not in opened[0],
            "the signature image does not go through WhatsApp")
+
+        # -------------------------------- a change of language mid-document
+        pg = phone(b, seed=book(), lang="en")
+        watch_open(pg)
+        open_page(pg, "form.html", "?lang=en&t=lift")
+        pg.fill("#p-name", "Half Filled")
+        pg.fill("#p-phone", "61234567")
+        answer_all(pg, yes_ids=("preg",))
+        pg.check("#c-dec")
+        sign(pg)
+        pg.click('.langpick button[data-l="he"]')
+        pg.wait_for_timeout(500)
+        ok(pg.input_value("#p-name") == "Half Filled",
+           "switching language mid-document keeps what she typed")
+        ok(pg.is_checked("#c-dec"), "and what she confirmed")
+        ok(pg.is_checked('#t-box input[data-t="lift"]'), "and the treatment she chose")
+        ok(pg.eval_on_selector('[data-q="preg"] .yn label:first-child',
+                               "e => e.className") == "on-yes",
+           "and her answers, in the new language")
+        ok(pg.evaluate("sig.drawn") is True, "and she does not have to sign again")
+        ok("כתב שחרור" in pg.inner_text("#stage"), "while the document itself is now Hebrew")
 
         # ------------------------------------------------ the same in Hebrew
         pg = phone(b, seed=book())

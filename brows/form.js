@@ -11,6 +11,29 @@ var db = null;
 var sig = null;        /* מצב לוח החתימה */
 var answers = {};      /* id -> {yes, note} */
 var chosen = {};       /* id של טיפול -> true */
+/* מה שכבר הוקלד. החלפת שפה מציירת את הטופס מחדש, ואישה שמילאה חצי
+   מסמך ואז לחצה על EN לא אמורה למצוא אותו ריק — החתימה כלולה. */
+var draft = {};
+
+var TEXT_FIELDS = ["p-name","p-phone","p-id","p-birth","p-mail","p-notes","g-name","g-id"];
+var TICKS = ["c-risk","c-after","c-dec","c-photo"];
+
+function snapshot(){
+  TEXT_FIELDS.forEach(function(id){ var e = $("#" + id); if (e) draft[id] = e.value; });
+  TICKS.forEach(function(id){ var e = $("#" + id); if (e) draft[id] = e.checked; });
+  if (sig && sig.drawn) draft.sig = sig.canvas.toDataURL("image/png");
+}
+function restore(){
+  TEXT_FIELDS.forEach(function(id){
+    var e = $("#" + id);
+    if (e && draft[id]) e.value = draft[id];
+  });
+  TICKS.forEach(function(id){
+    var e = $("#" + id);
+    if (e && draft[id]) e.checked = true;
+  });
+  if (answers.minor && answers.minor.yes) $("#minor-box").classList.remove("hidden");
+}
 
 function $(s){ return document.querySelector(s); }
 function $$(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
@@ -66,7 +89,6 @@ function visibleQuestions(){
 /* =============================== הטופס =============================== */
 function drawForm(){
   document.title = t("formTitle");
-  $("#lang").textContent = LANG === "he" ? "English" : "עברית";
   $("#bizname").textContent = (db.settings.name ? db.settings.name + " · " : "") + t("formTitle");
   $("#bizsub").textContent = t("formSub");
 
@@ -143,6 +165,7 @@ function drawForm(){
     '<p class="small muted" id="sendmsg" style="text-align:center;margin:10px 0 24px"></p>';
 
   drawQuestions();
+  restore();
   $("#sigdate").textContent = niceDate(todayYmd());
   $$("#t-box input").forEach(function(c){
     c.onchange = function(){ chosen[c.dataset.t] = c.checked; drawQuestions(); };
@@ -210,6 +233,16 @@ function initSig(){
   }
   ctx = size();
   sig = {drawn: false, canvas: c};
+  if (draft.sig) {
+    var back = new Image();
+    back.onload = function(){
+      var r = c.getBoundingClientRect();
+      ctx.drawImage(back, 0, 0, r.width, r.height);
+      sig.drawn = true;
+      $("#sighint").style.display = "none";
+    };
+    back.src = draft.sig;
+  }
   window.addEventListener("resize", function(){ ctx = size(); });
 
   var down = false;
@@ -238,6 +271,7 @@ function initSig(){
   $("#sigclear").onclick = function(){
     ctx.clearRect(0, 0, c.width, c.height);
     sig.drawn = false;
+    delete draft.sig;
     $("#sighint").style.display = "";
   };
 }
@@ -392,8 +426,5 @@ function drawDone(rec, where){
 /* ------------------------------------------------------------- הפעלה */
 setLang(pickLang());
 qs("t").split(",").forEach(function(id){ if (id) chosen[id] = true; });
-$("#lang").onclick = function(){
-  setLang(LANG === "he" ? "en" : "he");
-  drawForm();
-};
+langPick("#lang", function(){ snapshot(); drawForm(); });
 bootData().then(drawForm);

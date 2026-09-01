@@ -652,6 +652,11 @@ function renderSettings(){
       '<label class="row" style="margin-top:6px;font-weight:400">' +
         '<input type="checkbox" id="st-auto"' + (s.autoConfirm ? " checked" : "") + ">" +
         "<span class=\"small\">תור מהאתר נכנס מאושר מיד (אחרת ממתין לאישור שלך)</span></label>" +
+      '<label class="row" style="margin-top:6px;font-weight:400">' +
+        '<input type="checkbox" id="st-prices"' + (s.showPrices ? " checked" : "") + ">" +
+        "<span class=\"small\">להציג מחירים ללקוחות בדף ההזמנה" +
+        "<br><span class=\"muted\">כבוי: הלקוחה רואה טיפול ואורך, בלי מחיר. " +
+        "ביומן שלך המחירים תמיד מופיעים.</span></span></label>" +
     "</div>" +
 
     '<div class="card"><h2>הקישורים ללקוחות</h2>' +
@@ -694,6 +699,10 @@ function renderSettings(){
   });
   $("#st-auto").onchange = function(){
     db.settings.autoConfirm = $("#st-auto").checked;
+    persist(); cloudDirty("settings", "settings"); cloudSync();
+  };
+  $("#st-prices").onchange = function(){
+    db.settings.showPrices = $("#st-prices").checked;
     persist(); cloudDirty("settings", "settings"); cloudSync();
   };
   $("#lk-book-en").onclick = function(){ copy(siteUrl("book.html", "en"), "הקישור הועתק"); };

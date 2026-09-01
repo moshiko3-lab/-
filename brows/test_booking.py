@@ -50,6 +50,8 @@ def main():
            "the studio's own note reaches the client")
         ok("consent form required" in pg.inner_text(".pick:nth-of-type(2)"),
            "a treatment that needs a signed release says so before booking")
+        ok("$" not in pg.inner_text("#stage"),
+           "prices are off by default, so the client sees treatments and no numbers")
 
         pg.click(".pick:nth-of-type(1)")
         pg.wait_for_timeout(300)
@@ -101,6 +103,21 @@ def main():
            "the number is stored with its country code, once, in one shape")
         ok(saved["clients"][0]["name"] == "Ana Perez", "and the client card is created")
 
+        # switching language mid-form must not empty it
+        pg.evaluate("document.querySelector('.langpick button[data-l=\"he\"]').click()")
+        pg.wait_for_timeout(300)
+        ok(pg.evaluate("document.documentElement.dir") == "rtl",
+           "the switch at the top of the page flips it")
+
+        # prices, when the studio wants them shown
+        priced = book()
+        priced["settings"]["showPrices"] = True
+        pg2 = phone(b, seed=priced, lang="en")
+        watch_open(pg2)
+        open_page(pg2, "book.html")
+        ok("$25" in pg2.inner_text("#stage"),
+           "turning prices on in settings puts them back on the treatment list")
+
         # a treatment that needs the release offers the link straight after
         pg = phone(b, seed=book(), lang="en")
         watch_open(pg)
@@ -117,6 +134,23 @@ def main():
         href = pg.get_attribute("#stage a.btn", "href")
         ok(href.startswith("form.html?lang=en") and "t=lift" in href,
            "and the release link opens with the lash questions already chosen")
+
+        # what she typed survives a change of language
+        pg = phone(b, seed=book(), lang="en")
+        watch_open(pg)
+        open_page(pg, "book.html")
+        pg.click(".pick:nth-of-type(1)")
+        pg.wait_for_timeout(300)
+        pg.click(".slot")
+        pg.wait_for_timeout(250)
+        pg.fill("#b-name", "Half Filled")
+        pg.fill("#b-phone", "61234567")
+        pg.check("#b-ok")
+        pg.click('.langpick button[data-l="he"]')
+        pg.wait_for_timeout(350)
+        ok(pg.input_value("#b-name") == "Half Filled" and pg.input_value("#b-phone") == "61234567",
+           "a half-filled form is still filled after switching to Hebrew")
+        ok(pg.is_checked("#b-ok"), "and the box she ticked is still ticked")
 
         # the same page in Hebrew
         pg = phone(b, seed=book())
