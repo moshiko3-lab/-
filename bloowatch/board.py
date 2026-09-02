@@ -11,23 +11,21 @@ booking -- so this draws the same grid, and puts the tide underneath it on
 the same hour axis, because at Playa Venao the tide decides what a lesson at
 noon is actually going to be like.
 
-Rendered by pointing headless Chromium at a page this builds. Nothing here
-sends anything; it writes a PNG and prints its path.
+The drawing itself is in draw_board.py, which needs nothing but Pillow.
+`--spec` prints the picture as data instead: two kilobytes that will go
+where a rendered PNG will not -- into the sandbox that can actually reach
+WhatsApp. Nothing here sends anything; it writes a PNG and prints its path.
 """
 import argparse
 import datetime as dt
-import glob
-import html
 import json
 import os
 import re
-import subprocess
 import sys
-import tempfile
 
 from daily_report import BloowatchError, login
 from forecast_message import tides_for
-from rota import PANAMA, lessons_for, short, tomorrow
+from rota import MANY as MANY_NAMES, lessons_for, short, tomorrow
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,7 +35,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FIRST_HOUR, LAST_HOUR = 6, 20
 
 # One colour per kind of thing, so the shape of the day is legible before a
-# single word is read: teaching in the sea, shifts on the land.
+# single word is read: teaching in the sea, shifts on the land. The colours
+# themselves live in draw_board.py; this only decides which is which.
 COLOURS = [
     (("SHOP", "TIENDA", "STORE"), "shift"),
     (("RENTAL", "ALQUILER"), "rental"),
@@ -130,214 +129,66 @@ EN_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
           "Sunday"]
 
 
-def page(date, lessons, lang="he"):
+def spec(date, lessons, lang="he"):
+    """Everything the picture needs, and nothing that is only in the picture.
+
+    Kept as plain data so the drawing can happen somewhere else -- the only
+    machine that can put a picture into WhatsApp has no browser on it, and
+    two kilobytes of this travels where forty of PNG will not.
+    """
     d = dt.date.fromisoformat(date)
     lo, hi = FIRST_HOUR * 60, LAST_HOUR * 60
     for l in lessons:                      # never clip a real booking
         a, b = _span(l)
         lo, hi = min(lo, a - 60), max(hi, b + 60)
     lo, hi = max(0, (lo // 60) * 60), min(1440, -(-hi // 60) * 60)
-    width = hi - lo
-
-    def pct(x):
-        return 100.0 * (x - lo) / width
 
     if lang == "en":
         title = "%s %d/%d" % (EN_DOW[d.weekday()], d.day, d.month)
-        who_hd, tide_hd = "Crew", "Tide"
-        high_w, low_w = "high", "low"
+        tide_hd, high_w, low_w = "Tide", "high", "low"
+        words = {"lesson": "Lesson", "shift": "Shop shift", "rental": "Rental"}
     else:
         title = "יום %s %d/%d" % (HEB_DOW[d.weekday()], d.day, d.month)
-        who_hd, tide_hd = "צוות", "גאות ושפל"
-        high_w, low_w = "גאות", "שפל"
+        tide_hd, high_w, low_w = "גאות ושפל", "גאות", "שפל"
+        words = {"lesson": "שיעור", "shift": "משמרת חנות", "rental": "השכרה"}
 
-    hours = list(range(lo // 60, hi // 60 + 1))
-    head = "".join(
-        '<div class="h" style="left:%.4f%%">%02d</div>' % (pct(h * 60), h)
-        for h in hours)
-    grid = "".join('<div class="v" style="left:%.4f%%"></div>' % pct(h * 60)
-                   for h in hours)
-
-    body = []
+    out_rows = []
     for name, mine in rows(lessons):
         bars = []
         for l in sorted(mine, key=lambda x: x["time"]):
             a, b = _span(l)
             names = ", ".join(l.get("names") or [])
-            if len(l.get("names") or []) > 4:
+            if len(l.get("names") or []) > MANY_NAMES:
                 names = ""
             # a plain surf lesson has no name worth printing, so the person
-            # coming to it takes the top line instead of sitting under a
-            # word that is on every other bar too
-            head_, sub = short(l["title"]), names
-            if not head_:
-                head_, sub = names or l["title"], ""
-            bars.append(
-                '<div class="bar %s" style="left:%.4f%%;width:%.4f%%">'
-                '<b>%s</b>%s</div>'
-                % (kind(l["title"]), pct(a), 100.0 * (b - a) / width,
-                   html.escape(head_),
-                   ('<i>%s</i>' % html.escape(sub)) if sub else ""))
-        body.append('<div class="row"><div class="who">%s</div>'
-                    '<div class="track">%s%s</div></div>'
-                    % (html.escape(name), grid, "".join(bars)))
+            # coming to it takes the top line instead of sitting under a word
+            # that is on every other bar too
+            label, sub = short(l["title"]), names
+            if not label:
+                label, sub = names or l["title"], ""
+            bars.append({"x0": a, "x1": b, "kind": kind(l["title"]),
+                         "label": label, "sub": sub})
+        out_rows.append({"who": name, "bars": bars})
 
+    tide = None
     pts = curve(date, lo, hi)
-    tide = ""
     if pts:
-        top = max(p[1] for p in pts)
-        bot = min(p[1] for p in pts)
-        rng = (top - bot) or 1.0
-        xy = " ".join("%.3f,%.3f" % (pct(x), 100 - 100 * (m - bot) / rng)
-                      for x, m in pts)
-        marks = "".join(
-            '<div class="peak %s%s" style="left:%.4f%%">'
-            '<span>%s</span><b>%s</b><i>%.1f</i></div>'
-            % (p["what"],
-               " first" if pct(p["x"]) < 6 else
-               (" last" if pct(p["x"]) > 94 else ""), pct(p["x"]),
-               high_w if p["what"] == "high" else low_w, p["t"], p["m"])
-            for p in peaks_in(date, lo, hi))
-        tide = ('<div class="tide"><div class="who">%s</div>'
-                '<div class="track">%s'
-                '<svg viewBox="0 0 100 100" preserveAspectRatio="none">'
-                '<polyline points="%s"/></svg>%s</div></div>'
-                % (tide_hd, grid, xy, marks))
+        tide = {"label": tide_hd,
+                "points": [[x, round(m, 3)] for x, m in pts],
+                "peaks": [dict(p, word=high_w if p["what"] == "high" else low_w)
+                          for p in peaks_in(date, lo, hi)]}
 
-    # the key describes this board, not every board: a day with no rentals
-    # on it should not carry a colour nobody can find
-    words = ({"lesson": "Lesson", "shift": "Shop shift", "rental": "Rental"}
-             if lang == "en" else
-             {"lesson": "שיעור", "shift": "משמרת חנות", "rental": "השכרה"})
+    # the key describes this board, not every board: a day with no rentals on
+    # it should not carry a colour nobody can find
     here = {kind(l["title"]) for l in lessons}
-    key = [(k, words[k]) for k in ("lesson", "shift", "rental") if k in here]
-    return TEMPLATE % {
-        "lang": "en" if lang == "en" else "he",
-        "title": html.escape(title),
-        "sub": "SHOKOGI · Playa Venao",
-        "who": html.escape(who_hd),
-        "head": head,
-        "rows": "".join(body),
-        "tide": tide,
-        "key": "".join('<span><i class="dot %s"></i>%s</span>'
-                       % (cls, html.escape(word)) for cls, word in key),
-    }
+    key = [{"kind": k, "word": words[k]}
+           for k in ("lesson", "shift", "rental") if k in here]
 
-
-TEMPLATE = """<!doctype html><html dir="ltr"><head><meta charset="utf-8">
-<style>
-:root{
-  --ink:#0c2430; --muted:#5d7684; --line:#e3ded4; --sand:#f7f2e9;
-  --sea:#0f7d8f; --sea-soft:#daeef1; --shift:#e0932c; --shift-soft:#fbeed6;
-  --rental:#7a6bb5; --rental-soft:#e8e4f5;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#fff;font:14px/1.35 "DejaVu Sans","FreeSans",sans-serif;
-     color:var(--ink);width:1400px;padding:26px 30px 30px}
-h1{font-size:26px;letter-spacing:.2px}
-.sub{color:var(--muted);font-size:13px;letter-spacing:.4px}
-.head{display:flex;align-items:baseline;justify-content:space-between;
-      border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:4px}
-.axis{position:relative;height:22px;margin-left:130px}
-.h{position:absolute;top:5px;transform:translateX(-50%%);font-size:12px;
-   color:var(--muted);font-variant-numeric:tabular-nums}
-.row{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
-.row:first-of-type{border-top:1px solid var(--line)}
-.who{width:130px;flex:0 0 130px;padding-right:12px;font-weight:bold;
-     font-size:15px;display:flex;align-items:center}
-.track{position:relative;flex:1;min-height:54px;background:var(--sand)}
-.v{position:absolute;top:0;bottom:0;width:1px;background:#fff}
-.bar{position:absolute;top:6px;bottom:6px;border-radius:5px;padding:6px 6px;
-     overflow:hidden;border-left:3px solid var(--sea);background:var(--sea-soft)}
-.bar b{display:block;font-size:10.5px;line-height:1.2;white-space:nowrap;
-       overflow:hidden;text-overflow:ellipsis}
-.bar i{display:block;font-style:normal;font-size:10.5px;color:var(--muted);
-       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
-.bar.shift{border-left-color:var(--shift);background:var(--shift-soft)}
-.bar.rental{border-left-color:var(--rental);background:var(--rental-soft)}
-.tide{display:flex;margin-top:16px}
-.tide .who{align-items:flex-start;padding-top:6px;font-size:13px}
-.tide .track{min-height:110px;background:#f1f7f9;border-radius:6px}
-.tide svg{position:absolute;inset:0;width:100%%;height:100%%}
-.tide polyline{fill:none;stroke:var(--sea);stroke-width:1.8;
-               vector-effect:non-scaling-stroke;stroke-linejoin:round}
-.peak{position:absolute;bottom:9px;transform:translateX(-50%%);
-      text-align:center;font-size:11px;line-height:1.3}
-.peak.high{top:9px;bottom:auto}
-.peak span{display:block;color:var(--muted);font-size:10px}
-.peak b{display:block;font-variant-numeric:tabular-nums;font-size:12px}
-.peak i{display:block;font-style:normal;color:var(--sea);font-weight:bold;
-        font-variant-numeric:tabular-nums}
-.key{display:flex;gap:20px;margin:14px 0 0 130px;font-size:12px;
-     color:var(--muted)}
-.key span{display:flex;align-items:center;gap:7px}
-.dot{width:12px;height:12px;border-radius:3px;background:var(--sea-soft);
-     border-left:3px solid var(--sea)}
-.dot.shift{background:var(--shift-soft);border-left-color:var(--shift)}
-.peak.first{transform:none;text-align:left}
-.peak.last{transform:translateX(-100%%);text-align:right}
-body.he h1,body.he .tide .who,body.he .peak span{direction:rtl}
-</style></head><body class="%(lang)s">
-<div class="head"><h1>%(title)s</h1><div class="sub">%(sub)s</div></div>
-<div class="axis">%(head)s</div>
-%(rows)s
-%(tide)s
-<div class="key">%(key)s</div>
-</body></html>"""
-
-
-def chromium():
-    """Whichever headless Chromium this machine happens to carry."""
-    for p in ("/usr/bin/chromium", "/usr/bin/chromium-browser",
-              "/usr/bin/google-chrome"):
-        if os.path.exists(p):
-            return p
-    for pat in ("/opt/pw-browsers/chromium-*/chrome-linux/chrome",
-                "/opt/pw-browsers/chromium_headless_shell-*/"
-                "chrome-linux/headless_shell"):
-        found = sorted(glob.glob(pat))
-        if found:
-            return found[-1]
-    raise SystemExit("no chromium on this machine")
-
-
-def render(source, out, width=1400, scale=2, tall=2400):
-    """Shoot the page into a window taller than it needs, then cut it down.
-
-    Headless Chromium screenshots the viewport, not the document, and asking
-    it for the document's height means running it twice. Shooting into a
-    window nobody will ever fill and trimming the white off the bottom costs
-    one run and always fits.
-    """
-    with tempfile.TemporaryDirectory() as tmp:
-        src = os.path.join(tmp, "board.html")
-        with open(src, "w", encoding="utf-8") as f:
-            f.write(source)
-        cmd = [chromium(), "--headless", "--disable-gpu", "--no-sandbox",
-               "--hide-scrollbars", "--default-background-color=ffffffff",
-               "--force-device-scale-factor=%d" % scale,
-               "--window-size=%d,%d" % (width, tall),
-               "--screenshot=" + out, "--virtual-time-budget=3000",
-               "file://" + src]
-        r = subprocess.run(cmd, capture_output=True, text=True,
-                           cwd=tmp, timeout=120)
-        if not os.path.exists(out):
-            raise SystemExit("chromium wrote nothing:\n" + r.stderr[-2000:])
-    trim(out, pad=26 * scale)
-    return out
-
-
-def trim(path, pad=52):
-    """Cut the empty page off the bottom, leaving the margin the design has."""
-    try:
-        from PIL import Image, ImageChops
-    except ImportError:
-        return
-    im = Image.open(path).convert("RGB")
-    box = ImageChops.difference(im, Image.new("RGB", im.size, (255, 255, 255)))
-    bbox = box.getbbox()
-    if bbox:
-        im.crop((0, 0, im.width, min(im.height, bbox[3] + pad))).save(path)
+    return {"date": date, "lang": lang, "title": title,
+            "sub": "SHOKOGI · Playa Venao",
+            "lo": lo, "hi": hi,
+            "hours": list(range(lo // 60, hi // 60 + 1)),
+            "rows": out_rows, "tide": tide, "key": key}
 
 
 def main():
@@ -345,7 +196,10 @@ def main():
     ap.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
     ap.add_argument("--lang", choices=("he", "en"), default="he")
     ap.add_argument("--out", default=os.path.join(HERE, "board.png"))
-    ap.add_argument("--html", default="", help="also keep the page itself")
+    ap.add_argument("--spec", action="store_true",
+                    help="print the spec instead of drawing it, for a machine "
+                         "that has Pillow but cannot reach Bloowatch")
+    ap.add_argument("--scale", type=float, default=2)
     a = ap.parse_args()
     date = a.date or tomorrow()
     try:
@@ -357,11 +211,16 @@ def main():
     if not lessons:
         print("nothing booked for " + date)
         return 0
-    src = page(date, lessons, a.lang)
-    if a.html:
-        with open(a.html, "w", encoding="utf-8") as f:
-            f.write(src)
-    print(render(src, a.out))
+    sp = spec(date, lessons, a.lang)
+    if a.spec:
+        json.dump(sp, sys.stdout, ensure_ascii=False, separators=(",", ":"))
+        print()
+        return 0
+    import draw_board
+    im = draw_board.draw(sp, a.scale)
+    im.quantize(colors=32, method=draw_board.Image.MEDIANCUT).save(
+        a.out, optimize=True)
+    print(a.out)
     return 0
 
 
