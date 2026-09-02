@@ -47,7 +47,13 @@
         "POST it: curl -F \"text=<cap.txt\" -F \"file=@board.png\" -H \"Authorization: Bearer <token>\" https://app.timelines.ai/integrations/api/chats/<chat_id>/messages"
       ],
       "_note": "`text` is the image's caption, so the rota and the picture arrive as ONE message. No trailing slash on the URL — with one it 404s. The sandbox needs Pillow built with raqm or the Hebrew comes out backwards; it has it.",
-      "_caption_limit": "WhatsApp cuts a caption around 1024 characters. On a big day send the picture with a short caption and the full rota as a second message."
+      "_caption_limit": "WhatsApp cuts a caption around 1024 characters. On a big day send the picture with a short caption and the full rota as a second message.",
+      "_two_kinds": "There are two boards. shot.py photographs the real Bloowatch planner (what the owner asked for on 2026-09-02) and board.py draws our own. Send the photograph; fall back to the drawing only if the browser route fails, because a rota with a drawn board beats a rota with none.",
+      "the_screenshot": {
+        "make_it": "BLOOWATCH_EMAIL/PASSWORD set, then `python3 shot.py --out board.png`. Squeeze it before sending: resize to 2143 wide and quantize to 16 colours (about 33 KB). Below 16 colours the pink blocks lose their text and the picture is worthless.",
+        "carry_it": "base64 it and paste it into the sandbox in pieces of about 6000 characters, appending each to the same file — a single message cannot carry more than roughly 6.9 KB, and a longer paste is silently cut. About seven pieces. After the last one, `base64 -d` it and check the byte count matches before sending.",
+        "_why_not_smaller": "app.timelines.ai is unreachable from this container, so the file has to travel to the sandbox, and the sandbox has no browser to take the shot itself."
+      }
     }
   },
   "no_personal_message": {
