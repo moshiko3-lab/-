@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Put a message on WhatsApp, through whichever gateway is configured.
+
+    python3 send.py --to staff --text rota.txt --file board.png
+    python3 send.py --to +50762596666 --text hello.txt
+    python3 send.py --to staff --text rota.txt --dry-run
+
+Runs on the machine that can reach the gateway, which is not the machine
+that builds the message; both gateways are unreachable from the container
+Bloowatch is read from. So this file is fetched from the repository by the
+sandbox, and the message is handed to it as files.
+
+Two gateways, one shape. TimelinesAI is what the school uses today and it
+meters automated messages -- fifty a month on the plan it is on, against a
+need nearer five hundred. Green-API charges for the connection rather than
+the message. Nothing above the gateway changes: the rota, the board and
+the forecast are built the same way either side of the move, and which one
+is in use is decided by which credentials are in the environment.
+
+    GREENAPI_ID / GREENAPI_TOKEN   -> Green-API
+    TIMELINESAI_TOKEN              -> TimelinesAI
+
+Never put a token in a file, a log, or an argument: they come from the
+environment so they do not end up in shell history or a transcript.
+"""
+
+import argparse
+import json
+import mimetypes
+import os
+import sys
+import urllib.error
+import urllib.request
+import uuid
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+BOOK = os.path.join(HERE, "whatsapp.json")
+
+TL = "https://app.timelines.ai/integrations/api"
+GREEN = "https://api.green-api.com"
+GREEN_MEDIA = "https://media.green-api.com"
+
+CAPTION_MAX = 1024          # both gateways cut a caption here, as WhatsApp does
+
+
+def book(path=BOOK):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def target(name, groups):
+    """Where a message is going, as both gateways want it spelled.
+
+    A group is addressed by its WhatsApp id everywhere; TimelinesAI wants
+    its own chat number instead, which is why both are written down.
+    """
+    g = groups.get(name)
+    if g:
+        return {"jid": g["jid"], "chat_id": str(g["chat_id"]), "name": name}
+    n = "".join(ch for ch in name if ch.isdigit())
+    if not n:
+        raise SystemExit("unknown destination %r -- a group name or a phone" % name)
+    return {"jid": n + "@c.us", "chat_id": None, "name": "+" + n}
+
+
+def _multipart(fields, files):
+    """Build a form-data body without pulling in a dependency."""
+    line = b"\r\n"
+    edge = "----shokogi" + uuid.uuid4().hex
+    out = []
+    for k, v in fields.items():
+        if v is None:
+            continue
+        out.append(("--" + edge).encode())
+        out.append(('Content-Disposition: form-data; name="%s"' % k).encode())
+        out.append(b"")
+        out.append(str(v).encode("utf-8"))
+    for k, path in files.items():
+        if not path:
+            continue
+        kind = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        with open(path, "rb") as f:
+            blob = f.read()
+        out.append(("--" + edge).encode())
+        out.append(('Content-Disposition: form-data; name="%s"; filename="%s"'
+                    % (k, os.path.basename(path))).encode())
+        out.append(("Content-Type: " + kind).encode())
+        out.append(b"")
+        out.append(blob)
+    out.append(("--" + edge + "--").encode())
+    out.append(b"")
+    return line.join(out), "multipart/form-data; boundary=" + edge
+
+
+def _post(url, body, ctype, headers=None, timeout=180):
+    req = urllib.request.Request(url, data=body, method="POST")
+    req.add_header("Content-Type", ctype)
+    for k, v in (headers or {}).items():
+        req.add_header(k, v)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8", "replace")
+
+
+def via_timelines(where, text, path, token):
+    if where["chat_id"] is None:
+        body = json.dumps({"phone": where["name"],
+                           "whatsapp_account_phone": book()["account"]["phone"],
+                           "text": text}).encode("utf-8")
+        return _post(TL + "/messages/", body, "application/json",
+                     {"Authorization": "Bearer " + token})
+    url = "%s/chats/%s/messages" % (TL, where["chat_id"])   # no trailing slash
+    if path:
+        body, ctype = _multipart({"text": text}, {"file": path})
+    else:
+        body, ctype = _multipart({"text": text}, {})
+    return _post(url, body, ctype, {"Authorization": "Bearer " + token})
+
+
+def via_green(where, text, path, ident, token):
+    """Green-API: a text goes to sendMessage, a file to sendFileByUpload.
+
+    The file call carries the text as its caption, so the picture and the
+    rota arrive as one message rather than two -- the same shape we have
+    today, and the reason the office reads it as one thing.
+    """
+    if path:
+        url = "%s/waInstance%s/sendFileByUpload/%s" % (GREEN_MEDIA, ident, token)
+        body, ctype = _multipart(
+            {"chatId": where["jid"], "caption": text[:CAPTION_MAX],
+             "fileName": os.path.basename(path)}, {"file": path})
+        return _post(url, body, ctype)
+    url = "%s/waInstance%s/sendMessage/%s" % (GREEN, ident, token)
+    body = json.dumps({"chatId": where["jid"], "message": text}).encode("utf-8")
+    return _post(url, body, "application/json")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--to", required=True,
+                    help="a group name from whatsapp.json (staff, surfers_he, "
+                         "surfers_en) or a phone number")
+    ap.add_argument("--text", required=True, help="file holding the message")
+    ap.add_argument("--file", default="", help="a picture to send with it")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="say what would be sent, and send nothing")
+    a = ap.parse_args()
+
+    groups = book()["groups"]
+    where = target(a.to, groups)
+    with open(a.text, encoding="utf-8") as f:
+        text = f.read().rstrip("\n")
+
+    gid = os.environ.get("GREENAPI_ID")
+    gtok = os.environ.get("GREENAPI_TOKEN")
+    ttok = os.environ.get("TIMELINESAI_TOKEN")
+    gateway = "green" if (gid and gtok) else ("timelines" if ttok else "")
+
+    if a.file and len(text) > CAPTION_MAX:
+        print("note: %d characters of caption, %d is the limit -- send the "
+              "picture with a short caption and the rest as its own message"
+              % (len(text), CAPTION_MAX), file=sys.stderr)
+
+    if a.dry_run or not gateway:
+        if not gateway and not a.dry_run:
+            print("error: no gateway configured. Set GREENAPI_ID and "
+                  "GREENAPI_TOKEN, or TIMELINESAI_TOKEN.", file=sys.stderr)
+        print(json.dumps({"gateway": gateway or "none", "to": where["name"],
+                          "chatId": where["jid"], "chars": len(text),
+                          "file": a.file or None}, ensure_ascii=False))
+        return 0 if a.dry_run else 1
+
+    if gateway == "green":
+        code, said = via_green(where, text, a.file or "", gid, gtok)
+    else:
+        code, said = via_timelines(where, text, a.file or "", ttok)
+
+    print(code, said[:400])
+    # Green-API answers 200 with an idMessage; TimelinesAI with status ok
+    ok = code == 200 and ('"idMessage"' in said or '"status": "ok"' in said)
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
