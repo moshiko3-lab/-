@@ -483,18 +483,55 @@ def off_today(crew):
     return out
 
 
-def off_lines(names, lang="he"):
+CREW_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "..", "app", "crew.json")
+
+
+def genders(path=CREW_FILE):
+    """Who is a he and who is a she, by first name, from the crew file.
+
+    Hebrew cannot address somebody without knowing, and half the crew have
+    names that do not say -- Eden, Yuval, Shaked, Paz all go either way. So
+    it is written down rather than guessed, and anyone missing from the file
+    gets a form of words that needs no answer.
+    """
+    try:
+        rows = json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for r in rows if isinstance(rows, list) else []:
+        g = str(r.get("gender") or "").strip().lower()[:1]
+        name = " ".join(str(r.get("name") or "").split())
+        if g in ("m", "f") and name:
+            out[name.split()[0].title()] = g
+    return out
+
+
+def off_lines(names, lang="he", who=None):
     """A word for the people who are off, by name.
 
     Worth the two lines: the rota is read by the whole crew, and being
     named in it on your day off is the difference between a list and a
     message from the school.
+
+    Someone whose gender is not on file is wished a good day off rather than
+    told to enjoy it, which is the one phrasing that fits either way. That is
+    deliberate: getting it wrong in front of the whole crew is worse than
+    saying something slightly plainer.
     """
     if not names:
         return []
     if lang == "en":
         return ["🌴 *%s* — enjoy your day off 🤙" % n for n in names]
-    return ["🌴 *%s* — תהנה ביום חופש 🤙" % n for n in names]
+    who = genders() if who is None else who
+    out = []
+    for n in names:
+        g = who.get(n)
+        word = {"m": "תהנה ביום חופש",
+                "f": "תהני ביום חופש"}.get(g, "חופש נעים")
+        out.append("🌴 *%s* — %s 🤙" % (n, word))
+    return out
 
 
 def group(lessons, date, lang="he", crew=None):
