@@ -75,7 +75,7 @@ def main():
     # --- one person's message -----------------------------------------------
     m = rota.personal("NAFTUL", who["NAFTUL"], "2026-09-01")
     check("it opens with their first name, not their file name",
-          m.startswith("היי Naftul"), m.split("\n")[0])
+          m.lstrip(rota.LTR).startswith("היי Naftul"), m.split("\n")[0])
     check("it names the day", "יום שלישי 1/9" in m, m[:80])
     check("every hour they teach is in it",
           all(t in m for t in ("08:00", "09:00", "15:00")), m)
@@ -114,6 +114,13 @@ def main():
     check("and the empty shift has no zero on it",
           "(0)" not in g and "(0 " not in g, g)
     check("the day's tide is at the foot of it", "גאות" in g and "שפל" in g, g)
+    # WhatsApp reads a line's direction off its first strong letter, and ours
+    # start with a digit. Without the mark the whole bubble inherits Hebrew
+    # and every line reads back to front.
+    check("every line is pinned left-to-right",
+          all(x.startswith(rota.LTR) for x in g.split("\n") if x), g)
+    check("and so is a personal one",
+          all(x.startswith(rota.LTR) for x in m.split("\n") if x), m)
 
     empty = rota.group([], "2026-09-01")
     check("a day with nothing booked says so", "אין עדיין" in empty, empty)
@@ -205,7 +212,8 @@ def main():
     r = rota.remind("NAFTUL", soon)
     check("the reminder names the hour, never 'in an hour'",
           "09:00" in r and "בעוד שעה" not in r, r)
-    check("and it is addressed to them", r.startswith("היי Naftul"), r[:30])
+    check("and it is addressed to them",
+          r.lstrip(rota.LTR).startswith("היי Naftul"), r[:30])
     check("nobody coming up gets no message", rota.remind("NAFTUL", []) == "")
 
     # --- what changed since the rota went out ------------------------------

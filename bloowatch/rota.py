@@ -250,6 +250,19 @@ def tide_lines(date, lang="he"):
     return out
 
 
+# WhatsApp picks a line's direction from its first strong letter. Ours start
+# with a digit, which is neither, so the whole bubble inherits the Hebrew of
+# the heading and every line flips: "09:00-19:00 SHOP PLAYA — Moshiko" comes
+# out with the hour stranded on the far side of the name. A left-to-right
+# mark at the head of each line pins the line the way it is written, and the
+# Hebrew words inside it still lay themselves out right-to-left.
+LTR = "\u200e"
+
+
+def ltr(lines):
+    return "\n".join((LTR + x) if x else x for x in lines)
+
+
 def _heading(date, lang):
     d = dt.date.fromisoformat(date)
     if lang == "en":
@@ -267,10 +280,12 @@ def personal(name, lessons, date, lang="he"):
     when = _heading(date, lang)
     if not lessons:
         if lang == "en":
-            return ("Hey %s 👋\n\nNothing on your schedule for %s.\n\n"
-                    "Enjoy the day off 🤙" % (first, when))
-        return ("היי %s 👋\n\nאין לך שיעורים ב%s.\n\nתיהנה מהיום החופשי 🤙"
-                % (first, when))
+            return ltr(["Hey %s 👋" % first, "",
+                        "Nothing on your schedule for %s." % when, "",
+                        "Enjoy the day off 🤙"])
+        return ltr(["היי %s 👋" % first, "",
+                    "אין לך שיעורים ב%s." % when, "",
+                    "תיהנה מהיום החופשי 🤙"])
 
     L = []
     if lang == "en":
@@ -290,7 +305,7 @@ def personal(name, lessons, date, lang="he"):
         L.extend(tide)
     L.append("")
     L.append("Have a good one 🤙" if lang == "en" else "בהצלחה 🤙")
-    return "\n".join(L)
+    return ltr(L)
 
 
 def starting_between(lessons, lo, hi, now=None):
@@ -335,7 +350,7 @@ def remind(name, lessons, lang="he"):
     L.append("")
     for l in lessons:
         L.append("*%s* · %s" % (l["time"], _line(l, lang)))
-    return "\n".join(L)
+    return ltr(L)
 
 
 def changes(before, after):
@@ -459,8 +474,9 @@ def group(lessons, date, lang="he"):
     """The whole day for the staff group, in the order it happens."""
     when = _heading(date, lang)
     if not lessons:
-        return ("*Schedule %s*\n\nNothing booked yet." % when if lang == "en"
-                else "*לו״ז %s*\n\nאין עדיין שיעורים." % when)
+        return ltr(["*Schedule %s*" % when, "", "Nothing booked yet."]
+                   if lang == "en" else
+                   ["*לו״ז %s*" % when, "", "אין עדיין שיעורים."])
     L = ["*Schedule %s*" % when if lang == "en" else "*לו״ז %s*" % when, ""]
     last = None
     for l in lessons:
@@ -478,7 +494,7 @@ def group(lessons, date, lang="he"):
     if tide:
         L.append("")
         L.extend(tide)
-    return "\n".join(L)
+    return ltr(L)
 
 
 def main():
