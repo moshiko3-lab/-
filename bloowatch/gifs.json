@@ -1,0 +1,16 @@
+{
+  "_what": "The day-off animations, by the id of the WhatsApp message each one arrived in. The files themselves are not here on purpose: they are somebody else's work, this repository is public, and TimelinesAI is already holding them.",
+  "_how_to_add": "Send the GIF to the school's own WhatsApp number (+50769027049) from any phone, then read the message id: GET /integrations/api/chats/<chat>/messages?page=1 and take the `uid` of the one with has_attachment. Paste it below with a word about what it is. Nothing else to do.",
+  "_how_to_fetch": "GET /integrations/api/messages/<uid> returns the message with a fresh `attachment_url`, signed and good for an hour. WhatsApp stores an animation as attachment.mp4, which is what to send back -- it arrives looking the way it did when it was sent in.",
+  "_note": "Two is thin. Four or five and nobody sees the same one twice in a fortnight.",
+  "gifs": [
+    {
+      "uid": "08aafa25-f55c-4ac0-b843-0cc793ea8e43",
+      "note": "sent in by the owner, 2026-09-01"
+    },
+    {
+      "uid": "384be341-5d4a-449f-90b0-04b76188734b",
+      "note": "sent in by the owner, 2026-09-01"
+    }
+  ]
+}

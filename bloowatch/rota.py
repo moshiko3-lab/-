@@ -270,22 +270,44 @@ def _heading(date, lang):
     return "יום %s %d/%d" % (HEB_DOW[d.weekday()], d.day, d.month)
 
 
-def personal(name, lessons, date, lang="he"):
+def _enjoy(first, lang, who=None):
+    """Enjoy it -- addressed properly, or not addressed at all.
+
+    Hebrew has to choose, and half this crew have names that do not say.
+    Somebody not on file is wished a good day off, which is right either way.
+    """
+    if lang == "en":
+        return "Enjoy it 🤙"
+    who = genders() if who is None else who
+    return {"m": "תהנה 🤙", "f": "תהני 🤙"}.get(who.get(first), "חופש נעים 🤙")
+
+
+def personal(name, lessons, date, lang="he", off=False, who=None):
     """One instructor's own day. Written so it can be read at a glance in bed.
 
     Somebody with nothing tomorrow is told so plainly rather than left to
-    wonder whether the message failed to arrive.
+    wonder whether the message failed to arrive -- and a day the planner
+    has actually marked off is said as such, because "no lessons" and "your
+    day off" are not the same news.
     """
     first = (name or "").split()[0].title()
     when = _heading(date, lang)
     if not lessons:
+        if off:
+            if lang == "en":
+                return ltr(["Hey %s 👋" % first, "",
+                            "*Your day off: %s* 🌴" % when, "",
+                            _enjoy(first, lang, who)])
+            return ltr(["היי %s 👋" % first, "",
+                        "*יום החופש שלך: %s* 🌴" % when, "",
+                        _enjoy(first, lang, who)])
         if lang == "en":
             return ltr(["Hey %s 👋" % first, "",
                         "Nothing on your schedule for %s." % when, "",
-                        "Enjoy the day off 🤙"])
+                        _enjoy(first, lang, who)])
         return ltr(["היי %s 👋" % first, "",
                     "אין לך שיעורים ב%s." % when, "",
-                    "תיהנה מהיום החופשי 🤙"])
+                    _enjoy(first, lang, who)])
 
     L = []
     if lang == "en":
@@ -468,6 +490,11 @@ def update_personal(name, chg, date, lang="he"):
                 "*חל שינוי בלו״ז שלך ל%s:*" % when, ""]
         tail = ["", "מצטערים על השינוי המאוחר 🤙"]
     return "\n".join(head + change_lines(mine, lang) + tail)
+
+
+def first_names_off(crew):
+    """The first names the planner has marked away, as a set to test against."""
+    return set(off_today(crew))
 
 
 def off_today(crew):
@@ -658,7 +685,9 @@ def main():
         want = a.who.strip().upper()
         mine = [l for l in lessons if any(n.upper().startswith(want)
                                           for n in l["staff"])]
-        print(personal(a.who, mine, date, a.lang))
+        off = first_names_off(crew)
+        print(personal(a.who, mine, date, a.lang,
+                       off=a.who.split()[0].title() in off))
         return 0
     if a.group:
         print(group(lessons, date, a.lang, crew))
