@@ -316,6 +316,14 @@ def main():
     check("and it never guesses a gender",
           not any("תהנה" in l or "תהני" in l for l in lines), lines)
     check("nobody off is no lines at all", rota.off_lines([], "he", {}) == [])
+    # Time Off on the planner can cover part of a day. Wishing somebody a
+    # good day off two lines under their own lesson reads as a mistake.
+    both = rota.group([L("09:30", "SURF PACK", 1, ["YONATAN"])], "2026-09-03",
+                      "he", [{"name": "YONATAN", "off": True},
+                             {"name": "GUR YOSEF", "off": True}])
+    check("somebody off for part of the day, but teaching, is not wished one",
+          "Yonatan" in both and "🌴 *Yonatan*" not in both, both)
+    check("and somebody with nothing on still is", "🌴 *Gur*" in both, both)
     check("only people come out of the planner's rows, not its headings",
           rota.off_today([{"name": "ELLA", "off": True},
                           {"name": "INSTRUCTORS - FULL", "off": True},
