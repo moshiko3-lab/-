@@ -187,15 +187,17 @@ def short(title):
 
     Bloowatch names a private course after the year and the customer --
     "CLASS 2024 - jim van weperen" -- which is the right name for a record
-    and far too long for an hour-wide bar; whoever is turning up is named
-    beside it anyway. And the plain surf lesson is named after the product,
-    which says nothing, so it says nothing.
+    and nothing anybody needs on a rota: the people turning up are named
+    beside it, and their names are what the instructor is looking for. The
+    plain surf lesson is named after the product, which says even less. Both
+    drop out, and the booking is known by who is coming to it.
     """
     t = " ".join((title or "").split())
     if t.upper() in GENERIC:
         return ""
-    m = re.match(r"^(CLASS|COURSE)\b[\s\-–]*\d{2,4}\b[\s\-–]*(.*)$", t, re.I)
-    return m.group(1).upper() if m else t
+    if re.match(r"^(CLASS|COURSE)\b[\s\-–]*\d{2,4}\b", t, re.I):
+        return ""
+    return t
 
 
 def _line(l, lang, sep=" · "):

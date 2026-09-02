@@ -15,7 +15,8 @@ So this is the renderer, and the HTML one is gone. One renderer means the
 picture the office gets is the picture that was checked.
 
 Depends on Pillow built with raqm, which is what puts Hebrew the right way
-round; without it the labels come out reversed and the numbers do not.
+round; without it the labels come out reversed and the numbers do not. It
+also depends on DejaVu, which is the only family both machines have.
 """
 import argparse
 import json
@@ -26,25 +27,33 @@ from PIL import Image, ImageDraw, ImageFont
 REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 BLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-INK = (12, 36, 48)
-MUTED = (93, 118, 132)
-LINE = (220, 214, 202)
-SAND = (244, 239, 229)
+# A near-neutral warmed a few degrees towards the water the school works in,
+# so the greys sit with the teal instead of arguing with it.
+INK = (14, 33, 43)
+SLATE = (86, 108, 120)
+MUTED = (139, 155, 165)
+HAIR = (232, 229, 223)          # separators between rows
+GRID = (242, 240, 235)          # the hour lines inside the day
+ZEBRA = (251, 250, 247)         # every other row, barely there
 WHITE = (255, 255, 255)
-TIDE_BG = (241, 247, 249)
+TIDE_BG = (246, 251, 252)
+TIDE_FILL = (222, 240, 243)
 
 KINDS = {
-    "lesson": ((11, 111, 128), (6, 82, 95)),
-    "shift": ((217, 122, 26), (168, 89, 12)),
-    "rental": ((106, 79, 168), (77, 55, 128)),
+    "lesson": ((11, 111, 128), (5, 78, 90)),
+    "shift": ((214, 121, 27), (163, 86, 12)),
+    "rental": ((104, 78, 166), (74, 53, 124)),
 }
+ON_BAR = (255, 255, 255)
+ON_BAR_SOFT = (219, 233, 236)
 
 W = 1400          # the design's own width; everything else is measured off it
-PAD = 30
-NAMEW = 130
-ROW = 59
-TIDEH = 110
-HEADH = 100
+PAD = 34
+NAMEW = 136
+ROW = 62
+TIDEH = 118
+HEADH = 116
+FOOTH = 46
 
 
 def has_hebrew(s):
@@ -52,7 +61,7 @@ def has_hebrew(s):
 
 
 class Pen:
-    """A little wrapper that keeps the scale factor out of the drawing code."""
+    """Keeps the scale factor and the font cache out of the drawing code."""
 
     def __init__(self, scale):
         self.s = scale
@@ -62,18 +71,21 @@ class Pen:
         key = (size, bold)
         if key not in self._f:
             self._f[key] = ImageFont.truetype(BLD if bold else REG,
-                                              int(size * self.s))
+                                              int(round(size * self.s)))
         return self._f[key]
 
     def px(self, v):
         return int(round(v * self.s))
 
-    def text(self, d, xy, s, size, colour, bold=False, anchor="la"):
+    def text(self, d, xy, s, size, colour, bold=False, anchor="la",
+             spacing=None):
         if not s:
             return
         kw = {"font": self.font(size, bold), "fill": colour, "anchor": anchor}
         if has_hebrew(s):
             kw["direction"] = "rtl"
+        elif spacing:
+            kw["features"] = None
         d.text((self.px(xy[0]), self.px(xy[1])), s, **kw)
 
     def width(self, s, size, bold=False):
@@ -88,9 +100,21 @@ class Pen:
         else:
             d.rectangle(r, fill=fill)
 
+    def rule(self, d, x0, y, x1, colour, weight=1):
+        d.rectangle((self.px(x0), self.px(y), self.px(x1),
+                     self.px(y) + max(1, self.px(weight))), fill=colour)
+
+    def split(self, s):
+        """Break a label into two lines at the most natural seam it has."""
+        for sep in (", ", " · ", " "):
+            if sep in s:
+                a, _, b = s.partition(sep)
+                return a.rstrip(","), b
+        return s, ""
+
     def clip(self, s, size, room, bold=False):
         """Cut a label to the room it has, with an ellipsis if it lost any."""
-        if self.width(s, size, bold) <= room:
+        if not s or self.width(s, size, bold) <= room:
             return s
         while s and self.width(s + "…", size, bold) > room:
             s = s[:-1]
@@ -98,19 +122,15 @@ class Pen:
 
 
 def height(spec):
-    rows = len(spec["rows"])
-    h = HEADH + rows * ROW + PAD
+    h = HEADH + len(spec["rows"]) * ROW
     if spec.get("tide"):
-        h += 16 + TIDEH
-    if spec.get("key"):
-        h += 26
-    return h
+        h += 22 + TIDEH
+    return h + FOOTH
 
 
 def draw(spec, scale=2):
     p = Pen(scale)
-    H = height(spec)
-    im = Image.new("RGB", (p.px(W), p.px(H)), WHITE)
+    im = Image.new("RGB", (p.px(W), p.px(height(spec))), WHITE)
     d = ImageDraw.Draw(im)
 
     left = PAD + NAMEW                    # where the hour track begins
@@ -121,89 +141,124 @@ def draw(spec, scale=2):
     def at(minute):
         return left + span * (minute - lo) / float(hi - lo)
 
-    # --- head ---------------------------------------------------------------
-    p.text(d, (PAD, 40), spec["title"], 26, INK, bold=True, anchor="ls")
-    p.text(d, (right, 40), spec["sub"], 13, MUTED, anchor="rs")
-    d.rectangle((p.px(PAD), p.px(52), p.px(right), p.px(52) + max(2, p.px(1))),
-                fill=INK)
+    # --- masthead -----------------------------------------------------------
+    p.text(d, (PAD, 44), spec["title"], 27, INK, bold=True, anchor="ls")
+    if spec.get("stat"):
+        p.text(d, (PAD, 66), spec["stat"], 12.5, MUTED, anchor="ls")
+    p.text(d, (right, 44), spec["sub"], 12.5, SLATE, anchor="rs")
+    p.rule(d, PAD, 78, right, INK, 1.5)
 
+    # the hours get their own band, so the grid below reads as one object
     for h in spec["hours"]:
-        p.text(d, (at(h * 60), 72), "%02d" % h, 12, MUTED, anchor="ms")
+        p.text(d, (at(h * 60), 92), "%02d" % h, 12, SLATE, anchor="mt")
+    p.rule(d, PAD, HEADH - 1, right, HAIR)
 
-    # --- the grid -----------------------------------------------------------
+    # --- the day ------------------------------------------------------------
     y = HEADH
-    for row in spec["rows"]:
-        p.box(d, left, y, right, y + ROW - 1, SAND)
-        for h in spec["hours"][1:]:
+    for i, row in enumerate(spec["rows"]):
+        if i % 2:
+            p.box(d, PAD, y, right, y + ROW, ZEBRA)
+        for h in spec["hours"][1:-1]:
             x = at(h * 60)
-            p.box(d, x, y, x + 0.5, y + ROW - 1, WHITE)
-        d.rectangle((p.px(PAD), p.px(y + ROW - 1),
-                     p.px(right), p.px(y + ROW - 1) + max(1, p.px(0.5))),
-                    fill=LINE)
-        p.text(d, (PAD, y + ROW / 2.0), row["who"], 15, INK, bold=True,
-               anchor="lm")
+            p.box(d, x, y, x + 0.6, y + ROW, GRID)
+        p.rule(d, PAD, y + ROW, right, HAIR)
+        p.text(d, (left - 14, y + ROW / 2.0), row["who"], 15, INK, bold=True,
+               anchor="rm")
 
         for b in row["bars"]:
             x0, x1 = at(b["x0"]), at(b["x1"])
             fill, edge = KINDS.get(b["kind"], KINDS["lesson"])
-            p.box(d, x0, y + 5, x1 - 1, y + ROW - 6, fill, radius=5)
-            p.box(d, x0, y + 5, x0 + 5, y + ROW - 6, edge, radius=2)
-            room = (x1 - x0) - 16
-            if b.get("sub"):
-                p.text(d, (x0 + 9, y + 20), p.clip(b["label"], 11, room, True),
-                       11, WHITE, bold=True, anchor="ls")
-                p.text(d, (x0 + 9, y + 35), p.clip(b["sub"], 10.5, room),
-                       10.5, (235, 242, 244), anchor="ls")
+            p.box(d, x0, y + 8, x1 - 1, y + ROW - 8, fill, radius=6)
+            p.box(d, x0, y + 8, x0 + 4.5, y + ROW - 8, edge, radius=2)
+
+            room = (x1 - x0) - 20
+            when = b.get("when") or ""
+            wlen = p.width(when, 10)
+            # the hours go inside the bar only where they are not fighting the
+            # label for the same few pixels
+            show_when = when and room > p.width(b["label"], 11, True) + wlen + 26
+            if show_when:
+                p.text(d, (x1 - 10, y + ROW / 2.0), when, 10, ON_BAR_SOFT,
+                       anchor="rm")
+                room -= wlen + 16
+            top, sub = b["label"], b.get("sub") or ""
+            if not sub and p.width(top, 11, True) > room:
+                # two names on an hour-wide bar fit stacked, and stacked they
+                # are still both names -- clipped they are "Jim, Nie…"
+                top, sub = p.split(top)
+            if sub:
+                p.text(d, (x0 + 11, y + 21), p.clip(top, 11, room, True),
+                       11, ON_BAR, bold=True, anchor="ls")
+                p.text(d, (x0 + 11, y + 37), p.clip(sub, 10.5, room),
+                       10.5, ON_BAR_SOFT, anchor="ls")
             else:
-                p.text(d, (x0 + 9, y + 28), p.clip(b["label"], 11, room, True),
-                       11, WHITE, bold=True, anchor="ls")
+                p.text(d, (x0 + 11, y + ROW / 2.0),
+                       p.clip(top, 11, room, True),
+                       11, ON_BAR, bold=True, anchor="lm")
         y += ROW
 
     # --- the tide under it, on the same hours -------------------------------
     t = spec.get("tide")
     if t:
-        y += 16
-        p.box(d, left, y, right, y + TIDEH, TIDE_BG, radius=6)
-        for h in spec["hours"][1:]:
+        y += 22
+        p.box(d, left, y, right, y + TIDEH, TIDE_BG, radius=8)
+        for h in spec["hours"][1:-1]:
             x = at(h * 60)
-            p.box(d, x, y, x + 0.5, y + TIDEH, WHITE)
-        p.text(d, (PAD, y + 10), t["label"], 13, INK, bold=True, anchor="lt")
+            p.box(d, x, y, x + 0.6, y + TIDEH, WHITE)
+        p.text(d, (left - 14, y + 12), t["label"], 13, INK, bold=True,
+               anchor="rt")
 
         pts = t["points"]
         if len(pts) > 1:
             top = max(m for _, m in pts)
             bot = min(m for _, m in pts)
             rng = (top - bot) or 1.0
-            xy = [(p.px(at(x)),
-                   p.px(y + 12 + (TIDEH - 24) * (1 - (m - bot) / rng)))
-                  for x, m in pts]
-            d.line(xy, fill=KINDS["lesson"][0], width=max(2, p.px(1.6)),
+            top_y, bot_y = y + 26, y + TIDEH - 16
+
+            def ty(m):
+                return bot_y - (bot_y - top_y) * (m - bot) / rng
+
+            xy = [(p.px(at(x)), p.px(ty(m))) for x, m in pts]
+            # the water is an area, not a wire: filled, it reads as a level
+            d.polygon(xy + [(p.px(right), p.px(bot_y + 8)),
+                            (p.px(left), p.px(bot_y + 8))], fill=TIDE_FILL)
+            d.line(xy, fill=KINDS["lesson"][0], width=max(2, p.px(1.7)),
                    joint="curve")
 
-        for pk in t.get("peaks") or []:
-            x = at(pk["x"])
-            edge = "m"
-            if x - left < span * 0.06:
-                x, edge = x + 30, "m"
-            elif right - x < span * 0.06:
-                x, edge = x - 30, "m"
-            base = y + 14 if pk["what"] == "high" else y + TIDEH - 52
-            p.text(d, (x, base), pk["word"], 10, MUTED, anchor=edge + "t")
-            p.text(d, (x, base + 13), pk["t"], 12, INK, bold=True,
-                   anchor=edge + "t")
-            p.text(d, (x, base + 28), "%.1f" % pk["m"], 11,
-                   KINDS["lesson"][0], bold=True, anchor=edge + "t")
+            for pk in t.get("peaks") or []:
+                x, my = at(pk["x"]), ty(pk["m"])
+                r = p.px(3.5)
+                d.ellipse((p.px(x) - r, p.px(my) - r, p.px(x) + r,
+                           p.px(my) + r), fill=KINDS["lesson"][0],
+                          outline=WHITE, width=max(1, p.px(1)))
+                anchor, tx = "m", x
+                if x - left < 46:
+                    anchor, tx = "l", left + 6
+                elif right - x < 46:
+                    anchor, tx = "r", right - 6
+                if pk["what"] == "high":
+                    base = my + 12
+                else:
+                    base = my - 48
+                p.text(d, (tx, base), pk["word"], 10, MUTED, anchor=anchor + "t")
+                p.text(d, (tx, base + 13), pk["t"], 12.5, INK, bold=True,
+                       anchor=anchor + "t")
+                p.text(d, (tx, base + 29), "%.1f" % pk["m"], 10.5,
+                       KINDS["lesson"][0], bold=True, anchor=anchor + "t")
         y += TIDEH
 
     # --- what the colours mean ----------------------------------------------
-    if spec.get("key"):
-        y += 14
-        x = left
-        for k in spec["key"]:
-            fill, _ = KINDS.get(k["kind"], KINDS["lesson"])
-            p.box(d, x, y + 1, x + 13, y + 14, fill, radius=3)
-            p.text(d, (x + 20, y + 2), k["word"], 12, MUTED, anchor="lt")
-            x += 20 + p.width(k["word"], 12) + 22
+    y += 16
+    p.rule(d, PAD, y, right, HAIR)
+    y += 13
+    x = PAD
+    for k in spec.get("key") or []:
+        fill, _ = KINDS.get(k["kind"], KINDS["lesson"])
+        p.box(d, x, y + 2, x + 12, y + 14, fill, radius=3)
+        p.text(d, (x + 19, y + 2), k["word"], 11.5, SLATE, anchor="lt")
+        x += 19 + p.width(k["word"], 11.5) + 24
+    if spec.get("foot"):
+        p.text(d, (right, y + 2), spec["foot"], 11.5, MUTED, anchor="rt")
 
     return im
 
@@ -213,7 +268,7 @@ def main():
     ap.add_argument("spec", help="the JSON from board.py --spec, or - for stdin")
     ap.add_argument("out", help="where to write the PNG")
     ap.add_argument("--scale", type=float, default=2)
-    ap.add_argument("--colours", type=int, default=32,
+    ap.add_argument("--colours", type=int, default=48,
                     help="palette size. The picture is flat colour, so this "
                          "is lossless in practice and a third of the bytes.")
     a = ap.parse_args()

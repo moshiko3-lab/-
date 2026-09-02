@@ -173,8 +173,8 @@ def main():
     check("a shop shift keeps its own name",
           rota._line(L("13:00", "SHOP PLAYA", 0, ["N"], "SHOP PLAYA"), "he")
           == "SHOP PLAYA")
-    check("a private course keeps the word CLASS and drops the filing",
-          rota.short("CLASS 2024 - jim van weperen") == "CLASS",
+    check("a private course is known by who is coming to it, not its filing",
+          rota.short("CLASS 2024 - jim van weperen") == "",
           rota.short("CLASS 2024 - jim van weperen"))
 
     # --- the reminder window ------------------------------------------------

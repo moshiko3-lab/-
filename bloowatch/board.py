@@ -167,7 +167,9 @@ def spec(date, lessons, lang="he"):
             if not label:
                 label, sub = names or l["title"], ""
             bars.append({"x0": a, "x1": b, "kind": kind(l["title"]),
-                         "label": label, "sub": sub})
+                         "label": label, "sub": sub,
+                         "when": ("%s–%s" % (l["time"], l["until"]))
+                                 if l.get("until") else l["time"]})
         out_rows.append({"who": name, "bars": bars})
 
     tide = None
@@ -184,8 +186,17 @@ def spec(date, lessons, lang="he"):
     key = [{"kind": k, "word": words[k]}
            for k in ("lesson", "shift", "rental") if k in here]
 
+    n, crew = len(lessons), len(out_rows)
+    if lang == "en":
+        stat = "%d booking%s · %d on" % (n, "" if n == 1 else "s", crew)
+        foot = "Built from Bloowatch"
+    else:
+        stat = "%d שיבוצים · %d מדריכים" % (n, crew)
+        foot = "נבנה מהבלו"
+
     return {"date": date, "lang": lang, "title": title,
-            "sub": "SHOKOGI · Playa Venao",
+            "sub": "SHOKOGI · PLAYA VENAO",
+            "stat": stat, "foot": foot,
             "lo": lo, "hi": hi,
             "hours": list(range(lo // 60, hi // 60 + 1)),
             "rows": out_rows, "tide": tide, "key": key}
@@ -218,7 +229,7 @@ def main():
         return 0
     import draw_board
     im = draw_board.draw(sp, a.scale)
-    im.quantize(colors=32, method=draw_board.Image.MEDIANCUT).save(
+    im.quantize(colors=48, method=draw_board.Image.MEDIANCUT).save(
         a.out, optimize=True)
     print(a.out)
     return 0
