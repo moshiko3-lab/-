@@ -110,7 +110,10 @@ def main():
           "Naftul" in g and "Vladi" in g and "Ella" in g, g)
     check("a shared lesson names all of them",
           "Naftul, Vladi, Ella" in g, g)
-    check("and the empty shift has no zero on it", "(0" not in g, g)
+    # "(0" alone would also match the tide's own "(0.2 m)" at the foot
+    check("and the empty shift has no zero on it",
+          "(0)" not in g and "(0 " not in g, g)
+    check("the day's tide is at the foot of it", "גאות" in g and "שפל" in g, g)
 
     empty = rota.group([], "2026-09-01")
     check("a day with nothing booked says so", "אין עדיין" in empty, empty)

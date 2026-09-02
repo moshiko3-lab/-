@@ -26,6 +26,7 @@ import sys
 
 from daily_report import BloowatchError, login
 from export_dataset import _get, _rows
+from forecast_message import tides_for
 
 SCHOOL = 127
 PANAMA = dt.timezone(dt.timedelta(hours=-5))
@@ -186,6 +187,42 @@ def _line(l, lang, sep=" · "):
     return sep.join(x for x in bits if x)
 
 
+DAY_START, DAY_END = 5 * 60, 20 * 60
+
+
+def tide_lines(date, lang="he"):
+    """The day's tide, for the people who have to teach in it.
+
+    Only the peaks somebody could actually be standing in the water for: a
+    low at half past midnight is a real low and no use to anybody reading a
+    rota, and printing it just makes the two that matter harder to find.
+    """
+    t = tides_for(date)
+    if not t:
+        return []
+
+    def peaks(key):
+        out = []
+        for p in t.get(key) or []:
+            h, m = p["t"].split(":")
+            if DAY_START <= int(h) * 60 + int(m) <= DAY_END:
+                out.append("%s (%.1f %s)" % (p["t"], float(p["m"]),
+                                             "m" if lang == "en" else "מ׳"))
+        return out
+
+    high, low = peaks("highs"), peaks("lows")
+    if not high and not low:
+        return []
+    words = (("High tide", "Low tide") if lang == "en"
+             else ("גאות", "שפל"))
+    out = []
+    if high:
+        out.append("🌊 *%s* %s" % (words[0], " · ".join(high)))
+    if low:
+        out.append("🏖 *%s* %s" % (words[1], " · ".join(low)))
+    return out
+
+
 def _heading(date, lang):
     d = dt.date.fromisoformat(date)
     if lang == "en":
@@ -220,6 +257,10 @@ def personal(name, lessons, date, lang="he"):
     L.append("")
     for l in lessons:
         L.append("*%s* · %s" % (_when(l), _line(l, lang)))
+    tide = tide_lines(date, lang)
+    if tide:
+        L.append("")
+        L.extend(tide)
     L.append("")
     L.append("Have a good one 🤙" if lang == "en" else "בהצלחה 🤙")
     return "\n".join(L)
@@ -403,6 +444,10 @@ def group(lessons, date, lang="he"):
         inner = _who(l, lang) or _students(l["students"], lang)
         L.append("*%s* %s%s — %s" % (_when(l), l["title"],
                                      (" (%s)" % inner) if inner else "", who))
+    tide = tide_lines(date, lang)
+    if tide:
+        L.append("")
+        L.extend(tide)
     return "\n".join(L)
 
 
