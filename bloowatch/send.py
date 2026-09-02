@@ -18,6 +18,7 @@ the forecast are built the same way either side of the move, and which one
 is in use is decided by which credentials are in the environment.
 
     GREENAPI_ID / GREENAPI_TOKEN   -> Green-API
+      (and GREENAPI_URL, the instance's own host from the console)
     TIMELINESAI_TOKEN              -> TimelinesAI
 
 Never put a token in a file, a log, or an argument: they come from the
@@ -37,8 +38,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BOOK = os.path.join(HERE, "whatsapp.json")
 
 TL = "https://app.timelines.ai/integrations/api"
-GREEN = "https://api.green-api.com"
-GREEN_MEDIA = "https://media.green-api.com"
+# Green-API gives each instance its own host -- the console shows it as
+# apiUrl, e.g. https://7107.api.greenapi.com -- so it is read from the
+# environment rather than guessed. mediaUrl is usually the same host.
+GREEN = os.environ.get("GREENAPI_URL") or "https://api.green-api.com"
+GREEN_MEDIA = (os.environ.get("GREENAPI_MEDIA") or os.environ.get("GREENAPI_URL")
+               or "https://media.green-api.com")
 
 CAPTION_MAX = 1024          # both gateways cut a caption here, as WhatsApp does
 
