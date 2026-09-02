@@ -189,37 +189,56 @@ def main():
     # the day has to fall in exactly one of those steps: land in two and the
     # instructor is reminded twice, land in none and nobody turns up.
     import datetime as _dt
-    LO, HI = 25, 85
+    LO, HI = 35, 65
+    FIRE = (10, 40)          # the two routines' fixed minutes
     day = [L("%02d:%02d" % (h, m), "SURF PACK", 1, ["NAFTUL"])
            for h in range(6, 20) for m in (0, 30)]
 
-    # The routine does not fire on the hour: the scheduler staggers it, and it
-    # has been seen anywhere from ten to twenty past. So exactly-once has to
-    # hold at every offset, not just at :00.
-    worst = 0
-    bad = []
-    for off in range(0, 60):
-        seen = {}
-        for hour in range(0, 24):
+    # Two runs an hour, at ten and forty past. Every lesson has to fall in
+    # exactly one of them: land in two and the instructor is told twice, land
+    # in none and nobody turns up.
+    seen = {}
+    leads = set()
+    for hour in range(0, 24):
+        for off in FIRE:
             now = _dt.datetime(2026, 9, 1, hour, off, tzinfo=rota.PANAMA)
             for l in rota.starting_between(day, LO, HI, now):
                 seen[l["time"]] = seen.get(l["time"], 0) + 1
                 h, m = (int(x) for x in l["time"].split(":"))
-                worst = max(worst, h * 60 + m - (hour * 60 + off))
-        twice = sorted(t for t, n in seen.items() if n > 1)
-        never = sorted(l["time"] for l in day if l["time"] not in seen)
-        if twice or never:
-            bad.append((off, twice, never))
-    check("no lesson is reminded twice or missed, at any fire offset",
-          not bad, str(bad[:3]))
-    check("and nobody is warned more than %d minutes ahead" % HI,
-          worst <= HI, "%d minutes" % worst)
+                leads.add(h * 60 + m - (hour * 60 + off))
+    twice = sorted(t for t, n in seen.items() if n > 1)
+    never = sorted(l["time"] for l in day if l["time"] not in seen)
+    check("no lesson is reminded twice in a day", not twice, str(twice))
+    check("and none is missed", not never, str(never))
+    check("and every one of them lands fifty minutes before, to the minute",
+          leads == {50}, str(sorted(leads)))
 
-    now = _dt.datetime(2026, 9, 1, 8, 15, tzinfo=rota.PANAMA)
+    # The width has to equal the gap between runs whatever minute they fire on,
+    # so a change of schedule cannot silently start doubling or dropping.
+    for a in range(0, 30):
+        s2 = {}
+        for hour in range(0, 24):
+            for off in (a, a + 30):
+                now = _dt.datetime(2026, 9, 1, hour, off, tzinfo=rota.PANAMA)
+                for l in rota.starting_between(day, LO, HI, now):
+                    s2[l["time"]] = s2.get(l["time"], 0) + 1
+        if sorted(t for t, n in s2.items() if n > 1) or \
+           sorted(l["time"] for l in day if l["time"] not in s2):
+            check("exactly once at every pair of fire minutes", False,
+                  "broke at :%02d/:%02d" % (a, a + 30))
+            break
+    else:
+        check("exactly once at every pair of fire minutes", True)
+
+    now = _dt.datetime(2026, 9, 1, 8, 10, tzinfo=rota.PANAMA)
     soon = rota.starting_between(day, LO, HI, now)
-    check("a quarter past eight warns about the nine and the half nine",
-          [l["time"] for l in soon] == ["09:00", "09:30"],
+    check("ten past eight warns about the nine, and only the nine",
+          [l["time"] for l in soon] == ["09:00"],
           str([l["time"] for l in soon]))
+    check("the half nine waits for the twenty-to run",
+          [l["time"] for l in rota.starting_between(
+              day, LO, HI,
+              _dt.datetime(2026, 9, 1, 8, 40, tzinfo=rota.PANAMA))] == ["09:30"])
     check("the one already under way is not 'coming up'",
           "08:00" not in [l["time"] for l in soon], str([l["time"] for l in soon]))
     check("and the hundred-minute warning the owner called too early is gone",

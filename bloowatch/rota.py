@@ -329,18 +329,21 @@ def starting_between(lessons, lo, hi, now=None):
     The window matters more than it looks. A reminder that fires on an
     overlapping window sends the same lesson twice, and one that fires on a
     window with a gap in it silently skips a lesson nobody then turns up to.
-    So the caller steps the window by exactly its own width: (25, 85] every
-    hour covers every minute of the day once and only once.
+    So the caller steps the window by exactly its own width: (35, 65] every
+    half hour covers every minute of the day once and only once.
 
-    Sixty minutes wide is forced -- the runs are hourly and cron here goes no
-    finer -- but where the window sits is a choice, and it decides how much
-    notice people get. The routine fires around a quarter past, so (25, 85]
-    catches a nine o'clock lesson on the eight o'clock run: about forty-five
-    minutes' notice instead of the hundred that (45, 105] gave it, which the
-    owner read at 07:22 for a nine o'clock start and called too early. What
-    cannot be fixed from here is the half-hour lessons, which the same run
-    catches about seventy-five minutes out; closing that gap needs two runs
-    an hour, which the schedule does not allow.
+    The width is the gap between runs, and the gap is what decides how close
+    to fifty minutes anybody actually gets. Hourly runs cannot do it: a run
+    that is fifty minutes before the o'clock lessons is eighty minutes before
+    the half-past ones, and no choice of window closes a thirty-minute spread
+    that the cadence itself creates. Two runs an hour does close it. The
+    reminder routines fire at ten and forty past -- a fixed minute is honoured
+    exactly, unlike the minute-zero schedules the scheduler anchors and drifts
+    -- so a nine o'clock lesson is caught by the 08:10 run and a half nine by
+    the 08:40 one, both of them fifty minutes out.
+
+    Before this the window was (45, 105] on one hourly run, and the owner read
+    a reminder at 07:22 for a nine o'clock start.
     """
     now = now or dt.datetime.now(PANAMA)
     out = []
@@ -615,10 +618,10 @@ def main():
     ap.add_argument("--remind", action="store_true",
                     help="today's reminders: whoever has a lesson starting "
                          "inside the window. Prints nothing when nobody does.")
-    ap.add_argument("--from", dest="lo", type=int, default=25,
-                    help="window starts this many minutes ahead (default 25)")
-    ap.add_argument("--to", dest="hi", type=int, default=85,
-                    help="and ends this many (default 85). Step the window "
+    ap.add_argument("--from", dest="lo", type=int, default=35,
+                    help="window starts this many minutes ahead (default 35)")
+    ap.add_argument("--to", dest="hi", type=int, default=65,
+                    help="and ends this many (default 65). Step the window "
                          "by its own width or a lesson is reminded twice, or "
                          "not at all.")
     a = ap.parse_args()

@@ -109,6 +109,39 @@ def _post(url, body, ctype, headers=None, timeout=180):
         return e.code, e.read().decode("utf-8", "replace")
 
 
+def already_said(where, text, ident, token, minutes=720):
+    """True when this exact message has already gone to this chat today.
+
+    A reminder is short, fixed, and sent by a schedule, which makes it the
+    one message a machine can plausibly send twice: a container restarts, a
+    routine is re-run by hand, two schedules overlap for a day while one is
+    being moved. The instructor cannot tell a duplicate from a correction,
+    and stops reading either. Green-API's own outgoing journal is the right
+    place to check, because it survives everything on this side dying.
+
+    Failing to reach the journal is not a reason to hold the message: a
+    reminder that never arrives is the worse of the two mistakes, so an
+    unreachable journal answers "no".
+    """
+    url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
+        GREEN, ident, token, minutes)
+    try:
+        with urllib.request.urlopen(url, timeout=60) as r:
+            sent = json.loads(r.read().decode("utf-8", "replace"))
+    except Exception:
+        return False
+    want = " ".join(text.split())
+    for m in sent if isinstance(sent, list) else []:
+        if m.get("chatId") != where["jid"]:
+            continue
+        had = m.get("textMessage") or m.get("extendedTextMessage") or ""
+        if isinstance(had, dict):
+            had = had.get("text") or ""
+        if " ".join(str(had).split()) == want:
+            return True
+    return False
+
+
 def via_timelines(where, text, path, token):
     if where["chat_id"] is None:
         body = json.dumps({"phone": where["name"],
@@ -168,6 +201,10 @@ def main():
                          "Green-API only; nothing is uploaded.")
     ap.add_argument("--dry-run", action="store_true",
                     help="say what would be sent, and send nothing")
+    ap.add_argument("--once-today", action="store_true",
+                    help="skip if this exact message already went to this chat "
+                         "today. For the reminders, which a restart or an "
+                         "overlapping schedule could otherwise send twice.")
     a = ap.parse_args()
 
     groups = book()["groups"]
@@ -197,6 +234,13 @@ def main():
                           "file": a.file or a.url or None},
                          ensure_ascii=False))
         return 0 if a.dry_run else 1
+
+    if a.once_today and gateway == "green" and already_said(where, text,
+                                                            gid, gtok):
+        print(json.dumps({"skipped": "already sent today",
+                          "to": where["name"], "chatId": where["jid"]},
+                         ensure_ascii=False))
+        return 0
 
     if gateway == "green" and a.url:
         code, said = via_green_url(where, text, a.url, gid, gtok,
