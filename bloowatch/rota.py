@@ -323,6 +323,67 @@ def personal(name, lessons, date, lang="he", off=False, who=None):
     return ltr(L)
 
 
+BOOK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "whatsapp.json")
+
+
+def _book():
+    with open(BOOK, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def speaks(name, book=None):
+    """The language this person reads the school's messages in."""
+    book = book or _book()
+    english = {n.strip().upper()
+               for n in ((book.get("english") or {}).get("names") or [])}
+    up = name.strip().upper()
+    return "en" if (up in english or up.split()[0] in english) else "he"
+
+
+def plan(write, names, numbers=None, book=None):
+    """Who each message goes to, built by `write(name, lang)`.
+
+    Every rule about who may be written to lives here rather than in the
+    routine that calls it. That is the point: a rule written in a prompt is
+    re-read by a different reader every night and drifts, and the failure it
+    drifts into -- one instructor's rota arriving on another instructor's
+    phone -- is not one you can take back. Matching is on the full name as
+    Bloowatch spells it, never a prefix, for the same reason.
+
+    Returns (sends, skipped). Nothing here sends anything; send.py does that.
+    """
+    book = book or _book()
+    if numbers is None:
+        from export_catalog import crew_numbers
+        numbers = crew_numbers()
+    phone = {c["name"].strip().upper(): c["phone"] for c in numbers}
+
+    npm = (book.get("no_personal_message") or {})
+    quiet = {n.strip().upper() for n in (npm.get("names") or [])}
+    sender = ((npm.get("yuval") or {}).get("name") or "").strip().upper()
+
+    sends, skipped = [], []
+    for name in sorted(names):
+        up = name.strip().upper()
+        if sender and up == sender:
+            skipped.append({"name": name, "why": "this is the sending number"})
+            continue
+        if up in quiet or up.split()[0] in quiet:
+            skipped.append({"name": name, "why": "no_personal_message"})
+            continue
+        if up not in phone:
+            # Never guess. A number invented to fill a gap reaches somebody.
+            skipped.append({"name": name, "why": "no number in Bloowatch"})
+            continue
+        lang = speaks(name, book)
+        text = write(name, lang)
+        if not text:
+            continue
+        sends.append({"name": name, "phone": phone[up],
+                      "lang": lang, "text": text})
+    return sends, skipped
+
+
 def starting_between(lessons, lo, hi, now=None):
     """Lessons starting between lo and hi minutes from now.
 
@@ -598,6 +659,26 @@ def group(lessons, date, lang="he", crew=None):
     return ltr(L)
 
 
+def _write_plan(path, write, names):
+    """The plan file, and a summary of it on the screen.
+
+    The file holds crew phone numbers, so it is written where it is used and
+    never committed. What is printed is deliberately not the messages: the
+    point of the file is that nothing is retyped between building a message
+    and sending it, and a screenful of text to copy would put that straight
+    back.
+    """
+    sends, skipped = plan(write, names)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(sends, f, ensure_ascii=False)
+    for s in sends:
+        print("%-18s %-4s %d chars" % (s["name"], s["lang"], len(s["text"])))
+    for s in skipped:
+        print("skipped %-18s %s" % (s["name"], s["why"]), file=sys.stderr)
+    print("%d to send, %d skipped -> %s" % (len(sends), len(skipped), path))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
@@ -618,6 +699,11 @@ def main():
     ap.add_argument("--remind", action="store_true",
                     help="today's reminders: whoever has a lesson starting "
                          "inside the window. Prints nothing when nobody does.")
+    ap.add_argument("--plan", default="",
+                    help="write the messages and who they go to as JSON, for "
+                         "send.py --batch. Applies the whatsapp.json rules "
+                         "about who is written to and in which language, so "
+                         "nothing is retyped and nothing is decided twice.")
     ap.add_argument("--from", dest="lo", type=int, default=35,
                     help="window starts this many minutes ahead (default 35)")
     ap.add_argument("--to", dest="hi", type=int, default=65,
@@ -672,13 +758,36 @@ def main():
             print("nothing starting between %d and %d minutes from now"
                   % (a.lo, a.hi))
             return 0
-        for name, mine in sorted(by_person(soon).items()):
+        mine = by_person(soon)
+        if a.plan:
+            return _write_plan(a.plan,
+                               lambda n, lang: remind(n, mine[n], lang),
+                               mine)
+        for name, ls in sorted(mine.items()):
             print("======== %s ========" % name)
-            print(remind(name, mine, a.lang))
+            print(remind(name, ls, a.lang))
             print()
         return 0
 
     crew = json.load(open(a.crew, encoding="utf-8")) if a.crew else None
+
+    if a.plan:
+        # Tomorrow's rotas, and a greeting for whoever the board marks away.
+        # Somebody with neither gets nothing: "you have no lessons" every
+        # evening stops being read inside a week.
+        mine = by_person(lessons)
+        off = first_names_off(crew)
+        who = set(mine) | {n for n in (c["name"] for c in (crew or []))
+                           if n.split()[0].title() in off}
+
+        def write(name, lang):
+            first = name.split()[0].title()
+            ls = mine.get(name) or []
+            if not ls and first not in off:
+                return ""
+            return personal(name, ls, date, lang, off=(not ls
+                                                       and first in off))
+        return _write_plan(a.plan, write, who)
 
     if a.who:
         want = a.who.strip().upper()

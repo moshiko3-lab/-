@@ -30,6 +30,7 @@ import json
 import mimetypes
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -189,12 +190,67 @@ def via_green(where, text, path, ident, token):
     return _post(url, body, "application/json")
 
 
+def run_batch(path, gateway, ident, token, dry_run, once_today):
+    """Send a whole plan in one run, and keep going when one of them fails.
+
+    The alternative -- a message written out by hand, checked, and sent, once
+    per person -- is what a busy morning actually costs: twelve instructors
+    on one lesson slot is twelve chances to mistype a number or lose the
+    invisible marks that keep Hebrew the right way round. Here the text goes
+    from the file that built it to the gateway untouched.
+
+    One failure does not stop the rest. Eleven reminders that arrived beat
+    twelve that were abandoned halfway, and the ones that failed are named at
+    the end so nobody has to read back through the output to find them.
+    """
+    with open(path, encoding="utf-8") as f:
+        sends = json.load(f)
+    if not gateway:
+        print("error: no gateway configured. Set GREENAPI_ID and "
+              "GREENAPI_TOKEN, or TIMELINESAI_TOKEN.", file=sys.stderr)
+        return 1
+
+    failed = []
+    for i, s in enumerate(sends):
+        where = target(s["phone"], {})
+        line = {"name": s["name"], "to": where["name"],
+                "chatId": where["jid"], "chars": len(s["text"])}
+        if dry_run:
+            print(json.dumps(line, ensure_ascii=False))
+            continue
+        if once_today and gateway == "green" and already_said(
+                where, s["text"], ident, token):
+            line["skipped"] = "already sent today"
+            print(json.dumps(line, ensure_ascii=False))
+            continue
+        if gateway == "green":
+            code, said = via_green(where, s["text"], "", ident, token)
+        else:
+            code, said = via_timelines(where, s["text"], "", token)
+        line["code"] = code
+        line["said"] = said.strip()[:120]
+        print(json.dumps(line, ensure_ascii=False))
+        if code != 200:
+            failed.append(s["name"])
+        if i + 1 < len(sends):
+            time.sleep(1)
+
+    if failed:
+        print("FAILED: " + ", ".join(failed), file=sys.stderr)
+        return 1
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--to", required=True,
+    ap.add_argument("--to", default="",
                     help="a group name from whatsapp.json (staff, surfers_he, "
                          "surfers_en) or a phone number")
-    ap.add_argument("--text", required=True, help="file holding the message")
+    ap.add_argument("--text", default="", help="file holding the message")
+    ap.add_argument("--batch", default="",
+                    help="a plan from rota.py --plan: every message and who "
+                         "it goes to, sent in one run. Nothing is retyped "
+                         "between building a message and sending it.")
     ap.add_argument("--file", default="", help="a picture to send with it")
     ap.add_argument("--url", default="",
                     help="send something the gateway already holds, by link. "
@@ -207,15 +263,26 @@ def main():
                          "overlapping schedule could otherwise send twice.")
     a = ap.parse_args()
 
-    groups = book()["groups"]
-    where = target(a.to, groups)
-    with open(a.text, encoding="utf-8") as f:
-        text = f.read().rstrip("\n")
+    if bool(a.batch) == bool(a.to):
+        print("error: give either --batch or --to, not both and not neither",
+              file=sys.stderr)
+        return 2
+    if a.to and not a.text:
+        print("error: --to needs --text", file=sys.stderr)
+        return 2
 
     gid = os.environ.get("GREENAPI_ID")
     gtok = os.environ.get("GREENAPI_TOKEN")
     ttok = os.environ.get("TIMELINESAI_TOKEN")
     gateway = "green" if (gid and gtok) else ("timelines" if ttok else "")
+
+    if a.batch:
+        return run_batch(a.batch, gateway, gid, gtok, a.dry_run, a.once_today)
+
+    groups = book()["groups"]
+    where = target(a.to, groups)
+    with open(a.text, encoding="utf-8") as f:
+        text = f.read().rstrip("\n")
 
     if a.url and gateway != "green":
         print("error: --url is Green-API only", file=sys.stderr)

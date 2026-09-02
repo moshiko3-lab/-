@@ -92,6 +92,13 @@
       "why": "this is the number the messages are sent FROM. Messaging him is the system talking to itself."
     }
   },
+  "english": {
+    "_why": "Crew who read the school's messages in English. Everyone else gets Hebrew. Kept here rather than in code so adding a new instructor is a data change, not a patch: matched on the first name as Bloowatch spells it.",
+    "names": [
+      "VICTOR",
+      "VLADI"
+    ]
+  },
   "rules": [
     "Nothing goes to a group without the owner having approved that exact message going to that exact group.",
     "A group only appears in TimelinesAI once a message arrives in it; it does not backfill history.",
