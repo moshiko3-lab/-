@@ -108,12 +108,38 @@ def merge(days, path=CATALOG):
     return len(days), len(replaced), len(cat["tides"])
 
 
+def ahead(path=CATALOG, today=None):
+    """How many days from today are already on the good table.
+
+    The page only reaches about a month out, so the table has to be topped
+    up before it runs dry. Asking this first means the fetch happens a few
+    times a month instead of every evening.
+    """
+    today = today or dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).date()
+    with open(path, encoding="utf-8") as f:
+        cat = json.load(f)
+    n = 0
+    for t in cat.get("tides") or []:
+        if t.get("source") != SOURCE:
+            continue
+        if dt.date.fromisoformat(t["date"]) >= today:
+            n += 1
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--check", action="store_true",
+                    help="print how many days ahead are on the good table")
     ap.add_argument("--parse", help="a saved surf-forecast tides page")
     ap.add_argument("--merge", help="days.json from --parse, into the catalog")
     ap.add_argument("--catalog", default=CATALOG)
     a = ap.parse_args()
+
+    if a.check:
+        n = ahead(a.catalog)
+        print("%d days ahead on %s" % (n, SOURCE))
+        return 0
 
     if a.parse:
         with open(a.parse, encoding="utf-8", errors="replace") as f:
