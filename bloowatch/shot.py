@@ -258,7 +258,7 @@ def looks_drawn(path, least=6):
 
 
 def _attempt(pw, args, date, out, email, password, full, width, scale,
-             cookies=None, keep=None):
+             cookies=None, keep=None, crew_out=None):
     day = label(date)
     b = _launch(pw, args)
     try:
@@ -299,6 +299,11 @@ def _attempt(pw, args, date, out, email, password, full, width, scale,
             p.screenshot(path=out, clip=box)
     finally:
         b.close()
+    if crew_out:
+        # one visit to the board gives both the picture and the labels; a
+        # second visit for the labels alone is a second browser start
+        with open(crew_out, "w", encoding="utf-8") as f:
+            json.dump(rows, f, ensure_ascii=False)
     if not out:
         return rows
     if not looks_drawn(out):
@@ -307,7 +312,7 @@ def _attempt(pw, args, date, out, email, password, full, width, scale,
 
 
 def shoot(date, out, email, password, full=None, width=2200, scale=2,
-          rounds=2, log=print, cookies=None, keep=None):
+          rounds=2, log=print, cookies=None, keep=None, crew_out=None):
     """Take the shot, trying every handshake we know before giving up."""
     from playwright.sync_api import sync_playwright
 
@@ -318,7 +323,7 @@ def shoot(date, out, email, password, full=None, width=2200, scale=2,
                 how = " ".join(args) or "default TLS"
                 try:
                     got = _attempt(pw, args, date, out, email, password, full,
-                                   width, scale, cookies, keep)
+                                   width, scale, cookies, keep, crew_out)
                     if r or args != HANDSHAKES[0]:
                         log("took it with %s" % how)
                     return got
@@ -353,6 +358,10 @@ def main():
                     help="use a session written by --keep-session instead of "
                          "signing in. BLOOWATCH_EMAIL/PASSWORD are then not "
                          "needed at all.")
+    ap.add_argument("--crew-out", default="",
+                    help="write the day's rows to this file as well as taking "
+                         "the picture, so one visit to the board serves both. "
+                         "rota.py --crew reads it to name whoever is off.")
     ap.add_argument("--crew", action="store_true",
                     help="print the day's rows as JSON instead of taking a "
                          "picture. A few hundred bytes of labels can be "
@@ -370,7 +379,8 @@ def main():
     got = shoot(date, "" if (a.crew or a.keep_session) else a.out,
                 email, password, a.full or None, a.width, rounds=a.rounds,
                 log=lambda m: print(m, file=sys.stderr),
-                cookies=a.session or None, keep=a.keep_session or None)
+                cookies=a.session or None, keep=a.keep_session or None,
+                crew_out=a.crew_out or None)
     if a.crew:
         json.dump(got, sys.stdout, ensure_ascii=False)
         print()
