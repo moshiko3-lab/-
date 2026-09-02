@@ -196,7 +196,7 @@ def spec(date, lessons, lang="he"):
 
     return {"date": date, "lang": lang, "title": title,
             "sub": "SHOKOGI · PLAYA VENAO",
-            "stat": stat, "foot": foot,
+            "stat": stat, "foot": foot, "band": title,
             "lo": lo, "hi": hi,
             "hours": list(range(lo // 60, hi // 60 + 1)),
             "rows": out_rows, "tide": tide, "key": key}
