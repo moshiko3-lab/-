@@ -308,16 +308,13 @@ def main():
     check("a move states the new hour and puts the old one behind it",
           line.index("11:00") < line.index("09:00") and "היה" in line, line)
 
-    # the day-off line has to address the person, and half the crew have
-    # names that do not say which -- so an unknown gets the one wording that
-    # is right either way rather than a coin toss in front of everyone
-    known = rota.off_lines(["Gur", "Ella"], "he", {"Gur": "m", "Ella": "f"})
-    check("a man is told תהנה", "תהנה" in known[0], known[0])
-    check("a woman is told תהני", "תהני" in known[1], known[1])
-    unknown = rota.off_lines(["Yuval"], "he", {})
-    check("somebody not on file gets a wording that needs no answer",
-          "תהנה" not in unknown[0] and "תהני" not in unknown[0]
-          and "חופש" in unknown[0], unknown[0])
+    # one wording for everybody: Hebrew has to pick a gender to say enjoy,
+    # and half this crew have names that do not say which
+    lines = rota.off_lines(["Gur", "Ella"], "he")
+    check("everybody is wished the same thing, by name",
+          all("חופש נעים" in l for l in lines) and "Ella" in lines[1], lines)
+    check("and it never guesses a gender",
+          not any("תהנה" in l or "תהני" in l for l in lines), lines)
     check("nobody off is no lines at all", rota.off_lines([], "he", {}) == [])
     check("only people come out of the planner's rows, not its headings",
           rota.off_today([{"name": "ELLA", "off": True},

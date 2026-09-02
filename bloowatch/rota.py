@@ -271,15 +271,8 @@ def _heading(date, lang):
 
 
 def _enjoy(first, lang, who=None):
-    """Enjoy it -- addressed properly, or not addressed at all.
-
-    Hebrew has to choose, and half this crew have names that do not say.
-    Somebody not on file is wished a good day off, which is right either way.
-    """
-    if lang == "en":
-        return "Enjoy it 🤙"
-    who = genders() if who is None else who
-    return {"m": "תהנה 🤙", "f": "תהני 🤙"}.get(who.get(first), "חופש נעים 🤙")
+    """Enjoy it, in the one wording that fits whoever is reading it."""
+    return "Enjoy it 🤙" if lang == "en" else "חופש נעים 🤙"
 
 
 def personal(name, lessons, date, lang="he", off=False, who=None):
@@ -510,31 +503,6 @@ def off_today(crew):
     return out
 
 
-CREW_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "..", "app", "crew.json")
-
-
-def genders(path=CREW_FILE):
-    """Who is a he and who is a she, by first name, from the crew file.
-
-    Hebrew cannot address somebody without knowing, and half the crew have
-    names that do not say -- Eden, Yuval, Shaked, Paz all go either way. So
-    it is written down rather than guessed, and anyone missing from the file
-    gets a form of words that needs no answer.
-    """
-    try:
-        rows = json.load(open(path, encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    out = {}
-    for r in rows if isinstance(rows, list) else []:
-        g = str(r.get("gender") or "").strip().lower()[:1]
-        name = " ".join(str(r.get("name") or "").split())
-        if g in ("m", "f") and name:
-            out[name.split()[0].title()] = g
-    return out
-
-
 def off_lines(names, lang="he", who=None):
     """A word for the people who are off, by name.
 
@@ -542,23 +510,17 @@ def off_lines(names, lang="he", who=None):
     named in it on your day off is the difference between a list and a
     message from the school.
 
-    Someone whose gender is not on file is wished a good day off rather than
-    told to enjoy it, which is the one phrasing that fits either way. That is
-    deliberate: getting it wrong in front of the whole crew is worse than
-    saying something slightly plainer.
+    "חופש נעים" and not "תהנה"/"תהני": Hebrew has to pick a gender to say
+    enjoy, half this crew have names that do not say which -- Eden, Yuval,
+    Shaked, Paz all go either way -- and the owner would rather one wording
+    that fits everybody than a list of who is which. `who` is accepted so a
+    caller can still pass a map, and ignored otherwise.
     """
     if not names:
         return []
     if lang == "en":
         return ["🌴 *%s* — enjoy your day off 🤙" % n for n in names]
-    who = genders() if who is None else who
-    out = []
-    for n in names:
-        g = who.get(n)
-        word = {"m": "תהנה ביום חופש",
-                "f": "תהני ביום חופש"}.get(g, "חופש נעים")
-        out.append("🌴 *%s* — %s 🤙" % (n, word))
-    return out
+    return ["🌴 *%s* — חופש נעים 🤙" % n for n in names]
 
 
 def group(lessons, date, lang="he", crew=None):
