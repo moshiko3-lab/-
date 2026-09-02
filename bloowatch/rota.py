@@ -554,6 +554,13 @@ def group(lessons, date, lang="he", crew=None):
             what, inner = inner or l["title"], ""
         L.append("*%s* %s%s — %s" % (_when(l), what,
                                      (" (%s)" % inner) if inner else "", who))
+    # the sign-off comes before the day-off lines and after the work: the
+    # message is sent at seven in the evening, so it is closing today as
+    # much as it is opening tomorrow
+    L.append("")
+    L.append("Thank you all for today, see you tomorrow 🫶" if lang == "en"
+             else "תודה רבה לכולם על היום, נפגש מחר 🫶")
+
     off = off_lines(off_today(crew), lang)
     if off:
         L.append("")
