@@ -470,7 +470,34 @@ def update_personal(name, chg, date, lang="he"):
     return "\n".join(head + change_lines(mine, lang) + tail)
 
 
-def group(lessons, date, lang="he"):
+def off_today(crew):
+    """Whoever the planner has marked away, first names only."""
+    out = []
+    for r in crew or []:
+        if not r.get("off"):
+            continue
+        name = " ".join((r.get("name") or "").split())
+        if name and not name.upper().startswith(("INSTRUCTORS", "PHOTOGRAPH",
+                                                 "GUIDES", "UNASSIGN")):
+            out.append(name.split()[0].title())
+    return out
+
+
+def off_lines(names, lang="he"):
+    """A word for the people who are off, by name.
+
+    Worth the two lines: the rota is read by the whole crew, and being
+    named in it on your day off is the difference between a list and a
+    message from the school.
+    """
+    if not names:
+        return []
+    if lang == "en":
+        return ["🌴 *%s* — enjoy your day off 🤙" % n for n in names]
+    return ["🌴 *%s* — תהנה ביום חופש 🤙" % n for n in names]
+
+
+def group(lessons, date, lang="he", crew=None):
     """The whole day for the staff group, in the order it happens."""
     when = _heading(date, lang)
     if not lessons:
@@ -490,6 +517,10 @@ def group(lessons, date, lang="he"):
             what, inner = inner or l["title"], ""
         L.append("*%s* %s%s — %s" % (_when(l), what,
                                      (" (%s)" % inner) if inner else "", who))
+    off = off_lines(off_today(crew), lang)
+    if off:
+        L.append("")
+        L.extend(off)
     tide = tide_lines(date, lang)
     if tide:
         L.append("")
@@ -504,6 +535,10 @@ def main():
     ap.add_argument("--who", default="", help="only this person's message")
     ap.add_argument("--group", action="store_true",
                     help="only the staff group's message")
+    ap.add_argument("--crew", default="",
+                    help="JSON from `shot.py --crew`. Only the planner knows "
+                         "who is away, so without this the rota cannot name "
+                         "them and simply leaves the line out.")
     ap.add_argument("--snapshot", default="",
                     help="write tomorrow's rota to this file, so a later run "
                          "can tell what changed since it was sent")
@@ -573,6 +608,8 @@ def main():
             print()
         return 0
 
+    crew = json.load(open(a.crew, encoding="utf-8")) if a.crew else None
+
     if a.who:
         want = a.who.strip().upper()
         mine = [l for l in lessons if any(n.upper().startswith(want)
@@ -580,11 +617,11 @@ def main():
         print(personal(a.who, mine, date, a.lang))
         return 0
     if a.group:
-        print(group(lessons, date, a.lang))
+        print(group(lessons, date, a.lang, crew))
         return 0
 
     print("======== staff group ========")
-    print(group(lessons, date, a.lang))
+    print(group(lessons, date, a.lang, crew))
     for name, mine in sorted(by_person(lessons).items()):
         print("\n======== %s ========" % name)
         print(personal(name, mine, date, a.lang))
