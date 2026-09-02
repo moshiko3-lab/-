@@ -123,6 +123,13 @@ def already_said(where, text, ident, token, minutes=720):
     Failing to reach the journal is not a reason to hold the message: a
     reminder that never arrives is the worse of the two mistakes, so an
     unreachable journal answers "no".
+
+    Measured limit: the journal takes a few seconds to show a message that
+    has just gone out. Sending the same text twice within about a minute
+    gets through; a minute later the same call skips. That is the right
+    trade for what this guards against -- two schedules half an hour apart,
+    a container that restarted, a routine re-run by hand -- and no help at
+    all against a loop that sends twice in the same breath.
     """
     url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
         GREEN, ident, token, minutes)
