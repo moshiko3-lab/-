@@ -31,3 +31,7 @@ crew.json
 # has been exported; cloud.json holds only the publishable key, and is
 # ignored so a half-filled one never ships by accident.
 brows/cloud.json
+
+# a signed-in Bloowatch browser: a secret, and never in the repo
+session.json
+*.session.json

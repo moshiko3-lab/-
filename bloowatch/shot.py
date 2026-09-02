@@ -257,14 +257,28 @@ def looks_drawn(path, least=6):
     return len(im.quantize(colors=64).getcolors(1 << 16) or []) >= least
 
 
-def _attempt(pw, args, date, out, email, password, full, width, scale):
+def _attempt(pw, args, date, out, email, password, full, width, scale,
+             cookies=None, keep=None):
     day = label(date)
     b = _launch(pw, args)
     try:
-        p = b.new_page(viewport={"width": width, "height": 1300},
-                       device_scale_factor=scale)
+        ctx = b.new_context(viewport={"width": width, "height": 1300},
+                            device_scale_factor=scale,
+                            storage_state=cookies or None)
+        p = ctx.new_page()
         p.set_default_timeout(45000)
-        _sign_in(p, email, password)
+        if cookies:
+            # the signed-in session came from somewhere else; no password here
+            _reach(p, BASE + "/agenda/activities", timeout=90000)
+        else:
+            _sign_in(p, email, password)
+        if keep:
+            _reach(p, BASE + "/agenda/activities")
+            _wait_for(p, "() => !!document.querySelector('a.dropdown-toggle')",
+                      seconds=45)
+            ctx.storage_state(path=keep)
+            b.close()
+            return keep
         _reach(p, BASE + "/agenda/activities")
         if not _wait_for(p, "() => !!document.querySelector('a.dropdown-toggle')",
                          seconds=45):
@@ -293,7 +307,7 @@ def _attempt(pw, args, date, out, email, password, full, width, scale):
 
 
 def shoot(date, out, email, password, full=None, width=2200, scale=2,
-          rounds=2, log=print):
+          rounds=2, log=print, cookies=None, keep=None):
     """Take the shot, trying every handshake we know before giving up."""
     from playwright.sync_api import sync_playwright
 
@@ -304,7 +318,7 @@ def shoot(date, out, email, password, full=None, width=2200, scale=2,
                 how = " ".join(args) or "default TLS"
                 try:
                     got = _attempt(pw, args, date, out, email, password, full,
-                                   width, scale)
+                                   width, scale, cookies, keep)
                     if r or args != HANDSHAKES[0]:
                         log("took it with %s" % how)
                     return got
@@ -328,6 +342,17 @@ def main():
                          "board fits across")
     ap.add_argument("--rounds", type=int, default=2,
                     help="how many times to work through the handshakes")
+    ap.add_argument("--keep-session", default="",
+                    help="sign in and write the session to this file, then "
+                         "stop. The file is a signed-in browser, not a "
+                         "password: it is what lets the picture be taken on "
+                         "the machine that sends it, without that machine "
+                         "ever seeing the password. Treat it as a secret and "
+                         "never commit it.")
+    ap.add_argument("--session", default="",
+                    help="use a session written by --keep-session instead of "
+                         "signing in. BLOOWATCH_EMAIL/PASSWORD are then not "
+                         "needed at all.")
     ap.add_argument("--crew", action="store_true",
                     help="print the day's rows as JSON instead of taking a "
                          "picture. A few hundred bytes of labels can be "
@@ -338,13 +363,14 @@ def main():
                       + dt.timedelta(days=1)).isoformat()
     email = os.environ.get("BLOOWATCH_EMAIL")
     password = os.environ.get("BLOOWATCH_PASSWORD")
-    if not email or not password:
+    if not a.session and (not email or not password):
         print("error: BLOOWATCH_EMAIL and BLOOWATCH_PASSWORD are not set",
               file=sys.stderr)
         return 1
-    got = shoot(date, "" if a.crew else a.out, email, password,
-                a.full or None, a.width, rounds=a.rounds,
-                log=lambda m: print(m, file=sys.stderr))
+    got = shoot(date, "" if (a.crew or a.keep_session) else a.out,
+                email, password, a.full or None, a.width, rounds=a.rounds,
+                log=lambda m: print(m, file=sys.stderr),
+                cookies=a.session or None, keep=a.keep_session or None)
     if a.crew:
         json.dump(got, sys.stdout, ensure_ascii=False)
         print()
