@@ -124,6 +124,20 @@ def via_timelines(where, text, path, token):
     return _post(url, body, ctype, {"Authorization": "Bearer " + token})
 
 
+def via_green_url(where, text, url, ident, token, name="file.mp4"):
+    """Send something Green-API is already holding, by its own link.
+
+    Nothing is uploaded and nothing is downloaded first, which is why the
+    day-off animations live here: the file went over once and every night
+    after that is one call.
+    """
+    body = json.dumps({"chatId": where["jid"], "urlFile": url,
+                       "fileName": name,
+                       "caption": text[:CAPTION_MAX]}).encode("utf-8")
+    return _post("%s/waInstance%s/sendFileByUrl/%s" % (GREEN, ident, token),
+                 body, "application/json")
+
+
 def via_green(where, text, path, ident, token):
     """Green-API: a text goes to sendMessage, a file to sendFileByUpload.
 
@@ -149,6 +163,9 @@ def main():
                          "surfers_en) or a phone number")
     ap.add_argument("--text", required=True, help="file holding the message")
     ap.add_argument("--file", default="", help="a picture to send with it")
+    ap.add_argument("--url", default="",
+                    help="send something the gateway already holds, by link. "
+                         "Green-API only; nothing is uploaded.")
     ap.add_argument("--dry-run", action="store_true",
                     help="say what would be sent, and send nothing")
     a = ap.parse_args()
@@ -163,7 +180,10 @@ def main():
     ttok = os.environ.get("TIMELINESAI_TOKEN")
     gateway = "green" if (gid and gtok) else ("timelines" if ttok else "")
 
-    if a.file and len(text) > CAPTION_MAX:
+    if a.url and gateway != "green":
+        print("error: --url is Green-API only", file=sys.stderr)
+        return 1
+    if (a.file or a.url) and len(text) > CAPTION_MAX:
         print("note: %d characters of caption, %d is the limit -- send the "
               "picture with a short caption and the rest as its own message"
               % (len(text), CAPTION_MAX), file=sys.stderr)
@@ -174,10 +194,14 @@ def main():
                   "GREENAPI_TOKEN, or TIMELINESAI_TOKEN.", file=sys.stderr)
         print(json.dumps({"gateway": gateway or "none", "to": where["name"],
                           "chatId": where["jid"], "chars": len(text),
-                          "file": a.file or None}, ensure_ascii=False))
+                          "file": a.file or a.url or None},
+                         ensure_ascii=False))
         return 0 if a.dry_run else 1
 
-    if gateway == "green":
+    if gateway == "green" and a.url:
+        code, said = via_green_url(where, text, a.url, gid, gtok,
+                                   os.path.basename(a.url.split("?")[0]))
+    elif gateway == "green":
         code, said = via_green(where, text, a.file or "", gid, gtok)
     else:
         code, said = via_timelines(where, text, a.file or "", ttok)

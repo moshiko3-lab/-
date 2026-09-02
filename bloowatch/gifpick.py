@@ -5,9 +5,8 @@
     python3 gifpick.py 1 --date 2026-09-02  # the second
     python3 gifpick.py --list
 
-Prints the id of a WhatsApp message holding the animation. The sender then
-asks TimelinesAI for that message, which hands back a signed link to the
-file itself.
+Prints the link the gateway holds the animation at. `send.py --url` sends
+it straight from there: nothing is uploaded, nothing is downloaded first.
 
 Two people off on the same day get different ones, and tomorrow everybody
 moves along by one -- worked out from the date and the person's place in
@@ -30,7 +29,7 @@ PANAMA = dt.timezone(dt.timedelta(hours=-5))
 def library(path=LIBRARY):
     try:
         with open(path, encoding="utf-8") as f:
-            return [g for g in (json.load(f).get("gifs") or []) if g.get("uid")]
+            return [g for g in (json.load(f).get("gifs") or []) if g.get("url")]
     except (OSError, ValueError):
         return []
 
@@ -63,7 +62,7 @@ def main():
     gifs = library()
     if a.list:
         for g in gifs:
-            print("%s  %s" % (g["uid"], g.get("note") or ""))
+            print("%s  %s" % (g["url"], g.get("note") or ""))
         return 0
     if a.nth == "":
         print("error: whose place in the list?", file=sys.stderr)
@@ -72,7 +71,7 @@ def main():
     if not got:
         print("error: no animations in gifs.json", file=sys.stderr)
         return 1
-    print(got["uid"])
+    print(got["url"])
     return 0
 
 

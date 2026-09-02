@@ -1,16 +1,17 @@
 {
-  "_what": "The day-off animations, by the id of the WhatsApp message each one arrived in. The files themselves are not here on purpose: they are somebody else's work, this repository is public, and TimelinesAI is already holding them.",
-  "_how_to_add": "Send the GIF to the school's own WhatsApp number (+50769027049) from any phone, then read the message id: GET /integrations/api/chats/<chat>/messages?page=1 and take the `uid` of the one with has_attachment. Paste it below with a word about what it is. Nothing else to do.",
-  "_how_to_fetch": "GET /integrations/api/messages/<uid> returns the message with a fresh `attachment_url`, signed and good for an hour. WhatsApp stores an animation as attachment.mp4, which is what to send back -- it arrives looking the way it did when it was sent in.",
+  "_what": "The day-off animations, by the link Green-API holds them at. The files themselves are not here on purpose: they are somebody else's work and this repository is public.",
+  "_how_to_add": "Send the animation to the school's WhatsApp number from any phone, then re-upload it through the gateway once and keep the link it hands back:\n  curl -X POST -F \"chatId=50769027049@c.us\" -F \"file=@it.mp4\" \"$GREENAPI_URL/waInstance$GREENAPI_ID/sendFileByUpload/$GREENAPI_TOKEN\"\nThe reply carries urlFile. Paste it below with a word about what it is.",
+  "_how_to_send": "python3 send.py --to +<number> --text greeting.txt --url <the url>. Nothing is uploaded and nothing is downloaded first -- the file went over once, and every night after that is a single call.",
+  "_if_a_link_dies": "Send the greeting as text. A day off wished plainly beats silence, and a broken picture is worse than no picture.",
   "_note": "Two is thin. Four or five and nobody sees the same one twice in a fortnight.",
   "gifs": [
     {
-      "uid": "08aafa25-f55c-4ac0-b843-0cc793ea8e43",
-      "note": "sent in by the owner, 2026-09-01"
+      "url": "https://do-mediaout-7107.fra1.digitaloceanspaces.com/710722725924/71d9e25b-45c8-46b7-99bb-73e49563d7e4.mp4",
+      "note": "sent in by the owner 2026-09-01, moved to Green-API 2026-09-02"
     },
     {
-      "uid": "384be341-5d4a-449f-90b0-04b76188734b",
-      "note": "sent in by the owner, 2026-09-01"
+      "url": "https://do-mediaout-7107.fra1.digitaloceanspaces.com/710722725924/8a094fa1-b9a0-4d66-bbbd-681b7901107e.mp4",
+      "note": "sent in by the owner 2026-09-01, moved to Green-API 2026-09-02"
     }
   ]
 }
