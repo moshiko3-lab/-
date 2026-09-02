@@ -80,9 +80,9 @@ def busy(im, y0, y1):
     return spans[0][0] - NAMEW > 100
 
 
-def tighten(im, strips=3, overlap=0.12):
+def tighten(im, strips=3, overlap=0.12, only_booked=True):
     head, bands = rows(im)
-    keep = [b for b in bands if busy(im, *b)] or bands
+    keep = ([b for b in bands if busy(im, *b)] or bands) if only_booked else bands
     rowh = keep[0][1] - keep[0][0]
 
     short = Image.new("RGB", (im.size[0], head + rowh * len(keep)), "white")
@@ -112,11 +112,19 @@ def main():
     ap.add_argument("src")
     ap.add_argument("dst")
     ap.add_argument("--strips", type=int, default=3)
-    ap.add_argument("--colours", type=int, default=16)
+    ap.add_argument("--colours", type=int, default=64,
+                    help="palette size. 64 is indistinguishable from the "
+                         "original here; at 32 the ink starts going brown and "
+                         "at 8 the names turn pink, which is what made the "
+                         "first sends look smeared.")
+    ap.add_argument("--rows", choices=("booked", "all"), default="all",
+                    help="'all' is the board as the office sees it, every "
+                         "member of the crew and the group dividers. 'booked' "
+                         "drops the rows with nothing on them.")
     a = ap.parse_args()
 
     im = Image.open(a.src).convert("RGB")
-    out, kept, all_rows = tighten(im, a.strips)
+    out, kept, all_rows = tighten(im, a.strips, only_booked=a.rows == "booked")
     if a.colours:
         out = out.quantize(colors=a.colours, method=Image.MEDIANCUT)
     out.save(a.dst, optimize=True)
