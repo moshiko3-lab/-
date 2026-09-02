@@ -249,6 +249,35 @@ def main():
     check("no changes means no group message",
           rota.update_group([], "2026-09-02") == "")
 
+    # the hours a shift occupies, which is the whole difference between a
+    # lesson and a day behind the counter
+    start = "Wed, 02 Sep 2026 09:00:00"
+    check("an hour-long lesson is just its start time",
+          rota._end(start, "01:00:00") == "", rota._end(start, "01:00:00"))
+    check("a ten-hour shop shift ends when it ends",
+          rota._end(start, "10:00:00") == "19:00", rota._end(start, "10:00:00"))
+    check("half past counts as longer than an hour",
+          rota._end(start, "01:30:00") == "10:30", rota._end(start, "01:30:00"))
+    check("a duration Bloowatch did not send is not guessed at",
+          rota._end(start, None) == "")
+    check("a span is printed as a span",
+          rota._when({"time": "09:00", "until": "19:00"}) == "09:00-19:00")
+    check("and a lesson stays a single time",
+          rota._when({"time": "09:00", "until": ""}) == "09:00")
+
+    # a shift that now finishes at a different hour has moved
+    was = [{"id": 1, "time": "09:00", "until": "15:00", "title": "SHOP PLAYA",
+            "students": 0, "names": [], "staff": ["IDAN"]}]
+    now = [dict(was[0], until="19:00")]
+    ext = rota.changes(was, now)
+    check("a shift that runs later is reported as a move",
+          len(ext) == 1 and ext[0]["kind"] == "moved", ext)
+    check("and it says what the hours were before",
+          ext[0]["from"] == "09:00-15:00", ext[0]["from"])
+    check("a snapshot written before end times were kept reports nothing",
+          rota.changes([{k: v for k, v in was[0].items() if k != "until"}],
+                       now) == [])
+
     # a move is written so it cannot be read backwards in a Hebrew message
     line = rota.change_lines(moved)[0]
     check("a move states the new hour and puts the old one behind it",

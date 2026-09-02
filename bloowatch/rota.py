@@ -69,6 +69,26 @@ def _is_placeholder(name):
     return any(up.startswith(p) or p in up for p in NOT_PEOPLE)
 
 
+def _end(raw, duration):
+    """When it finishes, worked out from Bloowatch's duration field.
+
+    A lesson is an hour and everyone knows it, so its start time says
+    everything. A shop shift is not: on the board it is a bar running from
+    nine to seven, and a rota that prints only "09:00" for it tells the
+    person on it almost nothing. So the end time is kept only for the
+    things that last longer than an hour.
+    """
+    try:
+        start = dt.datetime.strptime(raw, "%a, %d %b %Y %H:%M:%S")
+        h, m, s = (int(p) for p in str(duration).split(":"))
+    except (ValueError, TypeError, AttributeError):
+        return ""
+    if (h, m) <= (1, 0):
+        return ""
+    return (start + dt.timedelta(hours=h, minutes=m,
+                                 seconds=s)).strftime("%H:%M")
+
+
 def lessons_for(session, base, date, sid=SCHOOL):
     """The day's actual teaching, earliest first."""
     rows = _rows(_get(session, base, f"/schools/{sid}/sessions/", date=date,
@@ -98,7 +118,8 @@ def lessons_for(session, base, date, sid=SCHOOL):
         except ValueError:
             continue
         out.append({"id": x.get("id"),
-                    "time": when, "title": title, "category": cat,
+                    "time": when, "until": _end(raw, x.get("duration")),
+                    "title": title, "category": cat,
                     "students": len(x.get("attendants") or []),
                     "names": student_names(x.get("attendants")),
                     "capacity": x.get("max_attendants") or 0,
@@ -148,8 +169,20 @@ def _who(l, lang):
     return ", ".join(names)
 
 
+def _when(l):
+    """The hours the thing occupies: a span when it has one, else the start."""
+    return "%s-%s" % (l["time"], l["until"]) if l.get("until") else l["time"]
+
+
 def _line(l, lang, sep=" · "):
-    bits = [l["title"], _students(l["students"], lang), _who(l, lang)]
+    """Naming the students already says how many there are.
+
+    "SURF PACK · תלמיד אחד · Mica M" spends three words to say what "SURF
+    PACK · Mica M" says in one, and the Hebrew island in the middle of a
+    Latin line is what makes the message wrap badly on a phone. The count
+    is what is left when the names are too many to print.
+    """
+    bits = [l["title"], _who(l, lang) or _students(l["students"], lang)]
     return sep.join(x for x in bits if x)
 
 
@@ -186,7 +219,7 @@ def personal(name, lessons, date, lang="he"):
         L.append("*הלו״ז שלך ל%s:*" % when)
     L.append("")
     for l in lessons:
-        L.append("*%s* · %s" % (l["time"], _line(l, lang)))
+        L.append("*%s* · %s" % (_when(l), _line(l, lang)))
     L.append("")
     L.append("Have a good one 🤙" if lang == "en" else "בהצלחה 🤙")
     return "\n".join(L)
@@ -257,11 +290,16 @@ def changes(before, after):
         if not old:
             out.append({"kind": "added", "lesson": l, "staff": set(l["staff"])})
             continue
-        moved = old["time"] != l["time"]
+        # A shift that now finishes at a different hour has moved as surely as
+        # one that starts at a different hour. Older snapshots were written
+        # before end times were kept, and comparing against a key they never
+        # had would report the whole day as changed.
+        moved = old["time"] != l["time"] or (
+            "until" in old and old["until"] != l.get("until"))
         gained = set(l["staff"]) - set(old["staff"])
         lost = set(old["staff"]) - set(l["staff"])
         if moved:
-            out.append({"kind": "moved", "lesson": l, "from": old["time"],
+            out.append({"kind": "moved", "lesson": l, "from": _when(old),
                         "staff": set(l["staff"]) | set(old["staff"])})
         if gained:
             out.append({"kind": "added", "lesson": l, "staff": gained})
@@ -293,31 +331,31 @@ def change_lines(chg, lang="he", named=False):
         tail = (" — %s" % who) if named and who else ""
         if lang == "en":
             if c["kind"] == "added":
-                out.append("➕ *%s* · %s%s" % (l["time"], what, tail))
+                out.append("➕ *%s* · %s%s" % (_when(l), what, tail))
             elif c["kind"] == "cancelled":
                 out.append("❌ *%s* · %s — cancelled%s"
-                           % (l["time"], what, (" (%s)" % who) if named else ""))
+                           % (_when(l), what, (" (%s)" % who) if named else ""))
             elif c["kind"] == "moved":
                 out.append("🕒 *%s* (was %s) · %s%s"
-                           % (l["time"], c["from"], what, tail))
+                           % (_when(l), c["from"], what, tail))
             else:
                 out.append("➖ *%s* · %s — %s" % (
-                    l["time"], what, ("off %s" % who) if named
+                    _when(l), what, ("off %s" % who) if named
                     else "no longer yours"))
         else:
             if c["kind"] == "added":
-                out.append("➕ *%s* · %s%s" % (l["time"], what, tail))
+                out.append("➕ *%s* · %s%s" % (_when(l), what, tail))
             elif c["kind"] == "cancelled":
                 out.append("❌ *%s* · %s — בוטל%s"
-                           % (l["time"], what, (" (%s)" % who) if named else ""))
+                           % (_when(l), what, (" (%s)" % who) if named else ""))
             elif c["kind"] == "moved":
                 out.append("🕒 *%s* (היה %s) · %s%s"
-                           % (l["time"], c["from"], what, tail))
+                           % (_when(l), c["from"], what, tail))
             else:
                 # the crew's names are in Latin letters, so the Hebrew prefix
                 # needs the hyphen it would take before any foreign word
                 out.append("➖ *%s* · %s — %s" % (
-                    l["time"], what, ("ירד מ-%s" % who) if named
+                    _when(l), what, ("ירד מ-%s" % who) if named
                     else "כבר לא אצלך"))
     return out
 
@@ -362,9 +400,8 @@ def group(lessons, date, lang="he"):
             L.append("")
         last = l["time"]
         who = ", ".join(n.split()[0].title() for n in l["staff"])
-        inner = " · ".join(x for x in (_students(l["students"], lang),
-                                       _who(l, lang)) if x)
-        L.append("*%s* %s%s — %s" % (l["time"], l["title"],
+        inner = _who(l, lang) or _students(l["students"], lang)
+        L.append("*%s* %s%s — %s" % (_when(l), l["title"],
                                      (" (%s)" % inner) if inner else "", who))
     return "\n".join(L)
 
