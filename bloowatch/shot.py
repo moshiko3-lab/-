@@ -35,6 +35,7 @@ Nothing here writes to Bloowatch. It signs in, changes the view, and reads.
 import argparse
 import datetime as dt
 import glob
+import json
 import os
 import sys
 import time
@@ -182,6 +183,52 @@ def _find_day(p, day, seconds=90):
     }""", day, seconds=seconds)
 
 
+def _crew(p, box):
+    """The day's rows, in the order the board lists them.
+
+    Reading them as text rather than as pixels is what lets the picture be
+    drawn where it is sent: the labels are a few hundred bytes, and a
+    photograph is a hundred kilobytes that has to be copied by hand.
+
+    Every row is one line down the left-hand column -- a person, or one of
+    the grey group headings -- and a row is off if its own strip says so.
+    """
+    return p.evaluate("""(box) => {
+      const skip = /^(\\d{1,2}:\\d{2}|Time Off|\\d+\\s*\\/\\s*\\d+)$/i;
+      const wide = 160;                     // the label column, in CSS pixels
+      const seen = new Map(), off = new Set();
+      for (const e of document.querySelectorAll('.cp-Panel *')) {
+        const r = e.getBoundingClientRect();
+        const y = r.y + window.scrollY, x = r.x + window.scrollX;
+        if (y < box.y || y > box.y + box.height) continue;
+        const t = (e.innerText || '').trim().split('\\n')[0].trim();
+        if (/^\\s*Time Off\\s*$/i.test(t)) { off.add(Math.round(y / 8)); }
+        // labels hang off the very left of the panel; a booking block starts
+        // where its hour is, so this alone tells the two apart -- and it
+        // keeps the long group headings, which overflow the column
+        if (x - box.x > 24 || r.width > wide + 90) continue;
+        if (r.height < 12 || r.height > 60) continue;
+        if (!t || t.length > 40 || skip.test(t)) continue;
+        // rows sit on a fixed pitch, but their labels are nested a pixel or
+        // two apart, so bucket them and keep the longest name in each bucket
+        const key = Math.round(y / 8);
+        if (!seen.has(key) || seen.get(key).length < t.length) seen.set(key, t);
+      }
+      const rows = [...seen.entries()].sort((a, b) => a[0] - b[0]);
+      const out = [];
+      for (const [key, name] of rows) {
+        const last = out[out.length - 1];
+        if (last && key - last.key <= 1) {          // two reads of one row
+          if (name.length > last.name.length) last.name = name;
+          continue;
+        }
+        out.push({key: key, name: name,
+                  off: [...off].some(o => Math.abs(o - key) <= 2)});
+      }
+      return out.map(r => ({name: r.name, off: r.off}));
+    }""", box)
+
+
 def looks_drawn(path, least=6):
     """A blank board is worse than no board: it reads as a day with nothing on.
 
@@ -217,11 +264,15 @@ def _attempt(pw, args, date, out, email, password, full, width, scale):
         box = _find_day(p, day)
         if not box:
             raise RuntimeError("no block headed %r on the board" % day)
+        rows = _crew(p, box)
         if full:
             p.screenshot(path=full, full_page=True)
-        p.screenshot(path=out, clip=box)
+        if out:
+            p.screenshot(path=out, clip=box)
     finally:
         b.close()
+    if not out:
+        return rows
     if not looks_drawn(out):
         raise RuntimeError("the board came out blank")
     return out
@@ -238,11 +289,11 @@ def shoot(date, out, email, password, full=None, width=2200, scale=2,
             for args in HANDSHAKES:
                 how = " ".join(args) or "default TLS"
                 try:
-                    _attempt(pw, args, date, out, email, password, full,
-                             width, scale)
+                    got = _attempt(pw, args, date, out, email, password, full,
+                                   width, scale)
                     if r or args != HANDSHAKES[0]:
                         log("took it with %s" % how)
-                    return out
+                    return got
                 except Exception as e:                         # noqa: BLE001
                     why = str(e).split("\n")[0][:120]
                     trouble.append("%s: %s" % (how, why))
@@ -263,6 +314,11 @@ def main():
                          "board fits across")
     ap.add_argument("--rounds", type=int, default=2,
                     help="how many times to work through the handshakes")
+    ap.add_argument("--crew", action="store_true",
+                    help="print the day's rows as JSON instead of taking a "
+                         "picture. A few hundred bytes of labels can be "
+                         "carried to the machine that sends the message; a "
+                         "photograph cannot.")
     a = ap.parse_args()
     date = a.date or (dt.datetime.now(PANAMA).date()
                       + dt.timedelta(days=1)).isoformat()
@@ -272,8 +328,14 @@ def main():
         print("error: BLOOWATCH_EMAIL and BLOOWATCH_PASSWORD are not set",
               file=sys.stderr)
         return 1
-    print(shoot(date, a.out, email, password, a.full or None, a.width,
-                rounds=a.rounds, log=lambda m: print(m, file=sys.stderr)))
+    got = shoot(date, "" if a.crew else a.out, email, password,
+                a.full or None, a.width, rounds=a.rounds,
+                log=lambda m: print(m, file=sys.stderr))
+    if a.crew:
+        json.dump(got, sys.stdout, ensure_ascii=False)
+        print()
+    else:
+        print(got)
     return 0
 
 

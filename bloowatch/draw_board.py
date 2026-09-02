@@ -39,6 +39,8 @@ HAIR = (228, 231, 238)          # separators between rows
 GRID = (236, 239, 245)          # the hour lines inside the day
 HATCH = (245, 246, 250)         # the diagonal weave of an empty hour
 BAND = (226, 232, 243)          # the date and hour band
+GROUPBG = (216, 218, 223)       # the band between one group of the crew
+GROUPEDGE = (120, 124, 133)     # and the next
 BAND_INK = (46, 62, 92)
 WHITE = (255, 255, 255)
 TIDE_BG = (247, 249, 252)
@@ -54,7 +56,7 @@ KINDS = {
 
 W = 1400          # the design's own width; everything else is measured off it
 PAD = 34
-NAMEW = 136
+NAMEW = 168
 ROW = 62
 TIDEH = 118
 BANDH = 26
@@ -181,12 +183,27 @@ def draw(spec, scale=2):
     # --- the day ------------------------------------------------------------
     y = HEADH
     for row in spec["rows"]:
+        if row.get("kind") == "group":
+            # the grey band the planner puts between one group of the crew
+            # and the next: a heading, not a booking
+            p.box(d, left, y + 7, right, y + ROW - 7, GROUPBG)
+            p.box(d, left, y + 7, left + 3.5, y + ROW - 7, GROUPEDGE)
+            p.rule(d, PAD, y + ROW, right, HAIR)
+            p.text(d, (left - 12, y + ROW / 2.0),
+                   p.clip(row["who"].upper(), 10.5, NAMEW - 4, True), 10.5,
+                   SLATE, bold=True, anchor="rm")
+            y += ROW
+            continue
         p.hatch(im, d, left, y, right, y + ROW)
+        if row.get("off"):
+            p.text(d, (left + 16, y + ROW / 2.0), row["off"], 11, MUTED,
+                   anchor="lm")
         for h in spec["hours"][1:-1]:
             x = at(h * 60)
             p.box(d, x, y, x + 0.6, y + ROW, GRID)
         p.rule(d, PAD, y + ROW, right, HAIR)
-        p.text(d, (left - 12, y + ROW / 2.0), row["who"].upper(), 12.5, SLATE,
+        p.text(d, (left - 12, y + ROW / 2.0),
+               p.clip(row["who"].upper(), 12.5, NAMEW - 4, True), 12.5, SLATE,
                bold=True, anchor="rm")
 
         for b in row["bars"]:

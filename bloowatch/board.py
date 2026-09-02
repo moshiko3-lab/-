@@ -129,7 +129,43 @@ EN_DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
           "Sunday"]
 
 
-def spec(date, lessons, lang="he"):
+GROUP = re.compile(r"^(INSTRUCTORS|PHOTOGRAPHERS|GUIDES|STAFF|UNASSIGNED)\b",
+                   re.I)
+# the panel's own heading, "WED 2 SEP", reads like a row and is not one
+NOT_A_ROW = re.compile(r"^[A-Z]{3}\s+\d{1,2}\s+[A-Z]{3}$", re.I)
+
+
+def in_crew_order(lessons, crew):
+    """Every row the office sees, in the order the board lists them.
+
+    Without this the picture only shows the people who have something on,
+    which reads as a much emptier day than it is: the board upstairs lists
+    the whole crew, the grey group headings between them, and who is off.
+    `crew` is what shot.py --crew read off that board.
+    """
+    booked = dict(rows(lessons))
+    out, by = [], {}
+    for r in crew:
+        name = " ".join((r.get("name") or "").split())
+        if not name or name.upper().startswith("UNASSIGN"):
+            continue
+        if NOT_A_ROW.match(name):
+            continue
+        if GROUP.match(name):
+            out.append({"who": name, "group": True, "mine": []})
+            continue
+        row = {"who": name, "off": bool(r.get("off")), "mine": []}
+        by[name.split()[0].title()] = row
+        out.append(row)
+    for first, mine in booked.items():
+        if first in by:
+            by[first]["mine"] = mine
+        else:                              # on the day but not on the board
+            out.append({"who": first, "off": False, "mine": mine})
+    return out
+
+
+def spec(date, lessons, lang="he", crew=None):
     """Everything the picture needs, and nothing that is only in the picture.
 
     Kept as plain data so the drawing can happen somewhere else -- the only
@@ -146,14 +182,24 @@ def spec(date, lessons, lang="he"):
     if lang == "en":
         title = "%s %d/%d" % (EN_DOW[d.weekday()], d.day, d.month)
         tide_hd, high_w, low_w = "Tide", "high", "low"
+        off_word = "Time off"
         words = {"lesson": "Lesson", "shift": "Shop shift", "rental": "Rental"}
     else:
         title = "יום %s %d/%d" % (HEB_DOW[d.weekday()], d.day, d.month)
         tide_hd, high_w, low_w = "גאות ושפל", "גאות", "שפל"
+        off_word = "חופש"
         words = {"lesson": "שיעור", "shift": "משמרת חנות", "rental": "השכרה"}
 
+    listed = (in_crew_order(lessons, crew) if crew
+              else [{"who": n, "off": False, "mine": m}
+                    for n, m in rows(lessons)])
+
     out_rows = []
-    for name, mine in rows(lessons):
+    for row in listed:
+        if row.get("group"):
+            out_rows.append({"who": row["who"], "kind": "group", "bars": []})
+            continue
+        name, mine = row["who"], row["mine"]
         bars = []
         for l in sorted(mine, key=lambda x: x["time"]):
             a, b = _span(l)
@@ -170,7 +216,10 @@ def spec(date, lessons, lang="he"):
                          "label": label, "sub": sub,
                          "when": ("%s–%s" % (l["time"], l["until"]))
                                  if l.get("until") else l["time"]})
-        out_rows.append({"who": name, "bars": bars})
+        one = {"who": name, "bars": bars}
+        if row.get("off"):
+            one["off"] = off_word
+        out_rows.append(one)
 
     tide = None
     pts = curve(date, lo, hi)
@@ -186,7 +235,8 @@ def spec(date, lessons, lang="he"):
     key = [{"kind": k, "word": words[k]}
            for k in ("lesson", "shift", "rental") if k in here]
 
-    n, crew = len(lessons), len(out_rows)
+    n = len(lessons)
+    crew = sum(1 for r in out_rows if r.get("bars"))
     if lang == "en":
         stat = "%d booking%s · %d on" % (n, "" if n == 1 else "s", crew)
         foot = "Built from Bloowatch"
@@ -211,6 +261,11 @@ def main():
                     help="print the spec instead of drawing it, for a machine "
                          "that has Pillow but cannot reach Bloowatch")
     ap.add_argument("--scale", type=float, default=2)
+    ap.add_argument("--crew", default="",
+                    help="JSON from `shot.py --crew`: the whole crew in the "
+                         "order the planner lists them, group headings and "
+                         "all. Without it the picture shows only the people "
+                         "who have something on.")
     a = ap.parse_args()
     date = a.date or tomorrow()
     try:
@@ -222,7 +277,8 @@ def main():
     if not lessons:
         print("nothing booked for " + date)
         return 0
-    sp = spec(date, lessons, a.lang)
+    crew = json.load(open(a.crew, encoding="utf-8")) if a.crew else None
+    sp = spec(date, lessons, a.lang, crew)
     if a.spec:
         json.dump(sp, sys.stdout, ensure_ascii=False, separators=(",", ":"))
         print()
