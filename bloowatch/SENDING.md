@@ -70,8 +70,17 @@ export GREENAPI_URL=https://7107.api.greenapi.com
 ```
 curl -sS "$GREENAPI_URL/waInstance$GREENAPI_ID/getStateInstance/$GREENAPI_TOKEN"
 ```
-`{"stateInstance":"authorized"}` — טוב. `notAuthorized` — המספר התנתק,
-וצריך לחבר מחדש בקונסולה. **אל תשלח כלום עד שזה חוזר, ודווח.**
+`{"stateInstance":"authorized"}` — טוב.
+
+שני כישלונות, ושניהם עוצרים הכל:
+
+- **`401` עם גוף ריק** — האסימון שכתוב בשגרה כבר לא תקף. זה קורה
+  כשמישהו לוחץ refresh בקונסולה: האסימון הישן מת באותו רגע. קרה ב-2/9,
+  שעות אחרי שהוא עבד. **בקש מהבעלים את `apiTokenInstance` הנוכחי
+  מהקונסולה והחלף אותו בכל חמש השגרות.** אל תנחש ואל תנסה שוב עם הישן.
+- **`notAuthorized`** — המספר עצמו התנתק מהמכשיר. חיבור מחדש בקונסולה.
+
+**אל תשלח כלום עד שזה חוזר ל-`authorized`, ודווח.**
 
 ## אם השליחה נכשלת
 
