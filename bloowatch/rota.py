@@ -550,7 +550,11 @@ def group(lessons, date, lang="he", crew=None):
     L.append("Thank you all for today, see you tomorrow 🫶" if lang == "en"
              else "תודה רבה לכולם על היום, נפגש מחר 🫶")
 
-    off = off_lines(off_today(crew), lang)
+    # somebody can be marked off for part of a day and still teach in it.
+    # Wishing them a good day off beside their own 09:30 lesson reads as a
+    # mistake, so only the people with nothing on are wished one.
+    working = {n.split()[0].title() for l in lessons for n in l["staff"]}
+    off = off_lines([n for n in off_today(crew) if n not in working], lang)
     if off:
         L.append("")
         L.extend(off)
