@@ -69,8 +69,9 @@ def chromium():
     itself; the explicit paths are for a machine that carries a browser
     Playwright did not put there.
     """
+    # newer builds keep it in chrome-linux64, older ones in chrome-linux
     home = os.path.expanduser("~/.cache/ms-playwright")
-    if glob.glob(home + "/chromium-*/chrome-linux/chrome"):
+    if glob.glob(home + "/chromium-*/chrome-linux*/chrome"):
         return None
     for pat in ("/opt/pw-browsers/chromium-*/chrome-linux/chrome",
                 "/usr/bin/chromium", "/usr/bin/chromium-browser",
