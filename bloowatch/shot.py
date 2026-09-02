@@ -63,7 +63,15 @@ QUIET = ["--no-sandbox", "--disable-dev-shm-usage", "--no-first-run",
 
 
 def chromium():
-    """Whichever Chromium this machine happens to carry."""
+    """Whichever Chromium this machine happens to carry.
+
+    None means Playwright's own, which is right wherever it installed one
+    itself; the explicit paths are for a machine that carries a browser
+    Playwright did not put there.
+    """
+    home = os.path.expanduser("~/.cache/ms-playwright")
+    if glob.glob(home + "/chromium-*/chrome-linux/chrome"):
+        return None
     for pat in ("/opt/pw-browsers/chromium-*/chrome-linux/chrome",
                 "/usr/bin/chromium", "/usr/bin/chromium-browser",
                 "/usr/bin/google-chrome",
@@ -83,8 +91,13 @@ def label(date):
 
 def _launch(pw, args):
     proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
-    return pw.chromium.launch(executable_path=chromium(), args=QUIET + args,
-                              proxy={"server": proxy} if proxy else None)
+    how = {"args": QUIET + args}
+    where = chromium()
+    if where:
+        how["executable_path"] = where
+    if proxy:
+        how["proxy"] = {"server": proxy}
+    return pw.chromium.launch(**how)
 
 
 def _reach(p, url, tries=3, timeout=60000):
