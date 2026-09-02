@@ -159,9 +159,23 @@ def main():
     check("five names are a list, so the count carries it alone",
           "A One" not in rota._line(crowd, "he") and
           "12 תלמידים" in rota._line(crowd, "he"), rota._line(crowd, "he"))
-    check("a lesson with no names recorded still reads cleanly",
-          rota._line(L("09:00", "SURF PACK", 1, ["N"]), "he")
-          == "SURF PACK · תלמיד אחד")
+    # the product name says nothing -- almost every booking is a SURF PACK --
+    # so the line carries whoever is coming, and falls back to the count when
+    # nobody was recorded, and to the product name only when there is neither
+    check("a plain surf lesson is named by who is coming to it",
+          rota._line(named, "he") == "Itay A", rota._line(named, "he"))
+    check("a lesson with no names recorded falls back to the count",
+          rota._line(L("09:00", "SURF PACK", 1, ["N"]), "he") == "תלמיד אחד",
+          rota._line(L("09:00", "SURF PACK", 1, ["N"]), "he"))
+    check("and with neither, to the name it was booked under",
+          rota._line(L("09:00", "SURF PACK", 0, ["N"]), "he") == "SURF PACK",
+          rota._line(L("09:00", "SURF PACK", 0, ["N"]), "he"))
+    check("a shop shift keeps its own name",
+          rota._line(L("13:00", "SHOP PLAYA", 0, ["N"], "SHOP PLAYA"), "he")
+          == "SHOP PLAYA")
+    check("a private course keeps the word CLASS and drops the filing",
+          rota.short("CLASS 2024 - jim van weperen") == "CLASS",
+          rota.short("CLASS 2024 - jim van weperen"))
 
     # --- the reminder window ------------------------------------------------
     # An hourly run steps a 60-minute window by 60 minutes. Every lesson in

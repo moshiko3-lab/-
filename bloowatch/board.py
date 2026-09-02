@@ -27,7 +27,7 @@ import tempfile
 
 from daily_report import BloowatchError, login
 from forecast_message import tides_for
-from rota import PANAMA, lessons_for, tomorrow
+from rota import PANAMA, lessons_for, short, tomorrow
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,20 +50,6 @@ def kind(title):
         if any(w in up for w in words):
             return name
     return "lesson"
-
-
-def short(title):
-    """A booking's name with the filing left off it.
-
-    Bloowatch names a private course after the year and the customer --
-    "CLASS 2024 - jim van weperen" -- which is the right name for a record
-    and far too long for an hour-wide bar. The customer is already named on
-    the line below, by whoever is actually turning up, so the bar keeps the
-    part that says what kind of thing it is.
-    """
-    t = " ".join((title or "").split())
-    m = re.match(r"^(CLASS|COURSE)\b[\s\-–]*\d{2,4}\b[\s\-–]*(.*)$", t, re.I)
-    return m.group(1).upper() if m else t
 
 
 def minutes(hhmm):
@@ -180,12 +166,18 @@ def page(date, lessons, lang="he"):
             names = ", ".join(l.get("names") or [])
             if len(l.get("names") or []) > 4:
                 names = ""
+            # a plain surf lesson has no name worth printing, so the person
+            # coming to it takes the top line instead of sitting under a
+            # word that is on every other bar too
+            head_, sub = short(l["title"]), names
+            if not head_:
+                head_, sub = names or l["title"], ""
             bars.append(
                 '<div class="bar %s" style="left:%.4f%%;width:%.4f%%">'
                 '<b>%s</b>%s</div>'
                 % (kind(l["title"]), pct(a), 100.0 * (b - a) / width,
-                   html.escape(short(l["title"])),
-                   ('<i>%s</i>' % html.escape(names)) if names else ""))
+                   html.escape(head_),
+                   ('<i>%s</i>' % html.escape(sub)) if sub else ""))
         body.append('<div class="row"><div class="who">%s</div>'
                     '<div class="track">%s%s</div></div>'
                     % (html.escape(name), grid, "".join(bars)))

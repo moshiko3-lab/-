@@ -175,16 +175,41 @@ def _when(l):
     return "%s-%s" % (l["time"], l["until"]) if l.get("until") else l["time"]
 
 
+# What the school calls an ordinary surf lesson on its own price list. It is
+# the right name for a product and no information at all on a rota: almost
+# everything on the board is one, so printing it on every line is a word
+# everybody has to read past to reach the part that differs.
+GENERIC = ("SURF PACK", "SURF LESSON")
+
+
+def short(title):
+    """A booking's name with the filing and the boilerplate left off it.
+
+    Bloowatch names a private course after the year and the customer --
+    "CLASS 2024 - jim van weperen" -- which is the right name for a record
+    and far too long for an hour-wide bar; whoever is turning up is named
+    beside it anyway. And the plain surf lesson is named after the product,
+    which says nothing, so it says nothing.
+    """
+    t = " ".join((title or "").split())
+    if t.upper() in GENERIC:
+        return ""
+    m = re.match(r"^(CLASS|COURSE)\b[\s\-–]*\d{2,4}\b[\s\-–]*(.*)$", t, re.I)
+    return m.group(1).upper() if m else t
+
+
 def _line(l, lang, sep=" · "):
     """Naming the students already says how many there are.
 
-    "SURF PACK · תלמיד אחד · Mica M" spends three words to say what "SURF
-    PACK · Mica M" says in one, and the Hebrew island in the middle of a
-    Latin line is what makes the message wrap badly on a phone. The count
-    is what is left when the names are too many to print.
+    "SURF PACK · תלמיד אחד · Mica M" spends three words to say what "Mica M"
+    says in one, and the Hebrew island in the middle of a Latin line is what
+    makes the message wrap badly on a phone. The count is what is left when
+    the names are too many to print, and the product name is what is left
+    when there is nobody to name.
     """
-    bits = [l["title"], _who(l, lang) or _students(l["students"], lang)]
-    return sep.join(x for x in bits if x)
+    bits = [short(l["title"]), _who(l, lang) or _students(l["students"], lang)]
+    out = sep.join(x for x in bits if x)
+    return out or l["title"]
 
 
 DAY_START, DAY_END = 5 * 60, 20 * 60
@@ -442,7 +467,10 @@ def group(lessons, date, lang="he"):
         last = l["time"]
         who = ", ".join(n.split()[0].title() for n in l["staff"])
         inner = _who(l, lang) or _students(l["students"], lang)
-        L.append("*%s* %s%s — %s" % (_when(l), l["title"],
+        what = short(l["title"])
+        if not what:
+            what, inner = inner or l["title"], ""
+        L.append("*%s* %s%s — %s" % (_when(l), what,
                                      (" (%s)" % inner) if inner else "", who))
     tide = tide_lines(date, lang)
     if tide:
