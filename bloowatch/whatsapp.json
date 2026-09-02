@@ -1,13 +1,11 @@
 {
   "_note": "Where each automatic message goes. Group ids were confirmed by the owner on 2026-09-01 by sending a dot into each group in a known order and matching the arrival times. Do not guess a chat_id: a wrong one sends the staff rota to customers.",
-
   "account": {
     "name": "Shokogi Surf School",
     "phone": "+50769027049",
     "connected": "2026-09-01 12:07 -0500",
     "_note": "The only number TimelinesAI is linked to. It can only see chats this number is in."
   },
-
   "groups": {
     "staff": {
       "chat_id": 59734278,
@@ -30,30 +28,41 @@
       "command": "python3 forecast_message.py --lang en ..."
     }
   },
-
   "not_ours": {
     "chat_id": 59724828,
     "jid": "120363405253031914@g.us",
     "_note": "A Spanish-language national weather alert group the business number happens to be in. Never send anything here."
   },
-
   "how_to_send": {
     "to_a_group": "Composio tool TIMELINESAI_SEND_MESSAGE. The two fields are chat_id and message — chat_id must be a STRING (\"59734285\", not 59734285) and the body goes under `message`, not `text`. Get either wrong and the call is rejected 400 before it reaches WhatsApp, so nothing is sent and it is safe to correct and retry.",
     "to_a_person": "Composio tool TIMELINESAI_POST_MESSAGE with phone, whatsapp_account_phone '+50769027049' and text. Works for any number, no chat needed first.",
     "_why_not_direct": "app.timelines.ai is not reachable from this container (the egress proxy refuses it). The Composio tools run on Composio's own infrastructure, so they get through. Direct API calls only work from a Composio sandbox.",
-    "_composio_bug": "TIMELINESAI_GET_CHATS drops every parameter it accepts — types, search, limit, offset and sort are all ignored and it always returns the same first 50 chats alphabetically. That is why the group ids are written down here instead of being looked up. The real REST API honours group=true, name= and page=."
+    "_composio_bug": "TIMELINESAI_GET_CHATS drops every parameter it accepts — types, search, limit, offset and sort are all ignored and it always returns the same first 50 chats alphabetically. That is why the group ids are written down here instead of being looked up. The real REST API honours group=true, name= and page=.",
+    "a_picture": {
+      "_why": "Composio's TimelinesAI tools send text only. The real API takes a file, and it is reachable from Composio's own sandbox (COMPOSIO_REMOTE_BASH_TOOL) even though it is not reachable from this container.",
+      "recipe": [
+        "In the sandbox: curl the renderer from https://raw.githubusercontent.com/moshiko3-lab/-/main/bloowatch/draw_board.py (the repo is public, so it always pulls the version that is checked in).",
+        "Write the output of `python3 board.py --spec` to spec.json there — about two kilobytes, which fits in one command. A rendered PNG does not: a single sandbox command tops out around 6 KB and the picture is 30.",
+        "python3 draw_board.py spec.json board.png",
+        "POST it: curl -F \"text=<cap.txt\" -F \"file=@board.png\" -H \"Authorization: Bearer <token>\" https://app.timelines.ai/integrations/api/chats/<chat_id>/messages"
+      ],
+      "_note": "`text` is the image's caption, so the rota and the picture arrive as ONE message. No trailing slash on the URL — with one it 404s. The sandbox needs Pillow built with raqm or the Hebrew comes out backwards; it has it.",
+      "_caption_limit": "WhatsApp cuts a caption around 1024 characters. On a big day send the picture with a short caption and the full rota as a second message."
+    }
   },
-
   "no_personal_message": {
     "_note": "Crew who deliberately get no automatic WhatsApp. Not an oversight and not a gap to be filled: the owner said so on 2026-09-01. They still appear in the staff group's rota, because the team needs to know who is on; they just are not messaged directly. Do not report them as missing a number.",
-    "names": ["EDEN", "YOCHAI", "PAZ"],
+    "names": [
+      "EDEN",
+      "YOCHAI",
+      "PAZ"
+    ],
     "yuval": {
       "name": "YUVAL VILENSKY",
       "phone": "+50769027049",
       "why": "this is the number the messages are sent FROM. Messaging him is the system talking to itself."
     }
   },
-
   "rules": [
     "Nothing goes to a group without the owner having approved that exact message going to that exact group.",
     "A group only appears in TimelinesAI once a message arrives in it; it does not backfill history.",
