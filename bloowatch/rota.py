@@ -329,8 +329,18 @@ def starting_between(lessons, lo, hi, now=None):
     The window matters more than it looks. A reminder that fires on an
     overlapping window sends the same lesson twice, and one that fires on a
     window with a gap in it silently skips a lesson nobody then turns up to.
-    So the caller steps the window by exactly its own width: (45, 105] every
+    So the caller steps the window by exactly its own width: (25, 85] every
     hour covers every minute of the day once and only once.
+
+    Sixty minutes wide is forced -- the runs are hourly and cron here goes no
+    finer -- but where the window sits is a choice, and it decides how much
+    notice people get. The routine fires around a quarter past, so (25, 85]
+    catches a nine o'clock lesson on the eight o'clock run: about forty-five
+    minutes' notice instead of the hundred that (45, 105] gave it, which the
+    owner read at 07:22 for a nine o'clock start and called too early. What
+    cannot be fixed from here is the half-hour lessons, which the same run
+    catches about seventy-five minutes out; closing that gap needs two runs
+    an hour, which the schedule does not allow.
     """
     now = now or dt.datetime.now(PANAMA)
     out = []
@@ -343,28 +353,48 @@ def starting_between(lessons, lo, hi, now=None):
     return out
 
 
+# The board carries two kinds of thing, and only one of them is teaching.
+# The shop and the rental desk are on it because somebody has to be there,
+# but calling a ten-hour shop day "your lesson" reads as a machine that never
+# looked at what it was sending -- and the person on the shift stops reading
+# the next one. board.py already sorts them by these words for its colours.
+SHIFT_WORDS = ("SHOP", "TIENDA", "STORE", "RENTAL", "ALQUILER")
+
+
+def is_shift(l):
+    up = ((l.get("title") or "") + " " + (l.get("category") or "")).upper()
+    return any(w in up for w in SHIFT_WORDS)
+
+
 def remind(name, lessons, lang="he"):
     """The nudge an hour or so before. Says the hour, never "in an hour".
 
     The window it fires in is wider than the words "in an hour" would be, and
     an instructor who reads "in an hour" at 08:15 for a nine o'clock lesson
     stops trusting the next one. The time itself is always true.
+
+    A shift is named as a shift, and printed with the hours it runs: "09:00"
+    alone for a day that ends at seven tells the person on it almost nothing.
     """
     if not lessons:
         return ""
     first = (name or "").split()[0].title()
+    shift = all(is_shift(l) for l in lessons)
     L = []
     if lang == "en":
         L.append("Hey %s 👋" % first)
         L.append("")
-        L.append("*A reminder for your lesson, please be there on time* 🤙")
+        L.append("*A reminder for your shift, please be there on time* 🤙"
+                 if shift else
+                 "*A reminder for your lesson, please be there on time* 🤙")
     else:
         L.append("היי %s 👋" % first)
         L.append("")
-        L.append("*תזכורת לשיעור שלך, להגיע בזמן ולא לאחר* 🤙")
+        L.append("*תזכורת למשמרת שלך, להגיע בזמן ולא לאחר* 🤙" if shift else
+                 "*תזכורת לשיעור שלך, להגיע בזמן ולא לאחר* 🤙")
     L.append("")
     for l in lessons:
-        L.append("*%s* · %s" % (l["time"], _line(l, lang)))
+        L.append("*%s* · %s" % (_when(l), _line(l, lang)))
     return ltr(L)
 
 
@@ -585,10 +615,10 @@ def main():
     ap.add_argument("--remind", action="store_true",
                     help="today's reminders: whoever has a lesson starting "
                          "inside the window. Prints nothing when nobody does.")
-    ap.add_argument("--from", dest="lo", type=int, default=45,
-                    help="window starts this many minutes ahead (default 45)")
-    ap.add_argument("--to", dest="hi", type=int, default=105,
-                    help="and ends this many (default 105). Step the window "
+    ap.add_argument("--from", dest="lo", type=int, default=25,
+                    help="window starts this many minutes ahead (default 25)")
+    ap.add_argument("--to", dest="hi", type=int, default=85,
+                    help="and ends this many (default 85). Step the window "
                          "by its own width or a lesson is reminded twice, or "
                          "not at all.")
     a = ap.parse_args()

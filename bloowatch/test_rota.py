@@ -189,25 +189,41 @@ def main():
     # the day has to fall in exactly one of those steps: land in two and the
     # instructor is reminded twice, land in none and nobody turns up.
     import datetime as _dt
+    LO, HI = 25, 85
     day = [L("%02d:%02d" % (h, m), "SURF PACK", 1, ["NAFTUL"])
            for h in range(6, 20) for m in (0, 30)]
-    seen = {}
-    for hour in range(0, 24):
-        now = _dt.datetime(2026, 9, 1, hour, 0, tzinfo=rota.PANAMA)
-        for l in rota.starting_between(day, 45, 105, now):
-            seen[l["time"]] = seen.get(l["time"], 0) + 1
-    twice = sorted(t for t, n in seen.items() if n > 1)
-    never = sorted(l["time"] for l in day if l["time"] not in seen)
-    check("no lesson is reminded twice in a day", not twice, str(twice))
-    check("and none is missed", not never, str(never))
 
-    now = _dt.datetime(2026, 9, 1, 8, 0, tzinfo=rota.PANAMA)
-    soon = rota.starting_between(day, 45, 105, now)
-    check("at eight, the nine and the half nine are what is coming",
+    # The routine does not fire on the hour: the scheduler staggers it, and it
+    # has been seen anywhere from ten to twenty past. So exactly-once has to
+    # hold at every offset, not just at :00.
+    worst = 0
+    bad = []
+    for off in range(0, 60):
+        seen = {}
+        for hour in range(0, 24):
+            now = _dt.datetime(2026, 9, 1, hour, off, tzinfo=rota.PANAMA)
+            for l in rota.starting_between(day, LO, HI, now):
+                seen[l["time"]] = seen.get(l["time"], 0) + 1
+                h, m = (int(x) for x in l["time"].split(":"))
+                worst = max(worst, h * 60 + m - (hour * 60 + off))
+        twice = sorted(t for t, n in seen.items() if n > 1)
+        never = sorted(l["time"] for l in day if l["time"] not in seen)
+        if twice or never:
+            bad.append((off, twice, never))
+    check("no lesson is reminded twice or missed, at any fire offset",
+          not bad, str(bad[:3]))
+    check("and nobody is warned more than %d minutes ahead" % HI,
+          worst <= HI, "%d minutes" % worst)
+
+    now = _dt.datetime(2026, 9, 1, 8, 15, tzinfo=rota.PANAMA)
+    soon = rota.starting_between(day, LO, HI, now)
+    check("a quarter past eight warns about the nine and the half nine",
           [l["time"] for l in soon] == ["09:00", "09:30"],
           str([l["time"] for l in soon]))
     check("the one already under way is not 'coming up'",
           "08:00" not in [l["time"] for l in soon], str([l["time"] for l in soon]))
+    check("and the hundred-minute warning the owner called too early is gone",
+          "10:00" not in [l["time"] for l in soon], str([l["time"] for l in soon]))
 
     r = rota.remind("NAFTUL", soon)
     check("the reminder names the hour, never 'in an hour'",
@@ -215,6 +231,23 @@ def main():
     check("and it is addressed to them",
           r.lstrip(rota.LTR).startswith("היי Naftul"), r[:30])
     check("nobody coming up gets no message", rota.remind("NAFTUL", []) == "")
+
+    # A ten-hour day behind the counter is not a lesson, and calling it one is
+    # how somebody learns to stop reading these.
+    shop = L("09:00", "SHOP PLAYA", 0, ["MOSHIKO LEVY"], "SHOP PLAYA")
+    shop["until"] = "19:00"
+    s = rota.remind("MOSHIKO LEVY", [shop])
+    check("a shop shift is called a shift, not a lesson",
+          "משמרת" in s and "שיעור" not in s, s)
+    check("and it prints the hours it runs, not just when it starts",
+          "09:00-19:00" in s, s)
+    check("the English says shift too",
+          "your shift" in rota.remind("VLADI", [shop], "en"),
+          rota.remind("VLADI", [shop], "en"))
+    check("a real lesson is still a lesson",
+          "שיעור" in rota.remind("NAFTUL", soon), rota.remind("NAFTUL", soon))
+    check("somebody with both is told about the teaching",
+          "שיעור" in rota.remind("YONATAN", [shop] + soon))
 
     # --- what changed since the rota went out ------------------------------
     # The eight o'clock check exists so somebody who was told one thing at
