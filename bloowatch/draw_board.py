@@ -4,15 +4,21 @@
     python3 board.py --spec > day.json
     python3 draw_board.py day.json board.png
 
-Why this exists rather than a screenshot of a web page: the only way a
-picture reaches WhatsApp from here is through a sandbox that can reach the
-TimelinesAI API, and that sandbox has no browser. Carrying a rendered PNG
-into it means carrying forty kilobytes of base64 through a conversation in
-six-kilobyte mouthfuls, every evening. Carrying the spec instead is two
-kilobytes, and this file goes over once.
+This is the fallback, not the usual picture. `shot.py` photographs the real
+Bloowatch planner and that is what the office recognises; this draws the same
+day from a spec when the photograph cannot be taken -- the page changed shape,
+the browser died, Bloowatch is down. A rota with a drawn board beats a rota
+with no board, and both beat no rota.
 
-So this is the renderer, and the HTML one is gone. One renderer means the
-picture the office gets is the picture that was checked.
+It was written when the only route to WhatsApp was a sandbox with no browser,
+so a screenshot could not be produced where it was needed and a two-kilobyte
+spec travelled instead of forty kilobytes of base64. That constraint is gone
+since 3/9/2026 -- the container that reads Bloowatch now reaches Green-API
+itself, and it has a browser -- so the reason to keep this is the narrower
+one above.
+
+One renderer, not two: the HTML one is gone, so the picture the office gets
+is the picture that was checked.
 
 Depends on Pillow built with raqm, which is what puts Hebrew the right way
 round; without it the labels come out reversed and the numbers do not. It
