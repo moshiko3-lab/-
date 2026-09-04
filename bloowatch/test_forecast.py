@@ -139,6 +139,38 @@ check("and an east wind is neither, so the period talks",
       F._deciding_fact("4", 90, 16) == "long",
       str(F._deciding_fact("4", 90, 16)))
 
+# The school opens at six and the last surf is at seven. A window outside that
+# is not a near miss -- it is the forecast recommending an hour when nobody is
+# on the beach, which is how the owner spots that it does not know his day. The
+# mid-tide window was the one that leaked: its centre was checked against the
+# day but the ninety minutes either side were not, so a mid-tide at 06:30
+# printed "05:00-08:00" on 4/9/2026.
+print("\nno window falls outside the hours anybody surfs")
+
+
+def all_windows(highs, lows):
+    t = {"highs": [{"t": x} for x in highs], "lows": [{"t": x} for x in lows]}
+    low_w, high_w, mid_w = F.windows(t)
+    return low_w + high_w + mid_w
+
+
+DAYS = [
+    (["09:23"], ["15:54"]),          # 5/9/2026 -- the day that printed 05:00
+    (["06:40"], ["12:50"]),          # a high just after opening
+    (["18:50"], ["12:10"]),          # a high just before the last surf
+    (["05:30", "18:00"], ["11:45"]),  # a high before the beach opens at all
+    (["07:00", "19:30"], ["01:00", "13:15"]),   # peaks either side of the day
+]
+for highs, lows in DAYS:
+    ws = all_windows(highs, lows)
+    label = "highs %s lows %s" % (",".join(highs), ",".join(lows))
+    check("every window starts at 06:00 or later — " + label,
+          all(w[0] >= "06:00" for w in ws), str(ws))
+    check("every window ends by 19:00 — " + label,
+          all(w[1] <= "19:00" for w in ws), str(ws))
+    check("and none of them is under an hour — " + label,
+          all(F.mins(w[1]) - F.mins(w[0]) >= 60 for w in ws), str(ws))
+
 print("\n%d checks, %d failed" % (len(ran), len(fails)))
 if fails:
     print("FAILED: " + ", ".join(fails))

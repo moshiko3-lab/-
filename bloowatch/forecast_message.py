@@ -62,10 +62,20 @@ def snap(m):
     return int(round(m / 60.0)) * 60
 
 
-def hour_window(centre, half):
+def hour_window(centre, half, lo=None, hi=None):
+    """A window of `half` minutes either side of `centre`, kept inside the day.
+
+    The bounds are not decoration. A mid-tide at 06:30 opens a window at 05:00
+    unless something stops it, and the message then recommends an hour nobody
+    surfs -- the owner reads that as the forecast not knowing what time the
+    school opens. Clamping here rather than at the call site keeps every window
+    in the message inside the same hours.
+    """
     a = snap(centre - half)
     b = snap(centre + half)
-    return hhmm(max(0, a)), hhmm(min(24 * 60 - 1, b))
+    a = max(0 if lo is None else lo, a)
+    b = min(24 * 60 - 1 if hi is None else hi, b)
+    return hhmm(a), hhmm(b)
 
 
 # The hours anybody is actually going in, which is what the windows are cut
@@ -117,8 +127,12 @@ def windows(t):
         if ka == kb:
             continue
         mids.append((a + b) / 2.0)
-    mid_w = [hour_window(m, 90) for m in mids
-             if DAY_FROM <= m <= DAY_TO]
+    # Clamped to the surfable day, and dropped when the clamp leaves less than
+    # an hour -- the same rule the low and high windows above already apply.
+    # A forty-minute slot is not a recommendation anybody acts on.
+    mid_w = [w for w in (hour_window(m, 90, DAY_FROM, DAY_TO) for m in mids
+                         if DAY_FROM <= m <= DAY_TO)
+             if mins(w[1]) - mins(w[0]) >= 60]
     return low_w, high_w, mid_w
 
 
