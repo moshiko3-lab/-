@@ -135,57 +135,197 @@ def mid(waves):
         return None
 
 
-def compare_line(today, tomorrow, lang="he"):
-    """The school's own call, in their words: is tomorrow bigger or smaller
-    than today, and is that good news. Written only when both are known --
-    guessing at the sea in a message to customers is not on."""
+# Which way the beach looks out to sea, in compass degrees. Playa Venao sits
+# on the Pacific side of the Azuero peninsula and faces roughly south, so a
+# wind out of the north blows off the land and into the face of the wave --
+# offshore, which grooms it. Get this number wrong and every offshore/onshore
+# call below inverts, so it is a setting and not a buried constant. Confirmed
+# by the owner on 3/9/2026.
+BEACH_FACES = 180
+
+
+# The school's own call, in their words, in three parts: how tomorrow sits
+# against today, what the sea actually is, and the one thing that decides how
+# it will surf. The wording of each part rotates on the date so that the same
+# conditions never read identically two days running -- at Venao the swell
+# barely moves, and the old single-sentence version landed on "ים דומה להיום"
+# most nights until people stopped reading past it.
+#
+# But only the WORDING rotates. Which facts get said is decided by the
+# conditions every time: a fourteen-knot onshore is the headline of that day
+# and must never be rotated out in favour of something prettier.
+OPEN_LINES = {
+    "he": {
+        "same": ["מחר ממשיך באותו קו",
+                 "עוד יום באותו אופי",
+                 "הים נשאר בערך איפה שהוא היום",
+                 "היום ומחר כמעט תאומים"],
+        "up":   ["מחר הים מתעורר",
+                 "עולים מדרגה מהיום",
+                 "מחר נכנס קצת יותר גובה",
+                 "הים מוסיף כוח מחר"],
+        "down": ["מחר הים מוריד הילוך",
+                 "רגוע יותר מהיום",
+                 "מחר הים מתיישב",
+                 "יורדים מדרגה"],
+    },
+    "en": {
+        "same": ["Tomorrow carries on in the same mood",
+                 "Another day of much the same",
+                 "The sea stays about where it is today",
+                 "Today and tomorrow are near twins"],
+        "up":   ["The sea wakes up tomorrow",
+                 "Stepping up from today",
+                 "A bit more size coming in",
+                 "The sea puts on some power"],
+        "down": ["The sea eases off tomorrow",
+                 "Calmer than today",
+                 "Tomorrow the sea settles",
+                 "A step down"],
+    },
+}
+
+# Size talks about height and who the day suits -- never about how the sea
+# looks. Texture is the wind's to describe, and a "calm sea" glued to a
+# fourteen-knot onshore is a sentence that contradicts itself.
+SIZE_LINES = {
+    "he": {
+        "tiny":  ["גובה נמוך בדיוק לשיעור ראשון",
+                  "ים קטן וסלחני למתחילים",
+                  "גובה קטן ונוח ללמוד בו"],
+        "small": ["גובה נעים שמתאים לכולם",
+                  "ים קטן שעובד יפה",
+                  "גובה כיפי למתחילים ולמתקדמים"],
+        "mid":   ["גובה שכבר דורש ניסיון",
+                  "ים בגובה טוב למי שיודע לקרוא גל",
+                  "יום עם נפח לגולשים מנוסים"],
+        "big":   ["ים גדול רק לגולשים מנוסים",
+                  "יום כבד שלא לגולשים טריים",
+                  "גובה רציני שדורש היכרות עם המקום"],
+    },
+    "en": {
+        "tiny":  ["a low height just right for a first lesson",
+                  "small and forgiving for beginners",
+                  "an easy size to learn in"],
+        "small": ["a friendly size that suits everyone",
+                  "a small sea working nicely",
+                  "a fun size for beginners and improvers alike"],
+        "mid":   ["a height that asks for some experience",
+                  "a good size if you read the wave",
+                  "a day with volume for experienced surfers"],
+        "big":   ["big out there and experienced surfers only",
+                  "a heavy day not made for fresh legs",
+                  "serious size that wants local knowledge"],
+    },
+}
+
+# The last clause: the single fact that decides the day. Wind gets first
+# refusal whenever it is doing something, because clean offshore and a real
+# onshore each change a session more than anything else on the page. Only a
+# wind that barely touches the wave lets the period speak instead.
+#
+# These must not echo the *רוח* row three lines above them. That row already
+# states what the wind IS ("3-5 knots from the north-west, offshore, clean
+# and groomed"); saying "the land breeze tidies the sea up" straight after is
+# the same sentence twice, mirror emoji and all, and reads like a machine that
+# never looked at its own message. So this clause says what the wind MEANS for
+# the session instead -- what it does to the wave, or when to be on it.
+FACT_LINES = {
+    "he": {
+        "off_light":  ["והרוח מהיבשה תחזיק את הפנים פתוחות",
+                       "ורוח מהיבשה שתיתן דופן נקייה לאורך כל הגל"],
+        "off_strong": ["ורוח חזקה מהיבשה שתדרוש כניסה מוקדמת לגל",
+                       "ואופשור חזק שמקשה על ההמראה אבל משתלם אחריה"],
+        "on_light":   ["ורוח קלה מהים שתשאיר בדיוק מספיק קצף לתרגול",
+                       "ומעט רוח מהים שתרכך את הפנים למתחילים"],
+        "on_strong":  ["ורוח מהים שתבלגן קצת, אז שווה להקדים",
+                       "ורוח חזקה מהים שהופכת את הבוקר לזמן הטוב"],
+        "long":       ["ופריוד ארוך שמביא סטים עם כוח והמתנה ביניהם",
+                       "ופריוד ארוך שנותן זמן להתארגן בין הסטים"],
+        "short":      ["ופריוד קצר שנותן גלים צפופים",
+                       "ופריוד קצר שיתן ים קצת עצבני"],
+    },
+    "en": {
+        "off_light":  ["and the land breeze will hold the faces open",
+                       "with a breeze off the land keeping a clean wall"],
+        "off_strong": ["and a hard offshore that asks for an early take-off",
+                       "with a stiff offshore making the drop late but worth it"],
+        "on_light":   ["with just enough sea breeze to leave foam to practise on",
+                       "and a light sea breeze softening the faces for beginners"],
+        "on_strong":  ["with onshore chop building, so go early",
+                       "and a strong sea breeze that makes the morning the one"],
+        "long":       ["and a long period bringing power and a wait between sets",
+                       "with a long period leaving time to set up between sets"],
+        "short":      ["and a short period stacking the waves close",
+                       "and a short period making for a fidgety sea"],
+    },
+}
+
+
+def _deciding_fact(wind_kt, wind_deg, period, faces=BEACH_FACES):
+    """Which single fact earns the last clause, or None when nothing does."""
+    try:
+        p = float(period)
+    except (TypeError, ValueError):
+        p = None
+    side = None
+    try:
+        fast = max(float(x) for x in str(wind_kt).split("-"))
+        off = abs(((float(wind_deg) - faces) + 180) % 360 - 180)
+        side = "off" if off > 120 else ("on" if off < 60 else "cross")
+    except (TypeError, ValueError):
+        pass
+    if side == "off":
+        return "off_strong" if fast >= 8 else "off_light"
+    if side == "on":
+        return "on_strong" if fast >= 8 else "on_light"
+    # cross-shore barely touches the wave, and so does a missing wind: let the
+    # period talk, but only when it is long or short enough to be worth a word
+    if p is None:
+        return None
+    if p >= 14:
+        return "long"
+    if p < 10:
+        return "short"
+    return None
+
+
+def compare_line(today, tomorrow, lang="he", date="", period=None,
+                 wind_kt=None, wind_deg=None, faces=BEACH_FACES):
+    """How tomorrow reads against today, what it is, and what decides it.
+
+    Written only when both heights are known -- guessing at the sea in a
+    message to two hundred customers is not on. Everything past the first
+    clause is optional: with no wind and no period it still says how big
+    tomorrow is and who it suits.
+    """
     a, b = mid(today), mid(tomorrow)
     if a is None or b is None:
         return ""
     diff = b - a
-    # The school's message goes out to bring people to the beach, so every
-    # sea is described by what you can do in it rather than by what it is
-    # missing. The numbers above it are never softened -- only the words are.
-    if lang == "en":
-        if abs(diff) < 0.15:
-            how = "Similar to today"
-        elif diff > 0:
-            how = "Bigger than today"
-        else:
-            how = "Calmer than today"
-        if b < 0.5:
-            mood = "small and friendly — perfect for beginners"
-        elif b < 1.0:
-            mood = "a really fun day out there"
-        elif b < 1.5:
-            mood = "a great day for experienced surfers"
-        else:
-            mood = "a proper day for the experienced crew"
-        return "Tomorrow: %s — %s" % (how, mood)
-    if abs(diff) < 0.15:
-        how = "ים דומה להיום"
-    elif diff > 0:
-        how = "ים יותר גבוה מהיום"
-    else:
-        how = "ים רגוע יותר מהיום"
-    # the second half is about the size itself, not the change
-    if b < 0.5:
-        mood = "קטן ונוח – מושלם למתחילים"
-    elif b < 1.0:
-        mood = "יום ממש כיפי לגלישה"
-    elif b < 1.5:
-        mood = "יום מעולה לגולשים עם ניסיון"
-    else:
-        mood = "יום רציני לגולשים מנוסים"
-    return "מחר צפוי להיות %s – %s" % (how, mood)
+    change = "same" if abs(diff) < 0.15 else ("up" if diff > 0 else "down")
+    size = ("tiny" if b < 0.5 else "small" if b < 1.0
+            else "mid" if b < 1.5 else "big")
 
+    # The same day always rebuilds the same sentence -- a message resent after
+    # a container restart must not come back reworded, or the group reads it
+    # as two different forecasts.
+    try:
+        n = int(str(date).replace("-", "")) % 97
+    except (TypeError, ValueError):
+        n = 0
 
-# Which way the beach looks out to sea, in compass degrees. Playa Venao sits
-# on the Pacific side of the Azuero peninsula and faces roughly south, so a
-# wind out of the north blows off the land and into the face of the wave --
-# offshore, which grooms it. Get this number wrong and every call below
-# inverts, so it is a setting and not a buried constant.
-BEACH_FACES = 180
+    op = OPEN_LINES[lang][change]
+    sz = SIZE_LINES[lang][size]
+    out = "%s%s%s" % (op[n % len(op)],
+                      " – " if lang == "he" else " — ",
+                      sz[n % len(sz)])
+    key = _deciding_fact(wind_kt, wind_deg, period, faces)
+    if key:
+        fact = FACT_LINES[lang][key]
+        out += ", " + fact[n % len(fact)]
+    return out
+
 
 HEB_COMPASS = ["צפון", "צפון-מזרח", "מזרח", "דרום-מזרח",
                "דרום", "דרום-מערב", "מערב", "צפון-מערב"]
@@ -474,7 +614,11 @@ def main():
         now = dt.datetime.utcnow() - dt.timedelta(hours=5)
         date = (now.date() + dt.timedelta(days=1)).isoformat()
 
-    compare = a.compare or compare_line(a.waves_today, a.waves, a.lang)
+    # The wind and the period go in too: they decide how a given height will
+    # actually surf, and the line used to be written without ever seeing them.
+    compare = a.compare or compare_line(
+        a.waves_today, a.waves, a.lang, date=date, period=a.period,
+        wind_kt=a.wind or None, wind_deg=a.wind_dir or None, faces=a.faces)
 
     note = ""
     if a.tide_note:

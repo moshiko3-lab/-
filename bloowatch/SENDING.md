@@ -59,8 +59,28 @@ python3 send.py --batch plan.json --once-today # בסנדבוקס
 
 ## איפה זה רץ
 
-**לא כאן.** הקונטיינר שקורא מהבלו לא מגיע ל-Green-API. השליחה קורית
-בסנדבוקס (`mcp__instgram__COMPOSIO_REMOTE_BASH_TOOL`):
+**כאן. ישירות.** מ-3/9/2026 הבעלים הוסיף את `7107.api.greenapi.com` לרשימת
+ההיתרים של סביבת `Bloowatch`, והקונטיינר שקורא מהבלו מגיע ל-Green-API בעצמו:
+
+```
+export GREENAPI_ID=710722725924
+export GREENAPI_TOKEN=<מהשגרה>
+export GREENAPI_URL=https://7107.api.greenapi.com
+cd bloowatch && python3 send.py --to staff --text cap.txt --file board.png
+```
+
+זהו. **בלי סנדבוקס, בלי base64, בלי md5, בלי למשוך קבצים מגיטהאב.** הקוד
+שרץ הוא הקוד שבתיקייה, וההודעה נבנית ונשלחת באותו מקום — מה שמבטל מעצמו את
+כל מחלקת הבאגים של העתקת טקסט עברי בין מכונות.
+
+`GREENAPI_URL` הוא שרת ייעודי ל-instance ולא הכתובת שבתיעוד. הוא מופיע
+בקונסולה בשדה `apiUrl`. גם מדיה יוצאת דרכו (`GREENAPI_MEDIA` לא מוגדר).
+
+### הנתיב הישן, דרך הסנדבוקס
+
+**לא נחוץ יותר, ונשאר כאן רק כגיבוי** למקרה שההיתר יוסר. אם `curl` ל-
+`getStateInstance` מחזיר `403` מהפרוקסי — זה מה שקרה, והשליחה חוזרת לסנדבוקס
+(`mcp__instgram__COMPOSIO_REMOTE_BASH_TOOL`):
 
 ```
 mkdir -p /home/user/w && cd /home/user/w
@@ -68,16 +88,14 @@ S=<מספר ה-commit>
 for f in send.py whatsapp.json; do
   curl -sSfL -o $f https://raw.githubusercontent.com/moshiko3-lab/-/$S/bloowatch/$f
 done
-export GREENAPI_ID=710722725924
-export GREENAPI_TOKEN=<מהשגרה>
-export GREENAPI_URL=https://7107.api.greenapi.com
 ```
+ואז מעבירים את הטקסט ב-base64 ומאמתים `md5sum` בשני הצדדים.
 
 **משוך לפי מספר commit ולא לפי שם ענף.** raw.githubusercontent מגיש
 עותק ישן של ענף במשך דקות, ותריץ קוד של אתמול בלי לשים לב.
 
-`GREENAPI_URL` הוא שרת ייעודי ל-instance ולא הכתובת שבתיעוד. הוא מופיע
-בקונסולה בשדה `apiUrl`.
+**אל תעקוף חסימה של הפרוקסי.** `403` הוא מדיניות רשת, לא תקלה; מדווחים
+עליו ולא מנסים לעקוף.
 
 ## דברים שנמדדו, לא נוחשו
 
@@ -128,9 +146,9 @@ curl -sS "$GREENAPI_URL/waInstance$GREENAPI_ID/getStateInstance/$GREENAPI_TOKEN"
 
 ## אם אין בכלל דרך לשלוח
 
-הסנדבוקס הוא **הנתיב היחיד** ל-Green-API. הקונטיינר שקורא מהבלו חסום מולו
-במדיניות הרשת (‎`403` על CONNECT ל-‎`7107.api.greenapi.com`‎), ואסור לעקוף את זה.
-כלומר: כשהסנדבוקס לא זמין, אין שליחה — לא לקבוצה ולא למדריך.
+**מ-3/9/2026 זה הרבה פחות סביר** — הקונטיינר הזה מדבר עם Green-API ישירות,
+והסנדבוקס נשאר רק כגיבוי. שני הנתיבים צריכים ליפול כדי שלא תהיה שליחה.
+אבל אם זה קורה, הכלל למטה עומד בעינו.
 
 **זה קרה ב-3/9/2026.** התוכנית לתזכורת של 09:00 נבנתה נכון ב-08:16 (אלה
 וג׳יגי), הסנדבוקס נפל בדיוק באותה משבצת, וכשהוא חזר כבר היה 10:15 והמשמרת
