@@ -6,6 +6,25 @@
      instructor and a spot becomes "Â·", and the tide arrows turn to rubble. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Added to an iPad's home screen this opens with no Safari chrome and looks
+     like the till app it is. Apple reads its own four; the manifest is for
+     everything else. The icon files sit beside the page when it is published;
+     opened from a file:// path they are simply missing, which costs nothing
+     because a local file cannot be added to a home screen anyway.
+
+     Deliberately no viewport-fit=cover: without it iOS insets the page past
+     the status bar and the home indicator by itself, and the fixed rail and
+     top bar need no safe-area arithmetic. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shokogi">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7f5f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131012" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="manifest" href="manifest.webmanifest">
 <title>SHOKOGI Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

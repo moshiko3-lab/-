@@ -41,6 +41,9 @@ PRESETS = {
     "yt-banner":     (2560, 1440, "px"),
     "li-banner":     (1584, 396, "px"),
     "og":            (1200, 630, "px"),      # link preview card
+    "icon-180":      (180, 180, "px"),       # apple-touch-icon
+    "icon-192":      (192, 192, "px"),       # web app manifest
+    "icon-512":      (512, 512, "px"),       # web app manifest, install prompt
 }
 
 

@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- The home-screen icon. Render it at every size the platforms ask for:
+       render.py icon.html --preset icon-180 --out icon-180.png
+       render.py icon.html --preset icon-192 --out icon-192.png
+       render.py icon.html --preset icon-512 --out icon-512.png
+     The badge is pink line-art on nothing, and iOS fills transparency with
+     black, so the white ground here is not decoration -- without it the icon
+     comes out as a dark square. iOS rounds the corners itself; leaving them
+     square here is what keeps the radius consistent with every other app. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shokogi icon</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  .sheet{width:100vw;height:100vw;background:#fff;display:flex;align-items:center;
+    justify-content:center;padding:11%}
+  /* 11% keeps the badge clear of the corner rounding on iOS and inside the
+     safe circle a maskable android icon is cropped to. */
+  img{width:100%;height:100%;object-fit:contain;display:block}
+</style>
+</head>
+<body class="artboard">
+<div class="sheet"><img src="logo.png" alt="Shokogi"></div>
+</body>
+</html>
