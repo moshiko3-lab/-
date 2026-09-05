@@ -101,7 +101,8 @@ def rows(f, k):
     return (d.get("data") or d)[k]
 try:
     surf = [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
-             "surf": {"raw": r["surf"]["raw"]}} for r in rows("surf.json", "surf")]
+             "surf": {"min": r["surf"]["min"], "max": r["surf"]["max"]}}
+            for r in rows("surf.json", "surf")]
     swells = [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
                "swells": [{"height": s.get("height"), "period": s.get("period")}
                           for s in r["swells"]]} for r in rows("swells.json", "swells")]
@@ -159,7 +160,14 @@ def hours(surf, swells, wind, date):
         t = _local(s["timestamp"], s["utcOffset"])
         if t.strftime("%Y-%m-%d") != date or not (DAY_FROM <= t.hour <= DAY_TO):
             continue
-        raw = s["surf"]["raw"]
+        # `surf.min`/`surf.max` and NOT `surf.raw`. Surfline sends both: raw is
+        # the model's continuous output, and min/max is the height Surfline
+        # itself publishes on the spot page. They differ by a lot at the bottom
+        # -- 5/9/2026 was raw 1.15-1.60 and shown 0.9-1.5 -- and the owner
+        # compares our message against what he sees on the site, so the shown
+        # figure is the one that has to match. Reading raw is what made the
+        # message say 1.1 where Surfline said 0.9.
+        raw = s["surf"]
         periods = [x["period"] for x in sw.get(s["timestamp"], {}).get("swells", [])
                    if x.get("height", 0) > 0]
         w = wd.get(s["timestamp"], {})
@@ -199,6 +207,10 @@ def waves(rows):
     largest max. Surfline already gives each hour a min and a max -- the
     smaller waves and the bigger sets within that hour -- so the two extremes
     together are the real edges of the day.
+
+    These are Surfline's published heights, not its raw model output; see the
+    note in `hours()`. That is what makes this range match the spot page the
+    owner reads it against.
     """
     if not rows:
         return None

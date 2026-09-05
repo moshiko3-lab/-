@@ -43,17 +43,23 @@ def check(name, cond, detail=""):
 # ---------------------------------------------------------------- the payload
 # Saved from services.surfline.com on 4/9/2026. Trimmed to the surfable hours
 # of 5/9 so the file stays readable; the shape is the API's own.
-def row(ts, mn, mx):
+# Every hour carries BOTH heights, as the API does: `min`/`max` is what
+# Surfline publishes on the spot page, `raw` is its continuous model output.
+# They are far apart at the bottom, which is the whole point of the test --
+# reading raw is what made the message say 1.1 where the site said 0.9.
+def row(ts, mn, mx, rmn, rmx):
     return {"timestamp": ts, "utcOffset": -5,
-            "surf": {"raw": {"min": mn, "max": mx}}}
+            "surf": {"min": mn, "max": mx, "raw": {"min": rmn, "max": rmx}}}
 
 
 BASE = 1788606000          # 2026-09-05 06:00 in Panama (UTC-5)
 HRS = 3600
-SURF = [row(BASE + i * HRS, mn, mx) for i, (mn, mx) in enumerate([
-    (1.14, 1.36), (1.16, 1.39), (1.20, 1.42), (1.22, 1.46), (1.24, 1.49),
-    (1.15, 1.52), (1.17, 1.53), (1.19, 1.55), (1.20, 1.56), (1.21, 1.58),
-    (1.22, 1.58), (1.23, 1.59), (1.23, 1.59), (1.21, 1.58)])]
+SURF = [row(BASE + i * HRS, 0.9, 1.5, rmn, rmx)
+        for i, (rmn, rmx) in enumerate([
+            (1.14, 1.36), (1.16, 1.39), (1.20, 1.42), (1.22, 1.46),
+            (1.24, 1.49), (1.15, 1.52), (1.17, 1.53), (1.19, 1.55),
+            (1.20, 1.56), (1.21, 1.58), (1.22, 1.58), (1.23, 1.59),
+            (1.23, 1.59), (1.21, 1.58)])]
 SWELLS = [{"timestamp": BASE + i * HRS, "utcOffset": -5,
            "swells": [{"height": 1.2, "period": 16}, {"height": 0, "period": 4}]}
           for i in range(14)]
@@ -82,7 +88,7 @@ print("\na gap in one feed does not borrow another hour's numbers")
 holed = S.hours(SURF, SWELLS, [w for w in WIND if w["timestamp"] != BASE],
                 "2026-09-05")
 check("the hour with no wind keeps its own height",
-      holed[0]["hour"] == "06:00" and holed[0]["min"] == 1.14)
+      holed[0]["hour"] == "06:00" and holed[0]["min"] == 0.9)
 check("and reports no wind rather than the next hour's",
       holed[0]["wind_kt"] is None and holed[0]["wind_deg"] is None)
 
@@ -125,14 +131,13 @@ check("speed comes from the morning too, so it matches the direction",
 # from somebody deciding whether the day is worth the drive.
 print("\nheight spans the day's extremes, not its average")
 w = S.waves(ROWS)
-check("5/9 reads 1.1-1.6", w == "1.1-1.6", str(w))
-check("the top is the biggest single hour (1.59)",
-      float(w.split("-")[1]) >= 1.59, w)
-check("and the bottom is the smallest (1.14)",
-      float(w.split("-")[0]) <= 1.14, w)
+check("5/9 reads 0.9-1.5, which is what Surfline's own page says",
+      w == "0.9-1.5", str(w))
+check("it is the published height and not the raw model output",
+      not w.startswith("1.1"), w + " (raw would give 1.1-1.6)")
 check("one quiet hour widens the bottom",
-      S.waves(ROWS + [{"min": 0.8, "max": 1.0}]).startswith("0.8"),
-      str(S.waves(ROWS + [{"min": 0.8, "max": 1.0}])))
+      S.waves(ROWS + [{"min": 0.6, "max": 1.0}]).startswith("0.6"),
+      str(S.waves(ROWS + [{"min": 0.6, "max": 1.0}])))
 check("and one big set widens the top",
       S.waves(ROWS + [{"min": 1.2, "max": 2.1}]).endswith("2.1"),
       str(S.waves(ROWS + [{"min": 1.2, "max": 2.1}])))
@@ -147,9 +152,15 @@ check("a zero-height swell never sets it",
 
 # The whole point of the change: Surfline reads higher than surf-forecast, and
 # the school's size language is written in Surfline metres.
-print("\nand it is meaningfully bigger than surf-forecast said")
-check("Surfline 1.1-1.6 against surf-forecast 0.9-1.1 on the same day",
-      float(w.split("-")[1]) - 1.1 >= 0.4, w)
+# Read like for like -- both sites' published figures -- the two agree on the
+# bottom of 5/9 and differ at the top: surf-forecast 0.9-1.1, Surfline
+# 0.9-1.5. The earlier "half a metre apart" note compared surf-forecast's
+# published numbers against Surfline's raw ones, which was not a fair
+# comparison. The gap that matters is the sets, and it is still a size class.
+print("\nand its sets are well above what surf-forecast said")
+check("same bottom as surf-forecast on 5/9", w.startswith("0.9"), w)
+check("but 0.4 m more at the top (1.5 against 1.1)",
+      float(w.split("-")[1]) - 1.1 >= 0.4 - 1e-9, w)
 
 # -------------------------------------------------------------- the hop itself
 # The trimmer runs unattended in the sandbox, on a machine nobody is watching,
