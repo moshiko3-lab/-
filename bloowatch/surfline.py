@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """Tomorrow's sea from Surfline, in the numbers the evening forecast wants.
 
-    # in the sandbox, which can reach services.surfline.com:
-    python3 surfline.py --curl              # prints the three commands to run
-    # then, here, with the three files it wrote:
-    python3 surfline.py --parse surf.json swells.json wind.json --date 2026-09-05
+    python3 surfline.py --curl        # one script; run it in the sandbox
+    # it prints one compact JSON blob. Save it here and read it:
+    python3 surfline.py --parse sea.json
 
 Why Surfline and not surf-forecast: the owner asked for it, and he was right
 about the reason. Measured on 4/9/2026 for the same day and the same hours,
@@ -27,8 +26,15 @@ go looking for them again.
 **This container cannot reach Surfline** -- the egress policy answers 403 CONNECT
 -- so the fetch happens in the sandbox and the JSON comes back here. That is
 data and not Hebrew text, so nothing can lose its direction marks on the way.
-If services.surfline.com is ever added to the environment's allowed domains,
---fetch does the whole thing here and the sandbox drops out.
+Re-measured 4/9/2026: services.surfline.com and surf-forecast.com both answer
+403 CONNECT from here. That is network policy, to be reported and not routed
+around; if the owner ever adds the domain to the environment's allowed list the
+sandbox drops out of the evening entirely.
+
+The blob that comes back is trimmed in the sandbox to the fields read below, so
+the hop carries the numbers and not the scores, labels and gusts around them.
+The trimming only selects fields; it computes nothing that reaches the message,
+which is why it is safe to run it on a machine with no tests on it.
 """
 import argparse
 import datetime as dt
@@ -58,24 +64,81 @@ HEADERS = {
 DAY_FROM, DAY_TO = 6, 19
 
 
-def curl_commands(days=3):
-    """What to run in the sandbox. Printed rather than executed: this
-    container is blocked from Surfline by the network policy, and that is a
-    policy to report, not to route around."""
+def curl_commands(days=2):
+    """The one script to run in the sandbox, as a single string.
+
+    Printed rather than executed: this container is blocked from Surfline by
+    the network policy, and that is a policy to report, not to route around.
+
+    One script and not three commands, because every extra step in a hop
+    between machines is another place for an evening to stall half-finished.
+    It fetches, trims to the fields `hours()` reads, and prints one compact
+    JSON object; if any of the three fetches comes back without its rows it
+    says so on stderr and prints nothing, so a partial sea can never be
+    mistaken for a whole one.
+
+    `days=2` is today and tomorrow: tomorrow is the forecast and today is what
+    the message compares it against.
+    """
     h = " ".join('-H "%s: %s"' % (k, v) for k, v in HEADERS.items())
-    out = []
-    for name, extra in (("surf", "&units%5BwaveHeight%5D=M"),
-                        ("swells", ""),
-                        ("wind", "&units%5BwindSpeed%5D=KTS")):
-        out.append('curl -s -m 25 %s -o %s.json '
-                   '"%s/%s?spotId=%s&days=%d&intervalHours=1%s"'
-                   % (h, name, BASE, name, SPOT, days, extra))
-    return out
+    fetches = "\n".join(
+        'curl -s -m 25 %s -o %s.json "%s/%s?spotId=%s&days=%d&intervalHours=1%s"'
+        % (h, name, BASE, name, SPOT, days, extra)
+        for name, extra in (("surf", "&units%5BwaveHeight%5D=M"),
+                            ("swells", ""),
+                            ("wind", "&units%5BwindSpeed%5D=KTS")))
+    return fetches + "\n" + TRIM
+
+
+# Runs in the sandbox, on stock python3, with no repository checkout. Kept
+# here rather than pulled from GitHub because raw.githubusercontent serves a
+# stale copy of a branch for minutes, and a forecast built from yesterday's
+# parser is the kind of mistake nobody sees.
+TRIM = r'''python3 - <<'PY'
+import json, sys
+def rows(f, k):
+    d = json.load(open(f, encoding="utf-8"))
+    return (d.get("data") or d)[k]
+try:
+    surf = [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+             "surf": {"raw": r["surf"]["raw"]}} for r in rows("surf.json", "surf")]
+    swells = [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+               "swells": [{"height": s.get("height"), "period": s.get("period")}
+                          for s in r["swells"]]} for r in rows("swells.json", "swells")]
+    wind = [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+             "speed": r.get("speed"), "direction": r.get("direction"),
+             "directionType": r.get("directionType")}
+            for r in rows("wind.json", "wind")]
+except Exception as e:
+    sys.exit("surfline fetch incomplete (%s) -- do not send, and do not guess" % e)
+if not (surf and swells and wind):
+    sys.exit("surfline returned no rows -- do not send, and do not guess")
+print(json.dumps({"surf": surf, "swells": swells, "wind": wind},
+                 separators=(",", ":")))
+PY'''
 
 
 def _rows(payload, key):
     d = payload.get("data", payload)
     return d[key]
+
+
+def load(paths):
+    """The three feeds, from one trimmed blob or from three raw payloads.
+
+    One file is what the sandbox script prints; three are the endpoints saved
+    as they came, which is what a hand-run check on a strange day looks like.
+    Both shapes read the same here so a debugging session never has to go
+    through a different code path than the evening does.
+    """
+    if len(paths) == 1:
+        d = json.load(open(paths[0], encoding="utf-8"))
+        d = d.get("data", d)
+        return d["surf"], d["swells"], d["wind"]
+    if len(paths) != 3:
+        raise SystemExit("--parse takes one combined file or three raw ones")
+    p = [json.load(open(f, encoding="utf-8")) for f in paths]
+    return (_rows(p[0], "surf"), _rows(p[1], "swells"), _rows(p[2], "wind"))
 
 
 def _local(ts, off):
@@ -217,30 +280,34 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--curl", action="store_true",
-                   help="print the three sandbox commands and stop")
-    p.add_argument("--parse", nargs=3, metavar=("SURF", "SWELLS", "WIND"),
-                   help="the three JSON files the sandbox wrote")
+                   help="print the sandbox script and stop")
+    p.add_argument("--parse", nargs="+", metavar="FILE",
+                   help="the blob the sandbox printed, or the three raw payloads")
     p.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
     p.add_argument("--table", action="store_true", help="show every hour")
     a = p.parse_args()
 
     if a.curl:
-        for c in curl_commands():
-            print(c)
-            print()
+        print(curl_commands())
         return 0
     if not a.parse:
         p.error("give --curl or --parse")
 
-    date = a.date or (dt.datetime.utcnow() - dt.timedelta(hours=5)
-                      + dt.timedelta(days=1)).strftime("%Y-%m-%d")
-    payloads = [json.load(open(f, encoding="utf-8")) for f in a.parse]
-    rows = hours(_rows(payloads[0], "surf"), _rows(payloads[1], "swells"),
-                 _rows(payloads[2], "wind"), date)
+    panama = dt.datetime.utcnow() - dt.timedelta(hours=5)
+    date = a.date or (panama + dt.timedelta(days=1)).strftime("%Y-%m-%d")
+    surf, swells, wnd = load(a.parse)
+    rows = hours(surf, swells, wnd, date)
     if not rows:
         print("no Surfline hours for %s -- do not send, and do not guess" % date,
               file=sys.stderr)
         return 1
+
+    # The day before the one being forecast, for the message's own comparison.
+    # Absent on a blob fetched with days=1, and the line simply goes unwritten
+    # rather than being guessed at.
+    prev = (dt.datetime.strptime(date, "%Y-%m-%d")
+            - dt.timedelta(days=1)).strftime("%Y-%m-%d")
+    today = waves(hours(surf, swells, wnd, prev))
 
     if a.table:
         print("%-6s %-12s %-7s %s" % ("hour", "surf m", "period", "wind"))
@@ -250,14 +317,25 @@ def main():
                      r["wind_kt"] or 0, r["wind_type"] or ""))
         print()
 
+    # The offshore call is the one number in here that can invert the whole
+    # message without looking wrong. Surfline labels every hour itself, so say
+    # so when the two disagree rather than publishing our own answer quietly.
+    bad = offshore_disagreement(rows)
+    if bad:
+        print("wind direction disagrees with Surfline's own label at %s -- "
+              "check BEACH_FACES before sending" % ", ".join(h for h, _, _ in bad),
+              file=sys.stderr)
+
     s = summary(rows)
     print("date       %s  (%d surfable hours)" % (date, s["hours"]))
     print("waves      %s m" % s["waves"])
     print("period     %s s" % s["period"])
     print("wind       %s kt from %s deg" % (s["wind"], s["wind_dir"]))
+    print("%s   %s m" % (prev.ljust(11), today or "-- not in this blob"))
     print()
-    print("--waves %s --period %s --wind %s --wind-dir %s"
-          % (s["waves"], s["period"], s["wind"], s["wind_dir"]))
+    print("--waves %s --period %s --wind %s --wind-dir %s%s"
+          % (s["waves"], s["period"], s["wind"], s["wind_dir"],
+             (" --waves-today %s" % today) if today else ""))
     return 0
 
 

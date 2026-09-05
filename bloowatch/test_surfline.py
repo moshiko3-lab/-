@@ -141,6 +141,73 @@ print("\nand it is meaningfully bigger than surf-forecast said")
 check("Surfline 1.2-1.5 against surf-forecast 0.9-1.1 on the same day",
       float(w.split("-")[0]) - 0.9 >= 0.2, w)
 
+# -------------------------------------------------------------- the hop itself
+# The trimmer runs unattended in the sandbox, on a machine nobody is watching,
+# and its output is the only thing the evening message is built from. So it is
+# run here for real -- on payloads shaped like the API's, in a scratch
+# directory, with no network -- rather than being trusted because it reads well.
+print("\nthe sandbox script survives the trip")
+import subprocess                                                  # noqa: E402
+import tempfile                                                    # noqa: E402
+
+RAW_SURF = {"data": {"surf": [dict(r, probability=80,
+                                   surf=dict(r["surf"], plus=False,
+                                             humanRelation="waist to chest"))
+                              for r in SURF]}}
+RAW_SWELLS = {"data": {"swells": [dict(r, swells=[dict(s, direction=200.5,
+                                                       directionMin=190.0)
+                                                  for s in r["swells"]])
+                                  for r in SWELLS]}}
+RAW_WIND = {"data": {"wind": [dict(r, gust=9.1, optimalScore=2) for r in WIND]}}
+
+tmp = tempfile.mkdtemp()
+for name, payload in (("surf", RAW_SURF), ("swells", RAW_SWELLS), ("wind", RAW_WIND)):
+    with open(os.path.join(tmp, name + ".json"), "w", encoding="utf-8") as fh:
+        json.dump(payload, fh)
+
+r = subprocess.run(["bash", "-c", S.TRIM], cwd=tmp, capture_output=True, text=True)
+check("it runs clean", r.returncode == 0, r.stderr.strip())
+check("and prints one line, not a file per feed",
+      r.returncode == 0 and r.stdout.count("\n") == 1, str(r.stdout[:80]))
+
+if r.returncode == 0:
+    blob = os.path.join(tmp, "sea.json")
+    with open(blob, "w", encoding="utf-8") as fh:
+        fh.write(r.stdout)
+    trimmed = S.hours(*S.load([blob]), date="2026-09-05")
+    check("what comes back reads as the same sea it went in as",
+          trimmed == ROWS, "%d rows vs %d" % (len(trimmed), len(ROWS)))
+    # Size is the point of trimming, but a byte count measured against a
+    # hand-written payload only proves how lean the hand-written payload was.
+    # What is worth pinning is the rule: nothing crosses that is not read.
+    sea = json.loads(r.stdout)
+    keys = set()
+    for feed in sea.values():
+        for row in feed:
+            keys |= set(row)
+    check("nothing crosses that hours() does not read",
+          keys == {"timestamp", "utcOffset", "surf", "swells",
+                   "speed", "direction", "directionType"},
+          str(sorted(keys)))
+    check("including inside each swell",
+          {k for row in sea["swells"] for s in row["swells"] for k in s}
+          == {"height", "period"})
+
+# A feed that came back empty must stop the evening, not shorten it: a message
+# built from two of the three feeds still looks like a forecast.
+os.rename(os.path.join(tmp, "wind.json"), os.path.join(tmp, "wind.bak"))
+with open(os.path.join(tmp, "wind.json"), "w", encoding="utf-8") as fh:
+    json.dump({"data": {"wind": []}}, fh)
+r2 = subprocess.run(["bash", "-c", S.TRIM], cwd=tmp, capture_output=True, text=True)
+check("a feed that came back empty stops it", r2.returncode != 0, r2.stdout[:80])
+check("and it says not to guess", "do not guess" in r2.stderr, r2.stderr.strip())
+
+print("\nthree raw payloads read the same as one trimmed blob")
+paths = [os.path.join(tmp, n) for n in ("surf.json", "swells.json", "wind.json")]
+os.rename(os.path.join(tmp, "wind.bak"), paths[2])
+check("the three-file form still works",
+      S.hours(*S.load(paths), date="2026-09-05") == ROWS)
+
 print("\n%d checks, %d failed" % (len(ran), len(fails)))
 if fails:
     print("FAILED: " + ", ".join(fails))
