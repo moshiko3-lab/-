@@ -127,6 +127,24 @@ check("no date: still builds",
 
 # BEACH_FACES decides offshore from onshore for every wind in every forecast.
 # Confirmed south by the owner on 3/9/2026.
+# A range is two readings of the same morning. Reading it at the top edge made
+# "4-8 knots" -- which Surfline itself labels light, hour by hour -- come out
+# as "strong offshore" in the wind row AND again in the sentence under it. The
+# owner read that on 4/9/2026 and it is what he meant by the sentences not
+# being good: the message shouting about a breeze nobody on the beach noticed.
+print("\na light morning breeze is not called strong")
+check("4-8 kt offshore reads as light",
+      F._deciding_fact("4-8", 353, 16) == "off_light",
+      str(F._deciding_fact("4-8", 353, 16)))
+check("and the wind row above it agrees",
+      "חזקה" not in F.wind_line("4-8", 353), F.wind_line("4-8", 353))
+check("a real offshore still reads as strong",
+      F._deciding_fact("12-18", 353, 16) == "off_strong",
+      str(F._deciding_fact("12-18", 353, 16)))
+check("and so does a real onshore, which is the one that matters",
+      F._deciding_fact("11-16", 190, 16) == "on_strong",
+      str(F._deciding_fact("11-16", 190, 16)))
+
 print("\nthe beach still faces south")
 check("BEACH_FACES is 180", F.BEACH_FACES == 180, str(F.BEACH_FACES))
 check("north wind reads as offshore",

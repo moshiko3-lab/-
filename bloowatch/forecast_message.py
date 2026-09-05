@@ -166,35 +166,43 @@ BEACH_FACES = 180
 # most nights until people stopped reading past it.
 #
 # But only the WORDING rotates. Which facts get said is decided by the
-# conditions every time: a fourteen-knot onshore is the headline of that day
-# and must never be rotated out in favour of something prettier.
+# conditions every time: a real onshore is the headline of that day and must
+# never be rotated out in favour of something prettier.
+#
+# The owner's direction, 4/9/2026: simpler, less about the wind, more of an
+# invitation to come and surf, always optimistic, always human. So these are
+# short spoken sentences rather than forecast prose -- what somebody at the
+# school would actually say to you across the counter. The wind still gets its
+# clause whenever it decides the day, because leaving it out on the wrong day
+# is a message that got somebody's morning wrong; it just says it in a word
+# now rather than in a paragraph.
 OPEN_LINES = {
     "he": {
         "same": ["מחר ממשיך באותו קו",
                  "עוד יום באותו אופי",
-                 "הים נשאר בערך איפה שהוא היום",
-                 "היום ומחר כמעט תאומים"],
+                 "הים נשאר איפה שהוא",
+                 "מחר דומה להיום"],
         "up":   ["מחר הים מתעורר",
-                 "עולים מדרגה מהיום",
-                 "מחר נכנס קצת יותר גובה",
-                 "הים מוסיף כוח מחר"],
-        "down": ["מחר הים מוריד הילוך",
-                 "רגוע יותר מהיום",
-                 "מחר הים מתיישב",
+                 "עולים מדרגה",
+                 "מחר נכנס עוד קצת גובה",
+                 "מחר יש יותר במים"],
+        "down": ["מחר הים מתיישב",
+                 "מחר יותר עדין",
+                 "מחר הים נח",
                  "יורדים מדרגה"],
     },
     "en": {
-        "same": ["Tomorrow carries on in the same mood",
+        "same": ["Tomorrow carries on the same",
                  "Another day of much the same",
-                 "The sea stays about where it is today",
-                 "Today and tomorrow are near twins"],
+                 "The sea stays where it is",
+                 "Tomorrow looks like today"],
         "up":   ["The sea wakes up tomorrow",
-                 "Stepping up from today",
-                 "A bit more size coming in",
-                 "The sea puts on some power"],
-        "down": ["The sea eases off tomorrow",
-                 "Calmer than today",
-                 "Tomorrow the sea settles",
+                 "Stepping up a notch",
+                 "A bit more size tomorrow",
+                 "More in the water tomorrow"],
+        "down": ["The sea settles tomorrow",
+                 "Softer tomorrow",
+                 "Tomorrow the sea rests",
                  "A step down"],
     },
 }
@@ -204,31 +212,31 @@ OPEN_LINES = {
 # fourteen-knot onshore is a sentence that contradicts itself.
 SIZE_LINES = {
     "he": {
-        "tiny":  ["גובה נמוך בדיוק לשיעור ראשון",
+        "tiny":  ["בדיוק הגובה לשיעור ראשון",
                   "ים קטן וסלחני למתחילים",
-                  "גובה קטן ונוח ללמוד בו"],
+                  "גובה נוח ללמוד בו"],
         "small": ["גובה נעים שמתאים לכולם",
-                  "ים קטן שעובד יפה",
-                  "גובה כיפי למתחילים ולמתקדמים"],
-        "mid":   ["גובה שכבר דורש ניסיון",
-                  "ים בגובה טוב למי שיודע לקרוא גל",
-                  "יום עם נפח לגולשים מנוסים"],
-        "big":   ["ים גדול רק לגולשים מנוסים",
-                  "יום כבד שלא לגולשים טריים",
+                  "ים קטן וכיפי למתחילים ולמתקדמים",
+                  "גובה שכיף ללמוד ולהשתפר בו"],
+        "mid":   ["גובה יפה למי שכבר עם קצת ניסיון",
+                  "ים עם נפח לגולשים מנוסים",
+                  "יום טוב למי שיודע לקרוא גל – ניסיון בבקשה"],
+        "big":   ["ים גדול ויפה לגולשים מנוסים",
+                  "יום עם כוח שלא לגולשים טריים",
                   "גובה רציני שדורש היכרות עם המקום"],
     },
     "en": {
-        "tiny":  ["a low height just right for a first lesson",
+        "tiny":  ["exactly the size for a first lesson",
                   "small and forgiving for beginners",
                   "an easy size to learn in"],
         "small": ["a friendly size that suits everyone",
-                  "a small sea working nicely",
-                  "a fun size for beginners and improvers alike"],
-        "mid":   ["a height that asks for some experience",
-                  "a good size if you read the wave",
-                  "a day with volume for experienced surfers"],
-        "big":   ["big out there and experienced surfers only",
-                  "a heavy day not made for fresh legs",
+                  "small and fun for beginners and improvers alike",
+                  "a lovely size to learn and improve in"],
+        "mid":   ["a nice size once you have a little experience",
+                  "a sea with volume for experienced surfers",
+                  "a good day if you read the wave — experience helps"],
+        "big":   ["big and beautiful for experienced surfers",
+                  "a powerful day not made for fresh legs",
                   "serious size that wants local knowledge"],
     },
 }
@@ -246,34 +254,52 @@ SIZE_LINES = {
 # the session instead -- what it does to the wave, or when to be on it.
 FACT_LINES = {
     "he": {
-        "off_light":  ["והרוח מהיבשה תחזיק את הפנים פתוחות",
-                       "ורוח מהיבשה שתיתן דופן נקייה לאורך כל הגל"],
-        "off_strong": ["ורוח חזקה מהיבשה שתדרוש כניסה מוקדמת לגל",
-                       "ואופשור חזק שמקשה על ההמראה אבל משתלם אחריה"],
-        "on_light":   ["ורוח קלה מהים שתשאיר בדיוק מספיק קצף לתרגול",
-                       "ומעט רוח מהים שתרכך את הפנים למתחילים"],
-        "on_strong":  ["ורוח מהים שתבלגן קצת, אז שווה להקדים",
-                       "ורוח חזקה מהים שהופכת את הבוקר לזמן הטוב"],
-        "long":       ["ופריוד ארוך שמביא סטים עם כוח והמתנה ביניהם",
+        "off_light":  ["והרוח מהיבשה תשמור על גלים נקיים",
+                       "ורוח נעימה מהיבשה שעושה לגל טוב"],
+        "off_strong": ["ורוח חזקה מהיבשה – שווה להיכנס לגל מוקדם",
+                       "ורוח חזקה מהיבשה שמעמידה גלים תלולים ויפים"],
+        "on_light":   ["ורוח קלה מהים שמשאירה קצף נחמד לתרגול",
+                       "ומעט רוח מהים שמרככת את הגלים"],
+        "on_strong":  ["ורוח מהים אחר הצהריים – הבוקר הוא הזמן",
+                       "ורוח מהים שמתחזקת במהלך היום – כדאי להקדים"],
+        "long":       ["ופריוד ארוך עם סטים חזקים ורוגע ביניהם",
                        "ופריוד ארוך שנותן זמן להתארגן בין הסטים"],
-        "short":      ["ופריוד קצר שנותן גלים צפופים",
-                       "ופריוד קצר שיתן ים קצת עצבני"],
+        "short":      ["ופריוד קצר עם גלים צפופים",
+                       "ופריוד קצר וים קצת עצבני"],
     },
     "en": {
-        "off_light":  ["and the land breeze will hold the faces open",
-                       "with a breeze off the land keeping a clean wall"],
-        "off_strong": ["and a hard offshore that asks for an early take-off",
-                       "with a stiff offshore making the drop late but worth it"],
+        "off_light":  ["and the land breeze will keep the waves clean",
+                       "with a lovely breeze off the land doing the wave good"],
+        "off_strong": ["and a strong offshore — worth taking off early",
+                       "with a strong offshore standing the waves up beautifully"],
         "on_light":   ["with just enough sea breeze to leave foam to practise on",
-                       "and a light sea breeze softening the faces for beginners"],
-        "on_strong":  ["with onshore chop building, so go early",
-                       "and a strong sea breeze that makes the morning the one"],
-        "long":       ["and a long period bringing power and a wait between sets",
+                       "and a light sea breeze softening the waves"],
+        "on_strong":  ["with the onshore sea breeze in the afternoon — mornings are the one",
+                       "and a sea breeze building through the day — come early"],
+        "long":       ["and a long period with strong sets and calm in between",
                        "with a long period leaving time to set up between sets"],
-        "short":      ["and a short period stacking the waves close",
+        "short":      ["and a short period with the waves stacked close",
                        "and a short period making for a fidgety sea"],
     },
 }
+
+
+# What counts as a wind worth calling strong, in knots, read at the MIDDLE of
+# the range rather than its top edge. Eight at the top edge made "4-8 knots"
+# -- a pleasant Venao morning that Surfline itself labels light -- come out as
+# "strong offshore", twice in one message. Twelve on the middle is the wind
+# that actually changes how a session goes.
+STRONG_KT = 12
+
+
+def _speed(wind_kt):
+    """The middle of a wind range, or None. A range is two readings of the
+    same morning, not a worst case to plan around."""
+    try:
+        parts = [float(x) for x in str(wind_kt).split("-")]
+    except (TypeError, ValueError):
+        return None
+    return sum(parts) / len(parts)
 
 
 def _deciding_fact(wind_kt, wind_deg, period, faces=BEACH_FACES):
@@ -283,16 +309,17 @@ def _deciding_fact(wind_kt, wind_deg, period, faces=BEACH_FACES):
     except (TypeError, ValueError):
         p = None
     side = None
+    fast = _speed(wind_kt)
     try:
-        fast = max(float(x) for x in str(wind_kt).split("-"))
         off = abs(((float(wind_deg) - faces) + 180) % 360 - 180)
-        side = "off" if off > 120 else ("on" if off < 60 else "cross")
+        side = None if fast is None else (
+            "off" if off > 120 else ("on" if off < 60 else "cross"))
     except (TypeError, ValueError):
         pass
     if side == "off":
-        return "off_strong" if fast >= 8 else "off_light"
+        return "off_strong" if fast >= STRONG_KT else "off_light"
     if side == "on":
-        return "on_strong" if fast >= 8 else "on_light"
+        return "on_strong" if fast >= STRONG_KT else "on_light"
     # cross-shore barely touches the wave, and so does a missing wind: let the
     # period talk, but only when it is long or short enough to be worth a word
     if p is None:
@@ -368,16 +395,17 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
 
     # the angle between where the wind comes from and where the beach looks
     off = abs(((d - faces) + 180) % 360 - 180)
-    fast = max(lo, hi)
+    fast = (lo + hi) / 2          # the middle of the range, as in _speed above
     rng_ = ("%g" % lo) if abs(hi - lo) < 0.6 else ("%g-%g" % (lo, hi))
     if lang == "en":
         if off < 60:
             side = "onshore"
-            mood = ("plenty of whitewater — great for beginners" if fast < 8
+            mood = ("plenty of whitewater — great for beginners"
+                    if fast < STRONG_KT
                     else "lively sea — the inside will be working")
         elif off > 120:
             side = "offshore"
-            mood = ("clean and groomed 🪞" if fast < 8
+            mood = ("clean and groomed 🪞" if fast < STRONG_KT
                     else "strong offshore — steep, fast faces")
         else:
             side = "cross-shore"
@@ -393,10 +421,10 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
         side, how = "רוח צד", ""
 
     if side == "אופשור":
-        mood = ("ים חלק ומסודר 🪞" if fast < 8
+        mood = ("ים חלק ומסודר 🪞" if fast < STRONG_KT
                 else "אופשור חזקה – גלים תלולים ומהירים")
     elif side == "אונשור":
-        mood = ("הרבה גלי קצף – מעולה למתחילים" if fast < 8
+        mood = ("הרבה גלי קצף – מעולה למתחילים" if fast < STRONG_KT
                 else "ים תוסס – הפנים יעבוד יפה")
     else:
         mood = "כמעט לא נוגעת בגל"
