@@ -186,19 +186,23 @@ def _r1(x):
 
 
 def waves(rows):
-    """The day's height as a range, in the school's own terms.
+    """The day's height as a range: its lowest reading to its highest.
 
-    Averaged across the surfable hours and not taken from the extremes: one
-    freak hour must not set what two hundred people read as the day. Surfline
-    gives a min and a max per hour -- the smaller waves and the bigger sets --
-    so the range runs from the mean of the mins to the mean of the maxes, which
-    keeps that character without letting a single hour widen it.
+    The owner's rule, 5/9/2026, and it is the surfer's question rather than the
+    statistician's. Somebody deciding whether to come down at all wants to know
+    what the smallest wave and the biggest set of that day look like -- the
+    whole span they might meet between six and seven -- not a figure smoothed
+    across fourteen hours. An average narrows the day: it turned a 1.14-to-1.59
+    Saturday into "1.2-1.5" and quietly hid both ends.
+
+    So the bottom is the smallest min of any surfable hour and the top is the
+    largest max. Surfline already gives each hour a min and a max -- the
+    smaller waves and the bigger sets within that hour -- so the two extremes
+    together are the real edges of the day.
     """
     if not rows:
         return None
-    lo = sum(r["min"] for r in rows) / len(rows)
-    hi = sum(r["max"] for r in rows) / len(rows)
-    a, b = _r1(lo), _r1(hi)
+    a, b = _r1(min(r["min"] for r in rows)), _r1(max(r["max"] for r in rows))
     return "%.1f" % a if a == b else "%.1f-%.1f" % (a, b)
 
 

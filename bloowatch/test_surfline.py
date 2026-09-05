@@ -119,13 +119,23 @@ check("speed comes from the morning too, so it matches the direction",
       speed == "4-8", str(speed))
 
 # ------------------------------------------------------------------- the height
-print("\nheight is the day's average, not its extremes")
+# The owner's rule, 5/9/2026: the range is the day's real edges, lowest
+# reading to highest. Averaging across the hours narrowed it -- this same
+# Saturday, which runs 1.14 to 1.59, came out as "1.2-1.5" and hid both ends
+# from somebody deciding whether the day is worth the drive.
+print("\nheight spans the day's extremes, not its average")
 w = S.waves(ROWS)
-check("5/9 reads 1.2-1.5", w == "1.2-1.5", str(w))
-check("the top is below the biggest single hour (1.59)",
-      float(w.split("-")[1]) < 1.59, w)
-check("and the bottom is above the smallest (1.14)",
-      float(w.split("-")[0]) > 1.14, w)
+check("5/9 reads 1.1-1.6", w == "1.1-1.6", str(w))
+check("the top is the biggest single hour (1.59)",
+      float(w.split("-")[1]) >= 1.59, w)
+check("and the bottom is the smallest (1.14)",
+      float(w.split("-")[0]) <= 1.14, w)
+check("one quiet hour widens the bottom",
+      S.waves(ROWS + [{"min": 0.8, "max": 1.0}]).startswith("0.8"),
+      str(S.waves(ROWS + [{"min": 0.8, "max": 1.0}])))
+check("and one big set widens the top",
+      S.waves(ROWS + [{"min": 1.2, "max": 2.1}]).endswith("2.1"),
+      str(S.waves(ROWS + [{"min": 1.2, "max": 2.1}])))
 check("a flat day gives one number, not a fake range",
       S.waves([{"min": 1.0, "max": 1.0}] * 5) == "1.0",
       str(S.waves([{"min": 1.0, "max": 1.0}] * 5)))
@@ -138,8 +148,8 @@ check("a zero-height swell never sets it",
 # The whole point of the change: Surfline reads higher than surf-forecast, and
 # the school's size language is written in Surfline metres.
 print("\nand it is meaningfully bigger than surf-forecast said")
-check("Surfline 1.2-1.5 against surf-forecast 0.9-1.1 on the same day",
-      float(w.split("-")[0]) - 0.9 >= 0.2, w)
+check("Surfline 1.1-1.6 against surf-forecast 0.9-1.1 on the same day",
+      float(w.split("-")[1]) - 1.1 >= 0.4, w)
 
 # -------------------------------------------------------------- the hop itself
 # The trimmer runs unattended in the sandbox, on a machine nobody is watching,
