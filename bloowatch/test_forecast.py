@@ -189,13 +189,19 @@ check("7/9 comes out exactly as he corrected it",
 w8 = F.windows(F.tides_for("2026-09-08"))[2]
 check("and 8/9 does too, an hour later on the second window",
       w8 == [("08:00", "12:30"), ("14:30", "18:00")], str(w8))
-check("because the end trails the day's last tide by an hour and a half",
-      (F.hhmm(F.rec_to(F.tides_for("2026-09-07"))),
-       F.hhmm(F.rec_to(F.tides_for("2026-09-08")))) == ("17:00", "18:00"))
-check("a day whose last tide is late still stops inside the surfable day",
-      F.rec_to({"highs": [{"t": "23:40"}], "lows": []}) == F.DAY_TO)
-check("and one with no tides at all falls back rather than crashing",
-      F.rec_to({}) == F.REC_TO_FALLBACK)
+check("how far off a low depends on how low it is",
+      (round(F.clear_of_low(1.2)), round(F.clear_of_low(0.2)),
+       round(F.clear_of_low(0.7))) == (60, 110, 85))
+check("and a low outside that range does not run away with it",
+      (F.clear_of_low(3.0), F.clear_of_low(-1)) == (60, 110))
+check("a missing height falls back rather than crashing",
+      F.clear_of_low(None) == 60)
+# 15/9 to 17/9 end on an evening HIGH. Backing away from that is backwards --
+# the message's own words are that near high the wave is soft and slow -- and
+# the day's-last-peak version shortened exactly those afternoons.
+w15 = F.windows(F.tides_for("2026-09-15"))[2]
+check("an afternoon that ends on a high is not cut short by it",
+      w15 and w15[-1][1] >= "17:30", str(w15))
 check("the evening end rounds down, the mid-tide edges round up",
       (F.snap_down(17 * 60 + 1), F.snap_down(18 * 60 + 6),
        F.snap_up(17 * 60 + 1)) == (17 * 60, 18 * 60, 17 * 60 + 30))
@@ -207,7 +213,7 @@ check("an already-round edge stays where it is",
 check("nothing is recommended before seven",
       all(F.mins(a) >= F.REC_FROM for a, _ in w7), str(w7))
 check("or after the tide has gone",
-      all(F.mins(b) <= F.rec_to(F.tides_for("2026-09-07")) for _, b in w7), str(w7))
+      all(F.mins(b) <= F.DAY_TO for _, b in w7), str(w7))
 # The clamp is the recommendation's, not the day's: six in the morning is an
 # hour people surf and the near-low line still has to name it.
 low7, high7, _ = F.windows(F.tides_for("2026-09-07"))

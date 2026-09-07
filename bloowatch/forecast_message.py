@@ -99,11 +99,20 @@ REC_FROM = 7 * 60
 # And the evening end is not a clock time at all -- it follows the tide out.
 # It was a flat 17:00, which happened to be right on 7/9/2026 and was wrong
 # the very next day: the owner's own windows ended at 17:00 when the evening
-# low was at 18:31 and at 18:00 when it was at 19:36. Both are an hour and a
-# half before the water bottoms out. Past that the tide is going slack and
-# there is not enough moving water left to send somebody down for.
-REC_BEFORE_LAST_PEAK = 90
-REC_TO_FALLBACK = 17 * 60
+# low was at 18:31 and at 18:00 when it was at 19:36.
+#
+# How far before the low depends on how low the low is -- the owner's rule,
+# 7/9/2026. A 1.2 m low still leaves water over the reef and you can surf
+# most of the way down to it; a 0.2 m spring low goes shallow and closes out,
+# and you want to be off it long before. At Venao that is not a small range:
+# the lows this fortnight run from 1.39 m to 0.13 m.
+#
+# Sixty minutes at 1.2 m and a hundred and ten at 0.2 m, straight line
+# between. Those two numbers are what reproduce both of his own corrections
+# exactly -- 17:00 off a 0.75 m low and 18:00 off a 0.56 m one -- and they
+# are the two to move if the ends ever want widening.
+LOW_DEEP_M, LOW_SHALLOW_M = 1.2, 0.2
+CLEAR_OF_DEEP_LOW, CLEAR_OF_SHALLOW_LOW = 60, 110
 
 # How far either side of mid-tide the water is still worth recommending.
 # It was 90 minutes, which cut the day into two three-hour slots and left
@@ -131,21 +140,35 @@ def snap_down(m, step=30):
     return int(m // step) * step
 
 
-def rec_to(t):
-    """When the recommendations stop: an hour and a half before the day's last
-    tide peak, so they follow the water out instead of a fixed clock time."""
-    peaks = [mins(x["t"]) for x in (t.get("highs") or []) + (t.get("lows") or [])]
-    if not peaks:
-        return REC_TO_FALLBACK
-    end = snap_down(max(peaks) - REC_BEFORE_LAST_PEAK)
-    # never past the surfable day, and never so early there is nothing to say
-    return max(REC_FROM + 60, min(DAY_TO, end))
+def clear_of_low(m):
+    """Minutes to stay off a low, by how low it is. See the constants above."""
+    try:
+        m = float(m)
+    except (TypeError, ValueError):
+        return CLEAR_OF_DEEP_LOW
+    span = LOW_DEEP_M - LOW_SHALLOW_M
+    f = (LOW_DEEP_M - m) / span if span else 0
+    got = CLEAR_OF_DEEP_LOW + f * (CLEAR_OF_SHALLOW_LOW - CLEAR_OF_DEEP_LOW)
+    return max(CLEAR_OF_DEEP_LOW, min(CLEAR_OF_SHALLOW_LOW, got))
 
 
-def mid_window(centre, hi, half=MID_HALF, lo=REC_FROM):
-    """A recommendation window: mid-tide either side, snapped up, clamped."""
-    a = max(lo, snap_up(centre - half))
-    b = min(hi, snap_up(centre + half))
+def mid_window(centre, lows, half=MID_HALF):
+    """A recommendation window: mid-tide either side, then held off the low.
+
+    The low and not the last peak of the day, whichever that happens to be.
+    Reading the message's own words back -- near high the wave is soft and
+    slow, near low it is hollow, fast and shallower -- the peak worth keeping
+    a distance from is the low. Backing away from a high instead is what the
+    day's-last-peak version did on 15/9 to 17/9, where the last peak is the
+    evening high, and it shortened exactly the afternoons that did not need
+    shortening.
+    """
+    a = max(REC_FROM, snap_up(centre - half))
+    b = min(DAY_TO, snap_up(centre + half))
+    after = [x for x in lows if mins(x["t"]) > centre]
+    if after:
+        nxt = min(after, key=lambda x: mins(x["t"]))
+        b = min(b, snap_down(mins(nxt["t"]) - clear_of_low(nxt.get("m"))))
     return hhmm(a), hhmm(b)
 
 
@@ -190,8 +213,9 @@ def windows(t):
     # when the clamp leaves less than an hour -- the same rule the low and
     # high windows above already apply. A forty-minute slot is not a
     # recommendation anybody acts on.
-    hi = rec_to(t)
-    mid_w = [w for w in (mid_window(m, hi) for m in mids if REC_FROM <= m <= hi)
+    lo_rows = t.get("lows") or []
+    mid_w = [w for w in (mid_window(m, lo_rows) for m in mids
+                         if REC_FROM <= m <= DAY_TO)
              if mins(w[1]) - mins(w[0]) >= 60]
     return low_w, high_w, mid_w
 
