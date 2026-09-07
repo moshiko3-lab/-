@@ -189,13 +189,23 @@ check("7/9 comes out exactly as he corrected it",
 w8 = F.windows(F.tides_for("2026-09-08"))[2]
 check("and 8/9 does too, an hour later on the second window",
       w8 == [("08:00", "12:30"), ("14:30", "18:00")], str(w8))
-check("how far off a low depends on how low it is",
-      (round(F.clear_of_low(1.2)), round(F.clear_of_low(0.2)),
-       round(F.clear_of_low(0.7))) == (60, 110, 85))
-check("and a low outside that range does not run away with it",
-      (F.clear_of_low(3.0), F.clear_of_low(-1)) == (60, 110))
-check("a missing height falls back rather than crashing",
-      F.clear_of_low(None) == 60)
+check("how far off a low is set by the day's range",
+      (F.clear_of_low(1.5), F.clear_of_low(3.7),
+       F.clear_of_low(2.6)) == (105, 40, 72.5),
+      str([F.clear_of_low(x) for x in (1.5, 3.7, 2.6)]))
+check("a bigger range lets you surf further into the low",
+      F.clear_of_low(3.5) < F.clear_of_low(2.0))
+check("and a range outside the pair does not run away with it",
+      (F.clear_of_low(9.0), F.clear_of_low(0.1)) == (40, 105))
+check("a missing range falls back rather than crashing",
+      F.clear_of_low(None) == 105)
+# 12/9 is the spring day where reading the low's own height and reading the
+# range point opposite ways: a 0.15 m low says stay away, a 3.7 m range says
+# the water is moving and you can go in. The owner chose the range.
+w12 = F.windows(F.tides_for("2026-09-12"))[2]
+check("12/9's morning runs to half past nine, not half past eight",
+      w12 and w12[0][1] == "09:30", str(w12))
+
 # 15/9 to 17/9 end on an evening HIGH. Backing away from that is backwards --
 # the message's own words are that near high the wave is soft and slow -- and
 # the day's-last-peak version shortened exactly those afternoons.

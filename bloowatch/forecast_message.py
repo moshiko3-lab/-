@@ -101,18 +101,20 @@ REC_FROM = 7 * 60
 # the very next day: the owner's own windows ended at 17:00 when the evening
 # low was at 18:31 and at 18:00 when it was at 19:36.
 #
-# How far before the low depends on how low the low is -- the owner's rule,
-# 7/9/2026. A 1.2 m low still leaves water over the reef and you can surf
-# most of the way down to it; a 0.2 m spring low goes shallow and closes out,
-# and you want to be off it long before. At Venao that is not a small range:
-# the lows this fortnight run from 1.39 m to 0.13 m.
+# How far before the low is set by the day's tidal RANGE -- the owner's rule,
+# 7/9/2026, settled after he was shown where it parts company with reading the
+# low's own height. On a big range the water is moving hard and the tide is
+# already turning and filling under you, so the shallow patch around the low
+# is brief and you can surf most of the way into it. On a small range the sea
+# barely moves: it sits near the bottom of the tide for hours, and that is
+# when to be off it early. Venao runs 1.4 m at neaps to 3.7 m at springs.
 #
-# Sixty minutes at 1.2 m and a hundred and ten at 0.2 m, straight line
-# between. Those two numbers are what reproduce both of his own corrections
-# exactly -- 17:00 off a 0.75 m low and 18:00 off a 0.56 m one -- and they
-# are the two to move if the ends ever want widening.
-LOW_DEEP_M, LOW_SHALLOW_M = 1.2, 0.2
-CLEAR_OF_DEEP_LOW, CLEAR_OF_SHALLOW_LOW = 60, 110
+# A hundred and five minutes at 1.5 m and forty at 3.7 m, straight line
+# between. All three of his own numbers land on those: 17:00 off an 18:31 low
+# on a 2.3 m range, 18:00 off a 19:36 low on 2.6 m, and 09:30 off a 10:26 low
+# on 3.7 m. These are the two to move if the ends ever want changing.
+RANGE_NEAP_M, RANGE_SPRING_M = 1.5, 3.7
+CLEAR_AT_NEAP, CLEAR_AT_SPRING = 105, 40
 
 # How far either side of mid-tide the water is still worth recommending.
 # It was 90 minutes, which cut the day into two three-hour slots and left
@@ -140,19 +142,26 @@ def snap_down(m, step=30):
     return int(m // step) * step
 
 
-def clear_of_low(m):
-    """Minutes to stay off a low, by how low it is. See the constants above."""
+def tide_range(t):
+    """How far the water moves that day, in metres."""
+    hs = [float(x.get("m") or 0) for x in (t.get("highs") or [])]
+    ls = [float(x.get("m") or 0) for x in (t.get("lows") or [])]
+    return (max(hs) - min(ls)) if hs and ls else None
+
+
+def clear_of_low(rng):
+    """Minutes to stay off a low, by the day's range. See the constants above."""
+    lo, hi = min(CLEAR_AT_NEAP, CLEAR_AT_SPRING), max(CLEAR_AT_NEAP, CLEAR_AT_SPRING)
     try:
-        m = float(m)
+        rng = float(rng)
     except (TypeError, ValueError):
-        return CLEAR_OF_DEEP_LOW
-    span = LOW_DEEP_M - LOW_SHALLOW_M
-    f = (LOW_DEEP_M - m) / span if span else 0
-    got = CLEAR_OF_DEEP_LOW + f * (CLEAR_OF_SHALLOW_LOW - CLEAR_OF_DEEP_LOW)
-    return max(CLEAR_OF_DEEP_LOW, min(CLEAR_OF_SHALLOW_LOW, got))
+        return CLEAR_AT_NEAP
+    span = RANGE_SPRING_M - RANGE_NEAP_M
+    f = (rng - RANGE_NEAP_M) / span if span else 0
+    return max(lo, min(hi, CLEAR_AT_NEAP + f * (CLEAR_AT_SPRING - CLEAR_AT_NEAP)))
 
 
-def mid_window(centre, lows, half=MID_HALF):
+def mid_window(centre, lows, rng, half=MID_HALF):
     """A recommendation window: mid-tide either side, then held off the low.
 
     The low and not the last peak of the day, whichever that happens to be.
@@ -176,7 +185,7 @@ def mid_window(centre, lows, half=MID_HALF):
     after = [x for x in lows if mins(x["t"]) > centre]
     if after:
         nxt = min(after, key=lambda x: mins(x["t"]))
-        b = min(b, snap_down(mins(nxt["t"]) - clear_of_low(nxt.get("m"))))
+        b = min(b, snap_down(mins(nxt["t"]) - clear_of_low(rng)))
     return hhmm(a), hhmm(b)
 
 
@@ -221,8 +230,8 @@ def windows(t):
     # when the clamp leaves less than an hour -- the same rule the low and
     # high windows above already apply. A forty-minute slot is not a
     # recommendation anybody acts on.
-    lo_rows = t.get("lows") or []
-    mid_w = [w for w in (mid_window(m, lo_rows) for m in mids
+    lo_rows, rng = t.get("lows") or [], tide_range(t)
+    mid_w = [w for w in (mid_window(m, lo_rows, rng) for m in mids
                          if REC_FROM <= m <= DAY_TO)
              if mins(w[1]) - mins(w[0]) >= 60]
     return low_w, high_w, mid_w
