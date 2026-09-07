@@ -184,6 +184,21 @@ print("\nthe recommended hours are the ones he wrote by hand")
 w7 = F.windows(F.tides_for("2026-09-07"))[2]
 check("7/9 comes out exactly as he corrected it",
       w7 == [("07:00", "11:30"), ("13:30", "17:00")], str(w7))
+# The day that showed the evening end was following the tide and not the clock.
+# A flat 17:00 was right on 7/9 by coincidence and wrong here.
+w8 = F.windows(F.tides_for("2026-09-08"))[2]
+check("and 8/9 does too, an hour later on the second window",
+      w8 == [("08:00", "12:30"), ("14:30", "18:00")], str(w8))
+check("because the end trails the day's last tide by an hour and a half",
+      (F.hhmm(F.rec_to(F.tides_for("2026-09-07"))),
+       F.hhmm(F.rec_to(F.tides_for("2026-09-08")))) == ("17:00", "18:00"))
+check("a day whose last tide is late still stops inside the surfable day",
+      F.rec_to({"highs": [{"t": "23:40"}], "lows": []}) == F.DAY_TO)
+check("and one with no tides at all falls back rather than crashing",
+      F.rec_to({}) == F.REC_TO_FALLBACK)
+check("the evening end rounds down, the mid-tide edges round up",
+      (F.snap_down(17 * 60 + 1), F.snap_down(18 * 60 + 6),
+       F.snap_up(17 * 60 + 1)) == (17 * 60, 18 * 60, 17 * 60 + 30))
 check("edges go up to the half hour, never back to the last one",
       (F.snap_up(6 * 60 + 40), F.snap_up(11 * 60 + 10),
        F.snap_up(13 * 60 + 2)) == (7 * 60, 11 * 60 + 30, 13 * 60 + 30))
@@ -191,7 +206,8 @@ check("an already-round edge stays where it is",
       F.snap_up(13 * 60 + 30) == 13 * 60 + 30)
 check("nothing is recommended before seven",
       all(F.mins(a) >= F.REC_FROM for a, _ in w7), str(w7))
-check("or after five", all(F.mins(b) <= F.REC_TO for _, b in w7), str(w7))
+check("or after the tide has gone",
+      all(F.mins(b) <= F.rec_to(F.tides_for("2026-09-07")) for _, b in w7), str(w7))
 # The clamp is the recommendation's, not the day's: six in the morning is an
 # hour people surf and the near-low line still has to name it.
 low7, high7, _ = F.windows(F.tides_for("2026-09-07"))

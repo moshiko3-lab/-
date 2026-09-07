@@ -90,12 +90,20 @@ DAY_FROM, DAY_TO = 6 * 60, 19 * 60
 # the day has one high tide when it has two.
 LIST_FROM, LIST_TO = 5 * 60, 21 * 60
 
-# Recommending an hour is narrower still. Six in the morning and seven in the
-# evening are hours people surf -- the "near low" line names them -- but they
-# are not hours the school points somebody at, and the owner's own rewrite of
-# 7/9/2026 stopped at seven and five. This is the recommendation clamp only;
-# the near-low and near-high lines keep the whole surfable day.
-REC_FROM, REC_TO = 7 * 60, 17 * 60
+# Recommending an hour is narrower still. Six in the morning is an hour people
+# surf -- the "near low" line names it -- but it is not an hour the school
+# points somebody at. This is the recommendation floor only; the near-low and
+# near-high lines keep the whole surfable day.
+REC_FROM = 7 * 60
+
+# And the evening end is not a clock time at all -- it follows the tide out.
+# It was a flat 17:00, which happened to be right on 7/9/2026 and was wrong
+# the very next day: the owner's own windows ended at 17:00 when the evening
+# low was at 18:31 and at 18:00 when it was at 19:36. Both are an hour and a
+# half before the water bottoms out. Past that the tide is going slack and
+# there is not enough moving water left to send somebody down for.
+REC_BEFORE_LAST_PEAK = 90
+REC_TO_FALLBACK = 17 * 60
 
 # How far either side of mid-tide the water is still worth recommending.
 # It was 90 minutes, which cut the day into two three-hour slots and left
@@ -116,7 +124,25 @@ def snap_up(m, step=30):
     return int(math.ceil(m / float(step))) * step
 
 
-def mid_window(centre, half=MID_HALF, lo=REC_FROM, hi=REC_TO):
+def snap_down(m, step=30):
+    """To the half hour below. The evening end rounds this way and the mid-tide
+    edges round the other, and both are the owner's: a window that opens late
+    loses nothing, and one that closes late sends somebody into slack water."""
+    return int(m // step) * step
+
+
+def rec_to(t):
+    """When the recommendations stop: an hour and a half before the day's last
+    tide peak, so they follow the water out instead of a fixed clock time."""
+    peaks = [mins(x["t"]) for x in (t.get("highs") or []) + (t.get("lows") or [])]
+    if not peaks:
+        return REC_TO_FALLBACK
+    end = snap_down(max(peaks) - REC_BEFORE_LAST_PEAK)
+    # never past the surfable day, and never so early there is nothing to say
+    return max(REC_FROM + 60, min(DAY_TO, end))
+
+
+def mid_window(centre, hi, half=MID_HALF, lo=REC_FROM):
     """A recommendation window: mid-tide either side, snapped up, clamped."""
     a = max(lo, snap_up(centre - half))
     b = min(hi, snap_up(centre + half))
@@ -164,7 +190,8 @@ def windows(t):
     # when the clamp leaves less than an hour -- the same rule the low and
     # high windows above already apply. A forty-minute slot is not a
     # recommendation anybody acts on.
-    mid_w = [w for w in (mid_window(m) for m in mids if REC_FROM <= m <= REC_TO)
+    hi = rec_to(t)
+    mid_w = [w for w in (mid_window(m, hi) for m in mids if REC_FROM <= m <= hi)
              if mins(w[1]) - mins(w[0]) >= 60]
     return low_w, high_w, mid_w
 
