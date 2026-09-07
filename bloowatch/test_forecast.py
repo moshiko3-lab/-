@@ -180,6 +180,26 @@ check("and a metre and a bit is a day for everyone, not for experts",
       not says(s, DEMANDING), s)
 check("it welcomes them by name", says(s, WELCOMING), s)
 
+print("\nthe recommended hours are the ones he wrote by hand")
+w7 = F.windows(F.tides_for("2026-09-07"))[2]
+check("7/9 comes out exactly as he corrected it",
+      w7 == [("07:00", "11:30"), ("13:30", "17:00")], str(w7))
+check("edges go up to the half hour, never back to the last one",
+      (F.snap_up(6 * 60 + 40), F.snap_up(11 * 60 + 10),
+       F.snap_up(13 * 60 + 2)) == (7 * 60, 11 * 60 + 30, 13 * 60 + 30))
+check("an already-round edge stays where it is",
+      F.snap_up(13 * 60 + 30) == 13 * 60 + 30)
+check("nothing is recommended before seven",
+      all(F.mins(a) >= F.REC_FROM for a, _ in w7), str(w7))
+check("or after five", all(F.mins(b) <= F.REC_TO for _, b in w7), str(w7))
+# The clamp is the recommendation's, not the day's: six in the morning is an
+# hour people surf and the near-low line still has to name it.
+low7, high7, _ = F.windows(F.tides_for("2026-09-07"))
+check("but the near-low line still starts at six",
+      any(a == "06:00" for a, _ in low7 + high7), str(low7 + high7))
+check("and still runs to seven in the evening",
+      any(b == "19:00" for _, b in low7 + high7), str(low7 + high7))
+
 print("\nthe afternoon onshore is said once, and only when it is real")
 w = F.wind_line("1-4", 21, onshore_from="13:00", onshore_eases=True)
 check("the wind row carries it", "אונשור" in w and "יירגע" in w, w)

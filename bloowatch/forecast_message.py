@@ -26,6 +26,7 @@ rather than inventing new ones.
 import argparse
 import datetime as dt
 import json
+import math
 import os
 import sys
 
@@ -89,6 +90,38 @@ DAY_FROM, DAY_TO = 6 * 60, 19 * 60
 # the day has one high tide when it has two.
 LIST_FROM, LIST_TO = 5 * 60, 21 * 60
 
+# Recommending an hour is narrower still. Six in the morning and seven in the
+# evening are hours people surf -- the "near low" line names them -- but they
+# are not hours the school points somebody at, and the owner's own rewrite of
+# 7/9/2026 stopped at seven and five. This is the recommendation clamp only;
+# the near-low and near-high lines keep the whole surfable day.
+REC_FROM, REC_TO = 7 * 60, 17 * 60
+
+# How far either side of mid-tide the water is still worth recommending.
+# It was 90 minutes, which cut the day into two three-hour slots and left
+# most of a good morning unrecommended. The owner opened both windows out by
+# hand on 7/9/2026 -- 07:00-11:30 and 13:30-17:00 against the code's
+# 07:00-10:00 and 14:00-17:00 -- and 135 minutes is what he opened them to.
+MID_HALF = 135
+
+
+def snap_up(m, step=30):
+    """To the next half hour, never back to the last one.
+
+    Every edge of the owner's own windows lands on the half hour above the
+    arithmetic: 06:40 became 07:00, 11:10 became 11:30, 13:02 became 13:30.
+    Rounding to whichever is nearer would pull three of those back and open
+    the morning window before the school does.
+    """
+    return int(math.ceil(m / float(step))) * step
+
+
+def mid_window(centre, half=MID_HALF, lo=REC_FROM, hi=REC_TO):
+    """A recommendation window: mid-tide either side, snapped up, clamped."""
+    a = max(lo, snap_up(centre - half))
+    b = min(hi, snap_up(centre + half))
+    return hhmm(a), hhmm(b)
+
 
 def windows(t):
     """The three kinds of window the school talks about."""
@@ -127,11 +160,11 @@ def windows(t):
         if ka == kb:
             continue
         mids.append((a + b) / 2.0)
-    # Clamped to the surfable day, and dropped when the clamp leaves less than
-    # an hour -- the same rule the low and high windows above already apply.
-    # A forty-minute slot is not a recommendation anybody acts on.
-    mid_w = [w for w in (hour_window(m, 90, DAY_FROM, DAY_TO) for m in mids
-                         if DAY_FROM <= m <= DAY_TO)
+    # Clamped to the hours the school actually points people at, and dropped
+    # when the clamp leaves less than an hour -- the same rule the low and
+    # high windows above already apply. A forty-minute slot is not a
+    # recommendation anybody acts on.
+    mid_w = [w for w in (mid_window(m) for m in mids if REC_FROM <= m <= REC_TO)
              if mins(w[1]) - mins(w[0]) >= 60]
     return low_w, high_w, mid_w
 
