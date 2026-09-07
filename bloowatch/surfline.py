@@ -333,6 +333,13 @@ def waves(rows):
     These are Surfline's published heights, not its raw model output; see the
     note in `hours()`. That is what makes this range match the spot page the
     owner reads it against.
+
+    Put to him again on 7/9/2026 against the two alternatives, on a day that
+    ran 0.6-1.1 until one o'clock and 0.6-0.9 after it: the extremes, or the
+    height most of the day holds, or both ends the way the period is written.
+    He chose the extremes a second time. So a top that only two hours of the
+    day reach still sets the top -- an hour of the day is a session somebody
+    books.
     """
     if not rows:
         return None
