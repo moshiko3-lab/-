@@ -45,6 +45,11 @@ import sys
 SPOT = "584204204e65fad6a7709681"          # Playa Venao
 BASE = "https://services.surfline.com/kbyg/spots/forecasts"
 
+# The three feeds and the units each one needs, in the order they are read.
+FEEDS = (("surf", "&units%5BwaveHeight%5D=M"),
+         ("swells", ""),
+         ("wind", "&units%5BwindSpeed%5D=KTS"))
+
 # Cloudflare lets these through and refuses a bare curl. Keep them together:
 # dropping Origin or Referer is what turns a 200 back into a 403.
 HEADERS = {
@@ -88,6 +93,115 @@ def curl_commands(days=2):
                             ("swells", ""),
                             ("wind", "&units%5BwindSpeed%5D=KTS")))
     return fetches + "\n" + TRIM
+
+
+# Two flags stand between this machine and Surfline, and neither is obvious
+# from the error it gives. Measured here on 7/9/2026, both needed:
+#
+#   --ssl-version-max=tls1.2   The environment's egress proxy terminates TLS.
+#       Chromium's own 1.3 handshake -- a 1761-byte ClientHello carrying the
+#       post-quantum key share -- goes out and comes back reset, and every
+#       site fails the same way, allowlisted or not, so it reads like a
+#       blocked domain when it is nothing of the kind. Capping at 1.2 makes
+#       the whole browser work through the proxy.
+#
+#   --headless=new             Cloudflare answers old headless with a 403
+#       whose body is an nginx "502 Bad Gateway" page wrapping a
+#       challenge-platform script -- a JS challenge, not a ban, and not a
+#       proxy denial either despite the 403. New headless with a real user
+#       agent, viewport and locale gets 200 on the first navigation.
+#
+# The point of using the browser at all: a bare curl from this container gets
+# the same challenge and cannot answer it, while the sandbox's own address is
+# let through some evenings and refused on others. A real browser answers the
+# challenge the way the site intends, which is what makes the fetch stop
+# depending on which machine it runs from.
+BROWSER_ARGS = ["--no-sandbox", "--disable-dev-shm-usage", "--no-first-run",
+                "--disable-component-update", "--disable-sync",
+                "--disable-extensions", "--mute-audio", "--headless=new",
+                "--disable-features=EncryptedClientHello,PostQuantumKyber",
+                "--ssl-version-max=tls1.2"]
+
+
+def _feed_url(name, extra, days):
+    return "%s/%s?spotId=%s&days=%d&intervalHours=1%s" % (BASE, name, SPOT, days, extra)
+
+
+def fetch(days=2, timeout=45000):
+    """The three feeds, read through the browser already on this machine.
+
+    Returns the same shape `--curl` prints, so `load()` and everything past it
+    cannot tell which route the sea came in by.
+
+    The first navigation is what earns the Cloudflare session; the rest are
+    ordinary same-origin fetches from inside that page, which is exactly how
+    Surfline's own site reads its API. A feed that comes back empty raises
+    rather than returning two thirds of a sea -- two thirds still looks like a
+    forecast, and that is the failure worth being loud about.
+    """
+    import os
+    from playwright.sync_api import sync_playwright
+    try:
+        from shot import chromium
+        where = chromium()
+    except Exception:
+        where = None
+
+    proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+    urls = [(n, _feed_url(n, x, days)) for n, x in FEEDS]
+    out = {}
+    with sync_playwright() as pw:
+        how = {"args": BROWSER_ARGS}
+        if where:
+            how["executable_path"] = where
+        if proxy:
+            how["proxy"] = {"server": proxy}
+        b = pw.chromium.launch(**how)
+        try:
+            ctx = b.new_context(user_agent=HEADERS["User-Agent"],
+                                viewport={"width": 1280, "height": 800},
+                                locale="en-US")
+            pg = ctx.new_page()
+            r = pg.goto(urls[0][1], wait_until="domcontentloaded", timeout=timeout)
+            if r is None or r.status != 200:
+                # Cloudflare served the challenge instead. Give the page the
+                # few seconds it needs to run the script and ask again.
+                for _ in range(5):
+                    pg.wait_for_timeout(6000)
+                    if pg.evaluate("async u => (await fetch(u)).status",
+                                   urls[0][1]) == 200:
+                        break
+                else:
+                    raise SystemExit(
+                        "surfline answered %s and kept answering it -- do not "
+                        "send, and do not guess"
+                        % (r.status if r else "nothing"))
+            for name, u in urls:
+                got = pg.evaluate("""async (u) => {
+                    const r = await fetch(u, {headers: {'Accept': 'application/json'}});
+                    return {status: r.status, body: await r.text()};
+                }""", u)
+                if got["status"] != 200:
+                    raise SystemExit("surfline %s answered %s -- do not send, "
+                                     "and do not guess" % (name, got["status"]))
+                d = json.loads(got["body"])
+                out[name] = (d.get("data") or d)[name]
+        finally:
+            b.close()
+
+    if not all(out.get(n) for n, _ in FEEDS):
+        raise SystemExit("surfline returned no rows -- do not send, and do not guess")
+    return {
+        "surf": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+                  "surf": {"min": r["surf"]["min"], "max": r["surf"]["max"]}}
+                 for r in out["surf"]],
+        "swells": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+                    "swells": [{"height": s.get("height"), "period": s.get("period")}
+                               for s in r["swells"]]} for r in out["swells"]],
+        "wind": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+                  "speed": r.get("speed"), "direction": r.get("direction"),
+                  "directionType": r.get("directionType")} for r in out["wind"]],
+    }
 
 
 # Runs in the sandbox, on stock python3, with no repository checkout. Kept
@@ -370,6 +484,12 @@ def summary(rows):
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--fetch", action="store_true",
+                   help="read the sea here, through the browser on this "
+                        "machine, and carry on into --parse. The normal route "
+                        "since 7/9/2026; --curl is the fallback.")
+    p.add_argument("--out", metavar="FILE",
+                   help="with --fetch, also keep the blob at this path")
     p.add_argument("--curl", action="store_true",
                    help="print the sandbox script and stop")
     p.add_argument("--parse", nargs="+", metavar="FILE",
@@ -381,12 +501,23 @@ def main():
     if a.curl:
         print(curl_commands())
         return 0
-    if not a.parse:
-        p.error("give --curl or --parse")
+    if not (a.parse or a.fetch):
+        p.error("give --fetch, --curl or --parse")
 
     panama = dt.datetime.utcnow() - dt.timedelta(hours=5)
     date = a.date or (panama + dt.timedelta(days=1)).strftime("%Y-%m-%d")
-    surf, swells, wnd = load(a.parse)
+    if a.fetch:
+        # Enough days to reach the one being asked for, and the day before it
+        # for the message's own comparison. Two is tomorrow's forecast; asking
+        # for a date further out just widens the window.
+        want = (dt.datetime.strptime(date, "%Y-%m-%d").date() - panama.date()).days
+        blob = fetch(days=max(2, min(6, want + 1)))
+        if a.out:
+            with open(a.out, "w", encoding="utf-8") as f:
+                json.dump(blob, f, separators=(",", ":"))
+        surf, swells, wnd = blob["surf"], blob["swells"], blob["wind"]
+    else:
+        surf, swells, wnd = load(a.parse)
     rows = hours(surf, swells, wnd, date)
     if not rows:
         print("no Surfline hours for %s -- do not send, and do not guess" % date,

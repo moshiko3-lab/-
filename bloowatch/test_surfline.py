@@ -170,6 +170,23 @@ check("the biggest swell sets the period, not the longest",
       {r["period"] for r in fr} == {14}, str({r["period"] for r in fr}))
 check("so the day reads 14 and never 21", S.period(fr) == "14", str(S.period(fr)))
 
+print("\nthe browser route keeps the two flags it cannot work without")
+# Neither of these announces itself when it goes missing. Without the TLS cap
+# every site fails as ERR_CONNECTION_RESET, which reads like a blocked domain;
+# without new headless Cloudflare answers 403 with an nginx 502 page, which
+# reads like a proxy denial. Both cost an evening to find, on 7/9/2026.
+check("TLS capped at 1.2 for the egress proxy",
+      "--ssl-version-max=tls1.2" in S.BROWSER_ARGS)
+check("and new headless, which Cloudflare answers",
+      "--headless=new" in S.BROWSER_ARGS)
+check("every feed asks for the same spot and one-hour steps",
+      all(("spotId=" + S.SPOT) in S._feed_url(n, x, 2) and "intervalHours=1" in S._feed_url(n, x, 2)
+          for n, x in S.FEEDS))
+check("heights come back in metres", "waveHeight%5D=M" in S._feed_url("surf", S.FEEDS[0][1], 2))
+check("and wind in knots", "windSpeed%5D=KTS" in S._feed_url("wind", S.FEEDS[2][1], 2))
+check("days reaches the day being asked for",
+      "days=4" in S._feed_url("surf", "", 4))
+
 print("\nthe afternoon the wind row does not cover")
 ON = [{"hour": "%02d:00" % (6 + i), "wind_kt": kt, "wind_type": t}
       for i, (kt, t) in enumerate(
