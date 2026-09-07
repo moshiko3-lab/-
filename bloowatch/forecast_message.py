@@ -162,6 +162,14 @@ def mid_window(centre, lows, half=MID_HALF):
     day's-last-peak version did on 15/9 to 17/9, where the last peak is the
     evening high, and it shortened exactly the afternoons that did not need
     shortening.
+
+    And the low only. The owner raised the high's height too, so it was put to
+    him with what it would cost: his own windows end 33 minutes before a 3.04 m
+    high on 7/9 and 46 before a 3.19 m one on 8/9, so any real clearance from a
+    high would cut both of them by half an hour. He answered by writing 8/9's
+    windows out again unchanged. Mid-tide either side already leaves that
+    half hour to forty-five minutes off the high, and that is where he wants
+    it; the high gets its say in the message's words, not in the hours.
     """
     a = max(REC_FROM, snap_up(centre - half))
     b = min(DAY_TO, snap_up(centre + half))
