@@ -145,10 +145,55 @@ check("a flat day gives one number, not a fake range",
       S.waves([{"min": 1.0, "max": 1.0}] * 5) == "1.0",
       str(S.waves([{"min": 1.0, "max": 1.0}] * 5)))
 
-print("\nperiod is the one the day mostly runs at")
-check("16 seconds", S.period(ROWS) == 16, str(S.period(ROWS)))
+print("\nperiod is the primary swell's, start of day to end of day")
+check("a steady day reads as one number", S.period(ROWS) == "16",
+      str(S.period(ROWS)))
 check("a zero-height swell never sets it",
-      S.period([{"period": 16}, {"period": None}]) == 16)
+      S.period([{"period": 16}, {"period": None}]) == "16")
+check("a day that eases reads as both ends",
+      S.period([{"period": 14}] * 9 + [{"period": 13}] * 5) == "14,13")
+check("and a wobble is one sea, not four",
+      S.period([{"period": 14}, {"period": 13}, {"period": 14},
+                {"period": 13}]) == "14,13")
+check("a long slide is named by its ends only",
+      S.period([{"period": p} for p in (16, 15, 14, 13, 12)]) == "16,12")
+
+# 7/9/2026: a 2.9 m swell at 14 s under a 0.25 m forerunner at 21 s. Taking the
+# longest period made the message promise twenty seconds for a day that
+# fourteen was going to build, and the owner corrected it by hand.
+FORERUNNER = [{"timestamp": BASE + i * HRS, "utcOffset": -5,
+               "swells": [{"height": 2.9, "period": 14},
+                          {"height": 1.7, "period": 6},
+                          {"height": 0.25, "period": 21}]} for i in range(14)]
+fr = S.hours(SURF, FORERUNNER, WIND, "2026-09-05")
+check("the biggest swell sets the period, not the longest",
+      {r["period"] for r in fr} == {14}, str({r["period"] for r in fr}))
+check("so the day reads 14 and never 21", S.period(fr) == "14", str(S.period(fr)))
+
+print("\nthe afternoon the wind row does not cover")
+ON = [{"hour": "%02d:00" % (6 + i), "wind_kt": kt, "wind_type": t}
+      for i, (kt, t) in enumerate(
+          [(0.7, "Offshore"), (1.2, "Cross-shore"), (0.6, "Cross-shore"),
+           (0.8, "Offshore"), (2.0, "Cross-shore"), (4.2, "Cross-shore"),
+           (5.8, "Cross-shore"), (5.2, "Onshore"), (5.2, "Onshore"),
+           (4.8, "Onshore"), (3.0, "Onshore"), (0.7, "Onshore"),
+           (1.4, "Offshore"), (2.0, "Offshore")])]
+check("7/9 swings onshore at one o'clock", S.onshore_spell(ON)[0] == "13:00",
+      str(S.onshore_spell(ON)))
+check("and lies down again afterwards", S.onshore_spell(ON)[1] is True)
+check("a single onshore hour is model wobble, not a sea breeze",
+      S.onshore_spell([{"hour": "06:00", "wind_kt": 1, "wind_type": "Offshore"},
+                       {"hour": "07:00", "wind_kt": 1, "wind_type": "Onshore"},
+                       {"hour": "08:00", "wind_kt": 1,
+                        "wind_type": "Cross-shore"}]) == (None, False))
+check("a day with no onshore at all says nothing",
+      S.onshore_spell([{"hour": "06:00", "wind_kt": 1, "wind_type": "Offshore"}]
+                      * 3) == (None, False))
+check("an onshore that holds to the last hour does not claim to ease",
+      S.onshore_spell(
+          [{"hour": "06:00", "wind_kt": 1, "wind_type": "Offshore"}]
+          + [{"hour": "%02d:00" % h, "wind_kt": 9, "wind_type": "Onshore"}
+             for h in range(7, 20)])[1] is False)
 
 # The whole point of the change: Surfline reads higher than surf-forecast, and
 # the school's size language is written in Surfline metres.

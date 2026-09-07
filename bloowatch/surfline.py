@@ -168,14 +168,22 @@ def hours(surf, swells, wind, date):
         # figure is the one that has to match. Reading raw is what made the
         # message say 1.1 where Surfline said 0.9.
         raw = s["surf"]
-        periods = [x["period"] for x in sw.get(s["timestamp"], {}).get("swells", [])
-                   if x.get("height", 0) > 0]
+        # The period of the BIGGEST swell in the water, not the longest one.
+        # Surfline sends up to six swells per hour and the long ones are often
+        # tiny: 7/9/2026 carried a 2.9 m swell at 14 s and a 0.25 m forerunner
+        # at 21 s, and taking the longest made the message say "20 seconds"
+        # for a day that 14 s was going to build. The owner corrected it to
+        # 14 -- the primary swell is the one that makes the wave, and it is
+        # what Surfline's own spot page shows.
+        sws = [x for x in sw.get(s["timestamp"], {}).get("swells", [])
+               if (x.get("height") or 0) > 0 and x.get("period")]
+        top = max(sws, key=lambda x: x["height"]) if sws else None
         w = wd.get(s["timestamp"], {})
         out.append({
             "hour": t.strftime("%H:%M"),
             "min": raw["min"],
             "max": raw["max"],
-            "period": max(periods) if periods else None,
+            "period": top["period"] if top else None,
             "wind_kt": w.get("speed"),
             # Surfline's `direction` is the direction the wind blows FROM,
             # which is what the message wants. Its own `directionType` says
@@ -219,12 +227,36 @@ def waves(rows):
 
 
 def period(rows):
-    """The period the day mostly runs at, not the one lucky hour."""
-    vals = [r["period"] for r in rows if r["period"]]
-    if not vals:
+    """Where the day's period starts and where it ends, in seconds.
+
+    The owner's rule, 7/9/2026, written as he writes it: "14,13". A median
+    hid the fact that a swell is filling in or dying off across the day, and
+    that is the half of the period a surfer plans around -- 14 all morning
+    easing to 13 by the evening is a different afternoon from a flat 14.
+
+    So: the distinct values in the order they occur, and when there are more
+    than two, the one it opens on and the one it closes on. Never a spread of
+    five numbers, which reads as noise rather than a forecast.
+    """
+    vals = []
+    for r in rows:
+        p = r.get("period")
+        if not p:
+            continue
+        p = int(round(p))
+        if not vals or vals[-1] != p:
+            vals.append(p)
+    # a period that wobbles back and forth is one sea, not four
+    seen, uniq = set(), []
+    for v in vals:
+        if v not in seen:
+            seen.add(v)
+            uniq.append(v)
+    if not uniq:
         return None
-    vals.sort()
-    return int(round(vals[len(vals) // 2]))
+    if len(uniq) > 2:
+        uniq = [uniq[0], uniq[-1]]
+    return ",".join(str(v) for v in uniq)
 
 
 def mean_deg(degs):
@@ -266,6 +298,47 @@ def wind(rows):
     return speed, deg
 
 
+def onshore_spell(rows):
+    """When the wind swings onshore during the day, and whether it lies down.
+
+    Returns (start hour, eases) or (None, False). The wind row above states
+    the morning -- the hours the school teaches -- and at Venao the morning is
+    almost always offshore, so on its own it says nothing about the afternoon
+    that follows. The owner adds that himself when he rewrites the message:
+    "looks like a bit of onshore around midday and then it settles". This is
+    the fact behind that sentence, read from Surfline's own Offshore/Onshore
+    label rather than from our arithmetic.
+
+    Two hours is the floor. A single onshore hour inside a cross-shore
+    afternoon is the model wobbling across a boundary, not a sea breeze, and
+    promising one in the message would be wrong more often than right.
+    """
+    best, run = None, None
+    for r in rows:
+        if (r.get("wind_type") or "") == "Onshore":
+            run = run or [r["hour"], r["hour"]]
+            run[1] = r["hour"]
+        elif run:
+            best = run if best is None or _hspan(run) > _hspan(best) else best
+            run = None
+    if run:
+        best = run if best is None or _hspan(run) > _hspan(best) else best
+    if best is None or _hspan(best) < 1:      # start and end differ by an hour
+        return None, False
+
+    during = [r["wind_kt"] for r in rows
+              if best[0] <= r["hour"] <= best[1] and r["wind_kt"] is not None]
+    after = [r["wind_kt"] for r in rows
+             if r["hour"] > best[1] and r["wind_kt"] is not None]
+    eases = bool(during and after
+                 and sum(after) / len(after) < sum(during) / len(during))
+    return best[0], eases
+
+
+def _hspan(run):
+    return int(run[1][:2]) - int(run[0][:2])
+
+
 def offshore_disagreement(rows, faces=180):
     """Hours where our offshore/onshore call differs from Surfline's own.
 
@@ -288,8 +361,10 @@ def offshore_disagreement(rows, faces=180):
 
 
 def summary(rows):
+    turn, eases = onshore_spell(rows)
     return {"waves": waves(rows), "period": period(rows), "wind": wind(rows)[0],
-            "wind_dir": wind(rows)[1], "hours": len(rows)}
+            "wind_dir": wind(rows)[1], "hours": len(rows),
+            "onshore_from": turn, "onshore_eases": eases}
 
 
 def main():
@@ -347,11 +422,16 @@ def main():
     print("waves      %s m" % s["waves"])
     print("period     %s s" % s["period"])
     print("wind       %s kt from %s deg" % (s["wind"], s["wind_dir"]))
+    if s["onshore_from"]:
+        print("onshore    from %s%s"
+              % (s["onshore_from"], ", easing after" if s["onshore_eases"] else ""))
     print("%s   %s m" % (prev.ljust(11), today or "-- not in this blob"))
     print()
-    print("--waves %s --period %s --wind %s --wind-dir %s%s"
+    print("--waves %s --period %s --wind %s --wind-dir %s%s%s%s"
           % (s["waves"], s["period"], s["wind"], s["wind_dir"],
-             (" --waves-today %s" % today) if today else ""))
+             (" --waves-today %s" % today) if today else "",
+             (" --onshore-from %s" % s["onshore_from"]) if s["onshore_from"] else "",
+             " --onshore-eases" if s["onshore_eases"] else ""))
     return 0
 
 

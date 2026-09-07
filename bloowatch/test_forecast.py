@@ -163,6 +163,43 @@ check("and an east wind is neither, so the period talks",
 # mid-tide window was the one that leaked: its centre was checked against the
 # day but the ninety minutes either side were not, so a mid-tide at 06:30
 # printed "05:00-08:00" on 4/9/2026.
+# 7/9/2026. The owner rewrote the evening's message by hand and every edit
+# below is one of his. They are pinned here because each one is a judgement
+# about his customers that no reading of the data would have produced.
+print("\nthe owner's corrections of 7/9 stay corrected")
+check("a period written as two numbers still decides the last clause",
+      F._first_period("14,13") == 14.0, str(F._first_period("14,13")))
+check("and a plain one still works", F._first_period("12") == 12.0)
+check("and a missing one does not crash", F._first_period(None) is None)
+
+s = he("0.9-1.4", "0.9-1.2", date="2026-09-07", period="14,13",
+       wind_kt="1-4", wind_deg=21)
+check("0.9-1.2 after 0.9-1.4 reads as a step down", says(s, ("נמוך", "עדין",
+      "מתיישב", "נח", "יורדים")), s)
+check("and a metre and a bit is a day for everyone, not for experts",
+      not says(s, DEMANDING), s)
+check("it welcomes them by name", says(s, WELCOMING), s)
+
+print("\nthe afternoon onshore is said once, and only when it is real")
+w = F.wind_line("1-4", 21, onshore_from="13:00", onshore_eases=True)
+check("the wind row carries it", "אונשור" in w and "יירגע" in w, w)
+check("worded the way he words it", "נראה שבצהריים יהיה קצת אונשור" in w, w)
+check("a day with no onshore spell says nothing extra",
+      "נראה ש" not in F.wind_line("1-4", 21), F.wind_line("1-4", 21))
+check("and a row that is already onshore never says it twice",
+      F.wind_line("6-9", 190, onshore_from="13:00",
+                  onshore_eases=True).count("אונשור") == 1,
+      F.wind_line("6-9", 190, onshore_from="13:00", onshore_eases=True))
+en = F.wind_line("1-4", 21, lang="en", onshore_from="13:00", onshore_eases=True)
+check("English says the same thing", "onshore around midday" in en
+      and "easing after" in en, en)
+check("an onshore that never eases does not promise it",
+      "יירגע" not in F.wind_line("1-4", 21, onshore_from="13:00"),
+      F.wind_line("1-4", 21, onshore_from="13:00"))
+check("morning, midday and afternoon each get their own word",
+      (F._part_of_day("09:00"), F._part_of_day("13:00"),
+       F._part_of_day("16:00")) == ("בבוקר", "בצהריים", "אחר הצהריים"))
+
 print("\nno window falls outside the hours anybody surfs")
 
 

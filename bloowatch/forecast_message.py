@@ -186,7 +186,8 @@ OPEN_LINES = {
                  "עולים מדרגה",
                  "מחר נכנס עוד קצת גובה",
                  "מחר יש יותר במים"],
-        "down": ["מחר הים מתיישב",
+        "down": ["מחר קצת יותר נמוך מהיום",
+                 "מחר הים מתיישב",
                  "מחר יותר עדין",
                  "מחר הים נח",
                  "יורדים מדרגה"],
@@ -200,7 +201,8 @@ OPEN_LINES = {
                  "Stepping up a notch",
                  "A bit more size tomorrow",
                  "More in the water tomorrow"],
-        "down": ["The sea settles tomorrow",
+        "down": ["A little smaller tomorrow than today",
+                 "The sea settles tomorrow",
                  "Softer tomorrow",
                  "Tomorrow the sea rests",
                  "A step down"],
@@ -302,12 +304,22 @@ def _speed(wind_kt):
     return sum(parts) / len(parts)
 
 
+def _first_period(period):
+    """The period the day opens on, out of "14,13" or plain "14".
+
+    Since 7/9/2026 the period is written the way the owner writes it -- what
+    it starts at and what it eases to. Everything that reasons about the
+    period wants one number, and the one the day opens on is the one the
+    morning surfs on."""
+    try:
+        return float(str(period).split(",")[0])
+    except (TypeError, ValueError, IndexError):
+        return None
+
+
 def _deciding_fact(wind_kt, wind_deg, period, faces=BEACH_FACES):
     """Which single fact earns the last clause, or None when nothing does."""
-    try:
-        p = float(period)
-    except (TypeError, ValueError):
-        p = None
+    p = _first_period(period)
     side = None
     fast = _speed(wind_kt)
     try:
@@ -343,9 +355,17 @@ def compare_line(today, tomorrow, lang="he", date="", period=None,
     a, b = mid(today), mid(tomorrow)
     if a is None or b is None:
         return ""
+    # Surfline publishes heights in tenths, so a tenth of a metre between two
+    # days is a move it actually made and not rounding noise. At 0.15 a day
+    # that went 0.9-1.4 to 0.9-1.2 came out as "same"; the owner reads that
+    # day as lower, and he is the one standing on the beach. 7/9/2026.
     diff = b - a
-    change = "same" if abs(diff) < 0.15 else ("up" if diff > 0 else "down")
-    size = ("tiny" if b < 0.5 else "small" if b < 1.0
+    change = "same" if abs(diff) < 0.08 else ("up" if diff > 0 else "down")
+    # Where "suits everyone" stops and "experience helps" starts. It used to
+    # stop at 1.0, which called a 0.9-1.2 metre day -- a beginner day at Venao,
+    # and the owner's own words for it were "comfortable and fun, great waves
+    # for every level" -- a day that wanted experience. 7/9/2026.
+    size = ("tiny" if b < 0.5 else "small" if b < 1.3
             else "mid" if b < 1.5 else "big")
 
     # The same day always rebuilds the same sentence -- a message resent after
@@ -378,7 +398,41 @@ def compass(deg, lang="he"):
     return (EN_COMPASS if lang == "en" else HEB_COMPASS)[i]
 
 
-def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
+def _part_of_day(hhmm_, lang="he"):
+    """Which stretch of the day an hour belongs to, in the words people use."""
+    try:
+        h = int(str(hhmm_).split(":")[0])
+    except (TypeError, ValueError, IndexError):
+        return None
+    if h < 12:
+        return "in the morning" if lang == "en" else "בבוקר"
+    if h < 15:
+        return "around midday" if lang == "en" else "בצהריים"
+    return "in the afternoon" if lang == "en" else "אחר הצהריים"
+
+
+def onshore_tail(from_hour, eases, lang="he"):
+    """The afternoon the wind row above does not cover.
+
+    That row states the morning -- the hours the school teaches -- so on a day
+    that starts offshore and swings onshore after lunch it is true and still
+    leaves half the day unsaid. The owner writes that half in himself, in one
+    breath: "looks like a bit of onshore around midday and then it settles".
+    This is that clause, and it only appears when Surfline's own labels show a
+    real onshore spell.
+    """
+    when = _part_of_day(from_hour, lang)
+    if not when:
+        return ""
+    if lang == "en":
+        return ("looks like a bit of onshore %s%s"
+                % (when, ", easing after" if eases else ""))
+    return ("נראה ש%s יהיה קצת אונשור%s"
+            % (when, " ואז יירגע" if eases else ""))
+
+
+def wind_line(speed, direction, faces=BEACH_FACES, lang="he",
+              onshore_from=None, onshore_eases=False):
     """Wind is the half of a surf forecast the school was not sending, and
     the half that decides whether a metre of swell is a clean wall or a mess.
     Offshore holds the wave up; onshore knocks it over. Speed alone says
@@ -410,8 +464,11 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
         else:
             side = "cross-shore"
             mood = "barely touches the wave"
-        return "*Wind* - %s kt from %s (%s) — %s" % (
-            rng_, compass(d, "en"), side, mood)
+        tail = ("" if side == "onshore"
+                else onshore_tail(onshore_from, onshore_eases, "en"))
+        return "*Wind* - %s kt from %s (%s) — %s%s" % (
+            rng_, compass(d, "en"), side, mood,
+            (". " + tail[0].upper() + tail[1:]) if tail else "")
 
     if off < 60:
         side, how = "אונשור", "מהים"
@@ -430,8 +487,13 @@ def wind_line(speed, direction, faces=BEACH_FACES, lang="he"):
         mood = "כמעט לא נוגעת בגל"
 
     rng = ("%g" % lo) if abs(hi - lo) < 0.6 else ("%g-%g" % (lo, hi))
-    return "*רוח* - %s קשר מ%s (%s%s) – %s" % (
-        rng, compass(d), side, (" " + how) if how else "", mood)
+    # Not on a day the row already calls onshore: saying the wind is onshore
+    # and then that it will turn onshore is the same sentence twice.
+    tail = ("" if side == "אונשור"
+            else onshore_tail(onshore_from, onshore_eases, "he"))
+    return "*רוח* - %s קשר מ%s (%s%s) – %s%s" % (
+        rng, compass(d), side, (" " + how) if how else "", mood,
+        (" " + tail) if tail else "")
 
 
 def tide_range_note(t, lang="he"):
@@ -633,6 +695,12 @@ def main():
                     help="wind speed in knots over the surfable hours, e.g. 2-5")
     ap.add_argument("--wind-dir", default="",
                     help="the direction it blows FROM, in degrees")
+    ap.add_argument("--onshore-from", default="",
+                    help="HH:MM the wind swings onshore, when it does. The "
+                         "wind row states the morning; this is the afternoon "
+                         "that follows it.")
+    ap.add_argument("--onshore-eases", action="store_true",
+                    help="and it lies down again afterwards")
     ap.add_argument("--faces", type=int, default=BEACH_FACES,
                     help="which way the beach looks out to sea, in degrees "
                          "(180 = south). Getting this wrong inverts every "
@@ -668,7 +736,8 @@ def main():
         if t:
             note, _rng = tide_range_note(t, a.lang)
 
-    wind = (wind_line(a.wind, a.wind_dir, a.faces, a.lang)
+    wind = (wind_line(a.wind, a.wind_dir, a.faces, a.lang,
+                      a.onshore_from or None, a.onshore_eases)
             if a.wind and a.wind_dir else "")
     msg, err = build(date, a.waves, a.period, compare, a.spot, note,
                      wind, a.lang)
