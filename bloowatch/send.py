@@ -21,8 +21,9 @@ is in use is decided by which credentials are in the environment.
       (and GREENAPI_URL, the instance's own host from the console)
     TIMELINESAI_TOKEN              -> TimelinesAI
 
-Never put a token in a file, a log, or an argument: they come from the
-environment so they do not end up in shell history or a transcript.
+Never put a token in a log or an argument: they come from the environment
+or from `.env` beside this file, so they do not end up in shell history or
+a transcript. `.env` is in `.gitignore` and must stay there.
 """
 
 import argparse
@@ -37,6 +38,46 @@ import uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOOK = os.path.join(HERE, "whatsapp.json")
+ENV_FILE = os.path.join(HERE, ".env")
+
+
+def _load_env(path=ENV_FILE):
+    """Fill in credentials from `.env` for anything the environment lacks.
+
+    A scheduled run is not one shell. Each command a routine issues gets its
+    own process, so `export GREENAPI_TOKEN=...` on one line is gone by the
+    line that sends -- and send.py then reports no gateway and writes to
+    nobody. That is not hypothetical: on 13/09/2026 eight reminders across
+    five instructors were lost to exactly this, because the routine's
+    credentials sat in one command and the send sat in another.
+
+    Reading a file instead removes the dependency on shell state entirely:
+    it does not matter how the run is split up, or which process sends.
+
+    The environment still wins where it is set, so a properly configured
+    deployment needs no file at all and nothing here overrides it.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if key.startswith("export "):
+            key = key[len("export "):].strip()
+        value = value.strip().strip("'\"")
+        # Never override a real environment variable: the file is the
+        # fallback, not the source of truth.
+        if key and not os.environ.get(key):
+            os.environ[key] = value
+
+
+_load_env()
 
 TL = "https://app.timelines.ai/integrations/api"
 # Green-API gives each instance its own host -- the console shows it as
