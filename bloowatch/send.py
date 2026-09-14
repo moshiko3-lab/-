@@ -238,6 +238,21 @@ def via_green(where, text, path, ident, token):
     return _post(url, body, "application/json")
 
 
+def pick_gateway():
+    """Which gateway the credentials in the environment add up to.
+
+    Split out of main() so `remind.py` chooses the same way this file does.
+    Two copies of this line would be two places for a fallback to drift, and
+    the one thing every sending path must agree on is what "no gateway" means:
+    it is a stop, never a quiet skip.
+    """
+    gid = os.environ.get("GREENAPI_ID")
+    gtok = os.environ.get("GREENAPI_TOKEN")
+    ttok = os.environ.get("TIMELINESAI_TOKEN")
+    return ("green" if (gid and gtok) else
+            ("timelines" if ttok else "")), gid, gtok
+
+
 def run_batch(path, gateway, ident, token, dry_run, once_today):
     """Send a whole plan in one run, and keep going when one of them fails.
 
@@ -319,10 +334,7 @@ def main():
         print("error: --to needs --text", file=sys.stderr)
         return 2
 
-    gid = os.environ.get("GREENAPI_ID")
-    gtok = os.environ.get("GREENAPI_TOKEN")
-    ttok = os.environ.get("TIMELINESAI_TOKEN")
-    gateway = "green" if (gid and gtok) else ("timelines" if ttok else "")
+    gateway, gid, gtok = pick_gateway()
 
     if a.batch:
         return run_batch(a.batch, gateway, gid, gtok, a.dry_run, a.once_today)
