@@ -309,7 +309,13 @@ def personal(args):
     crew = os.path.join(tempfile.gettempdir(), "crew.json")
     plan = os.path.join(tempfile.gettempdir(), "plan.json")
 
-    ok, _, tail = _run("shot.py", "--date", date, "--crew-out", crew)
+    # --out matters even though the picture is not wanted here: without it
+    # shot.py writes board.png beside itself, inside the repository, and that
+    # photograph carries client names, instructor names and the day's whole
+    # board. It landed in the working tree the first evening this ran.
+    ok, _, tail = _run("shot.py", "--date", date, "--crew-out", crew,
+                       "--out", os.path.join(tempfile.gettempdir(),
+                                             "personal-board.png"))
     if not ok:
         # Holiday greetings need the planner's own "away" marks. Losing them
         # costs a few greetings; stopping here costs everybody their rota.

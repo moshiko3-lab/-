@@ -35,3 +35,12 @@ brows/cloud.json
 # a signed-in Bloowatch browser: a secret, and never in the repo
 session.json
 *.session.json
+
+# photographs of the real Bloowatch planner. shot.py writes board.png beside
+# itself by default, and the picture carries client names, instructor names
+# and the whole day's bookings — exactly what the rest of this file exists to
+# keep out of a public repository. It reached the working tree on 14/09/2026
+# from a routine that called shot.py without --out; the routine now writes to
+# a temporary file, and this line is the second lock on that door.
+bloowatch/board.png
+bloowatch/*.png

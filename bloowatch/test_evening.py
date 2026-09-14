@@ -226,6 +226,38 @@ def _evening_sends():
           code == 0 and seen["n"] == 2, "exit %s after %d sends"
           % (code, seen["n"]))
 
+    # --- nor a photograph of the board inside the repository ------------
+    # shot.py's default --out is board.png beside itself. The picture is a
+    # photograph of the real planner: client names, instructor names, the
+    # whole day. The repository is public, and on 14/09/2026 it reached the
+    # working tree because this call omitted --out.
+    del calls[:]
+    outs = []
+    import evening as EV2
+    real2 = EV2._run
+    def watch(*cmd, **kw):
+        if cmd[0] == "shot.py":
+            outs.append("--out" in cmd)
+            for i, c in enumerate(cmd):
+                if c in ("--out", "--crew-out"):
+                    open(cmd[i + 1], "w").write("{}")
+        if cmd[0] == "rota.py" and "--plan" in cmd:
+            import json as J
+            for i, c in enumerate(cmd):
+                if c == "--plan":
+                    J.dump([], open(cmd[i + 1], "w"))
+        return True, "", ""
+    EV2._run = watch
+    try:
+        EV2.personal(Args())
+    finally:
+        EV2._run = real2
+    check("the personal run never lets shot.py default its output path",
+          outs == [True], repr(outs))
+    check("and no board.png is left in the repository",
+          not os.path.exists(os.path.join(
+              os.path.dirname(os.path.abspath(__file__)), "board.png")))
+
     # --- the personal rotas never leave phone numbers on disk -----------
     plan = os.path.join(tempfile.gettempdir(), "plan.json")
     crew = os.path.join(tempfile.gettempdir(), "crew.json")
