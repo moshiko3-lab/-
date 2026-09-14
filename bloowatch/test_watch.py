@@ -117,6 +117,41 @@ def main():
     finally:
         urllib.request.urlopen, A.time.sleep = real_open, real_sleep
 
+    # --- yesterday's message must not answer today's question -----------
+    # This is the one that got through. The forecast opens with the same
+    # greeting every night, and the check asked "is that greeting anywhere
+    # in the last day". On 14/09/2026 the 18:00 forecast never went out and
+    # this check said everything was fine, because last night's forecast was
+    # still inside the window. It could never have caught a missing
+    # forecast; it would have passed for ever.
+    now = dt.datetime.now(W.PANAMA).replace(microsecond=0)
+    last_night = now - dt.timedelta(hours=24)
+    journal = [
+        {"chatId": "g2@g.us", "typeMessage": "textMessage",
+         "textMessage": W.FORECAST_HE, "timestamp": int(last_night.timestamp())},
+    ]
+    due_tonight = now.replace(hour=18, minute=0, second=0)
+    seen = A.by_chat(journal, since=due_tonight - dt.timedelta(minutes=10))
+    check("last night's forecast does not count as tonight's",
+          not seen.get("g2@g.us"), repr(seen))
+
+    tonight = dict(journal[0])
+    tonight["timestamp"] = int(due_tonight.timestamp()) + 120
+    seen = A.by_chat([tonight], since=due_tonight - dt.timedelta(minutes=10))
+    check("but one sent tonight does", seen.get("g2@g.us") == [W.FORECAST_HE],
+          repr(seen))
+
+    # A routine that starts a minute early must still count. The cutoff is
+    # deliberately a few minutes before the deadline, not the deadline.
+    early = dict(journal[0])
+    early["timestamp"] = int(due_tonight.timestamp()) - 120
+    seen = A.by_chat([early], since=due_tonight - dt.timedelta(minutes=10))
+    check("and so does one sent a couple of minutes early",
+          seen.get("g2@g.us") == [W.FORECAST_HE], repr(seen))
+
+    check("no cutoff still means everything, for callers that want that",
+          A.by_chat(journal).get("g2@g.us") == [W.FORECAST_HE])
+
     # --- the forecast markers must match the real message ---------------
     # Compared against the source of forecast_message rather than copied
     # into it, so rewording the greeting fails here instead of quietly

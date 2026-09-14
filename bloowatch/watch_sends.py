@@ -98,12 +98,23 @@ def audit(now=None, tomorrow=None):
 
     book = rota._book()
     groups = book.get("groups", {})
-    said = A.outgoing(ident, token)
+
+    # One fetch, then a cutoff per item, rather than one window for all of
+    # them. The forecast opens with the same greeting every night, so asking
+    # "is this greeting anywhere in the last day" is answered by yesterday's
+    # forecast for ever -- which is exactly what happened on 14/09/2026: the
+    # 18:00 forecast never went out and this check said everything was fine.
+    # Each item is now asked about its own evening: sent at or after the
+    # moment it was due, give or take the few minutes a routine takes to
+    # start.
+    raw = A.journal(ident, token)
 
     missing = []
     for item in due_times(today):
         if now < item["due"] + dt.timedelta(minutes=GRACE_MINUTES):
             continue                                   # not late yet
+
+        said = A.by_chat(raw, since=item["due"] - dt.timedelta(minutes=10))
 
         if item["what"] == "personal_rotas":
             missing.extend(_personal(said, tom, book))

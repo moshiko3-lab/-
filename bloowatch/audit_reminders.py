@@ -82,7 +82,7 @@ def slots(date, now):
     return out
 
 
-def outgoing(ident, token, minutes=1440):
+def outgoing(ident, token, minutes=1440, since=None):
     """Today's outgoing messages, as {chatId: [text, ...]}.
 
     An unreachable journal is not "nothing was sent" -- that would turn every
@@ -91,9 +91,6 @@ def outgoing(ident, token, minutes=1440):
     raises, so the caller stays quiet rather than reporting a day it could
     not see.
     """
-    url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
-        os.environ.get("GREENAPI_URL", "").rstrip("/"), ident, token, minutes)
-
     # Green-API rate-limits this endpoint, and the two safety-net runs land
     # within minutes of each other on a busy evening. A 429 is the server
     # saying "ask again shortly", not an answer -- and treating it as a
@@ -102,12 +99,18 @@ def outgoing(ident, token, minutes=1440):
     # Same for a 5xx or a dropped connection. After three tries it raises,
     # and the caller stays quiet rather than naming people as unreminded on
     # the strength of a journal it never actually read.
+    return by_chat(_fetch(ident, token, minutes), since=since)
+
+
+def _fetch(ident, token, minutes):
+    """The journal itself, with the retries. Raises rather than guessing."""
+    url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
+        os.environ.get("GREENAPI_URL", "").rstrip("/"), ident, token, minutes)
     wait = 2
     for attempt in range(3):
         try:
             with urllib.request.urlopen(url, timeout=60) as r:
-                said = json.loads(r.read().decode("utf-8", "replace"))
-            return by_chat(said)
+                return json.loads(r.read().decode("utf-8", "replace"))
         except urllib.error.HTTPError as exc:
             if exc.code != 429 and exc.code < 500:
                 raise                       # 401 is a real answer: stop.
@@ -121,15 +124,40 @@ def outgoing(ident, token, minutes=1440):
                        "guessing what went out")
 
 
-def by_chat(said):
+def journal(ident, token, minutes=1440):
+    """The raw journal, for a caller that needs its own cutoff per question.
+
+    `outgoing` answers "what went out" in one window, which suits the
+    reminder audit. The evening check asks a different question of the same
+    fetch -- was *this* message sent after *this* deadline -- and asking it
+    four times would be four calls to an endpoint that rate-limits. So the
+    fetch and the filtering are separable.
+    """
+    return _fetch(ident, token, minutes)
+
+
+def by_chat(said, since=None):
     """Green-API's journal, reduced to {chatId: [text, ...]}.
 
     Split out from the fetch so the shape of a journal entry can be tested
     without a network call -- which is how the caption case below was got
     wrong in the first place.
+
+    `since` (a datetime) drops everything sent before it, and it is not
+    optional in spirit. The journal covers a whole day, and the evening
+    messages repeat: the forecast opens with the same greeting every single
+    night. On 14/09/2026 the 18:00 forecast did not go out, and the check
+    that exists to notice that reported "everything due by now went out" --
+    because **last night's** forecast was still inside the window and its
+    opening line matched. A check that yesterday's message can satisfy is
+    not a check. Whoever asks "did this go out?" must also say "since
+    when?", and the answer is the moment it was due.
     """
+    cut = since.timestamp() if since is not None else None
     by_chat = {}
     for m in said if isinstance(said, list) else []:
+        if cut is not None and (m.get("timestamp") or 0) < cut:
+            continue
         # `caption` is not an afterthought here: the 19:00 rota goes out as
         # one imageMessage whose caption *is* the rota, so a reader that
         # only knows about textMessage sees the biggest send of the evening
@@ -179,7 +207,12 @@ def audit(date=None, now=None):
     from export_catalog import crew_numbers
     numbers = crew_numbers()
     phone = {c["name"].strip().upper(): c["phone"] for c in numbers}
-    said = outgoing(ident, token)
+    # Since midnight, not "the last day": the journal window reaches back
+    # into yesterday evening, where the same instructor was told about the
+    # same hour. Without the cutoff, yesterday's message answers today's
+    # question -- the same flaw that let a missing forecast pass unnoticed.
+    said = outgoing(ident, token, since=dt.datetime.combine(
+        date, dt.time(0, 0), tzinfo=PANAMA))
 
     missing = []
     for item in owed:
