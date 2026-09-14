@@ -185,6 +185,172 @@ def forecast(args):
     return 1 if failed else 0
 
 
+def _run(*cmd, **kw):
+    """One child process, with its tail kept for the report."""
+    out = subprocess.run([sys.executable] + [os.path.join(HERE, cmd[0])] +
+                         list(cmd[1:]), capture_output=True, text=True,
+                         timeout=kw.get("timeout", 300))
+    tail = (out.stderr or out.stdout or "").strip().splitlines()[-1:]
+    return out.returncode == 0, (out.stdout or ""), " ".join(tail)
+
+
+def board_png(date, crew_out, out):
+    """A picture of tomorrow's board, photographed if possible and drawn if not.
+
+    The owner was shown both and asked for the photograph, twice, in those
+    words -- so the drawing is a fallback and never a preference. But a rota
+    with a drawn board beats a rota with no board, and a browser that will
+    not start on one evening must not take the whole 19:00 send down with it.
+    Which one was used is returned, because that belongs in the report.
+    """
+    ok, _, tail = _run("shot.py", "--date", date, "--out", out,
+                       "--crew-out", crew_out)
+    if ok and os.path.exists(out) and os.path.getsize(out) > 0:
+        return "photograph", tail
+    print("warning: the planner could not be photographed (%s); drawing the "
+          "board instead" % tail, file=sys.stderr)
+    args = ["board.py", "--date", date, "--out", out]
+    if os.path.exists(crew_out):
+        args += ["--crew", crew_out]
+    ok, _, tail = _run(*args)
+    if ok and os.path.exists(out) and os.path.getsize(out) > 0:
+        return "drawing", tail
+    return "", tail
+
+
+def rota(args):
+    """19:00 — tomorrow's rota to the staff group, as one message with the board.
+
+    The send and the snapshot are one act here for a reason. The 20:00 change
+    check compares the board against the snapshot, so a snapshot saved for a
+    rota that never went out makes it compare against something nobody saw,
+    and a rota sent without a snapshot makes it blind. On 3/9/2026 four
+    bookings landed between 19:00 and 20:00 and two of them were for somebody
+    who had been wished a good day off at 19:15.
+
+    So: the snapshot is written only after the group has actually been
+    written to, and never otherwise.
+    """
+    date = args.date or tomorrow()
+    png = args.image or os.path.join(tempfile.gettempdir(), "real.png")
+    crew = os.path.join(tempfile.gettempdir(), "crew.json")
+
+    kind, tail = board_png(date, crew, png)
+    if not kind:
+        print("error: no board could be produced: %s" % tail, file=sys.stderr)
+
+    ok, text, tail = _run("rota.py", "--group", "--crew", crew)
+    if not ok:
+        print("error: the rota could not be built: %s" % tail, file=sys.stderr)
+        print("RESULT rota=not-built sent=nothing snapshot=no")
+        return 1
+
+    # An empty day must not reach the group: twelve people reading "no
+    # lessons yet" at seven in the evening read it as a fault, and somebody
+    # calls. It is the owner's to see, not theirs.
+    if "אין עדיין שיעורים" in text:
+        print("error: tomorrow (%s) has no lessons on the board — nothing was "
+              "sent to the staff group. Tell the owner directly." % date,
+              file=sys.stderr)
+        print("RESULT rota=empty sent=nothing snapshot=no")
+        return 1
+
+    fd, cap = tempfile.mkstemp(suffix="-cap.txt", text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        cmd = ["send.py", "--to", "staff", "--text", cap]
+        if kind:
+            cmd += ["--file", png]
+        if args.dry_run:
+            cmd.append("--dry-run")
+        ok, _, tail = _run(*cmd, timeout=600)
+
+        # The board is the attachment; the rota is the message. Losing the
+        # picture is a worse evening, losing the rota is a broken one.
+        if not ok and kind:
+            print("warning: sending with the board failed (%s); sending the "
+                  "rota alone" % tail, file=sys.stderr)
+            cmd = ["send.py", "--to", "staff", "--text", cap]
+            if args.dry_run:
+                cmd.append("--dry-run")
+            ok, _, tail = _run(*cmd, timeout=300)
+            kind = "none"
+    finally:
+        os.remove(cap)
+
+    if not ok:
+        print("error: the staff group was not written to: %s" % tail,
+              file=sys.stderr)
+        print("RESULT rota=built sent=nothing snapshot=no")
+        return 1
+
+    snap = "skipped (dry run)"
+    if not args.dry_run:
+        good, _, tail = _run("rota.py", "--snapshot", args.snapshot)
+        snap = "saved" if good else "FAILED: " + tail
+        if not good:
+            print("error: the rota went out but the snapshot did not save — "
+                  "the 20:00 change check is blind tonight: %s" % tail,
+                  file=sys.stderr)
+
+    print("RESULT rota=sent board=%s snapshot=%s" % (kind or "none", snap))
+    return 0 if snap in ("saved", "skipped (dry run)") else 1
+
+
+def personal(args):
+    """19:15 — each instructor's own rota, and nobody else's.
+
+    Every rule about who is written to lives in rota.plan and whatsapp.json,
+    not here: the drift in those rules is one instructor's rota arriving on
+    another instructor's phone, and that cannot be taken back.
+    """
+    date = args.date or tomorrow()
+    crew = os.path.join(tempfile.gettempdir(), "crew.json")
+    plan = os.path.join(tempfile.gettempdir(), "plan.json")
+
+    ok, _, tail = _run("shot.py", "--date", date, "--crew-out", crew)
+    if not ok:
+        # Holiday greetings need the planner's own "away" marks. Losing them
+        # costs a few greetings; stopping here costs everybody their rota.
+        print("warning: who is away could not be read (%s) — sending without "
+              "the day-off greetings" % tail, file=sys.stderr)
+
+    args_ = ["rota.py", "--date", date, "--plan", plan]
+    if os.path.exists(crew):
+        args_ += ["--crew", crew]
+    ok, out, tail = _run(*args_)
+    if not ok:
+        print("error: the rotas could not be built: %s" % tail, file=sys.stderr)
+        print("RESULT planned=? sent=0")
+        return 1
+
+    try:
+        with open(plan, encoding="utf-8") as f:
+            import json
+            planned = len(json.load(f))
+        if not planned:
+            print("RESULT planned=0 sent=0")
+            return 0
+
+        cmd = ["send.py", "--batch", plan, "--once-today"]
+        if args.dry_run:
+            cmd.append("--dry-run")
+        ok, _, tail = _run(*cmd, timeout=900)
+    finally:
+        # Real phone numbers. Never left behind, never committed.
+        for p in (plan, crew):
+            if os.path.exists(p):
+                os.remove(p)
+
+    print("RESULT planned=%d sent=%s" % (planned, "ok" if ok else "FAILED"))
+    if not ok:
+        print("error: not every instructor was written to: %s" % tail,
+              file=sys.stderr)
+        return 1
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
@@ -201,6 +367,23 @@ def main():
                    help="print the messages and send nothing at all")
     f.add_argument("--no-tide-note", action="store_true")
     f.set_defaults(run=forecast)
+
+    r = sub.add_parser("rota", help="tomorrow's rota to the staff group, "
+                                    "with the board, and the snapshot after")
+    r.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
+    r.add_argument("--image", default="",
+                   help="where to leave the board picture (default /tmp)")
+    r.add_argument("--snapshot",
+                   default=os.path.expanduser("~/.shokogi/rota.json"),
+                   help="the reference point the 20:00 change check reads")
+    r.add_argument("--dry-run", action="store_true",
+                   help="build it and show where it would go")
+    r.set_defaults(run=rota)
+
+    p = sub.add_parser("personal", help="each instructor's own rota")
+    p.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
+    p.add_argument("--dry-run", action="store_true")
+    p.set_defaults(run=personal)
 
     a = ap.parse_args()
     return a.run(a)

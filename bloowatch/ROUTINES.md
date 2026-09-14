@@ -239,12 +239,17 @@ python3 evening.py forecast
 ## 3. לו״ז מחר לקבוצת הצוות — 19:00
 
 ```
-python3 shot.py --date <מחר> --out /tmp/real.png --crew-out /tmp/crew.json
-python3 rota.py --group --crew /tmp/crew.json > /tmp/cap.txt
-python3 send.py --to staff --text /tmp/cap.txt --file /tmp/real.png --dry-run
-python3 send.py --to staff --text /tmp/cap.txt --file /tmp/real.png
-python3 rota.py --snapshot ~/.shokogi/rota.json
+python3 evening.py rota
 ```
+
+**פקודה אחת, מ-14/9/2026.** קודם זה היו חמש, והשמירה של נקודת הייחוס הייתה
+הפקודה האחרונה — כלומר ריצה שנעצרה באמצע יכלה לשלוח בלי לשמור, או לשמור
+בלי לשלוח. שתיהן שוברות את בדיקת 20:00. עכשיו זה מעשה אחד: **נקודת הייחוס
+נכתבת רק אחרי שהקבוצה באמת קיבלה**, ואף פעם לא לפני.
+
+**קוד היציאה:** `0` = הלו״ז יצא ונקודת הייחוס נשמרה. `1` = משהו מזה לא
+קרה — **דווח את שורת `RESULT` כמו שהיא.** היא אומרת אם הלוח היה צילום או
+ציור, ואם נקודת הייחוס נשמרה.
 
 **אין גיף.** הודעה אחת בערב, טקסט וצילום יחד — הטקסט הוא הכיתוב.
 
@@ -270,13 +275,16 @@ python3 rota.py --snapshot ~/.shokogi/rota.json
 ## 4. לו״ז אישי לכל מדריך — 19:15
 
 ```
-python3 shot.py --date <מחר> --crew-out /tmp/crew.json
-python3 rota.py --crew /tmp/crew.json --plan /tmp/plan.json
-python3 send.py --batch /tmp/plan.json --once-today
+python3 evening.py personal
 ```
 
-שים לב: **`--crew-out` כותב את הקובץ; `--crew` קורא אותו.** להעביר `--crew`
-עם הפניית פלט נכשל בשקט.
+**פקודה אחת, מ-14/9/2026.** ההבחנה שהפילה את זה בעבר — `--crew-out` כותב
+את הקובץ ו-`--crew` קורא אותו, והחלפה ביניהם נכשלת בשקט — נמצאת עכשיו בקוד
+ולא בקריאה של מי שמריץ.
+
+**קוד היציאה:** `0` = כל מי שהיה אמור לקבל קיבל (או שלא היה אף אחד).
+`1` = לא. `RESULT planned=N` אומר כמה היו בתוכנית. `/tmp/plan.json`
+ו-`/tmp/crew.json` נמחקים לבד, גם כשהשליחה נכשלה.
 
 `plan()` מחיל בעצמו את כל הכללים מ-`whatsapp.json`, והם בקוד ולא כאן כי
 הסחיפה בהם היא לו״ז של מדריך אחד שנוחת בטלפון של אחר:

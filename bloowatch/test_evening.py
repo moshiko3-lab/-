@@ -22,6 +22,7 @@ Nothing here touches the network or sends anything.
 import os
 import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -116,12 +117,127 @@ def main():
     check("English goes to the English group",
           evening.GROUP["en"] == "surfers_en")
 
+    _evening_sends()
+
     print()
     if fails:
         print("%d failed: %s" % (len(fails), ", ".join(fails)))
         return 1
     print("all checks passed")
     return 0
+
+
+
+
+# ---------------------------------------------------------------------------
+# The 19:00 and 19:15 sends, added 14/09/2026 when they stopped being five
+# commands each. What is pinned is not that they work -- the dry runs show
+# that -- but the three rules that cost something real when they were broken.
+# ---------------------------------------------------------------------------
+
+def _evening_sends():
+    import evening as E
+
+    calls = []
+
+    class Fake:
+        """evening._run, with every child process replaced by an answer."""
+
+        def __init__(self, answers, text="*לו״ז יום ב׳*\n07:00 · שיעור"):
+            self.answers = answers          # {script: ok}
+            self.text = text
+
+        def __enter__(self):
+            self.real = E._run
+            def run(*cmd, **kw):
+                calls.append(cmd[0])
+                ok = self.answers.get(cmd[0], True)
+                if cmd[0] == "shot.py" and ok:
+                    # shot.py's real side effect is the file it leaves behind.
+                    for i, c in enumerate(cmd):
+                        if c in ("--out", "--crew-out"):
+                            open(cmd[i + 1], "w").write("{}")
+                if cmd[0] == "board.py" and ok:
+                    for i, c in enumerate(cmd):
+                        if c == "--out":
+                            open(cmd[i + 1], "w").write("png")
+                if cmd[0] == "rota.py" and "--plan" in cmd and ok:
+                    import json as J
+                    for i, c in enumerate(cmd):
+                        if c == "--plan":
+                            J.dump([{"name": "A", "phone": "+1", "lang": "he",
+                                     "text": "x"}], open(cmd[i + 1], "w"))
+                return ok, (self.text if cmd[0] == "rota.py" else ""), "said so"
+            E._run = run
+            return self
+
+        def __exit__(self, *a):
+            E._run = self.real
+            return False
+
+    class Args:
+        def __init__(self, **kw):
+            self.date = "2026-09-15"
+            self.image = os.path.join(tempfile.gettempdir(), "t-real.png")
+            self.snapshot = os.path.join(tempfile.gettempdir(), "t-snap.json")
+            self.dry_run = False
+            self.__dict__.update(kw)
+
+    # --- a rota that did not go out must not leave a snapshot behind ----
+    # The 20:00 change check reads that snapshot. One saved for a rota
+    # nobody received makes it compare tomorrow's board against a message
+    # that was never sent, and it then stays silent about every change.
+    del calls[:]
+    with Fake({"send.py": False}):
+        code = E.rota(Args())
+    check("a staff rota that failed to send exits 1", code == 1, str(code))
+    check("and no snapshot is written for it",
+          "--snapshot" not in " ".join(calls), repr(calls))
+
+    # --- an empty day is the owner's to see, not the group's ------------
+    del calls[:]
+    with Fake({}, text="*לו״ז יום ב׳*\n\nאין עדיין שיעורים."):
+        code = E.rota(Args())
+    check("a day with no lessons is not sent to the staff group",
+          code == 1 and "send.py" not in calls, "%s %r" % (code, calls))
+
+    # --- the board is the attachment; the rota is the message -----------
+    # A night the picture will not upload is a worse evening, not a broken
+    # one, so the text goes on its own rather than nothing going at all.
+    del calls[:]
+    seen = {"n": 0}
+    import evening as EV
+    real = EV._run
+    def flaky(*cmd, **kw):
+        if cmd[0] == "send.py":
+            seen["n"] += 1
+            return (seen["n"] > 1), "", "upload refused"
+        if cmd[0] == "shot.py":
+            for i, c in enumerate(cmd):
+                if c in ("--out", "--crew-out"):
+                    open(cmd[i + 1], "w").write("{}")
+        return True, "*לו״ז יום ב׳*\n07:00 · שיעור", ""
+    EV._run = flaky
+    try:
+        code = EV.rota(Args())
+    finally:
+        EV._run = real
+    check("a board that will not upload still lets the rota go",
+          code == 0 and seen["n"] == 2, "exit %s after %d sends"
+          % (code, seen["n"]))
+
+    # --- the personal rotas never leave phone numbers on disk -----------
+    plan = os.path.join(tempfile.gettempdir(), "plan.json")
+    crew = os.path.join(tempfile.gettempdir(), "crew.json")
+    with Fake({"send.py": False}):
+        code = E.personal(Args())
+    check("a failed personal send exits 1", code == 1, str(code))
+    check("and leaves no plan or crew file behind",
+          not os.path.exists(plan) and not os.path.exists(crew))
+
+    for p in (Args().image, Args().snapshot):
+        if os.path.exists(p):
+            os.remove(p)
 
 
 if __name__ == "__main__":
