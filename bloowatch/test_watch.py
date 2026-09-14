@@ -65,6 +65,58 @@ def main():
     check("a message is filed under its own chat only",
           set(seen) == {"g1@g.us", "g2@g.us", "p1@c.us"}, repr(sorted(seen)))
 
+    # --- a rate-limited journal is not an answer ------------------------
+    # Green-API rate-limits the journal, and the two safety-net runs land
+    # minutes apart on a busy evening. A 429 took the whole check down with
+    # a traceback the first time it happened, which would have meant no
+    # recovery on exactly the night recovery was needed.
+    import urllib.error
+    import urllib.request
+    calls = {"n": 0}
+
+    def responder(code, body=b'[{"chatId":"x@c.us","textMessage":"hi"}]'):
+        def opener(url, timeout=0):
+            calls["n"] += 1
+            if calls["n"] <= 2 and code:
+                raise urllib.error.HTTPError(url, code, "nope", None, None)
+
+            class R:
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *a):
+                    return False
+
+                def read(self):
+                    return body
+            return R()
+        return opener
+
+    real_open, real_sleep = urllib.request.urlopen, A.time.sleep
+    A.time.sleep = lambda s: None
+    try:
+        urllib.request.urlopen = responder(429)
+        calls["n"] = 0
+        got = A.outgoing("1", "t")
+        check("a 429 is retried rather than raised",
+              got == {"x@c.us": ["hi"]}, repr(got))
+        check("and it took the retries to get there", calls["n"] == 3,
+              "attempts: %d" % calls["n"])
+
+        # A bad token is an answer, not a blip: retrying it wastes the
+        # window and tells nobody anything.
+        urllib.request.urlopen = responder(401)
+        calls["n"] = 0
+        raised = False
+        try:
+            A.outgoing("1", "t")
+        except urllib.error.HTTPError:
+            raised = True
+        check("a 401 raises straight away", raised and calls["n"] == 1,
+              "raised=%s attempts=%d" % (raised, calls["n"]))
+    finally:
+        urllib.request.urlopen, A.time.sleep = real_open, real_sleep
+
     # --- the forecast markers must match the real message ---------------
     # Compared against the source of forecast_message rather than copied
     # into it, so rewording the greeting fails here instead of quietly

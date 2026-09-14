@@ -39,6 +39,8 @@ import datetime as dt
 import json
 import os
 import sys
+import time
+import urllib.error
 import urllib.request
 
 import daily_report
@@ -85,13 +87,38 @@ def outgoing(ident, token, minutes=1440):
 
     An unreachable journal is not "nothing was sent" -- that would turn every
     network blip into a false alarm naming instructors who were reminded
-    perfectly well. It raises instead, and the caller stays quiet.
+    perfectly well. It retries, and if the journal still will not answer it
+    raises, so the caller stays quiet rather than reporting a day it could
+    not see.
     """
     url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
         os.environ.get("GREENAPI_URL", "").rstrip("/"), ident, token, minutes)
-    with urllib.request.urlopen(url, timeout=60) as r:
-        said = json.loads(r.read().decode("utf-8", "replace"))
-    return by_chat(said)
+
+    # Green-API rate-limits this endpoint, and the two safety-net runs land
+    # within minutes of each other on a busy evening. A 429 is the server
+    # saying "ask again shortly", not an answer -- and treating it as a
+    # crash takes the recovery routine down with it, which is the one run
+    # whose whole purpose is to still work when something else failed.
+    # Same for a 5xx or a dropped connection. After three tries it raises,
+    # and the caller stays quiet rather than naming people as unreminded on
+    # the strength of a journal it never actually read.
+    wait = 2
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r:
+                said = json.loads(r.read().decode("utf-8", "replace"))
+            return by_chat(said)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 and exc.code < 500:
+                raise                       # 401 is a real answer: stop.
+        except urllib.error.URLError:
+            pass
+        if attempt < 2:
+            time.sleep(wait)
+            wait *= 3
+    raise RuntimeError("Green-API's outgoing journal did not answer after "
+                       "three tries -- reporting nothing rather than "
+                       "guessing what went out")
 
 
 def by_chat(said):
