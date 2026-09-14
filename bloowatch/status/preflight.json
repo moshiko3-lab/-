@@ -1,0 +1,18 @@
+{
+  "bloowatch": "ok",
+  "problems": [],
+  "secrets": {
+    "BLOOWATCH_EMAIL": "environment",
+    "BLOOWATCH_PASSWORD": "environment",
+    "BLOOWATCH_URL": "environment",
+    "GREENAPI_ID": ".env file",
+    "GREENAPI_TOKEN": ".env file",
+    "GREENAPI_URL": ".env file"
+  },
+  "tide_days_ahead": 19,
+  "warnings": [
+    "GREENAPI_* still come from .env, not the environment — the routines each carry their own copy of the token"
+  ],
+  "whatsapp": "authorized",
+  "when": "2026-09-14T03:07:48+00:00"
+}

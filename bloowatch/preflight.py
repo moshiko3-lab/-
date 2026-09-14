@@ -42,6 +42,14 @@ sys.path.insert(0, HERE)
 SECRETS = ("GREENAPI_ID", "GREENAPI_TOKEN", "GREENAPI_URL",
            "BLOOWATCH_URL", "BLOOWATCH_EMAIL", "BLOOWATCH_PASSWORD")
 
+# Where the morning's answer is left for anyone who was not in the room.
+# Each run happens in its own container, which is then thrown away, so a
+# result that is only printed is a result only its own session ever sees.
+# Committing it makes the check readable from anywhere and gives the one
+# question nobody could answer from a transcript -- when did this start
+# failing? -- an actual history.
+STATUS = os.path.join(HERE, "status", "preflight.json")
+
 # Taken before anything imports send.py, because importing it loads `.env`
 # into os.environ and the difference between the two sources is exactly
 # what this file exists to report. Order matters here; do not move it.
@@ -150,6 +158,20 @@ def check(network=True):
     return report
 
 
+def record(report, path=STATUS):
+    """Leave the answer somewhere that outlives this container.
+
+    Only ever the report, which names where each secret came from and never
+    what it is -- test_preflight pins that the value reaches neither the
+    output nor any field of this file. The repository is public.
+    """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, sort_keys=True)
+        f.write("\n")
+    return path
+
+
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
@@ -158,9 +180,14 @@ def main():
                     help="machine-readable, for a routine to act on")
     ap.add_argument("--no-network", action="store_true",
                     help="only resolve the secrets; touch nothing remote")
+    ap.add_argument("--record", action="store_true",
+                    help="also write the report to status/preflight.json, "
+                         "for committing: a container's printout dies with it")
     a = ap.parse_args()
 
     report = check(network=not a.no_network)
+    if a.record:
+        print("wrote " + record(report))
 
     if a.json:
         print(json.dumps(report, ensure_ascii=False))

@@ -98,6 +98,22 @@ def main():
         check("nor in any field of the report",
               TOKEN not in json.dumps(report, ensure_ascii=False))
 
+        # --- the file it leaves behind must be safe to commit -----------
+        # It goes into a public repository, so this is the one place where
+        # "the token never appears" has to be true of a file on disk and
+        # not only of what was printed.
+        out = os.path.join(tmp, "status", "preflight.json")
+        clean = {k: v for k, v in os.environ.items() if k not in KEYS}
+        clean["GREENAPI_TOKEN"] = TOKEN
+        subprocess.run([sys.executable, os.path.join(tmp, "preflight.py"),
+                        "--record", "--no-network"],
+                       capture_output=True, text=True, env=clean, timeout=120)
+        with open(out, encoding="utf-8") as fh:
+            written = fh.read()
+        check("the recorded file says where the token came from",
+              '"GREENAPI_TOKEN": "environment"' in written, written[:200])
+        check("and never what it is", TOKEN not in written)
+
         # --- the warning that says the migration is not finished --------
         report, _ = run(tmp,
                         ["GREENAPI_ID=1", "GREENAPI_TOKEN=" + TOKEN,
