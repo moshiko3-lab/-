@@ -91,11 +91,27 @@ def outgoing(ident, token, minutes=1440):
         os.environ.get("GREENAPI_URL", "").rstrip("/"), ident, token, minutes)
     with urllib.request.urlopen(url, timeout=60) as r:
         said = json.loads(r.read().decode("utf-8", "replace"))
+    return by_chat(said)
+
+
+def by_chat(said):
+    """Green-API's journal, reduced to {chatId: [text, ...]}.
+
+    Split out from the fetch so the shape of a journal entry can be tested
+    without a network call -- which is how the caption case below was got
+    wrong in the first place.
+    """
     by_chat = {}
     for m in said if isinstance(said, list) else []:
-        text = m.get("textMessage") or m.get("extendedTextMessage") or ""
+        # `caption` is not an afterthought here: the 19:00 rota goes out as
+        # one imageMessage whose caption *is* the rota, so a reader that
+        # only knows about textMessage sees the biggest send of the evening
+        # as an empty string and calls it missing every single night. A
+        # check that cries wolf nightly is a check nobody reads by Friday.
+        text = (m.get("textMessage") or m.get("extendedTextMessage")
+                or m.get("caption") or "")
         if isinstance(text, dict):
-            text = text.get("text") or ""
+            text = text.get("text") or text.get("caption") or ""
         by_chat.setdefault(m.get("chatId"), []).append(str(text))
     return by_chat
 
