@@ -29,39 +29,56 @@ import surfline                                                 # noqa: E402
 
 PAGE = "https://www.surfline.com/surf-report/playa-venao/%s" % surfline.SPOT
 
-# Wide enough that the chart is not squeezed into a phone layout, and
-# doubled so the numbers on it survive WhatsApp's preview. shot.py learned
-# the same thing about the planner: a picture read on a phone is read at
-# arm's length.
-WIDTH, HEIGHT, SCALE = 1400, 1100, 2
+# The phone layout, on the owner's suggestion after seeing the desktop one.
+# It is the better picture by some way: one day per screen instead of three
+# side by side, bars wide enough to read at a glance, and a tide curve the
+# desktop page does not show at all. A forecast is read on a phone, so the
+# phone's own layout is the one that suits it.
+IPHONE = ("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
+          "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 "
+          "Mobile/15E148 Safari/604.1")
+WIDTH, HEIGHT, SCALE = 430, 932, 3
 
-# The chart sits well down the page and is built after load, so the page is
-# scrolled to it and then given time. Nothing is clipped until it is there:
-# an empty frame is worse than no picture, because it reads as a day with
-# no surf.
+# Which day the graphs show is a button, not a crop: the phone layout has a
+# day selector and picking tomorrow redraws every graph for tomorrow. That
+# is why this reads better than cutting a three-day chart into thirds.
+DAY_BUTTON = "button.graph-day"
+
+TOP = "[class*='surfGraphSection']"
+BOTTOM = "[class*='tideGraphSection']"
+
+# Above the surf graph sits the conditions bar; below the tide graph, first
+# light and sunset. Both are worth having, so the clip is opened out a
+# little at each end.
+PAD_TOP, PAD_BOTTOM = 120, 90
+
+SETTLE_MS = 11000
+SCROLL_MS = 6000
+REDRAW_MS = 7000
+
+# The reading panels describe *now*, which is today, and this picture is
+# about tomorrow.
 #
-# The clip runs from the top of the forecast section -- which carries the
-# ten-day strip and the day headings -- to the bottom of the wind graph.
-# Surf and wind are what the school's own message talks about; the swell
-# and energy graphs below them are for somebody reading a forecast, not
-# somebody deciding whether to come down.
-# The graph shows three days side by side and the owner wants one: the day
-# the forecast is about. The day headings ("Tomorrow, 9/16") sit above each
-# column and give its left edge and width, so the clip is cut to that
-# column and starts at the headings rather than at the ten-day strip --
-# a strip that spans all three days is meaningless sliced to one.
-BOTTOM = "[class*='windGraphSection']"
-
-# The reading panels above each graph describe *now* -- current surf height,
-# current wind -- which is today, and this picture is about tomorrow. They
-# also sit across the full width, so cropping to one day cuts them in half
-# and leaves the rest of their box as white space. Hidden rather than
-# cropped around: they take up layout, so removing them closes the gap too.
+# **CSS only.** An earlier attempt walked the DOM to hide the two "View
+# hourly data" rows as well, and the page's own components crashed into
+# "Something went wrong here" where the graphs had been. Injecting a
+# stylesheet leaves React's tree alone; changing it does not.
 HIDE = ("[class*='TooltipContainer'], [class*='SurfTooltip'], "
-        "[class*='WindTooltip'], [class*='surfGraphTooltip'], "
-        "[class*='windGraphTooltip']")
-SETTLE_MS = 10000
-SCROLL_MS = 5000
+        "[class*='WindTooltip']")
+
+
+def _labels(date):
+    """How the day selector spells `date`: ("Tomorrow", "9/16").
+
+    Two spellings because the button says "Tomorrow" for the next day and
+    "Thu, 9/17" for the ones after, and the forecast is usually -- but not
+    always -- about tomorrow.
+    """
+    import datetime as dt
+    d = dt.date.fromisoformat(date)
+    today = (dt.datetime.utcnow() - dt.timedelta(hours=5)).date()
+    word = {0: "Today", 1: "Tomorrow"}.get((d - today).days, "")
+    return [word or "\u0000", "%d/%d" % (d.month, d.day)]
 
 
 def _blocked(exc):
@@ -105,92 +122,63 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
             b = pw.chromium.launch(**how)
             try:
                 ctx = b.new_context(
-                    user_agent=surfline.HEADERS["User-Agent"],
+                    user_agent=IPHONE,
                     viewport={"width": width, "height": height},
-                    device_scale_factor=scale, locale="en-US")
+                    device_scale_factor=scale, is_mobile=True,
+                    has_touch=True, locale="en-US")
                 p = ctx.new_page()
                 p.goto(PAGE, wait_until="domcontentloaded", timeout=timeout)
                 p.wait_for_timeout(SETTLE_MS)
-                p.mouse.wheel(0, 3000)
+
+                # One scroll, then wait. A second one, added to give the
+                # wind graph more time, broke both graphs and opened a
+                # cam-matches panel over the chart.
+                p.mouse.wheel(0, 2500)
                 p.wait_for_timeout(SCROLL_MS)
 
-                # The graphs follow the pointer: leaving it anywhere over
-                # them freezes a reading panel open across the chart, and
-                # the first shot taken this way had two of them covering
-                # the surf it was meant to show. Park it in the corner.
-                try:
-                    p.mouse.move(2, 2)
-                    p.wait_for_timeout(700)
-                except Exception:                               # noqa: BLE001
-                    pass
+                picked = False
+                if date:
+                    picked = bool(p.evaluate("""(arg) => {
+                        const [sel, want] = arg;
+                        const days = [...document.querySelectorAll(sel)];
+                        const hit = days.find(b => {
+                            const t = (b.innerText || "").trim();
+                            return t.startsWith(want[0]) || t.includes(want[1]);
+                        });
+                        if (!hit) return false;
+                        hit.click();
+                        return true;
+                    }""", [DAY_BUTTON, _labels(date)]))
+                    if picked:
+                        p.wait_for_timeout(REDRAW_MS)
 
                 try:
-                    p.add_style_tag(content="%s { display: none !important; }"
-                                    % HIDE)
+                    p.add_style_tag(
+                        content="%s { display: none !important; }" % HIDE)
                     p.wait_for_timeout(600)
                 except Exception:                               # noqa: BLE001
                     pass                # a panel left in beats no picture
 
-                want = ""
-                if date:
-                    d = date.split("-")
-                    want = "%d/%d" % (int(d[1]), int(d[2]))      # 9/16
+                box = p.evaluate("""(sel) => {
+                    const a = document.querySelector(sel[0]);
+                    const b = document.querySelector(sel[1]);
+                    if (!a || !b) return null;
+                    const top = a.getBoundingClientRect().top + window.scrollY;
+                    const bot = b.getBoundingClientRect().bottom
+                                + window.scrollY;
+                    return {top: top, bottom: bot};
+                }""", [TOP, BOTTOM])
 
-                box = p.evaluate("""(arg) => {
-                    const [sel, want] = arg;
-                    const end = document.querySelector(sel);
-                    if (!end) return null;
-                    const bottom = end.getBoundingClientRect().bottom
-                                   + window.scrollY;
-
-                    // The day headings above each column, widest first so
-                    // the column's own width is used and not the label's.
-                    const heads = [...document.querySelectorAll("*")]
-                      .filter(e => e.children.length === 0
-                              && /^[A-Z][a-z]+(day)?, \\d+\\/\\d+/
-                                 .test((e.innerText || "").trim()))
-                      .map(e => {
-                        const r = e.getBoundingClientRect();
-                        return {t: (e.innerText || "").trim(),
-                                x: r.left + window.scrollX,
-                                w: r.width,
-                                y: r.top + window.scrollY};
-                      })
-                      .filter(h => h.w > 200)
-                      .sort((a, b) => a.x - b.x);
-                    if (!heads.length) return null;
-
-                    let i = want
-                      ? heads.findIndex(h => h.t.endsWith(" " + want))
-                      : -1;
-                    const top = heads[0].y - 24;
-                    if (i < 0) {
-                        // Whole graph: the day was not found, and a picture
-                        // of three days beats no picture at all.
-                        const last = heads[heads.length - 1];
-                        return {x: heads[0].x, y: top,
-                                width: (last.x + last.w) - heads[0].x,
-                                height: bottom - top, whole: true};
-                    }
-                    // Cut at the midpoints of the gaps either side, so the
-                    // divider lines are not clipped through.
-                    const me = heads[i];
-                    const prev = heads[i - 1];
-                    const next = heads[i + 1];
-                    const left = prev ? (prev.x + prev.w + me.x) / 2 : me.x;
-                    const right = next ? (me.x + me.w + next.x) / 2
-                                       : me.x + me.w;
-                    return {x: left, y: top, width: right - left,
-                            height: bottom - top};
-                }""", [BOTTOM, want])
-
-                if box and box["width"] > 200 and box["height"] > 200:
-                    # full_page because the clip is far below the fold.
-                    p.screenshot(path=out, clip=box, full_page=True)
+                if box and box["bottom"] - box["top"] > 200:
+                    y = max(0, box["top"] - PAD_TOP)
+                    p.screenshot(path=out, full_page=True,
+                                 clip={"x": 0, "y": y, "width": width,
+                                       "height": (box["bottom"] - y)
+                                       + PAD_BOTTOM})
                 else:
                     # The graphs did not appear. The top of the page still
-                    # names the spot and the day's conditions, which beats
-                    # sending nothing -- and the caller reports which it got.
+                    # names the spot and today's conditions, which beats
+                    # sending nothing.
                     p.screenshot(path=out, clip={"x": 0, "y": 0,
                                                  "width": width,
                                                  "height": height})
