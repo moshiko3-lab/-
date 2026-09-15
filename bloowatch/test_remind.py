@@ -14,12 +14,19 @@ has to hold:
 
   * nobody due            -> 0, and nothing is sent
   * everybody due sent    -> 0
-  * due but not delivered -> **1**, whether the gateway said so or the
-                             journal shows nothing arrived
+  * the gateway refused   -> **1**
 
-The last one is the whole file. A version that returns 0 when the gateway
-accepts a message that never reaches WhatsApp puts the system straight back
-where it was, and it would pass every other check in this directory.
+What the journal has not shown *yet* is not a failure and does not flip the
+status. It lags a few seconds behind a send, and on 15/09/2026 at 09:40 the
+first version of this reported Yonatan's reminder as not sent while it sat
+in the journal under the very id the gateway had just returned. An alert
+that cries wolf is one nobody reads by Friday.
+
+What the journal is still good for is the count, and for refusing to accept
+the wrong evidence: matching is on the message id Green-API handed back, so
+another message to the same instructor can never stand in for the reminder.
+Whether a reminder truly arrived is audit_reminders' question, asked hours
+later when no lag can colour the answer.
 
 Touches no network: the board, the gateway and the journal are all stubbed.
 """
@@ -37,6 +44,9 @@ import rota                                                    # noqa: E402
 
 TESTER = "TEST INSTRUCTOR"
 fails = []
+
+
+SENT_ID = "3EB0TESTID"
 
 
 def check(name, cond, detail=""):
@@ -79,9 +89,14 @@ class Stub:
             # run_batch's real contract: one JSON line per person, on stdout.
             for one in self.sent:
                 where = R.send.target(one["phone"], {})
-                print(json.dumps({"name": one["name"], "chatId": where["jid"],
-                                  "code": 200 if not self.batch_status else 500},
-                                 ensure_ascii=False))
+                # Green-API answers with an idMessage, and that id is what
+                # the journal is matched on. A stub that omits it would let
+                # the match pass on something looser than the real one.
+                print(json.dumps(
+                    {"name": one["name"], "chatId": where["jid"],
+                     "code": 200 if not self.batch_status else 500,
+                     "said": json.dumps({"idMessage": SENT_ID})},
+                    ensure_ascii=False))
             return self.batch_status
         R.send.run_batch = run_batch
 
@@ -107,12 +122,26 @@ def lesson(minutes_ahead, who=None):
             "title": "SURF LESSON", "attendants": [], "duration": 60}
 
 
+# The journal is asked more than once, seconds apart, because it lags. The
+# wait is a name so the tests need not sit through it.
+R.JOURNAL_WAIT = 0
+
+
 def run(stub_args, argv=()):
+    """One run, with everything it printed captured on the stub as `.out`."""
+    import contextlib
+    import io
     old = sys.argv
     sys.argv = ["remind.py"] + list(argv)
+    buf = io.StringIO()
     try:
         with Stub(*stub_args) as s:
-            return R.main(), s
+            with contextlib.redirect_stdout(buf), \
+                 contextlib.redirect_stderr(buf):
+                code = R.main()
+            s.out = buf.getvalue()
+            print(s.out, end="")
+            return code, s
     finally:
         sys.argv = old
 
@@ -123,43 +152,58 @@ def main():
     check("a slot with nobody due exits 0", code == 0, "exit %s" % code)
     check("and sends nothing", s.sent == [], repr(s.sent))
 
-    # The journal entries Green-API would return. `ours` is a message to the
-    # person we actually wrote to; `somebody_else` is the 19:00 rota going
-    # out to the staff group at the same moment.
+    # The journal entries Green-API would return. `ours` carries the id the
+    # gateway handed back; `somebody_else` is the 19:00 rota going out to the
+    # staff group at the same moment, and `wrong_id` is another message to
+    # the very same instructor -- their evening rota, say.
     mine = R.send.target("+972500000000", {})["jid"]
     now = int(dt.datetime.now(rota.PANAMA).timestamp())
-    ours = [{"chatId": mine, "textMessage": "reminder", "timestamp": now}]
-    somebody_else = [{"chatId": "staff-group@g.us",
+    ours = [{"chatId": mine, "idMessage": SENT_ID,
+             "textMessage": "reminder", "timestamp": now}]
+    somebody_else = [{"chatId": "staff-group@g.us", "idMessage": "3EB0OTHER",
                       "caption": "*לו״ז יום ג׳*", "timestamp": now}]
+    wrong_id = [{"chatId": mine, "idMessage": "3EB0SOMETHINGELSE",
+                 "textMessage": "your rota for tomorrow", "timestamp": now}]
 
     # --- the ordinary good slot ---------------------------------------
     code, s = run(([lesson(50)], 0, ours))
     check("a slot with somebody due sends them", len(s.sent) == 1,
           repr([x.get("name") for x in s.sent]))
-    check("and exits 0 when that person's own chat shows it", code == 0,
+    check("and exits 0 when the journal shows that very message", code == 0,
           "exit %s" % code)
 
-    # --- the failure that hid, in both its shapes ---------------------
-    # The gateway itself refused: run_batch already knows, and the status
+    # --- the failure that must still be loud --------------------------
+    # The gateway itself refused. run_batch already knows, and the status
     # must survive all the way out rather than being swallowed.
     code, _ = run(([lesson(50)], 1, ours))
     check("a gateway failure exits 1", code == 1, "exit %s" % code)
 
-    # And the quieter one: every call returned 200 and the journal shows
-    # nothing left the building. This is the case a status-only check calls
-    # a success, and it is the case that cost six reminders.
-    code, _ = run(([lesson(50)], 0, []))
-    check("a 200 that left no trace in the journal exits 1", code == 1,
-          "exit %s" % code)
+    # --- and the one that must not be ---------------------------------
+    # Every call returned 200 and the journal has not caught up. It lags a
+    # few seconds, and on 15/09/2026 at 09:40 this was reported as "not
+    # sent" about a message already sitting in the journal under the id the
+    # gateway had just returned. The count still says 0/1; the status does
+    # not lie about it.
+    code, st = run(([lesson(50)], 0, []))
+    check("a journal that has not caught up does not fail the run",
+          code == 0, "exit %s" % code)
+    check("but it is not counted as confirmed either",
+          "journal=0/1" in st.out, st.out[-200:])
+    check("and the run says not to resend",
+          "Do not resend" in st.out, st.out[-200:])
 
-    # **Somebody else's message is not proof.** The first version of this
-    # counted every outgoing message in the window, so a rota to the staff
-    # group satisfied it while the reminders themselves were lost. That is
-    # the same mistake that let a missing forecast pass for a whole day:
-    # evidence something else could have produced is not evidence.
-    code, _ = run(([lesson(50)], 0, somebody_else))
-    check("a message to a different chat is not proof the reminder arrived",
-          code == 1, "exit %s" % code)
+    # **Somebody else's message is not proof, and neither is another of
+    # theirs.** The first version counted every outgoing message in the
+    # window, so a rota to the staff group satisfied it while the reminders
+    # were lost. Matching on the id closes the looser case too: the same
+    # instructor's evening rota is a message in the right chat and still not
+    # this one.
+    for label, rows in (("to a different chat", somebody_else),
+                        ("to the same person, but a different message",
+                         wrong_id)):
+        _, st = run(([lesson(50)], 0, rows))
+        check("a message %s is not counted as the reminder" % label,
+              "journal=0/1" in st.out, st.out[-200:])
 
     # An unreachable journal must not invent a failure: a network blip at
     # 05:10 would otherwise page somebody about reminders that went out fine.

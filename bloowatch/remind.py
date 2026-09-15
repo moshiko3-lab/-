@@ -50,6 +50,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -59,6 +60,11 @@ import rota                                                    # noqa: E402
 import send                                                    # noqa: E402
 
 PANAMA = rota.PANAMA
+
+# How hard to press the journal before giving up on it, and how long to wait
+# between asks. Green-API takes a few seconds to show a message that has just
+# gone out; these are here as names so a test can set the wait to nothing.
+JOURNAL_TRIES, JOURNAL_WAIT = 3, 8
 
 
 def _r(text):
@@ -82,24 +88,15 @@ def due(lessons, lo, hi, now=None):
     return rota.plan(lambda n, lang: rota.remind(n, mine[n], lang), mine)
 
 
-def landed(lines, since):
-    """Of the reminders the gateway accepted, which ones the journal shows.
+def sent_ids(lines):
+    """What the gateway accepted, each with the id it handed back.
 
-    Returns (accepted, arrived, lost) -- names, not counts, so the report can
-    say who.
-
-    The first version of this counted **every** outgoing message in the
-    window and called a rise in that number proof. It is the same mistake
-    that let a missing forecast pass for a day: evidence something else could
-    have produced is not evidence. The 19:00 rota going out while an 18:40
-    slot ran would have satisfied it, and a slot whose reminders all failed
-    would have reported success.
-
-    So the question is asked per person: this chat, since this run started.
-    Messages the gateway skipped as already-sent are not expected to appear
-    again and are not counted against the run.
+    The id is the point. Matching a reminder to "some message in that chat
+    since the run began" is loose enough that the evening rota to the same
+    instructor would satisfy it; the id Green-API returns identifies this
+    message and nothing else.
     """
-    accepted, skipped = [], []
+    accepted = []
     for line in lines:
         try:
             one = json.loads(line)
@@ -107,20 +104,55 @@ def landed(lines, since):
             continue
         if not isinstance(one, dict) or "chatId" not in one:
             continue
-        (skipped if one.get("skipped") else accepted).append(one)
-    accepted = [o for o in accepted if o.get("code") == 200]
+        if one.get("skipped") or one.get("code") != 200:
+            continue
+        try:
+            one["idMessage"] = json.loads(one.get("said") or "{}").get("idMessage")
+        except ValueError:
+            one["idMessage"] = None
+        accepted.append(one)
+    return accepted
 
+
+def landed(accepted, tries=None, wait=None):
+    """Which of those the journal has caught up with. Returns (seen, missing).
+
+    **The journal lags by a few seconds.** SENDING.md has said so since
+    `--once-today` was written -- "a double send inside a minute does get
+    through; a minute later the same call skips" -- and the first version of
+    this file read the journal the instant after sending and called
+    everything it could not yet see lost. On 15/09/2026 at 09:40 it reported
+    Yonatan's reminder as not sent. It had been sent, at 09:40:51, under the
+    exact id the gateway had just returned. The run was correct and the
+    check was wrong.
+
+    So it asks again, a few times, before concluding anything. And an id
+    the journal still has not shown is reported as *unconfirmed*, not as
+    lost: the gateway handed back an id for it, which is positive evidence,
+    and Green-API holds a message for a day when the phone is offline.
+    Whether it truly arrived is `audit_reminders`'s question, asked hours
+    later against the same journal when no lag can colour the answer.
+    """
     import audit_reminders as A
-    try:
-        seen = A.by_chat(A.journal(os.environ.get("GREENAPI_ID", ""),
-                                   os.environ.get("GREENAPI_TOKEN", "")),
-                         since=since)
-    except Exception:                                          # noqa: BLE001
-        # An unreadable journal must not turn a good run into a failure: a
-        # reminder that never arrives is the worse of the two mistakes.
-        return accepted, None, []
-    lost = [o for o in accepted if not seen.get(o["chatId"])]
-    return accepted, len(accepted) - len(lost), lost
+    tries = JOURNAL_TRIES if tries is None else tries
+    wait = JOURNAL_WAIT if wait is None else wait
+    want = {o["idMessage"] for o in accepted if o.get("idMessage")}
+    if not want:
+        return [], accepted
+    seen = set()
+    for attempt in range(tries):
+        if attempt:
+            time.sleep(wait)
+        try:
+            rows = A.journal(os.environ.get("GREENAPI_ID", ""),
+                             os.environ.get("GREENAPI_TOKEN", ""))
+        except Exception:                                      # noqa: BLE001
+            continue            # an unreadable journal proves nothing
+        seen |= {r.get("idMessage") for r in rows if r.get("idMessage")}
+        if want <= seen:
+            break
+    ok = [o for o in accepted if o.get("idMessage") in seen]
+    return ok, [o for o in accepted if o.get("idMessage") not in seen]
 
 
 def deliver(sends, dry_run=False):
@@ -180,11 +212,9 @@ def main():
     for s in sends:
         print("%-18s %-4s %d chars" % (s["name"], s["lang"], len(s["text"])))
 
-    started = dt.datetime.now(PANAMA) - dt.timedelta(minutes=2)
-
     # run_batch reports one JSON line per person. They are kept as well as
-    # printed, because who the gateway accepted is what the journal is then
-    # asked about, one chat at a time.
+    # printed, because the ids the gateway hands back are what the journal
+    # is then asked about.
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
         status = deliver(sends, a.dry_run)
@@ -196,23 +226,32 @@ def main():
         _r("RESULT planned=%d dry-run" % len(sends))
         return 0
 
-    # What the gateway said is one witness; Green-API's journal is the other,
-    # and it is the one that survives this process dying. They are asked
-    # about the same people, since the same moment.
-    accepted, arrived, lost = landed(lines, started)
-    _r("RESULT planned=%d accepted=%d gateway=%s journal=%s"
-          % (len(sends), len(accepted), "ok" if status == 0 else "FAILED",
-             "unreadable" if arrived is None else "%d/%d"
-             % (arrived, len(accepted))))
+    # Two witnesses, and they answer different questions. The gateway says
+    # whether it took the message; the journal says whether it has appeared
+    # yet, and it runs a few seconds behind, so it is asked more than once
+    # and its silence is never read as a denial.
+    accepted = sent_ids(lines)
+    ok, unconfirmed = landed(accepted)
+    _r("RESULT planned=%d accepted=%d gateway=%s journal=%d/%d"
+       % (len(sends), len(accepted), "ok" if status == 0 else "FAILED",
+          len(ok), len(accepted)))
+
+    if unconfirmed:
+        # Not a failure, and deliberately not exit 1. The gateway returned an
+        # id for each of these, Green-API holds a message for a day when a
+        # phone is offline, and the run that shouted "not sent" at a message
+        # that had gone out thirty seconds earlier taught its own lesson: an
+        # alert that cries wolf is one nobody reads by Friday. Whether these
+        # truly arrived is audit_reminders' question, asked at 11:45 and
+        # 19:45 against the same journal, when no lag can colour it.
+        print("the journal has not caught up with these yet — the gateway "
+              "took them and audit_reminders will confirm later. Do not "
+              "resend: " + ", ".join(o.get("name", "?") for o in unconfirmed),
+              file=sys.stderr)
 
     if status != 0:
         print("some reminders did not reach WhatsApp — see FAILED above",
               file=sys.stderr)
-        return 1
-    if lost:
-        print("the gateway accepted these and the journal has no trace of "
-              "them — treat them as not sent: "
-              + ", ".join(o.get("name", "?") for o in lost), file=sys.stderr)
         return 1
     return 0
 
