@@ -133,6 +133,7 @@ def main():
           evening.GROUP["en"] == "surfers_en")
 
     _forecast_changes()
+    _chart_attachment()
     _evening_sends()
 
     print()
@@ -143,6 +144,73 @@ def main():
     return 0
 
 
+
+
+# ---------------------------------------------------------------------------
+# The Surfline chart, added 15/9/2026. The caption limit is the whole risk:
+# the English forecast measured 1015 characters against a 1024 limit, and a
+# caption that does not fit is truncated silently.
+# ---------------------------------------------------------------------------
+
+def _chart_attachment():
+    import evening as E
+    import send as S
+
+    calls = []
+
+    def fake_one(lang, text, picture, dry_run, timeout=300):
+        calls.append({"lang": lang, "chars": len(text), "file": bool(picture),
+                      "text": text})
+        return fake_one.ok, ["said so"]
+
+    real = E._one
+    E._one = fake_one
+    try:
+        short = "x" * 100
+        long = "x" * (S.CAPTION_MAX + 1)
+
+        # --- no picture: one message, as it has always been -------------
+        del calls[:]
+        fake_one.ok = True
+        E.deliver("he", short, False, "")
+        check("with no chart the forecast is one plain message",
+              len(calls) == 1 and not calls[0]["file"], repr(calls))
+
+        # --- a caption that fits: one message carrying both -------------
+        del calls[:]
+        E.deliver("he", short, False, "/tmp/chart.png")
+        check("a forecast that fits goes as one message with the chart",
+              len(calls) == 1 and calls[0]["file"], repr(calls))
+
+        # --- a caption that does not: never truncated -------------------
+        # This is the case worth having a test for. 1015 of 1024 is nine
+        # characters of headroom and the rain line alone is seventy.
+        del calls[:]
+        E.deliver("en", long, False, "/tmp/chart.png")
+        check("a forecast too long for a caption is split, not cut",
+              len(calls) == 2, repr([c["chars"] for c in calls]))
+        check("the chart goes first, under a short caption",
+              calls and calls[0]["file"]
+              and calls[0]["chars"] <= S.CAPTION_MAX, repr(calls[:1]))
+        check("and the whole forecast follows, entire and on its own",
+              calls[-1]["text"] == long and not calls[-1]["file"],
+              "%d chars, file=%s" % (calls[-1]["chars"], calls[-1]["file"]))
+
+        # --- a chart that will not send never costs the forecast --------
+        del calls[:]
+        seen = {"n": 0}
+
+        def flaky(lang, text, picture, dry_run, timeout=300):
+            seen["n"] += 1
+            calls.append({"file": bool(picture), "text": text})
+            return (not picture), ["upload refused"]
+
+        E._one = flaky
+        ok, _ = E.deliver("he", short, False, "/tmp/chart.png")
+        check("a chart that will not upload still lets the forecast go",
+              ok and seen["n"] == 2 and not calls[-1]["file"], repr(calls))
+    finally:
+        E._one = real
 
 
 # ---------------------------------------------------------------------------

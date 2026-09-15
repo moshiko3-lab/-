@@ -45,6 +45,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import forecast_message as F                                    # noqa: E402
+import send                                                     # noqa: E402
+import surfshot                                                 # noqa: E402
 import report                                                   # noqa: E402
 import surfline                                                 # noqa: E402
 import tides                                                    # noqa: E402
@@ -138,26 +140,64 @@ def message(date, s, today, lang, tide_note=True):
                    wind, lang, energy=s.get("energy"), rain=rain)
 
 
-def deliver(lang, text, dry_run):
-    """Hand one language to send.py, the way the routine always has.
-
-    Through the command line rather than by importing it: this is the one
-    step that actually reaches customers, and it stays on the path that has
-    been sending every night rather than a second one written tonight.
-    """
+def _one(lang, text, picture, dry_run, timeout=300):
+    """One send.py call: this text, to this group, with or without a file."""
     fd, path = tempfile.mkstemp(suffix="-%s.txt" % lang, text=True)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(text + "\n")
     try:
         cmd = [sys.executable, os.path.join(HERE, "send.py"),
                "--to", GROUP[lang], "--text", path]
+        if picture:
+            cmd += ["--file", picture]
         if dry_run:
             cmd.append("--dry-run")
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-        ok = out.returncode == 0
-        return ok, (out.stdout or out.stderr or "").strip().splitlines()[-1:]
+        out = subprocess.run(cmd, capture_output=True, text=True,
+                             timeout=timeout)
+        return (out.returncode == 0,
+                (out.stdout or out.stderr or "").strip().splitlines()[-1:])
     finally:
         os.remove(path)
+
+
+def deliver(lang, text, dry_run, picture=""):
+    """Hand one language to send.py, the way the routine always has.
+
+    Through the command line rather than by importing it: this is the one
+    step that actually reaches customers, and it stays on the path that has
+    been sending every night rather than a second one written tonight.
+
+    **The caption limit decides the shape, and it is close.** WhatsApp cuts
+    a caption at 1024 characters and the English forecast measured 1015 on
+    16/9/2026 -- nine to spare, and the rain line alone is seventy. So the
+    text is never put in a caption it might not fit: when it does fit, one
+    message carries both; when it does not, the picture goes first under a
+    one-line caption and the forecast follows as its own message. Two
+    messages is not a duplicate, and a forecast silently cut off mid-sentence
+    is worse than either.
+
+    A picture that will not send never costs the forecast. If the send with
+    it fails, the text goes on its own, exactly as the 19:00 rota does.
+    """
+    if not picture:
+        return _one(lang, text, "", dry_run, timeout=180)
+
+    if len(text) <= send.CAPTION_MAX:
+        ok, tail = _one(lang, text, picture, dry_run)
+        if ok:
+            return True, tail
+        print("warning: sending the %s forecast with the chart failed (%s); "
+              "sending it without" % (lang, " ".join(tail)), file=sys.stderr)
+        return _one(lang, text, "", dry_run, timeout=180)
+
+    short = ("*תחזית הגלים למחר* 👇" if lang == "he"
+             else "*Tomorrow\'s surf forecast* 👇")
+    ok_pic, _ = _one(lang, short, picture, dry_run)
+    if not ok_pic:
+        print("warning: the %s chart would not send; the forecast follows "
+              "on its own" % lang, file=sys.stderr)
+    ok, tail = _one(lang, text, "", dry_run, timeout=180)
+    return ok, tail
 
 
 def forecast(args):
@@ -189,9 +229,22 @@ def forecast(args):
             print()
         return 0
 
+    # One screenshot for both groups: the chart is the same sea, and asking
+    # Surfline twice doubles the one step here that can hang. It is taken
+    # after the messages are built, so a forecast that refuses to build has
+    # not opened a browser for nothing.
+    picture, why = "", ""
+    if not args.no_chart:
+        picture = os.path.join(tempfile.gettempdir(), "surfline.png")
+        picture, why = surfshot.shoot(picture)
+        if not picture:
+            # Never a refusal. The chart is a bonus; the forecast is the
+            # point, and two hundred people are waiting for the numbers.
+            print("note: no chart tonight — %s" % why, file=sys.stderr)
+
     sent, failed = [], []
     for lang in langs:
-        ok, tail = deliver(lang, built[lang], args.dry_run)
+        ok, tail = deliver(lang, built[lang], args.dry_run, picture)
         (sent if ok else failed).append(lang)
         if not ok:
             print("error: %s did not send: %s"
@@ -202,9 +255,9 @@ def forecast(args):
              ", ".join(GROUP[l] for l in sent) or "nothing",
              s["waves"], s["period"], s["wind"]))
     if not args.dry_run:
-        _r("18:00 forecast", "RESULT sent=%s failed=%s waves=%s"
+        _r("18:00 forecast", "RESULT sent=%s failed=%s waves=%s chart=%s"
            % (",".join(sent) or "none", ",".join(failed) or "none",
-              s["waves"]))
+              s["waves"], "yes" if picture else "no"))
     return 1 if failed else 0
 
 
@@ -485,6 +538,8 @@ def main():
     f.add_argument("--print", action="store_true",
                    help="print the messages and send nothing at all")
     f.add_argument("--no-tide-note", action="store_true")
+    f.add_argument("--no-chart", action="store_true",
+                   help="send the text alone, without the Surfline chart")
     f.set_defaults(run=forecast)
 
     r = sub.add_parser("rota", help="tomorrow's rota to the staff group, "
