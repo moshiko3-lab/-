@@ -132,6 +132,40 @@ def main():
               not any("routines each carry" in w for w in report["warnings"]),
               repr(report["warnings"]))
 
+        # --- can this container actually run tonight's jobs? -------------
+        # On 15/9/2026 this file called the morning ready and the evening
+        # was not: the 18:00 forecast died on a missing playwright, and the
+        # journal showed no automatic container had ever sent a forecast or
+        # a rota. Every check here passed throughout, because not one of
+        # them touched a browser.
+        check("the report says whether the evening's dependencies are there",
+              "deps" in report, sorted(report))
+        check("and here, where they are, it says so",
+              report["deps"] == "ok", repr(report["deps"]))
+        check("a container with them is not told it has a problem",
+              not any("cannot run the evening" in p
+                      for p in report["problems"]), repr(report["problems"]))
+
+    # A missing dependency is a FAIL and not a WARN: without it the forecast
+    # and the rota do not go out at all, and they die half way through
+    # rather than before the send.
+    sys.path.insert(0, HERE)
+    import preflight as P
+    real = P.deps
+    try:
+        P.deps = lambda: "missing: playwright"
+        broken = P.check(network=False)
+    finally:
+        P.deps = real
+    check("a missing dependency is a problem, not a warning",
+          any("cannot run the evening" in p for p in broken["problems"])
+          and not any("cannot run the evening" in w
+                      for w in broken["warnings"]),
+          repr(broken["problems"]))
+    check("and the problem names what is missing, so the fix is obvious",
+          any("playwright" in p for p in broken["problems"]),
+          repr(broken["problems"]))
+
     print()
     if fails:
         print("%d failed: %s" % (len(fails), ", ".join(fails)))

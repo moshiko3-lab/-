@@ -110,6 +110,46 @@ def tide_days():
         return "unreadable: %s" % _brief(exc)
 
 
+def deps():
+    """Can this container actually run tonight's jobs? "ok" or what is wrong.
+
+    Added 15/9/2026, because this file said the morning was ready and the
+    evening was not. The 18:00 forecast fired, cloned, ran, and died on
+    `ModuleNotFoundError: No module named 'playwright'`. Looking back
+    through the journal afterwards: **no automatic container had ever sent
+    the forecast or the rota.** Only the reminders, which are the one job
+    that needs no browser.
+
+    This check had reported green through all of it, and honestly -- it
+    reads the secrets, asks WhatsApp whether it is authorized, logs in to
+    Bloowatch over HTTP and counts the tide table. Not one of those touches
+    a browser. **A readiness check that does not exercise what the evening
+    needs is not a readiness check**, and the silence it bought was worse
+    than no check: the two safety nets watch the gateway, which correctly
+    reported that nothing was sent, so all three were telling the truth and
+    none could say why.
+
+    The browser is not started here -- launching Chromium at half past four
+    to prove it exists would be slower and would fail for reasons that have
+    nothing to do with the morning. The import and the binary are what went
+    missing, so the import and the binary are what this looks for.
+    """
+    missing = []
+    for mod in ("playwright", "requests"):
+        try:
+            __import__(mod)
+        except Exception:                          # noqa: BLE001
+            missing.append(mod)
+    if missing:
+        return "missing: " + ", ".join(missing)
+    try:
+        import shot
+        shot.chromium()
+    except Exception as exc:                       # noqa: BLE001
+        return "no chromium: %s" % _brief(exc)
+    return "ok"
+
+
 def _brief(exc):
     """One line, and never the password: exceptions can carry the request."""
     text = str(exc).replace("\n", " ")
@@ -128,6 +168,7 @@ def check(network=True):
         "whatsapp": whatsapp_state() if network else "not checked",
         "bloowatch": bloowatch_state() if network else "not checked",
         "tide_days_ahead": tide_days(),
+        "deps": deps(),
     }
 
     problems = []
@@ -138,6 +179,12 @@ def check(network=True):
         problems.append("WhatsApp is %s (needs: authorized)" % report["whatsapp"])
     if network and report["bloowatch"] != "ok":
         problems.append("Bloowatch %s" % report["bloowatch"])
+    if report["deps"] != "ok":
+        # A problem and not a warning: without these the forecast and the
+        # rota do not go out at all, and they fail half way through rather
+        # than before the send. `sh bloowatch/routine_setup.sh` is the fix.
+        problems.append("this container cannot run the evening — %s"
+                        % report["deps"])
 
     warnings = []
     days = report["tide_days_ahead"]
