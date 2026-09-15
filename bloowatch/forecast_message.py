@@ -135,12 +135,16 @@ MID_HALF = 135
 # page read 220, and it took the owner sending a screenshot of his phone for
 # anybody to notice. A threshold means nothing without its units.
 #
-# **The number itself is not settled.** 15/9 is the day he described, and it
-# reads 131 kJ, so a line at 100 would not have caught it; 16/9 and 17/9 read
-# 209 and 210. The line is somewhere between, and it is his to draw -- see
-# ROUTINES.md. Until he does, 150 sits between the day he called weak and the
-# days he did not.
-WEAK_ENERGY = 150
+# **The number is the owner's, given on 15/9/2026: "עד 250 זה יחסית חלש."**
+# It stood at a provisional 150 until then, which was a guess of mine and
+# read too much into one day: 15/9 is the day he described and it reads 131,
+# so I put the line just above it and treated 16/9 and 17/9 at 209 and 210
+# as ordinary days. They are not. His line is more than half again as high
+# as mine, and it makes a weak day the common case here rather than the
+# exception -- which is what a 0.6-1.1 m sea on this coast actually is.
+#
+# "עד 250" includes 250, hence <= where this is read.
+WEAK_ENERGY = 250
 
 # How far off a HIGH to stay on such a day. The first version of this read
 # the owner backwards and kept off the low instead, which is the opposite of
@@ -828,7 +832,7 @@ def build(date, waves, period, compare, spot_note, note="", wind="",
     t = tides_for(date)
     if not t:
         return None, "no tide table for " + date
-    weak = energy is not None and energy < WEAK_ENERGY
+    weak = energy is not None and energy <= WEAK_ENERGY
     low_w, high_w, mid_w, beg_w = windows(t, weak=weak)
     # The two blocks are the same list on an ordinary day and
     # different ones when the sea is weak -- see windows().
@@ -977,10 +981,11 @@ def main():
                          "rain_line(). Empty on a dry day, which is most of "
                          "them, and then the message says nothing about it.")
     ap.add_argument("--energy", type=float, default=None,
-                    help="the day's mean swell energy (surfline.day_energy). "
-                         "Below %d the recommended hours keep further off the "
-                         "low and the near-low advice is dropped — a small sea "
-                         "with nothing behind it has no wave there at all."
+                    help="the day's nearshore energy in Surfline's kJ "
+                         "(surfline.day_energy). At %d or below the "
+                         "recommended hours keep ninety minutes off every "
+                         "high — a small sea with nothing behind it has too "
+                         "much water over it there to break."
                          % WEAK_ENERGY)
     ap.add_argument("--lang", choices=("he", "en"), default="he",
                     help="he for the Hebrew group, en for the English one — "

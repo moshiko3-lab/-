@@ -283,9 +283,28 @@ def _forecast_changes():
     check("and an ordinary day is unchanged from what he approved",
           strong_mid == [("07:00", "11:00"), ("13:30", "18:00")],
           repr(strong_mid))
-    check("the threshold sits between the day he called weak (131 kJ) "
-      "and the ones he did not (209)",
-      131 < FM.WEAK_ENERGY < 209, str(FM.WEAK_ENERGY))
+    # The threshold is his, not a guess: "עד 250 זה יחסית חלש", 15/9/2026.
+    # It stood at 150 before that, which was mine -- placed just above the
+    # one day he had called weak (131 kJ) and treating 16/9 and 17/9 at 209
+    # and 210 as ordinary. He says they are weak too.
+    check("the weak line is the owner's 250, not a guess around one day",
+          FM.WEAK_ENERGY == 250, str(FM.WEAK_ENERGY))
+    check("and 250 itself counts as weak, because he said 'up to 250'",
+          FM.build(DATE, "0.8", "10", "", "x", "", "", "he",
+                   energy=250.0)[0] ==
+          FM.build(DATE, "0.8", "10", "", "x", "", "", "he",
+                   energy=100.0)[0])
+    check("while the day above it is an ordinary one",
+          FM.build(DATE, "0.8", "10", "", "x", "", "", "he",
+                   energy=251.0)[0] !=
+          FM.build(DATE, "0.8", "10", "", "x", "", "", "he",
+                   energy=250.0)[0])
+    # The days he has already ruled on, by the number he gave.
+    for day, kj, want in (("15/9", 131.0, True), ("16/9", 209.0, True),
+                          ("17/9", 210.0, True), ("18/9", 132.0, True),
+                          ("19/9", 112.0, True)):
+        check("%s at %g kJ is a weak day" % (day, kj),
+              (kj <= FM.WEAK_ENERGY) is want)
     check("and so is the clearance off a high", FM.CLEAR_OF_HIGH_WEAK == 90)
 
     # --- the near-low advice stays; he kept it in his own correction ----
