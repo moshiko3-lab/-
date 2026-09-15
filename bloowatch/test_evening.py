@@ -182,23 +182,18 @@ def _forecast_changes():
     # to stay home.
     light = FM.rain_line([(8, "LIGHT_RAIN"), (9, "DRIZZLE")])
     heavy = FM.rain_line([(17, "THUNDER_STORMS"), (18, "THUNDER_STORMS")])
-    for what, line, when in (("showers", light, "08:00-10:00"),
-                             ("storms", heavy, "17:00-19:00")):
-        check("%s: the line says when" % what, when in line, line)
-        check("%s: and what the rain does to the sea" % what,
+    far = FM.rain_line([(9, "RAIN"), (17, "RAIN"), (18, "RAIN")])
+    for what, line in (("showers", light), ("storms", heavy),
+                       ("two separate spells", far)):
+        check("%s: the line says what the rain does to the sea" % what,
               "מוריד את הרוח" in line and "טוב לגלישה" in line, line)
-    check("a storm reads exactly like a shower — no warning, no timing "
-          "advice", light.replace("08:00-10:00", "") ==
-          heavy.replace("17:00-19:00", ""), "%r vs %r" % (light, heavy))
-
-    # Rain at nine and again at five is not rain from nine to five.
-    split = FM.rain_line([(9, "RAIN"), (17, "RAIN"), (18, "RAIN")])
-    check("two separate spells are listed as two",
-          "09:00-10:00, 17:00-19:00" in split, split)
-
-    check("and English says the same thing, with its hours",
+        check("%s: and carries no hours" % what,
+              not any(ch.isdigit() for ch in line), line)
+    check("every kind of wet day gets the same sentence",
+          light == heavy == far, "%r / %r / %r" % (light, heavy, far))
+    check("and English says the same thing",
           "knocks the wind down" in FM.rain_line([(8, "RAIN")], "en")
-          and "08:00-09:00" in FM.rain_line([(8, "RAIN")], "en"),
+          and not any(ch.isdigit() for ch in FM.rain_line([(8, "RAIN")], "en")),
           FM.rain_line([(8, "RAIN")], "en"))
 
     # --- a weak sea keeps further off the low ---------------------------

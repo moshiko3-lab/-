@@ -214,39 +214,17 @@ WET_HEAVY = ("THUNDER_SHOWERS", "THUNDER_STORMS", "HEAVY_RAIN",
              "HEAVY_SHOWERS")
 
 
-def _runs(hours):
-    """Consecutive hours grouped into spans, as "08:00-10:00" strings.
-
-    Grouped rather than reduced to first-and-last: rain at nine and again
-    at five is not rain from nine to five, and a line that says it is gets
-    read once and then never again.
-    """
-    out, run = [], []
-    for h in sorted(set(hours)):
-        if run and h == run[-1] + 1:
-            run.append(h)
-        else:
-            if run:
-                out.append(run)
-            run = [h]
-    if run:
-        out.append(run)
-    return ["%02d:00-%02d:00" % (r[0], r[-1] + 1) for r in out]
-
-
 def rain_line(sky, lang="he"):
-    """One line about rain: when, and what it does to the sea.
+    """One line about rain: that it is coming, and what it does to the sea.
 
-    The owner settled this over three passes on 15/9/2026. The first named
-    the hours and, on a day with storms, suggested surfing earlier; he cut
-    it to the one fact that matters at Venao -- the rain comes through with
-    the wind behind it and the sea cleans up after. Then he put the hours
-    back: knowing when is useful, and in this sentence it reads as a
-    forecast rather than as a warning.
+    No hours. The owner tried them both ways on 15/9/2026 and settled here,
+    and it is his message: at Venao the rain comes through with the wind
+    behind it and the sea cleans up after, so *that* is the whole content.
+    Times invite people to plan around the rain, which is the opposite of
+    what he wants them to do with it.
 
-    What is not in it, deliberately: any distinction between a shower and a
-    thunderstorm, and any advice about when to surf. Both were his to drop
-    and he dropped them.
+    Nor any difference between a shower and a thunderstorm. Both were his
+    to drop and he dropped them.
 
     A dry day still says nothing. A line that appears every evening to
     announce good weather is one people stop reading, and then they miss
@@ -254,15 +232,13 @@ def rain_line(sky, lang="he"):
     """
     if not sky:
         return ""
-    wet = [h for h, c in sky if any(w in c for w in WET_LIGHT + WET_HEAVY)]
-    if not wet:
+    if not any(w in c for _, c in sky for w in WET_LIGHT + WET_HEAVY):
         return ""
-    when = ", ".join(_runs(wet))
     if lang == "en":
-        return ("*🌧 Rain expected around %s — it knocks the wind down and "
-                "leaves the sea good for surfing 🤙*" % when)
-    return ("*🌧 גשם צפוי בסביבות %s – הגשם מוריד את הרוח ועושה את הים טוב "
-            "לגלישה 🤙*" % when)
+        return ("*🌧 Rain expected — it knocks the wind down and leaves the "
+                "sea good for surfing 🤙*")
+    return ("*🌧 יש צפי לגשם – הגשם מוריד את הרוח ועושה את הים טוב "
+            "לגלישה 🤙*")
 
 
 def clear_of_highs(t, a, b, clear=CLEAR_OF_HIGH_WEAK):
