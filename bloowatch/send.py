@@ -2,7 +2,7 @@
 """Put a message on WhatsApp, through whichever gateway is configured.
 
     python3 send.py --to staff --text rota.txt --file board.png
-    python3 send.py --to +50762596666 --text hello.txt
+    python3 send.py --to +507XXXXXXX --text hello.txt
     python3 send.py --to staff --text rota.txt --dry-run
 
 Runs on the machine that can reach the gateway, which is not the machine

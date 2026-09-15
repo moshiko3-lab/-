@@ -40,7 +40,7 @@ def check(name, cond, detail=""):
 LESSONS = [{"start": "08:30", "title": "Bar S", "staff": ["Dylan"]},
            {"start": "09:30", "title": "Tim I", "staff": ["Shaked"]}]
 
-MINE = "5076661234@c.us"
+MINE = "50700000000@c.us"
 
 
 def msg(text, at, chat=MINE):

@@ -21,7 +21,7 @@
 ```
 python3 send.py --to staff            --text rota.txt --file board.png
 python3 send.py --to surfers_he       --text forecast.txt
-python3 send.py --to +50762596666     --text mine.txt
+python3 send.py --to +507XXXXXXX     --text mine.txt
 python3 send.py --to staff --text rota.txt --dry-run
 ```
 

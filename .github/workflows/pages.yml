@@ -53,6 +53,12 @@ jobs:
           ls -l site
       - name: Refuse to publish anything carrying real people
         run: python3 .github/no_pii.py site
+      # The build pass above has run since the start and only ever looked at
+      # the build. The owner's own mobile number sat in send.py's docstring
+      # and in SENDING.md the whole time, in a public repository, and no
+      # check here saw it -- a routine that refused to send to it did.
+      - name: And refuse if the source itself carries someone's details
+        run: python3 .github/no_pii.py --source
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
