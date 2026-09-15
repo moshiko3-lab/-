@@ -2,20 +2,25 @@
 """The Surfline chart for Playa Venao, as a picture for the forecast.
 
     python3 surfshot.py --out /tmp/surf.png
-    python3 surfshot.py --out /tmp/surf.png --full /tmp/whole-page.png
+    python3 surfshot.py --out /tmp/surf.png --date 2026-09-16
 
 The owner asked for the forecast to carry a Surfline screenshot the way
 the 19:00 rota carries a photograph of the planner. Same shape as
 `shot.py`, and the same rule as the board: **the picture is a bonus and
-the message is the point.** Nothing here is allowed to stop a forecast.
+the message is the point.** Nothing here is allowed to stop a forecast --
+`shoot()` returns a reason instead of raising, and the caller sends the
+text.
 
-**It needs the site on the network allow-list.** This container reaches
-`services.surfline.com` -- that is how the numbers arrive -- but
-`www.surfline.com` answers 403 at the proxy's CONNECT, which is the
-environment's policy and not a fault to route around. Until the owner adds
-the host to the `Bloowatch` environment the way he added Green-API's on
-3/9/2026, `shoot()` returns no path and the reason, and the forecast goes
-out as text exactly as it does today.
+**It needs two hosts on the network allow-list**, both added to the
+`Bloowatch` environment on 15/9/2026: `www.surfline.com` for the page and
+`wa.cdn-surfline.com` for its stylesheets, scripts and icons. With only
+the first the page renders as bare HTML. Everything else the page reaches
+for stays blocked and is not needed -- analytics, two ad networks, a
+cookie banner, map tiles, cam stills -- and each of those would be a third
+party given a way into the environment that holds the school's keys. If
+either host is ever dropped the proxy answers 403 to CONNECT, which is
+policy, not a fault: `shoot()` says so in as many words and the forecast
+goes out as text.
 """
 
 import argparse
@@ -98,10 +103,11 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
           timeout=90000):
     """Save the chart to `out`. Returns (path, reason).
 
-    `date` is the day the forecast is about, as YYYY-MM-DD; the picture is
-    cut to that day's column alone. Without it the whole three-day graph is
-    kept, which is what the first version sent and what the owner asked to
-    narrow.
+    `date` is the day the forecast is about, as YYYY-MM-DD. It is used to
+    press that day's button in the page's own day selector, so every graph
+    redraws for it; without a date the page is left on today. This is not
+    a crop -- an earlier version cut a three-day desktop chart into thirds
+    and had to throw away the day headings to do it.
 
     A path and an empty reason on success; "" and a sentence otherwise. It
     never raises, because every caller is a send that must still go.

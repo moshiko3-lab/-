@@ -294,6 +294,71 @@ os.rename(os.path.join(tmp, "wind.bak"), paths[2])
 check("the three-file form still works",
       S.hours(*S.load(paths), date="2026-09-05") == ROWS)
 
+
+# ---------------------------------------------------------------------------
+# The two readings added on 15/9/2026. Both decide something the customers
+# see: the energy decides how far the recommended hours keep off the high,
+# and the sky decides whether the message mentions rain at all.
+# ---------------------------------------------------------------------------
+
+def _rows(day, hours, offset=-5):
+    """Swell rows shaped the way the feed sends them."""
+    import datetime as _dt
+    out = []
+    base = _dt.datetime.fromisoformat(day + "T00:00:00")
+    for h, trains in hours.items():
+        ts = int((base.replace(hour=h)
+                  - _dt.timedelta(hours=offset)).timestamp())
+        out.append({"timestamp": ts, "utcOffset": offset,
+                    "swells": [{"height": a, "period": b} for a, b in trains]})
+    return out
+
+
+def _weather(day, hours, offset=-5):
+    import datetime as _dt
+    out = []
+    base = _dt.datetime.fromisoformat(day + "T00:00:00")
+    for h, cond in hours.items():
+        ts = int((base.replace(hour=h)
+                  - _dt.timedelta(hours=offset)).timestamp())
+        out.append({"timestamp": ts, "utcOffset": offset, "condition": cond})
+    return out
+
+
+print("\nenergy and sky")
+D = "2026-09-16"
+
+# h^2 * T, summed over the trains, which is the scale the owner reads.
+rows = _rows(D, {8: [(1.0, 10), (0.5, 8)], 12: [(1.0, 10), (0.5, 8)]})
+want = (1.0 ** 2 * 10) + (0.5 ** 2 * 8)
+check("energy is the sum of h squared by period",
+      abs(S.day_energy(rows, D) - want) < 1e-6,
+      str(S.day_energy(rows, D)))
+
+# A sea nobody could read is not a flat sea. None and 0 mean opposite
+# things to the hours: below the threshold the windows back off a high,
+# and a day reported as 0 would back off every high on a day that may
+# have had plenty of push.
+check("a day with no rows reads as unknown, not as flat",
+      S.day_energy([], D) is None)
+check("and so does a day the feed does not cover",
+      S.day_energy(rows, "2026-09-20") is None)
+
+# Night hours are not surfed and must not drag the average down.
+night = _rows(D, {2: [(0.1, 4)], 8: [(1.0, 10)], 12: [(1.0, 10)]})
+check("hours nobody goes in are left out of the average",
+      abs(S.day_energy(night, D) - 10.0) < 1e-6,
+      str(S.day_energy(night, D)))
+
+sky = S.sky(_weather(D, {6: "CLEAR", 9: "LIGHT_RAIN",
+                                23: "NIGHT_THUNDER_SHOWERS"}), D)
+check("the sky is read for the daylight hours", [h for h, _ in sky] == [6, 9],
+      repr(sky))
+check("and in order, with the condition as the feed spells it",
+      sky[1][1] == "LIGHT_RAIN", repr(sky))
+check("a missing weather feed is no sky, not a clear one",
+      S.sky(None, D) == [] and S.sky([], D) == [])
+
 print("\n%d checks, %d failed" % (len(ran), len(fails)))
 if fails:
     print("FAILED: " + ", ".join(fails))
