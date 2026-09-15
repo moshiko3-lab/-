@@ -183,6 +183,31 @@ check("and a metre and a bit is a day for everyone, not for experts",
       not says(s, DEMANDING), s)
 check("it welcomes them by name", says(s, WELCOMING), s)
 
+# ---------------------------------------------------------------------------
+print("\nthe tide times read earliest-first on a Hebrew phone")
+# WhatsApp lays the line out right to left, so the time written first lands
+# on the right. Both lines are therefore stored latest-first. The highs
+# always were; the lows were not, and it went unseen because Venao usually
+# has one low in daylight. 21/9 to 24/9 each have two. The owner confirmed
+# the flip on his own phone on 15/9/2026.
+for _d in ("2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24"):
+    _m, _e = F.build(_d, "0.6-0.9", "10", "", "x", "", "", "he")
+    _lines = dict(
+        (ln.split("*")[1], ln.split(" - ")[1].split())
+        for ln in (_m or "").split("\n") if ln.startswith("*שיא"))
+    for _what, _times in _lines.items():
+        check("%s: %s is stored latest-first" % (_d, _what.strip()),
+              _times == sorted(_times, reverse=True), repr(_times))
+# A day with two of each, so the two lines cannot be checked by different
+# rules without one of them failing here.
+_t = F.tides_for("2026-09-15")
+check("15/9 is the case with two highs in daylight",
+      len([x for x in _t["highs"] if F.LIST_FROM <= F.mins(x["t"]) <= F.LIST_TO])
+      == 2)
+_h = F.build("2026-09-22", "0.6", "10", "", "x", "", "", "he")[0]
+check("a day with two daylight lows does not print them low-first",
+      "06:28 18:58" not in _h, _h.split("\n")[5] if _h else "")
+
 print("\nthe recommended hours are the ones he wrote by hand")
 w7 = F.windows(F.tides_for("2026-09-07"))[2]
 check("7/9 comes out exactly as he corrected it",

@@ -848,9 +848,23 @@ def build(date, waves, period, compare, spot_note, note="", wind="",
 
     hi_rows = daytime(t.get("highs") or []) or (t.get("highs") or [])
     lo_rows = daytime(t.get("lows") or []) or (t.get("lows") or [])
-    highs = " ".join(x["t"] for x in sorted(hi_rows,
-                                            key=lambda x: x["t"], reverse=True))
-    lows = " ".join(x["t"] for x in sorted(lo_rows, key=lambda x: x["t"]))
+    # Both stored latest-first, which is what makes them read earliest-first.
+    #
+    # WhatsApp lays a line of Hebrew out right to left, and two bare times
+    # separated by a space are two runs inside it, so the first one written
+    # lands on the right. Writing them backwards is what puts them back in
+    # order on the screen. The highs have been reversed for a long time and
+    # read correctly every night; the lows were not, and nobody noticed
+    # because Venao almost always has one low in daylight and one is one
+    # either way round.
+    #
+    # 21/9 to 24/9 each have two, and on those four days the lows would have
+    # read backwards. Confirmed on the owner's own phone on 15/9/2026: shown
+    # three variants of the line, he picked the reversed one as the one that
+    # reads earliest-first, and did not pick the naturally-ordered one.
+    order = lambda rows: sorted(rows, key=lambda x: x["t"], reverse=True)
+    highs = " ".join(x["t"] for x in order(hi_rows))
+    lows = " ".join(x["t"] for x in order(lo_rows))
 
     # Feet alongside metres, the way they write it. When the swell is not
     # known the line says so loudly rather than quietly carrying yesterday's
