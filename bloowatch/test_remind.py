@@ -46,16 +46,19 @@ def check(name, cond, detail=""):
 class Stub:
     """One run of remind.main() with the world replaced."""
 
-    def __init__(self, lessons, batch_status=0, journal=(0, 0)):
+    def __init__(self, lessons, batch_status=0, journal=None):
         self.lessons = lessons
         self.batch_status = batch_status
-        self.journal = list(journal)
+        # The journal Green-API would return: a list of entries, or None for
+        # a journal that will not answer at all.
+        self.journal = journal
         self.sent = []
 
     def __enter__(self):
         import export_catalog
+        import audit_reminders
         self.real = (rota.login, rota.lessons_for, R.send.run_batch,
-                     R._journal_count, R.send.pick_gateway,
+                     audit_reminders.journal, R.send.pick_gateway,
                      export_catalog.crew_numbers)
         rota.login = lambda: ("s", "b")
         rota.lessons_for = lambda s, b, d: self.lessons
@@ -70,15 +73,26 @@ class Stub:
             import json
             with open(path, encoding="utf-8") as f:
                 self.sent = json.load(f)
+            # run_batch's real contract: one JSON line per person, on stdout.
+            for one in self.sent:
+                where = R.send.target(one["phone"], {})
+                print(json.dumps({"name": one["name"], "chatId": where["jid"],
+                                  "code": 200 if not self.batch_status else 500},
+                                 ensure_ascii=False))
             return self.batch_status
         R.send.run_batch = run_batch
-        R._journal_count = lambda minutes=15: self.journal.pop(0)
+
+        def fake_journal(ident, token, minutes=1440):
+            if self.journal is None:
+                raise RuntimeError("journal unreadable")
+            return self.journal
+        audit_reminders.journal = fake_journal
         return self
 
     def __exit__(self, *a):
-        import export_catalog
+        import export_catalog, audit_reminders
         (rota.login, rota.lessons_for, R.send.run_batch,
-         R._journal_count, R.send.pick_gateway,
+         audit_reminders.journal, R.send.pick_gateway,
          export_catalog.crew_numbers) = self.real
         return False
 
@@ -106,28 +120,47 @@ def main():
     check("a slot with nobody due exits 0", code == 0, "exit %s" % code)
     check("and sends nothing", s.sent == [], repr(s.sent))
 
+    # The journal entries Green-API would return. `ours` is a message to the
+    # person we actually wrote to; `somebody_else` is the 19:00 rota going
+    # out to the staff group at the same moment.
+    mine = R.send.target("+972500000000", {})["jid"]
+    now = int(dt.datetime.now(rota.PANAMA).timestamp())
+    ours = [{"chatId": mine, "textMessage": "reminder", "timestamp": now}]
+    somebody_else = [{"chatId": "staff-group@g.us",
+                      "caption": "*לו״ז יום ג׳*", "timestamp": now}]
+
     # --- the ordinary good slot ---------------------------------------
-    code, s = run(([lesson(50)], 0, (4, 5)))
+    code, s = run(([lesson(50)], 0, ours))
     check("a slot with somebody due sends them", len(s.sent) == 1,
           repr([x.get("name") for x in s.sent]))
-    check("and exits 0 when the journal grew", code == 0, "exit %s" % code)
+    check("and exits 0 when that person's own chat shows it", code == 0,
+          "exit %s" % code)
 
     # --- the failure that hid, in both its shapes ---------------------
     # The gateway itself refused: run_batch already knows, and the status
     # must survive all the way out rather than being swallowed.
-    code, _ = run(([lesson(50)], 1, (4, 5)))
+    code, _ = run(([lesson(50)], 1, ours))
     check("a gateway failure exits 1", code == 1, "exit %s" % code)
 
     # And the quieter one: every call returned 200 and the journal shows
     # nothing left the building. This is the case a status-only check calls
     # a success, and it is the case that cost six reminders.
-    code, _ = run(([lesson(50)], 0, (4, 4)))
+    code, _ = run(([lesson(50)], 0, []))
     check("a 200 that left no trace in the journal exits 1", code == 1,
           "exit %s" % code)
 
+    # **Somebody else's message is not proof.** The first version of this
+    # counted every outgoing message in the window, so a rota to the staff
+    # group satisfied it while the reminders themselves were lost. That is
+    # the same mistake that let a missing forecast pass for a whole day:
+    # evidence something else could have produced is not evidence.
+    code, _ = run(([lesson(50)], 0, somebody_else))
+    check("a message to a different chat is not proof the reminder arrived",
+          code == 1, "exit %s" % code)
+
     # An unreachable journal must not invent a failure: a network blip at
     # 05:10 would otherwise page somebody about reminders that went out fine.
-    code, _ = run(([lesson(50)], 0, (None, None)))
+    code, _ = run(([lesson(50)], 0, None))
     check("an unreadable journal does not fail a good send", code == 0,
           "exit %s" % code)
 

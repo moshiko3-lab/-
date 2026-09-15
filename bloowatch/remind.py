@@ -27,18 +27,25 @@ There is no third outcome and no silent one. `RESULT planned=N sent=N ...` is
 printed on the last line either way, so a routine reports from the numbers
 rather than from an impression of how the run went.
 
-**The count of what was planned is taken before anything is sent**, and the
-count of what arrived is taken from what the gateway actually returned. A run
-that dies halfway through therefore fails loudly: planned is already 2 and
-sent never reaches it. That is the whole point -- the failure that hid was the
-one where the planning half succeeded and the sending half never happened.
+**The count of what was planned is taken before anything is sent**, so a run
+that dies halfway through fails loudly: planned is already 2 and the rest
+never follows. That is the whole point -- the failure that hid was the one
+where the planning half succeeded and the sending half never happened.
+
+**And the proof that a reminder arrived is asked per person, of that person's
+own chat, since this run began.** Anything looser is not proof: the first
+version of this file counted every outgoing message in the window, which a
+rota to the staff group would have satisfied just as well as the reminders
+it was supposed to be checking.
 
 Nothing about who gets a message or in which language is decided here:
 `rota.plan` owns that, as it does for every other message the school sends.
 """
 
 import argparse
+import contextlib
 import datetime as dt
+import io
 import json
 import os
 import sys
@@ -67,6 +74,47 @@ def due(lessons, lo, hi, now=None):
         return [], []
     mine = rota.by_person(soon)
     return rota.plan(lambda n, lang: rota.remind(n, mine[n], lang), mine)
+
+
+def landed(lines, since):
+    """Of the reminders the gateway accepted, which ones the journal shows.
+
+    Returns (accepted, arrived, lost) -- names, not counts, so the report can
+    say who.
+
+    The first version of this counted **every** outgoing message in the
+    window and called a rise in that number proof. It is the same mistake
+    that let a missing forecast pass for a day: evidence something else could
+    have produced is not evidence. The 19:00 rota going out while an 18:40
+    slot ran would have satisfied it, and a slot whose reminders all failed
+    would have reported success.
+
+    So the question is asked per person: this chat, since this run started.
+    Messages the gateway skipped as already-sent are not expected to appear
+    again and are not counted against the run.
+    """
+    accepted, skipped = [], []
+    for line in lines:
+        try:
+            one = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(one, dict) or "chatId" not in one:
+            continue
+        (skipped if one.get("skipped") else accepted).append(one)
+    accepted = [o for o in accepted if o.get("code") == 200]
+
+    import audit_reminders as A
+    try:
+        seen = A.by_chat(A.journal(os.environ.get("GREENAPI_ID", ""),
+                                   os.environ.get("GREENAPI_TOKEN", "")),
+                         since=since)
+    except Exception:                                          # noqa: BLE001
+        # An unreadable journal must not turn a good run into a failure: a
+        # reminder that never arrives is the worse of the two mistakes.
+        return accepted, None, []
+    lost = [o for o in accepted if not seen.get(o["chatId"])]
+    return accepted, len(accepted) - len(lost), lost
 
 
 def deliver(sends, dry_run=False):
@@ -126,57 +174,41 @@ def main():
     for s in sends:
         print("%-18s %-4s %d chars" % (s["name"], s["lang"], len(s["text"])))
 
-    before = _journal_count()
-    status = deliver(sends, a.dry_run)
+    started = dt.datetime.now(PANAMA) - dt.timedelta(minutes=2)
+
+    # run_batch reports one JSON line per person. They are kept as well as
+    # printed, because who the gateway accepted is what the journal is then
+    # asked about, one chat at a time.
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        status = deliver(sends, a.dry_run)
+    lines = buffer.getvalue().splitlines()
+    for line in lines:
+        print(line)
+
     if a.dry_run:
-        print("RESULT planned=%d sent=0 skipped=0 failed=0 dry-run"
-              % len(sends))
+        print("RESULT planned=%d dry-run" % len(sends))
         return 0
 
     # What the gateway said is one witness; Green-API's journal is the other,
-    # and it is the one that survives this process dying. They should agree.
-    # When they do not, the journal wins and the run fails: a 200 that left no
-    # trace in the journal has not reached anybody's phone.
-    after = _journal_count()
-    arrived = None if (before is None or after is None) else after - before
-    line = ("RESULT planned=%d gateway=%s journal=%s"
-            % (len(sends), "ok" if status == 0 else "FAILED",
-               "unreadable" if arrived is None else "+%d" % arrived))
-    print(line)
+    # and it is the one that survives this process dying. They are asked
+    # about the same people, since the same moment.
+    accepted, arrived, lost = landed(lines, started)
+    print("RESULT planned=%d accepted=%d gateway=%s journal=%s"
+          % (len(sends), len(accepted), "ok" if status == 0 else "FAILED",
+             "unreadable" if arrived is None else "%d/%d"
+             % (arrived, len(accepted))))
 
     if status != 0:
         print("some reminders did not reach WhatsApp — see FAILED above",
               file=sys.stderr)
         return 1
-    if arrived is not None and arrived <= 0:
-        print("the gateway accepted %d reminders and the journal shows none — "
-              "treat this as not sent" % len(sends), file=sys.stderr)
+    if lost:
+        print("the gateway accepted these and the journal has no trace of "
+              "them — treat them as not sent: "
+              + ", ".join(o.get("name", "?") for o in lost), file=sys.stderr)
         return 1
     return 0
-
-
-def _journal_count(minutes=15):
-    """How many messages Green-API has recorded going out just now.
-
-    Deliberately a count and not a comparison of texts: this is a witness that
-    something left the building, not a second implementation of `already_said`.
-    Unreadable is reported as unreadable, never as zero -- a journal that will
-    not answer must not turn a good run into a failure.
-    """
-    import urllib.request
-    ident = os.environ.get("GREENAPI_ID", "")
-    token = os.environ.get("GREENAPI_TOKEN", "")
-    base = os.environ.get("GREENAPI_URL", "").rstrip("/")
-    if not (ident and token and base):
-        return None
-    url = "%s/waInstance%s/lastOutgoingMessages/%s?minutes=%d" % (
-        base, ident, token, minutes)
-    try:
-        with urllib.request.urlopen(url, timeout=45) as r:
-            said = json.loads(r.read().decode("utf-8", "replace"))
-    except Exception:                                          # noqa: BLE001
-        return None
-    return len(said) if isinstance(said, list) else None
 
 
 if __name__ == "__main__":
