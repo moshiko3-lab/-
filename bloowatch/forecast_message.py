@@ -123,13 +123,24 @@ CLEAR_AT_NEAP, CLEAR_AT_SPRING = 105, 40
 # 07:00-10:00 and 14:00-17:00 -- and 135 minutes is what he opened them to.
 MID_HALF = 135
 
-# Below this, the sea has no push behind it and low tide has nothing at all.
-# The owner's words on 15/9/2026: "יש ים נמוך עם אנרגיה חלשה כמו 100, אנחנו
-# לא רוצים להתקרב יותר מדי ללואו טייד כי אין גלים." The scale is
-# surfline.day_energy's -- 76 on the flat 0.9 m day he was describing, 103
-# and 118 on the 1.2 m days either side of it -- so 100 is his own number in
-# his own units, and it separates those days cleanly.
-WEAK_ENERGY = 100
+# Below this the sea has no push behind it, and at high tide there is too
+# much water over it to break. The owner's words on 15/9/2026: "יש ים נמוך
+# עם אנרגיה חלשה כמו 100, אנחנו לא רוצים להתקרב יותר מדי להיי טייד כי אין
+# גלים."
+#
+# **The units are Surfline's own kilojoules** -- the NEARSHORE ENERGY figure
+# on the spot page, read from its `energy` feed. That is not what this
+# started as: it was a proxy summing h^2 * T, and the comment here claimed
+# the scale matched. It did not. On 16/9 the proxy read 108 where Surfline's
+# page read 220, and it took the owner sending a screenshot of his phone for
+# anybody to notice. A threshold means nothing without its units.
+#
+# **The number itself is not settled.** 15/9 is the day he described, and it
+# reads 131 kJ, so a line at 100 would not have caught it; 16/9 and 17/9 read
+# 209 and 210. The line is somewhere between, and it is his to draw -- see
+# ROUTINES.md. Until he does, 150 sits between the day he called weak and the
+# days he did not.
+WEAK_ENERGY = 150
 
 # How far off a HIGH to stay on such a day. The first version of this read
 # the owner backwards and kept off the low instead, which is the opposite of

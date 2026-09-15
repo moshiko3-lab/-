@@ -96,7 +96,7 @@ def sea(date):
     # how far the recommended hours keep off the low; the sky decides whether
     # the message says anything about rain at all.
     out = surfline.summary(rows)
-    out["energy"] = surfline.day_energy(swells, date)
+    out["energy"] = surfline.day_energy(blob.get("energy"), date)
     out["sky"] = surfline.sky(blob.get("weather"), date)
     return out, today, None
 

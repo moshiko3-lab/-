@@ -283,7 +283,9 @@ def _forecast_changes():
     check("and an ordinary day is unchanged from what he approved",
           strong_mid == [("07:00", "11:00"), ("13:30", "18:00")],
           repr(strong_mid))
-    check("the threshold is the owner's own number", FM.WEAK_ENERGY == 100)
+    check("the threshold sits between the day he called weak (131 kJ) "
+      "and the ones he did not (209)",
+      131 < FM.WEAK_ENERGY < 209, str(FM.WEAK_ENERGY))
     check("and so is the clearance off a high", FM.CLEAR_OF_HIGH_WEAK == 90)
 
     # --- the near-low advice stays; he kept it in his own correction ----

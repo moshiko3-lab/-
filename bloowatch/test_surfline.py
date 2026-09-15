@@ -301,17 +301,12 @@ check("the three-file form still works",
 # and the sky decides whether the message mentions rain at all.
 # ---------------------------------------------------------------------------
 
-def _rows(day, hours, offset=-5):
-    """Swell rows shaped the way the feed sends them."""
+def _ts(day, hour, offset=-5):
+    """The timestamp the feed would carry for this local hour."""
     import datetime as _dt
-    out = []
     base = _dt.datetime.fromisoformat(day + "T00:00:00")
-    for h, trains in hours.items():
-        ts = int((base.replace(hour=h)
-                  - _dt.timedelta(hours=offset)).timestamp())
-        out.append({"timestamp": ts, "utcOffset": offset,
-                    "swells": [{"height": a, "period": b} for a, b in trains]})
-    return out
+    return int((base.replace(hour=hour)
+                - _dt.timedelta(hours=offset)).timestamp())
 
 
 def _weather(day, hours, offset=-5):
@@ -328,14 +323,16 @@ def _weather(day, hours, offset=-5):
 print("\nenergy and sky")
 D = "2026-09-16"
 
-# h^2 * T, summed over the trains, which is the scale the owner reads.
-rows = _rows(D, {8: [(1.0, 10), (0.5, 8)], 12: [(1.0, 10), (0.5, 8)]})
-want = (1.0 ** 2 * 10) + (0.5 ** 2 * 8)
-check("energy is the sum of h squared by period",
-      abs(S.day_energy(rows, D) - want) < 1e-6,
-      str(S.day_energy(rows, D)))
+# Surfline's own kilojoules, from its own feed. This used to be a proxy --
+# a sum of h^2 * T -- and the comment claimed it landed on the same scale.
+# It did not: 108 where Surfline's page said 220. The owner's screenshot of
+# his phone is the only reason anybody found out.
+rows = [{"timestamp": t, "utcOffset": -5, "nearshore": v}
+        for t, v in ((_ts(D, 8), 200.0), (_ts(D, 12), 220.0))]
+check("energy is read straight from the feed, in kJ",
+      abs(S.day_energy(rows, D) - 210.0) < 1e-6, str(S.day_energy(rows, D)))
 
-# A sea nobody could read is not a flat sea. None and 0 mean opposite
+# A day nobody could read is not a flat day. None and 0 mean opposite
 # things to the hours: below the threshold the windows back off a high,
 # and a day reported as 0 would back off every high on a day that may
 # have had plenty of push.
@@ -343,12 +340,17 @@ check("a day with no rows reads as unknown, not as flat",
       S.day_energy([], D) is None)
 check("and so does a day the feed does not cover",
       S.day_energy(rows, "2026-09-20") is None)
+check("a missing energy feed is unknown too", S.day_energy(None, D) is None)
 
-# Night hours are not surfed and must not drag the average down.
-night = _rows(D, {2: [(0.1, 4)], 8: [(1.0, 10)], 12: [(1.0, 10)]})
+# An hour the feed left blank is skipped, not counted as nothing.
+gap = rows + [{"timestamp": _ts(D, 14), "utcOffset": -5, "nearshore": None}]
+check("an hour with no reading does not drag the day to zero",
+      abs(S.day_energy(gap, D) - 210.0) < 1e-6, str(S.day_energy(gap, D)))
+
+# Night hours are not surfed and must not move the average.
+night = rows + [{"timestamp": _ts(D, 2), "utcOffset": -5, "nearshore": 10.0}]
 check("hours nobody goes in are left out of the average",
-      abs(S.day_energy(night, D) - 10.0) < 1e-6,
-      str(S.day_energy(night, D)))
+      abs(S.day_energy(night, D) - 210.0) < 1e-6, str(S.day_energy(night, D)))
 
 sky = S.sky(_weather(D, {6: "CLEAR", 9: "LIGHT_RAIN",
                                 23: "NIGHT_THUNDER_SHOWERS"}), D)

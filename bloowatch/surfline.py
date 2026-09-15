@@ -49,12 +49,13 @@ BASE = "https://services.surfline.com/kbyg/spots/forecasts"
 FEEDS = (("surf", "&units%5BwaveHeight%5D=M"),
          ("swells", ""),
          ("wind", "&units%5BwindSpeed%5D=KTS"),
-         ("weather", ""))
+         ("weather", ""),
+         ("energy", ""))
 
 # The weather feed is the only one the forecast can do without: a missing
 # sea stops the send, a missing sky just means the message says nothing
 # about rain. Kept in one place so both routes agree about which.
-OPTIONAL_FEEDS = ("weather",)
+OPTIONAL_FEEDS = ("weather", "energy")
 
 # Cloudflare lets these through and refuses a bare curl. Keep them together:
 # dropping Origin or Referer is what turns a 200 back into a 403.
@@ -216,6 +217,9 @@ def fetch(days=2, timeout=45000):
         "weather": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
                      "condition": r.get("condition")}
                     for r in out.get("weather") or []],
+        "energy": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+                    "nearshore": r.get("nearshore")}
+                   for r in out.get("energy") or []],
     }
 
 
@@ -254,23 +258,30 @@ def _rows(payload, key):
 
 
 def energy(rows_):
-    """The sea's energy, per hour, as the number the owner reads on Surfline.
+    """The sea's energy per hour, in the kilojoules Surfline itself prints.
 
-    Sum of h^2 * T over the swell trains. It is a proxy rather than their
-    exact figure, but it lands on the same scale -- 66-90 through a
-    0.6-0.9 m day, 100-120 on the 1.2 m days after it -- and the scale is
-    what a threshold is written in.
+    Read from Surfline's own `energy` feed, field `nearshore` -- the number
+    on the spot page under NEARSHORE ENERGY, and the one the owner reads.
 
-    It exists because height alone does not say whether there is a wave.
-    A small sea with long-period energy behind it still breaks; a small sea
-    with none does not, and at low tide on that day there is nothing at
-    all. That is the distinction the recommended hours now turn on.
+    **It used to be a proxy and that was wrong.** The first version summed
+    h^2 * T over the swell trains and the comment here claimed it "lands on
+    the same scale". It does not: on 16/9/2026 the proxy said 108 where
+    Surfline's own page said 220. The owner sent a screenshot of his phone
+    and the two numbers did not match, which is the only reason anybody
+    found out. A threshold is written in units, and a number in the wrong
+    units is not a smaller version of the right one.
+
+    It exists because height alone does not say whether there is a wave. A
+    small sea with long-period energy behind it still breaks; a small sea
+    with none does not, and at high tide on that day there is too much
+    water over it to break at all. That is what the recommended hours turn
+    on.
     """
     out = {}
     for r in rows_ or []:
-        t = _local(r["timestamp"], r.get("utcOffset") or 0)
-        out[t] = sum((s.get("height") or 0) ** 2 * (s.get("period") or 0)
-                     for s in (r.get("swells") or []))
+        if r.get("nearshore") is None:
+            continue
+        out[_local(r["timestamp"], r.get("utcOffset") or 0)] = r["nearshore"]
     return out
 
 
