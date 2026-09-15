@@ -179,7 +179,6 @@ def _evening_sends():
         def __init__(self, **kw):
             self.date = "2026-09-15"
             self.image = os.path.join(tempfile.gettempdir(), "t-real.png")
-            self.snapshot = os.path.join(tempfile.gettempdir(), "t-snap.json")
             self.dry_run = False
             self.__dict__.update(kw)
 
@@ -191,8 +190,19 @@ def _evening_sends():
     with Fake({"send.py": False}):
         code = E.rota(Args())
     check("a staff rota that failed to send exits 1", code == 1, str(code))
+    # `calls` holds script names, so this asks for the script by name. The
+    # older spelling looked for "--snapshot" in that same list and could
+    # therefore never fail, whatever rota() did.
     check("and no snapshot is written for it",
-          "--snapshot" not in " ".join(calls), repr(calls))
+          "snapshot.py" not in calls, repr(calls))
+
+    # --- and one that did go out must leave exactly one -----------------
+    del calls[:]
+    with Fake({}):
+        code = E.rota(Args())
+    check("a staff rota that went out exits 0", code == 0, str(code))
+    check("and saves the snapshot through snapshot.py, not a local file",
+          calls.count("snapshot.py") == 1, repr(calls))
 
     # --- an empty day is the owner's to see, not the group's ------------
     del calls[:]
@@ -267,7 +277,45 @@ def _evening_sends():
     check("and leaves no plan or crew file behind",
           not os.path.exists(plan) and not os.path.exists(crew))
 
-    for p in (Args().image, Args().snapshot):
+    # --- 20:00: no reference point is a stop, never a re-send -----------
+    # This is the check that quietly stopped working when the routines moved
+    # to fresh containers: 19:00 wrote the snapshot to a file and 20:00 came
+    # up on a different machine, found nothing, and reported a clean run.
+    # A missing baseline must be loud and must send nothing.
+    del calls[:]
+    with Fake({"snapshot.py": False}):
+        code = E.changes(Args())
+    check("20:00 with no snapshot exits 1", code == 1, str(code))
+    check("and sends nothing at all", "send.py" not in calls, repr(calls))
+
+    # --- a quiet hour is a quiet hour -----------------------------------
+    del calls[:]
+    with Fake({}, text="nothing changed since the rota was sent"):
+        code = E.changes(Args())
+    check("20:00 with an unchanged board exits 0 and sends nothing",
+          code == 0 and "send.py" not in calls, "%s %r" % (code, calls))
+
+    # --- a change reaches the group and the people it touches -----------
+    del calls[:]
+    with Fake({}, text="*עדכון ללו״ז*\n09:00 · נוסף"):
+        code = E.changes(Args())
+    check("20:00 with a changed board exits 0", code == 0, str(code))
+    check("and writes to the group and to the affected instructors",
+          calls.count("send.py") == 2, repr(calls))
+    check("and leaves no snapshot or plan on disk",
+          not os.path.exists(os.path.join(tempfile.gettempdir(),
+                                          "rota-snapshot.json"))
+          and not os.path.exists(os.path.join(tempfile.gettempdir(),
+                                              "changes.json")))
+
+    # --- a change nobody was told about is a failure, not a quiet run ---
+    del calls[:]
+    with Fake({"send.py": False}, text="*עדכון ללו״ז*\n09:00 · נוסף"):
+        code = E.changes(Args())
+    check("a change the group was not told about exits 1", code == 1,
+          str(code))
+
+    for p in (Args().image,):
         if os.path.exists(p):
             os.remove(p)
 

@@ -743,6 +743,26 @@ def main():
         if not chg:
             print("nothing changed since the rota was sent")
             return 0
+
+        # --group prints the staff group's update and nothing else, so the
+        # caller can send it without slicing it out of a screenful of text.
+        if a.group:
+            print(update_group(chg, date, a.lang))
+            return 0
+
+        # With --plan the changes go out the same way every other message
+        # does: built here, written to a file, sent by send.py --batch. The
+        # alternative is what the 20:00 run used to do -- read these
+        # messages off the screen and retype them -- and a rota correction
+        # retyped at eight at night is how somebody gets told about a
+        # lesson that is not theirs.
+        if a.plan:
+            touched = {n for c in chg for n in c["staff"]}
+            return _write_plan(a.plan,
+                               lambda n, lang: update_personal(n, chg, date,
+                                                               lang),
+                               {n: None for n in sorted(touched)})
+
         print("======== GROUP ========")
         print(update_group(chg, date, a.lang))
         for name in sorted({n for c in chg for n in c["staff"]}):

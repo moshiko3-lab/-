@@ -287,7 +287,10 @@ def rota(args):
 
     snap = "skipped (dry run)"
     if not args.dry_run:
-        good, _, tail = _run("rota.py", "--snapshot", args.snapshot)
+        # The snapshot goes to WhatsApp's journal, not to a file. 19:00 and
+        # 20:00 are two different containers now, and a file written here is
+        # thrown away with this one -- see snapshot.py.
+        good, _, tail = _run("snapshot.py", "--save", "--date", date)
         snap = "saved" if good else "FAILED: " + tail
         if not good:
             print("error: the rota went out but the snapshot did not save — "
@@ -357,6 +360,93 @@ def personal(args):
     return 0
 
 
+def changes(args):
+    """20:00 — what moved on the board since the rota went out at 19:00.
+
+    The reference point comes out of WhatsApp's journal rather than a local
+    file, because 19:00 and 20:00 are two different containers and a file
+    written by the first is gone before the second starts. That is exactly
+    what happened after the routines moved to fresh containers: this check
+    ran every night, found no file, printed "nothing to compare against",
+    and reported a clean run while seeing nothing at all.
+
+    No snapshot is still a stop, not a guess. Sending tomorrow's whole rota
+    again at eight at night because the baseline is missing reads as a
+    fault and is one; saying so and sending nothing is right.
+    """
+    date = args.date or tomorrow()
+    base = os.path.join(tempfile.gettempdir(), "rota-snapshot.json")
+    plan = os.path.join(tempfile.gettempdir(), "changes.json")
+
+    ok, _, tail = _run("snapshot.py", "--load", base, "--date", date)
+    if not ok:
+        print("no reference point for %s — the 19:00 rota either did not go "
+              "out or did not save one: %s" % (date, tail), file=sys.stderr)
+        print("RESULT snapshot=missing changed=? sent=0")
+        return 1
+
+    try:
+        ok, group, tail = _run("rota.py", "--date", date, "--diff", base,
+                               "--group")
+        if not ok:
+            print("error: the comparison failed: %s" % tail, file=sys.stderr)
+            print("RESULT snapshot=ok changed=? sent=0")
+            return 1
+        if "nothing changed" in group:
+            print("RESULT snapshot=ok changed=0 sent=0")
+            return 0
+
+        ok, _, tail = _run("rota.py", "--date", date, "--diff", base,
+                           "--plan", plan)
+        if not ok:
+            print("error: the per-instructor updates could not be built: %s"
+                  % tail, file=sys.stderr)
+            print("RESULT snapshot=ok changed=yes sent=0")
+            return 1
+
+        import json
+        with open(plan, encoding="utf-8") as f:
+            people = len(json.load(f))
+
+        fd, cap = tempfile.mkstemp(suffix="-chg.txt", text=True)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(group)
+        try:
+            # --once-today throughout: a re-run of this check must not tell
+            # the group the same thing twice. already_said matches the exact
+            # text, so a board that moved again since still gets through.
+            cmd = ["send.py", "--to", "staff", "--text", cap, "--once-today"]
+            if args.dry_run:
+                cmd.append("--dry-run")
+            sent_group, _, gtail = _run(*cmd, timeout=300)
+        finally:
+            os.remove(cap)
+
+        sent_people = True
+        if people:
+            cmd = ["send.py", "--batch", plan, "--once-today"]
+            if args.dry_run:
+                cmd.append("--dry-run")
+            sent_people, _, ptail = _run(*cmd, timeout=900)
+    finally:
+        # The plan holds real phone numbers and the snapshot holds the whole
+        # day's board. Neither is left on disk.
+        for p in (plan, base):
+            if os.path.exists(p):
+                os.remove(p)
+
+    print("RESULT snapshot=ok changed=yes group=%s people=%d/%s"
+          % ("sent" if sent_group else "FAILED", people,
+             "sent" if sent_people else "FAILED"))
+    if not sent_group:
+        print("error: the staff group was not told: %s" % gtail,
+              file=sys.stderr)
+    if not sent_people:
+        print("error: not every affected instructor was told: %s" % ptail,
+              file=sys.stderr)
+    return 0 if (sent_group and sent_people) else 1
+
+
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
@@ -379,12 +469,20 @@ def main():
     r.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
     r.add_argument("--image", default="",
                    help="where to leave the board picture (default /tmp)")
-    r.add_argument("--snapshot",
-                   default=os.path.expanduser("~/.shokogi/rota.json"),
-                   help="the reference point the 20:00 change check reads")
+    # Accepted and ignored. The snapshot used to be a file named here, and
+    # the 19:00 routine's prompt still spells it out; it goes to WhatsApp's
+    # journal now (snapshot.py). Rejecting the flag would turn a prompt that
+    # is merely out of date into a 19:00 rota that does not go out at all.
+    r.add_argument("--snapshot", default="", help=argparse.SUPPRESS)
     r.add_argument("--dry-run", action="store_true",
                    help="build it and show where it would go")
     r.set_defaults(run=rota)
+
+    c = sub.add_parser("changes", help="what moved on the board since 19:00")
+    c.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
+    c.add_argument("--dry-run", action="store_true",
+                   help="build the updates and show where they would go")
+    c.set_defaults(run=changes)
 
     p = sub.add_parser("personal", help="each instructor's own rota")
     p.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
