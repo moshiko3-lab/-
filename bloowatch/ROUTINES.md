@@ -52,9 +52,29 @@
 ## הכנה, זהה בכל שגרה
 
 ```
-git fetch origin claude/new-session-d0r3xc && git checkout claude/new-session-d0r3xc && git pull origin claude/new-session-d0r3xc
-cd bloowatch
+[ -d /home/user/-/.git ] || git clone https://github.com/moshiko3-lab/- /home/user/- ; cd /home/user/- && git fetch origin claude/new-session-d0r3xc && git checkout claude/new-session-d0r3xc && git pull origin claude/new-session-d0r3xc && echo READY
 ```
+
+**השורה מתחילה בשכפול, וזה התיקון החשוב ביותר בקובץ הזה.**
+
+**ב-14/9/2026 קונטיינר של שגרה עלה ריק.** לא חסר קובץ, לא נפל סקריפט —
+`/home/user` היה **ריק**: בלי `bloowatch`, בלי `.git`, בלי שום דבר. כל שגרה
+ירתה בזמן, הריצה את `git fetch`, קיבלה `fatal: not a git repository`,
+דיווחה ועצרה. **יום שלם, אף הודעה אחת לא יצאה משום שגרה.**
+
+זה קרה בדיוק כשעברנו לשגרות בסשן נקי. המעבר עצמו היה נכון — הוא פתר את
+בעיית התור — אבל השגרות נוצרו **בלי מקור גיט**, ומאותו רגע כל קונטיירר
+שעלה היה ריק. `create_trigger` לא מקבל `source_url` בכלל, אז הפתרון הוא
+שהשגרה משכפלת בעצמה. **ה-repo ציבורי, אז זה לא דורש שום אישור או אסימון.**
+אם `.git` כבר קיים, השכפול מדולג.
+
+**איך זה התגלה, ולמה זה לקח יום.** השגרות **דיווחו נכון** — הן אמרו בדיוק
+מה קרה, ואפילו נמנעו מלאלתר תיקון כי כך כתוב להן. הדיווח הלך בהתראת push
+לבעלים ולא לסשן שתיקן. **כשמשהו לא עובד, הדיווח של השגרה הוא המקור הראשון
+לקרוא — לא לנחש מהצד.**
+
+השורש נמצא בדיווח הזה, אחרי יום שלם של ניחושים על סודות, על מבנה הפקודות
+ועל הקוד — **כולם היו תקינים.**
 
 **כל שישה הסודות אמורים להגיע מהגדרות הסביבה `Bloowatch`**:
 `BLOOWATCH_URL`, `BLOOWATCH_EMAIL`, `BLOOWATCH_PASSWORD`, `GREENAPI_ID`,
