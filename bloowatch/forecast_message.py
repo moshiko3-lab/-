@@ -214,30 +214,55 @@ WET_HEAVY = ("THUNDER_SHOWERS", "THUNDER_STORMS", "HEAVY_RAIN",
              "HEAVY_SHOWERS")
 
 
-def rain_line(sky, lang="he"):
-    """One line about rain, or nothing at all.
+def _runs(hours):
+    """Consecutive hours grouped into spans, as "08:00-10:00" strings.
 
-    The owner's brief, given twice on 15/9/2026 and narrowed the second
-    time: say that rain drops the wind and leaves the sea good to surf, and
-    say nothing else. The first version named the hours and, on a day with
-    storms in it, suggested surfing earlier -- he asked for all of that
-    gone. At Venao the rain comes through with the wind behind it and the
-    sea cleans up after; a message that lists shower times reads like a
-    reason to stay home, which is the opposite of what it is.
+    Grouped rather than reduced to first-and-last: rain at nine and again
+    at five is not rain from nine to five, and a line that says it is gets
+    read once and then never again.
+    """
+    out, run = [], []
+    for h in sorted(set(hours)):
+        if run and h == run[-1] + 1:
+            run.append(h)
+        else:
+            if run:
+                out.append(run)
+            run = [h]
+    if run:
+        out.append(run)
+    return ["%02d:00-%02d:00" % (r[0], r[-1] + 1) for r in out]
+
+
+def rain_line(sky, lang="he"):
+    """One line about rain: when, and what it does to the sea.
+
+    The owner settled this over three passes on 15/9/2026. The first named
+    the hours and, on a day with storms, suggested surfing earlier; he cut
+    it to the one fact that matters at Venao -- the rain comes through with
+    the wind behind it and the sea cleans up after. Then he put the hours
+    back: knowing when is useful, and in this sentence it reads as a
+    forecast rather than as a warning.
+
+    What is not in it, deliberately: any distinction between a shower and a
+    thunderstorm, and any advice about when to surf. Both were his to drop
+    and he dropped them.
 
     A dry day still says nothing. A line that appears every evening to
-    announce good weather is a line people stop reading, and then they miss
+    announce good weather is one people stop reading, and then they miss
     the one that matters.
     """
     if not sky:
         return ""
-    wet = [c for _, c in sky if any(w in c for w in WET_LIGHT + WET_HEAVY)]
+    wet = [h for h, c in sky if any(w in c for w in WET_LIGHT + WET_HEAVY)]
     if not wet:
         return ""
+    when = ", ".join(_runs(wet))
     if lang == "en":
-        return ("*🌧 Some rain about — it knocks the wind down and leaves "
-                "the sea good for surfing 🤙*")
-    return ("*🌧 צפוי גשם – הגשם מוריד את הרוח ועושה את הים טוב לגלישה 🤙*")
+        return ("*🌧 Rain expected around %s — it knocks the wind down and "
+                "leaves the sea good for surfing 🤙*" % when)
+    return ("*🌧 גשם צפוי בסביבות %s – הגשם מוריד את הרוח ועושה את הים טוב "
+            "לגלישה 🤙*" % when)
 
 
 def clear_of_highs(t, a, b, clear=CLEAR_OF_HIGH_WEAK):
