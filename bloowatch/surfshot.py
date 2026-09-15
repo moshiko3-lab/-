@@ -47,24 +47,30 @@ DAY_BUTTON = "button.graph-day"
 TOP = "[class*='surfGraphSection']"
 BOTTOM = "[class*='tideGraphSection']"
 
-# Above the surf graph sits the conditions bar; below the tide graph, first
-# light and sunset. Both are worth having, so the clip is opened out a
-# little at each end.
-PAD_TOP, PAD_BOTTOM = 120, 90
+# Above the surf graph sit the conditions bar, the surf height in words and
+# the swell components; below the tide graph, first light and sunset. All of
+# it is worth having, so the clip is opened out at each end. The top pad is
+# the one that matters: at 120 it cut the conditions bar off, and the height
+# panel it was widened for is the only place a number appears in writing.
+PAD_TOP, PAD_BOTTOM = 210, 70
 
 SETTLE_MS = 11000
 SCROLL_MS = 6000
 REDRAW_MS = 7000
 
-# The reading panels describe *now*, which is today, and this picture is
-# about tomorrow.
+# Nothing is hidden any more. The reading panels were hidden while the
+# picture came from the desktop layout, where they describe *now* and bled
+# into a crop of tomorrow. Here the day is chosen with a button, so the
+# panel follows it: with tomorrow selected it reads "SURF HEIGHT 3-4ft,
+# waist to chest", which is the number the owner went looking for and did
+# not find when it was hidden. It is also the only place the height is
+# written rather than drawn.
 #
-# **CSS only.** An earlier attempt walked the DOM to hide the two "View
-# hourly data" rows as well, and the page's own components crashed into
-# "Something went wrong here" where the graphs had been. Injecting a
-# stylesheet leaves React's tree alone; changing it does not.
-HIDE = ("[class*='TooltipContainer'], [class*='SurfTooltip'], "
-        "[class*='WindTooltip']")
+# If anything ever does need hiding, it goes in a stylesheet. An attempt to
+# hide the "View hourly data" rows by walking the DOM crashed the page's
+# own components into "Something went wrong here" where the graphs had
+# been. Injecting CSS leaves React's tree alone; changing it does not.
+HIDE = ""
 
 
 def _labels(date):
@@ -152,12 +158,13 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                     if picked:
                         p.wait_for_timeout(REDRAW_MS)
 
-                try:
-                    p.add_style_tag(
-                        content="%s { display: none !important; }" % HIDE)
-                    p.wait_for_timeout(600)
-                except Exception:                               # noqa: BLE001
-                    pass                # a panel left in beats no picture
+                if HIDE:
+                    try:
+                        p.add_style_tag(
+                            content="%s { display: none !important; }" % HIDE)
+                        p.wait_for_timeout(600)
+                    except Exception:                           # noqa: BLE001
+                        pass            # a panel left in beats no picture
 
                 box = p.evaluate("""(sel) => {
                     const a = document.querySelector(sel[0]);
