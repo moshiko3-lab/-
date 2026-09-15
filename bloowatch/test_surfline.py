@@ -361,6 +361,19 @@ check("and in order, with the condition as the feed spells it",
 check("a missing weather feed is no sky, not a clear one",
       S.sky(None, D) == [] and S.sky([], D) == [])
 
+# First light and sunset, for the card under the tide curve.
+_mid = _ts(D, 0)
+_sun = [{"midnight": _mid, "dawn": _ts(D, 5), "sunrise": _ts(D, 6),
+         "sunset": _ts(D, 18), "dusk": _ts(D, 19)}]
+check("the day's light is read as HH:MM",
+      S.light(_sun, D) == {"dawn": "05:00", "sunrise": "06:00",
+                           "sunset": "18:00", "dusk": "19:00"},
+      repr(S.light(_sun, D)))
+check("another day's row is not used for this one",
+      S.light(_sun, "2026-09-20") == {}, repr(S.light(_sun, "2026-09-20")))
+check("and a missing feed leaves the row out rather than inventing a sunrise",
+      S.light(None, D) == {} and S.light([], D) == {})
+
 print("\n%d checks, %d failed" % (len(ran), len(fails)))
 if fails:
     print("FAILED: " + ", ".join(fails))

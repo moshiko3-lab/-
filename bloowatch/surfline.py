@@ -50,12 +50,13 @@ FEEDS = (("surf", "&units%5BwaveHeight%5D=M"),
          ("swells", ""),
          ("wind", "&units%5BwindSpeed%5D=KTS"),
          ("weather", ""),
-         ("energy", ""))
+         ("energy", ""),
+         ("sunlight", ""))
 
 # The weather feed is the only one the forecast can do without: a missing
 # sea stops the send, a missing sky just means the message says nothing
 # about rain. Kept in one place so both routes agree about which.
-OPTIONAL_FEEDS = ("weather", "energy")
+OPTIONAL_FEEDS = ("weather", "energy", "sunlight")
 
 # Cloudflare lets these through and refuses a bare curl. Keep them together:
 # dropping Origin or Referer is what turns a 200 back into a 403.
@@ -218,8 +219,12 @@ def fetch(days=2, timeout=45000):
                      "condition": r.get("condition")}
                     for r in out.get("weather") or []],
         "energy": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
-                    "nearshore": r.get("nearshore")}
+                    "nearshore": r.get("nearshore"),
+                    "offshore": r.get("offshore")}
                    for r in out.get("energy") or []],
+        "sunlight": [{k: r.get(k) for k in
+                      ("midnight", "dawn", "sunrise", "sunset", "dusk")}
+                     for r in out.get("sunlight") or []],
     }
 
 
@@ -295,6 +300,29 @@ def day_energy(rows_, date, lo=DAY_FROM, hi=DAY_TO):
     vals = [e for t, e in energy(rows_).items()
             if t.date() == want and lo <= t.hour <= hi]
     return sum(vals) / len(vals) if vals else None
+
+
+def light(rows_, date):
+    """First light, sunrise, sunset and last light, as "HH:MM" strings.
+
+    From Surfline's own sunlight feed, which is what the card the owner
+    asked for shows under the tide curve. {} when the feed is missing --
+    the card leaves the row out rather than inventing a sunrise.
+    """
+    want = dt.date.fromisoformat(date) if isinstance(date, str) else date
+    for r in rows_ or []:
+        off = -5
+        mid = r.get("midnight")
+        if not mid:
+            continue
+        if _local(mid, off).date() != want:
+            continue
+        out = {}
+        for k in ("dawn", "sunrise", "sunset", "dusk"):
+            if r.get(k):
+                out[k] = _local(r[k], off).strftime("%H:%M")
+        return out
+    return {}
 
 
 def sky(rows_, date, lo=DAY_FROM, hi=DAY_TO):
