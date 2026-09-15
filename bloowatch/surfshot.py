@@ -63,6 +63,37 @@ SETTLE_MS = 11000
 SCROLL_MS = 6000
 REDRAW_MS = 7000
 
+# Surfline's tide chart is only drawn correctly on the page's *first*
+# render. Press any day button -- including the one for the day already
+# showing -- and the curve comes back with a vertical cliff at one tide
+# extreme and hour-long flat spots where the peaks and troughs should be.
+# The owner spotted it at a glance: "עקום כזה ולא כמו באתר".
+#
+# It is Surfline's bug and not ours. Sampled straight off the path
+# geometry in the live page, before any screenshot is taken:
+#
+#     today, untouched          SMOOTH
+#     -> 16/9                   cliff at 13:00, flats at 05:00 11:40 17:45
+#     -> 17/9                   flats at 13:00 19:05
+#     -> back to today          cliff at 06:02, flats at 01:00 07:20 13:50
+#
+# Today is smooth until it is clicked and broken afterwards, so this is
+# the day switch and not the day. Waiting does not help -- the path is
+# final 0.01s after the click and identical at 25s. A window `resize`
+# event does not help, and neither does a viewport change.
+#
+# What does fix it is making the chart measure *itself* again: give the
+# tide section a width it has to lay out to, let it settle, then take the
+# rule away and let it settle back. It redraws smooth both times.
+#
+# The rule has to go on after the day is picked -- applied before the
+# click it is simply the layout the broken redraw starts from -- and it
+# has to come off again, or the picture is 50px narrower than the rest of
+# the page. Removing our own <style> node is not touching the page's own
+# tree, which is the line that matters (see HIDE below).
+REDRAW_CSS = "%s { width: 380px !important; }" % BOTTOM
+NUDGE_MS = 2500
+
 # The owner asked for waves and tide and nothing else -- "רק את הגלים
 # גובהה טייד" -- and three things sit between them: the wind graph, the
 # wind reading above it, and the two "View hourly data" upsell rows. All
@@ -100,6 +131,23 @@ def _labels(date):
     today = (dt.datetime.utcnow() - dt.timedelta(hours=5)).date()
     word = {0: "Today", 1: "Tomorrow"}.get((d - today).days, "")
     return [word or "\u0000", "%d/%d" % (d.month, d.day)]
+
+
+def _nudge(page):
+    """Make the tide chart lay itself out again. See REDRAW_CSS.
+
+    Returns True if both halves went through. A failure here costs a
+    kinked tide curve and nothing else, so it is never allowed to reach
+    the caller: the picture is still worth sending.
+    """
+    try:
+        tag = page.add_style_tag(content=REDRAW_CSS)
+        page.wait_for_timeout(NUDGE_MS)
+        page.evaluate("(el) => el.remove()", tag)
+        page.wait_for_timeout(NUDGE_MS)
+        return True
+    except Exception:                                           # noqa: BLE001
+        return False
 
 
 def _blocked(exc):
@@ -173,6 +221,10 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                     }""", [DAY_BUTTON, _labels(date)]))
                     if picked:
                         p.wait_for_timeout(REDRAW_MS)
+                        # The surf graph redraws for the new day on its
+                        # own; the tide curve needs this or it comes out
+                        # with cliffs in it.
+                        _nudge(p)
 
                 if HIDE:
                     try:

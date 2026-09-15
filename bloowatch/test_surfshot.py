@@ -169,6 +169,64 @@ def main():
     check("and the clip still opens out far enough to take the height panel",
           S.PAD_TOP >= 200, str(S.PAD_TOP))
 
+    # --- the tide curve has to be made to redraw -------------------------
+    # Surfline draws the tide curve correctly only on the page's first
+    # render. After a day button is pressed it comes back with a vertical
+    # cliff at one extreme and flat spots where the peaks should be --
+    # including when the day pressed is the one already showing. The fix is
+    # to give the tide section a width it must lay out to and then take it
+    # away again, which makes the chart measure itself a second time.
+    #
+    # This is the failure the whole file is about: it does not look like an
+    # error. The picture arrives, the day is right, the numbers are right,
+    # and the curve is a shape no tide makes.
+    check("the redraw rule is aimed at the tide section",
+          S.BOTTOM in S.REDRAW_CSS, S.REDRAW_CSS)
+    check("and it changes the layout, which is what forces the remeasure",
+          "width" in S.REDRAW_CSS, S.REDRAW_CSS)
+    check("it is a width the section does not already have",
+          "380" in S.REDRAW_CSS and S.WIDTH == 430, S.REDRAW_CSS)
+
+    # Both halves have to run: put the rule on, take it off. Left on, the
+    # tide graph is 50px narrower than the surf graph above it.
+    class Page(object):
+        def __init__(self, fail_at=None):
+            self.log, self.fail_at = [], fail_at
+
+        def _step(self, name):
+            self.log.append(name)
+            if name == self.fail_at:
+                raise RuntimeError("the page went away")
+
+        def add_style_tag(self, content=""):
+            self._step("add")
+            return "handle"
+
+        def evaluate(self, js, arg=None):
+            self._step("remove")
+            return None
+
+        def wait_for_timeout(self, ms):
+            self.log.append("wait")
+
+    page = Page()
+    check("the nudge goes on and comes off again",
+          S._nudge(page) and [x for x in page.log if x != "wait"]
+          == ["add", "remove"], repr(page.log))
+    check("and it waits after each half, or the chart never sees it",
+          page.log.count("wait") == 2, repr(page.log))
+
+    # And it is never allowed to stop a send. A kinked curve is worth far
+    # more than no forecast.
+    for where in ("add", "remove"):
+        page = Page(fail_at=where)
+        try:
+            ok = S._nudge(page)
+        except Exception as exc:                                # noqa: BLE001
+            ok = "raised: %s" % exc
+        check("a nudge that fails at '%s' is survivable" % where, ok is False,
+              repr(ok))
+
     # --- the picture is of the school's spot, and nowhere else ----------
     # A page URL built from the wrong id would produce a perfectly good
     # chart of somebody else's beach, and nothing in the message would say.
