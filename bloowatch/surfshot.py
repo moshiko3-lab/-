@@ -63,19 +63,29 @@ SETTLE_MS = 11000
 SCROLL_MS = 6000
 REDRAW_MS = 7000
 
-# Nothing is hidden any more. The reading panels were hidden while the
-# picture came from the desktop layout, where they describe *now* and bled
-# into a crop of tomorrow. Here the day is chosen with a button, so the
-# panel follows it: with tomorrow selected it reads "SURF HEIGHT 3-4ft,
-# waist to chest", which is the number the owner went looking for and did
-# not find when it was hidden. It is also the only place the height is
-# written rather than drawn.
+# The owner asked for waves and tide and nothing else -- "רק את הגלים
+# גובהה טייד" -- and three things sit between them: the wind graph, the
+# wind reading above it, and the two "View hourly data" upsell rows. All
+# four selectors below are that gap. Hiding is what closes it; cropping
+# cannot, because the two graphs the picture is for are on either side.
 #
-# If anything ever does need hiding, it goes in a stylesheet. An attempt to
-# hide the "View hourly data" rows by walking the DOM crashed the page's
-# own components into "Something went wrong here" where the graphs had
-# been. Injecting CSS leaves React's tree alone; changing it does not.
-HIDE = ""
+# `featurePaywallWrapper` is both upsell rows at once, the one under the
+# surf graph included -- it is an advert for a paid account either way.
+#
+# The reading panels are *not* hidden. They were, while the picture came
+# from the desktop layout, where they describe *now* and bled into a crop
+# of tomorrow. Here the day is chosen with a button, so the panel follows
+# it: with tomorrow selected it reads "SURF HEIGHT 3-4ft, waist to chest",
+# which is the number the owner went looking for and did not find when it
+# was hidden. It is also the only place the height is written rather than
+# drawn.
+#
+# Hiding goes in a stylesheet, always. An attempt to hide the "View hourly
+# data" rows by walking the DOM crashed the page's own components into
+# "Something went wrong here" where the graphs had been. Injecting CSS
+# leaves React's tree alone; changing it does not.
+HIDE = ("[class*='windGraphSection'], [class*='windTooltipContainer'], "
+        "[class*='featurePaywallWrapper']")
 
 
 def _labels(date):

@@ -124,6 +124,51 @@ def main():
         check("%s is a reason, not a crash" % name,
               path == "" and want in why, "%r" % why)
 
+    # --- the crop keeps the two graphs and drops everything between -----
+    # The owner asked for waves and tide only. The page puts the wind graph,
+    # a wind reading and two "View hourly data" adverts in between, so the
+    # picture is made by hiding those rather than by cropping -- the two
+    # things it is for are on either side of them.
+    #
+    # The danger in a `[class*=...]` selector is that it is a substring
+    # match: one written a little wider would take the surf or tide graph
+    # with it, the clip would collapse, and `shoot()` would still hand back
+    # a perfectly valid picture of the top of the page.
+    fragments = [f.split("'")[1] for f in S.HIDE.split(",") if "'" in f]
+    check("the crop is made by hiding, and the hiding is CSS",
+          len(fragments) == 3 and "[class*=" in S.HIDE, repr(S.HIDE))
+
+    # Real class names off the page, on 16/9/2026.
+    GONE = ("GraphContainer_windGraphSection__xyz",
+            "GraphContainer_windTooltipContainer__nducO",
+            "GraphContainer_featurePaywallWrapper__p0Frv")
+    KEPT = ("GraphContainer_surfGraphSection__tkfKf",
+            "GraphContainer_tideGraphSection__Ml8cp",
+            "GraphContainer_surfTooltipContainer__abc",
+            "GraphContainer_tideGraphHeader__73UVN",
+            "ForecastGraphSurf_forecastGraphContainer__1kdxq")
+
+    def hidden(cls):
+        return any(f in cls for f in fragments)
+
+    for cls in GONE:
+        check("%s is hidden" % cls.split("_")[1], hidden(cls))
+    for cls in KEPT:
+        check("%s survives the stylesheet" % cls.split("_")[1], not hidden(cls))
+
+    # And the clip still runs from the one to the other, so whatever is
+    # hidden between them simply closes up.
+    check("the clip is still surf graph to tide graph",
+          hidden(S.TOP) is False and hidden(S.BOTTOM) is False
+          and "surfGraph" in S.TOP and "tideGraph" in S.BOTTOM,
+          "%s -> %s" % (S.TOP, S.BOTTOM))
+
+    # The top pad is what reaches up to "SURF HEIGHT 3-4ft, waist to chest".
+    # It is the only place the height is written as a number, and it is the
+    # thing the owner went looking for and did not find. At 120 it was cut.
+    check("and the clip still opens out far enough to take the height panel",
+          S.PAD_TOP >= 200, str(S.PAD_TOP))
+
     # --- the picture is of the school's spot, and nowhere else ----------
     # A page URL built from the wrong id would produce a perfectly good
     # chart of somebody else's beach, and nothing in the message would say.
