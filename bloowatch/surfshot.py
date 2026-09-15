@@ -35,12 +35,20 @@ PAGE = "https://www.surfline.com/surf-report/playa-venao/%s" % surfline.SPOT
 # arm's length.
 WIDTH, HEIGHT, SCALE = 1400, 1100, 2
 
-# The page builds its chart after load. Nothing is clipped until it is
-# there, because an empty frame is worse than no picture -- it reads as a
-# day with no surf.
-CHART = ("[class*='Chart'], [data-testid*='chart'], "
-         "[class*='forecast-graph'], canvas")
-SETTLE_MS = 9000
+# The chart sits well down the page and is built after load, so the page is
+# scrolled to it and then given time. Nothing is clipped until it is there:
+# an empty frame is worse than no picture, because it reads as a day with
+# no surf.
+#
+# The clip runs from the top of the forecast section -- which carries the
+# ten-day strip and the day headings -- to the bottom of the wind graph.
+# Surf and wind are what the school's own message talks about; the swell
+# and energy graphs below them are for somebody reading a forecast, not
+# somebody deciding whether to come down.
+TOP = "#forecast"
+BOTTOM = "[class*='windGraphSection']"
+SETTLE_MS = 10000
+SCROLL_MS = 5000
 
 
 def _blocked(exc):
@@ -84,22 +92,38 @@ def shoot(out, width=WIDTH, height=HEIGHT, scale=SCALE, timeout=90000):
                 p = ctx.new_page()
                 p.goto(PAGE, wait_until="domcontentloaded", timeout=timeout)
                 p.wait_for_timeout(SETTLE_MS)
+                p.mouse.wheel(0, 3000)
+                p.wait_for_timeout(SCROLL_MS)
 
-                box = None
+                # The graphs follow the pointer: leaving it anywhere over
+                # them freezes a reading panel open across the chart, and
+                # the first shot taken this way had two of them covering
+                # the surf it was meant to show. Park it in the corner.
                 try:
-                    el = p.query_selector(CHART)
-                    if el:
-                        box = el.bounding_box()
+                    p.mouse.move(2, 2)
+                    p.wait_for_timeout(700)
                 except Exception:                               # noqa: BLE001
-                    box = None
+                    pass
 
-                if box and box["width"] > 200 and box["height"] > 120:
-                    p.screenshot(path=out, clip=box)
+                box = p.evaluate("""(sel) => {
+                    const top = document.querySelector(sel[0]);
+                    const end = document.querySelector(sel[1]);
+                    if (!top || !end) return null;
+                    const a = top.getBoundingClientRect();
+                    const b = end.getBoundingClientRect();
+                    const y = a.top + window.scrollY;
+                    return {x: a.left + window.scrollX, y: y,
+                            width: a.width,
+                            height: (b.bottom + window.scrollY) - y};
+                }""", [TOP, BOTTOM])
+
+                if box and box["width"] > 200 and box["height"] > 200:
+                    # full_page because the clip is far below the fold.
+                    p.screenshot(path=out, clip=box, full_page=True)
                 else:
-                    # No chart found is not a reason to send nothing: the
-                    # top of the page is the report, and it is still worth
-                    # looking at. Which one was used is the caller's to
-                    # report, so it is said here.
+                    # The graphs did not appear. The top of the page still
+                    # names the spot and the day's conditions, which beats
+                    # sending nothing -- and the caller reports which it got.
                     p.screenshot(path=out, clip={"x": 0, "y": 0,
                                                  "width": width,
                                                  "height": height})
