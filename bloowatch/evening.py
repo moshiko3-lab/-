@@ -45,12 +45,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import forecast_message as F                                    # noqa: E402
+import report                                                   # noqa: E402
 import surfline                                                 # noqa: E402
 import tides                                                    # noqa: E402
 
 PANAMA_OFFSET = dt.timedelta(hours=-5)          # Panama, all year round
 GROUP = {"he": "surfers_he", "en": "surfers_en"}
 TIDE_DAYS_WANTED = 3
+
+
+def _r(what, text):
+    """Print the RESULT line and file it where it can be read back."""
+    report.result(what, text)
 
 
 def tomorrow():
@@ -182,6 +188,10 @@ def forecast(args):
           % ("would send" if args.dry_run else "sent",
              ", ".join(GROUP[l] for l in sent) or "nothing",
              s["waves"], s["period"], s["wind"]))
+    if not args.dry_run:
+        _r("18:00 forecast", "RESULT sent=%s failed=%s waves=%s"
+           % (",".join(sent) or "none", ",".join(failed) or "none",
+              s["waves"]))
     return 1 if failed else 0
 
 
@@ -242,7 +252,7 @@ def rota(args):
     ok, text, tail = _run("rota.py", "--group", "--crew", crew)
     if not ok:
         print("error: the rota could not be built: %s" % tail, file=sys.stderr)
-        print("RESULT rota=not-built sent=nothing snapshot=no")
+        _r("19:00 rota", "RESULT rota=not-built sent=nothing snapshot=no")
         return 1
 
     # An empty day must not reach the group: twelve people reading "no
@@ -252,7 +262,7 @@ def rota(args):
         print("error: tomorrow (%s) has no lessons on the board — nothing was "
               "sent to the staff group. Tell the owner directly." % date,
               file=sys.stderr)
-        print("RESULT rota=empty sent=nothing snapshot=no")
+        _r("19:00 rota", "RESULT rota=empty sent=nothing snapshot=no")
         return 1
 
     fd, cap = tempfile.mkstemp(suffix="-cap.txt", text=True)
@@ -282,7 +292,7 @@ def rota(args):
     if not ok:
         print("error: the staff group was not written to: %s" % tail,
               file=sys.stderr)
-        print("RESULT rota=built sent=nothing snapshot=no")
+        _r("19:00 rota", "RESULT rota=built sent=nothing snapshot=no")
         return 1
 
     snap = "skipped (dry run)"
@@ -297,7 +307,7 @@ def rota(args):
                   "the 20:00 change check is blind tonight: %s" % tail,
                   file=sys.stderr)
 
-    print("RESULT rota=sent board=%s snapshot=%s" % (kind or "none", snap))
+    _r("19:00 rota", "RESULT rota=sent board=%s snapshot=%s" % (kind or "none", snap))
     return 0 if snap in ("saved", "skipped (dry run)") else 1
 
 
@@ -331,7 +341,7 @@ def personal(args):
     ok, out, tail = _run(*args_)
     if not ok:
         print("error: the rotas could not be built: %s" % tail, file=sys.stderr)
-        print("RESULT planned=? sent=0")
+        _r("19:15 personal", "RESULT planned=? sent=0")
         return 1
 
     try:
@@ -339,7 +349,7 @@ def personal(args):
             import json
             planned = len(json.load(f))
         if not planned:
-            print("RESULT planned=0 sent=0")
+            _r("19:15 personal", "RESULT planned=0 sent=0")
             return 0
 
         cmd = ["send.py", "--batch", plan, "--once-today"]
@@ -352,7 +362,7 @@ def personal(args):
             if os.path.exists(p):
                 os.remove(p)
 
-    print("RESULT planned=%d sent=%s" % (planned, "ok" if ok else "FAILED"))
+    _r("19:15 personal", "RESULT planned=%d sent=%s" % (planned, "ok" if ok else "FAILED"))
     if not ok:
         print("error: not every instructor was written to: %s" % tail,
               file=sys.stderr)
@@ -382,7 +392,7 @@ def changes(args):
     if not ok:
         print("no reference point for %s — the 19:00 rota either did not go "
               "out or did not save one: %s" % (date, tail), file=sys.stderr)
-        print("RESULT snapshot=missing changed=? sent=0")
+        _r("20:00 changes", "RESULT snapshot=missing changed=? sent=0")
         return 1
 
     try:
@@ -390,10 +400,10 @@ def changes(args):
                                "--group")
         if not ok:
             print("error: the comparison failed: %s" % tail, file=sys.stderr)
-            print("RESULT snapshot=ok changed=? sent=0")
+            _r("20:00 changes", "RESULT snapshot=ok changed=? sent=0")
             return 1
         if "nothing changed" in group:
-            print("RESULT snapshot=ok changed=0 sent=0")
+            _r("20:00 changes", "RESULT snapshot=ok changed=0 sent=0")
             return 0
 
         ok, _, tail = _run("rota.py", "--date", date, "--diff", base,
@@ -401,7 +411,7 @@ def changes(args):
         if not ok:
             print("error: the per-instructor updates could not be built: %s"
                   % tail, file=sys.stderr)
-            print("RESULT snapshot=ok changed=yes sent=0")
+            _r("20:00 changes", "RESULT snapshot=ok changed=yes sent=0")
             return 1
 
         import json
@@ -435,7 +445,7 @@ def changes(args):
             if os.path.exists(p):
                 os.remove(p)
 
-    print("RESULT snapshot=ok changed=yes group=%s people=%d/%s"
+    _r("20:00 changes", "RESULT snapshot=ok changed=yes group=%s people=%d/%s"
           % ("sent" if sent_group else "FAILED", people,
              "sent" if sent_people else "FAILED"))
     if not sent_group:

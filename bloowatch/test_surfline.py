@@ -19,6 +19,9 @@ hundred people, which reads as a forecast rather than as a mistake.
 
 Nothing here touches the network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import json
 import os
 import sys

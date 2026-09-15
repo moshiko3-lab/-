@@ -205,6 +205,14 @@ def main():
         if not report["problems"]:
             print("ready for tomorrow" if not report["warnings"]
                   else "usable, with the warnings above")
+
+    # `report` is already the name of this function's own findings, so the
+    # module comes in under another one rather than renaming a variable
+    # that appears twenty times above.
+    import report as _filing
+    _filing.result("preflight", "RESULT problems=%d warnings=%d tide_days=%s"
+                   % (len(report["problems"]), len(report["warnings"]),
+                      report["tide_days_ahead"]), echo=not a.json)
     return 1 if report["problems"] else 0
 
 

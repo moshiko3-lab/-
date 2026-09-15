@@ -17,6 +17,9 @@ quietly reporting `environment` for everything forever.
 Runs preflight as a subprocess, because that import order is only real in
 a fresh process. Touches no network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import json
 import os
 import subprocess

@@ -189,6 +189,14 @@ def main():
         for m in missing:
             print("MISSING  %-16s due %s  to %s  (for %s)"
                   % (m["what"], m["due"], m["to"], m["for"]))
+
+    # Filed either way, and that matters more here than anywhere else: a
+    # safety net that only speaks up when it finds something is
+    # indistinguishable from one that is not running at all.
+    import report
+    report.result("safety net", "RESULT missing=%d %s" % (
+        len(missing), ",".join(m["what"] for m in missing) or "all sent"),
+        echo=not a.json)
     return 1 if missing else 0
 
 

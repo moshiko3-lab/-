@@ -54,10 +54,16 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import report                                                  # noqa: E402
 import rota                                                    # noqa: E402
 import send                                                    # noqa: E402
 
 PANAMA = rota.PANAMA
+
+
+def _r(text):
+    """Print the RESULT line and file it where it can be read back."""
+    report.result("reminders", text)
 
 
 def due(lessons, lo, hi, now=None):
@@ -158,7 +164,7 @@ def main():
         # A board that cannot be read is not an empty board. Saying "nothing
         # due" here would be the same lie the split commands told.
         print("error: could not read today's board: %s" % exc, file=sys.stderr)
-        print("RESULT planned=? sent=0 skipped=0 failed=? board=unreadable")
+        _r("RESULT planned=? sent=0 skipped=0 failed=? board=unreadable")
         return 1
 
     sends, not_sent = due(lessons, a.lo, a.hi)
@@ -168,7 +174,7 @@ def main():
     if not sends:
         print("nothing starting between %d and %d minutes from now"
               % (a.lo, a.hi))
-        print("RESULT planned=0 sent=0 skipped=0 failed=0")
+        _r("RESULT planned=0 sent=0 skipped=0 failed=0")
         return 0
 
     for s in sends:
@@ -187,14 +193,14 @@ def main():
         print(line)
 
     if a.dry_run:
-        print("RESULT planned=%d dry-run" % len(sends))
+        _r("RESULT planned=%d dry-run" % len(sends))
         return 0
 
     # What the gateway said is one witness; Green-API's journal is the other,
     # and it is the one that survives this process dying. They are asked
     # about the same people, since the same moment.
     accepted, arrived, lost = landed(lines, started)
-    print("RESULT planned=%d accepted=%d gateway=%s journal=%s"
+    _r("RESULT planned=%d accepted=%d gateway=%s journal=%s"
           % (len(sends), len(accepted), "ok" if status == 0 else "FAILED",
              "unreadable" if arrived is None else "%d/%d"
              % (arrived, len(accepted))))

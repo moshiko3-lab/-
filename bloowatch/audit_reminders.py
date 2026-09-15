@@ -256,6 +256,13 @@ def main():
         for m in missing:
             print("MISSED  slot %s  %-18s %s  %s"
                   % (m["slot"], m["name"], m["at"], m["what"]))
+
+    # Filed on a clean run too. A check that is silent when it is happy
+    # looks exactly like a check that never ran, and telling those two
+    # apart is the whole reason these reports exist.
+    import report
+    report.result("reminder audit", "RESULT missed=%d" % len(missing),
+                  echo=not a.json)
     return 1 if missing else 0
 
 

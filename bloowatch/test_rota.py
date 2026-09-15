@@ -16,6 +16,9 @@ students" on it reads as a fault rather than as a fact.
 
 Nothing here touches the network, and nothing anywhere in rota.py sends.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import os
 import sys
 

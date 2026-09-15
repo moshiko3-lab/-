@@ -17,6 +17,9 @@ wording rotates and the facts do not. That is the invariant worth a test.
 
 Nothing here touches the network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import os
 import sys
 

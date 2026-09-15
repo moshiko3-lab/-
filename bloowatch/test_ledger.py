@@ -18,6 +18,9 @@ The whole day of 30/08/2026 is reproduced here from the real shapes, so the
 numbers below are the ones the office wrote by hand that evening. Nothing
 touches the network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import os
 import sys
 

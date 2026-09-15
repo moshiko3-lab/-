@@ -23,6 +23,9 @@ where it was, and it would pass every other check in this directory.
 
 Touches no network: the board, the gateway and the journal are all stubbed.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import datetime as dt
 import os
 import sys

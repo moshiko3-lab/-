@@ -50,10 +50,29 @@ MARKER = "#SHOKOGI-RUN"
 MAX = 900
 
 
+def origin():
+    """Who ran this: a routine on its own, or somebody at a keyboard.
+
+    The hostname is useless for telling those apart -- every container here
+    is called `vm`, this session and every fired routine alike -- and that
+    is the one distinction a person reading the log tomorrow actually
+    needs. A line that says a rota went out means something quite
+    different if it came from a run somebody was driving by hand.
+
+    So: whether the session was attended, plus enough of the container id
+    to tell two runs apart. The id is an internal handle and carries no
+    credential; only its head is used, which is plenty to group a run's
+    own lines together.
+    """
+    attended = os.environ.get("CLAUDE_CODE_SESSION_ATTENDED") == "1"
+    cid = os.environ.get("CLAUDE_CODE_CONTAINER_ID") or socket.gethostname()
+    short = cid.replace("container_", "")[:6] or "?"
+    return "%s %s" % ("hand" if attended else "auto", short)
+
+
 def line(what, result, when=None, host=None):
     when = when or dt.datetime.now(dt.timezone.utc)
-    host = host or socket.gethostname()
-    return "%s %s | %s | %sZ | %s" % (MARKER, what, host,
+    return "%s %s | %s | %sZ | %s" % (MARKER, what, host or origin(),
                                       when.strftime("%m-%d %H:%M"),
                                       " ".join(str(result).split())[:MAX])
 
@@ -74,6 +93,38 @@ def write(what, result):
         print("report not sent: %s %s" % (code, body), file=sys.stderr)
         return False
     return True
+
+
+def result(what, text, echo=True):
+    """Print a RESULT line for whoever is watching, and file it for later.
+
+    `echo=False` files it without printing. Several of these commands have
+    a `--json` mode whose whole output is one parseable object, and a
+    friendly line printed after it turns that into a parse error -- which
+    is exactly what it did to test_preflight the first time this was
+    wired in.
+
+    Every routine ends on one of these. Putting the filing here rather than
+    in each routine's prompt is deliberate: a prompt is re-read by a fresh
+    model every run and a step at the end of it is the one that gets
+    dropped, whereas a script cannot forget to call its own last line.
+
+    The filing is best-effort and silent about its own failures -- see
+    write() -- so a rota that went out is never turned into a failure
+    by a note about it.
+
+    SHOKOGI_NO_REPORT stops the filing entirely. The test suites set it:
+    they exercise these paths with the real credentials in the environment,
+    and without it every run of the tests would put messages on WhatsApp.
+    """
+    if echo:
+        print(text)
+    if os.environ.get("SHOKOGI_NO_REPORT"):
+        return
+    try:
+        write(what, text)
+    except Exception:                                           # noqa: BLE001
+        pass
 
 
 def read(minutes=1440):

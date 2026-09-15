@@ -14,6 +14,9 @@ read the same journal would count it as a message that went to somebody.
 
 Nothing here touches the network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import os
 import sys
 
@@ -102,6 +105,29 @@ def main():
     # --- and a snapshot is not read as a report --------------------------
     check("a snapshot is not read as a report",
           not S.encode("2026-09-15", []).startswith(R.MARKER))
+
+    # --- a routine's line and a person's line must not look alike --------
+    # Every container here is called `vm`, this session and every fired
+    # routine alike, so the hostname told them apart not at all. Reading
+    # the log tomorrow, "the rota went out" means something different if
+    # somebody was sitting there driving it.
+    keep = dict(_os.environ)
+    try:
+        _os.environ["CLAUDE_CODE_SESSION_ATTENDED"] = "1"
+        _os.environ["CLAUDE_CODE_CONTAINER_ID"] = "container_abcdef123"
+        by_hand = R.origin()
+        _os.environ["CLAUDE_CODE_SESSION_ATTENDED"] = "0"
+        alone = R.origin()
+    finally:
+        _os.environ.clear()
+        _os.environ.update(keep)
+    check("a run someone was driving says so", by_hand.startswith("hand"),
+          by_hand)
+    check("a run that fired by itself says so", alone.startswith("auto"),
+          alone)
+    check("and both name the container, so one run's lines group together",
+          "abcdef" in by_hand and "abcdef" in alone, "%s / %s"
+          % (by_hand, alone))
 
     # --- a report cannot grow into a data dump ---------------------------
     # Without a cap the first routine to paste a traceback, a plan or a

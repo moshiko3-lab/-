@@ -21,6 +21,9 @@ is worse than no breakdown, because it still looks complete.
 No real workbook is used here: the rows are written by hand so a day that does
 not add up can be tested, which is the case that has to work.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import os
 import sys
 

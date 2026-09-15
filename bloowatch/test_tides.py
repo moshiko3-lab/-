@@ -6,6 +6,9 @@ evening high in the morning, and the recommended hours follow it. So the
 twelve-hour clock, the shape of the parse, and the rule that a merge never
 loses a day are pinned here. Nothing touches the network.
 """
+
+import os as _os
+_os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import json
 import os
 import sys
