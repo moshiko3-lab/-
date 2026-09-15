@@ -59,7 +59,7 @@ def via_cli(lang, s=SUMMARY, today=TODAY, date=DATE):
            "--lang", lang, "--date", date,
            "--waves", s["waves"], "--period", s["period"],
            "--wind", s["wind"], "--wind-dir", s["wind_dir"],
-           "--waves-today", today,
+           "--waves-today", today, "--tide-note",
            "--rain", forecast_message.rain_line(SKY, lang),
            "--energy", str(ENERGY)]
     if s.get("onshore_from"):
@@ -160,9 +160,12 @@ def _forecast_changes():
     for lang in ("he", "en"):
         msg, err = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=ENERGY),
                                    TODAY, lang)
-        check("no %s forecast mentions the current" % lang,
-              not err and "זרם" not in msg and "current" not in msg.lower(),
-              (err or "")[:60])
+        check("no %s forecast warns about the current" % lang,
+              not err and "זרם חזק" not in msg and "⚠️" not in msg
+              and "stronger current" not in msg.lower(), (err or "")[:60])
+        check("but the %s one still says the tide moves fast" % lang,
+              ("ישתנה באופן יותר מהיר" in msg) or ("change faster" in msg),
+              msg[-200:])
 
     # --- a dry day says nothing about the sky ---------------------------
     # A line that appears every evening to announce good weather is a line
@@ -186,28 +189,31 @@ def _forecast_changes():
     # --- a weak sea keeps further off the low ---------------------------
     # The owner, in his own words: a low sea with weak energy has no wave at
     # the low, so do not point people at it.
+    # These are the hours he wrote out by hand for 15/9 against highs at
+    # 06:07 and 18:31 and a low at 12:21. They are the whole specification:
+    # ninety minutes off every high, the experienced straight through the
+    # low, the beginners split around it.
     t = FM.tides_for(DATE)
-    strong_low, _, strong_mid = FM.windows(t, weak=False)
-    weak_low, _, weak_mid = FM.windows(t, weak=True)
-    check("a day with energy still recommends the low", bool(strong_low),
-          repr(strong_low))
-    check("a weak day does not", weak_low == [], repr(weak_low))
-    check("and its windows are no closer to the low than before",
-          len(weak_mid) == len(strong_mid)
-          and all(FM.mins(w[1]) - FM.mins(w[0])
-                  <= FM.mins(v[1]) - FM.mins(v[0])
-                  for w, v in zip(weak_mid, strong_mid)),
-          "%r vs %r" % (weak_mid, strong_mid))
+    _, _, strong_mid, strong_beg = FM.windows(t, weak=False)
+    _, _, weak_mid, weak_beg = FM.windows(t, weak=True)
+    check("a weak day gives the experienced one window through the low",
+          weak_mid == [("08:00", "17:00")], repr(weak_mid))
+    check("and splits the beginners around it",
+          weak_beg == [("08:00", "11:00"), ("13:30", "17:00")], repr(weak_beg))
+    check("on an ordinary day the two blocks stay the same",
+          strong_mid == strong_beg, "%r vs %r" % (strong_mid, strong_beg))
+    check("and an ordinary day is unchanged from what he approved",
+          strong_mid == [("07:00", "11:00"), ("13:30", "18:00")],
+          repr(strong_mid))
     check("the threshold is the owner's own number", FM.WEAK_ENERGY == 100)
+    check("and so is the clearance off a high", FM.CLEAR_OF_HIGH_WEAK == 90)
 
-    # --- and the beginners are not sent to an empty low -----------------
-    msg, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=50.0),
-                             TODAY, "he")
-    check("a weak day drops the near-low advice for beginners",
-          "קרוב לשפל" not in msg)
-    msg, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=200.0),
-                             TODAY, "he")
-    check("a day with energy keeps it", "קרוב לשפל" in msg)
+    # --- the near-low advice stays; he kept it in his own correction ----
+    for e in (50.0, 200.0):
+        msg, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=e),
+                                 TODAY, "he")
+        check("energy=%g still tells them what the low is like" % e,
+              "קרוב לשפל" in msg)
 
 
 # ---------------------------------------------------------------------------

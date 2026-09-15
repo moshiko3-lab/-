@@ -117,12 +117,16 @@ def message(date, s, today, lang, tide_note=True):
                              wind_deg=s["wind_dir"] or None,
                              faces=F.BEACH_FACES)
 
-    # This slot used to hold the tide-range line, whose big-range variant
-    # ended in a warning about the current. The owner asked for that
-    # sentence gone on 15/9/2026 -- it was the one line in the message that
-    # read as a reason not to come down -- and asked for a light mention of
-    # rain in its place. `tide_note` is kept so the flag still parses.
-    note = F.rain_line(s.get("sky") or [], lang)
+    # Two separate lines at the end: the tide range, and the sky. The
+    # tide line stays -- the owner rewrote its wording on 15/9/2026 rather
+    # than asking for it gone, and the first attempt at this deleted it,
+    # which lost a fact he had just taken the trouble to keep.
+    note = ""
+    if tide_note:
+        t = F.tides_for(date)
+        if t:
+            note, _ = F.tide_range_note(t, lang)
+    rain = F.rain_line(s.get("sky") or [], lang)
 
     wind = ""
     if s["wind"] and s["wind_dir"]:
@@ -131,7 +135,7 @@ def message(date, s, today, lang, tide_note=True):
                            s.get("onshore_eases"))
 
     return F.build(date, s["waves"], s["period"], compare, spot, note,
-                   wind, lang, energy=s.get("energy"))
+                   wind, lang, energy=s.get("energy"), rain=rain)
 
 
 def deliver(lang, text, dry_run):

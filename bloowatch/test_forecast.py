@@ -229,7 +229,7 @@ check("or after the tide has gone",
       all(F.mins(b) <= F.DAY_TO for _, b in w7), str(w7))
 # The clamp is the recommendation's, not the day's: six in the morning is an
 # hour people surf and the near-low line still has to name it.
-low7, high7, _ = F.windows(F.tides_for("2026-09-07"))
+low7, high7, _, _ = F.windows(F.tides_for("2026-09-07"))
 check("but the near-low line still starts at six",
       any(a == "06:00" for a, _ in low7 + high7), str(low7 + high7))
 check("and still runs to seven in the evening",
@@ -260,7 +260,7 @@ print("\nno window falls outside the hours anybody surfs")
 
 def all_windows(highs, lows):
     t = {"highs": [{"t": x} for x in highs], "lows": [{"t": x} for x in lows]}
-    low_w, high_w, mid_w = F.windows(t)
+    low_w, high_w, mid_w, _ = F.windows(t)
     return low_w + high_w + mid_w
 
 
