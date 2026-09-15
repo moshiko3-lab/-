@@ -215,47 +215,29 @@ WET_HEAVY = ("THUNDER_SHOWERS", "THUNDER_STORMS", "HEAVY_RAIN",
 
 
 def rain_line(sky, lang="he"):
-    """One line about the sky, or nothing at all.
+    """One line about rain, or nothing at all.
 
-    The brief, in the owner's words on 15/9/2026: mention the rain, keep it
-    shallow, and do not frighten anybody out of coming down to surf. So a
-    dry day says nothing -- a line that appears every evening to announce
-    good weather is a line people stop reading -- and a wet one names the
-    hours and leaves it there.
+    The owner's brief, given twice on 15/9/2026 and narrowed the second
+    time: say that rain drops the wind and leaves the sea good to surf, and
+    say nothing else. The first version named the hours and, on a day with
+    storms in it, suggested surfing earlier -- he asked for all of that
+    gone. At Venao the rain comes through with the wind behind it and the
+    sea cleans up after; a message that lists shower times reads like a
+    reason to stay home, which is the opposite of what it is.
 
-    Rain does not spoil surfing and the message should not imply it does.
-    Thunder is the one thing worth planning around, so it gets the hours and
-    a suggestion to go earlier, which is useful rather than alarming.
+    A dry day still says nothing. A line that appears every evening to
+    announce good weather is a line people stop reading, and then they miss
+    the one that matters.
     """
     if not sky:
         return ""
-    heavy = [h for h, c in sky if any(w in c for w in WET_HEAVY)]
-    light = [h for h, c in sky if any(w in c for w in WET_LIGHT)
-             and h not in heavy]
-    if not heavy and not light:
+    wet = [c for _, c in sky if any(w in c for w in WET_LIGHT + WET_HEAVY)]
+    if not wet:
         return ""
-
-    def span(hours):
-        return "%02d:00-%02d:00" % (min(hours), max(hours) + 1)
-
     if lang == "en":
-        if heavy:
-            out = "*⛈ Thunder showers around %s* — worth planning your surf " \
-                  "for earlier in the day." % span(heavy)
-            if light:
-                out += " Light showers on and off the rest of the day."
-            return out
-        return ("*🌦 Light showers around %s* — the water is warm and the "
-                "waves do not mind. 🤙" % span(light))
-
-    if heavy:
-        out = ("*⛈ ממטרים וברקים בסביבות %s* – שווה לתכנן את הגלישה "
-               "למוקדם יותר." % span(heavy))
-        if light:
-            out += " בשאר היום ממטרים קלים לסירוגין."
-        return out
-    return ("*🌦 ממטרים קלים בסביבות %s* – המים חמימים והגלים לא מושפעים 🤙"
-            % span(light))
+        return ("*🌧 Some rain about — it knocks the wind down and leaves "
+                "the sea good for surfing 🤙*")
+    return ("*🌧 צפוי גשם – הגשם מוריד את הרוח ועושה את הים טוב לגלישה 🤙*")
 
 
 def clear_of_highs(t, a, b, clear=CLEAR_OF_HIGH_WEAK):

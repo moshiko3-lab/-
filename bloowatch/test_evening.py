@@ -175,16 +175,23 @@ def _forecast_changes():
     check("and neither does a missing weather feed",
           FM.rain_line([]) == "" and FM.rain_line(None) == "")
 
-    # --- a wet one names the hours and stays out of the way -------------
+    # --- a wet one says one thing, and it is an invitation --------------
+    # He narrowed this himself: rain drops the wind and leaves the sea good
+    # to surf, and nothing else. No hours, no storm timings, no advice to
+    # go earlier -- a message that lists shower times reads like a reason
+    # to stay home.
     light = FM.rain_line([(8, "LIGHT_RAIN"), (9, "DRIZZLE")])
-    check("light rain is mentioned with its hours",
-          "08:00-10:00" in light, light)
-    check("and does not tell anybody to stay home",
-          "לא מושפעים" in light, light)
     heavy = FM.rain_line([(17, "THUNDER_STORMS"), (18, "THUNDER_STORMS")])
-    check("thunder is named with its hours", "17:00-19:00" in heavy, heavy)
-    check("and framed as a reason to surf earlier, not to skip",
-          "מוקדם יותר" in heavy, heavy)
+    for what, line in (("showers", light), ("storms", heavy)):
+        check("%s: the line is about the wind dropping" % what,
+              "מוריד את הרוח" in line and "טוב לגלישה" in line, line)
+        check("%s: and carries no hours at all" % what,
+              not any(ch.isdigit() for ch in line), line)
+    check("showers and storms get the same line, as he asked",
+          light == heavy, "%r vs %r" % (light, heavy))
+    check("and English says the same thing",
+          "knocks the wind down" in FM.rain_line([(8, "RAIN")], "en"),
+          FM.rain_line([(8, "RAIN")], "en"))
 
     # --- a weak sea keeps further off the low ---------------------------
     # The owner, in his own words: a low sea with weak energy has no wave at
