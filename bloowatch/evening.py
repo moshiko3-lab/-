@@ -88,7 +88,15 @@ def sea(date):
 
     prev = (dt.date.fromisoformat(date) - dt.timedelta(days=1)).isoformat()
     today = surfline.waves(surfline.hours(surf, swells, wnd, prev))
-    return surfline.summary(rows), today, None
+
+    # Carried on the summary rather than returned alongside it, so the three
+    # values this function has always returned stay three. The energy decides
+    # how far the recommended hours keep off the low; the sky decides whether
+    # the message says anything about rain at all.
+    out = surfline.summary(rows)
+    out["energy"] = surfline.day_energy(swells, date)
+    out["sky"] = surfline.sky(blob.get("weather"), date)
+    return out, today, None
 
 
 def message(date, s, today, lang, tide_note=True):
@@ -109,11 +117,12 @@ def message(date, s, today, lang, tide_note=True):
                              wind_deg=s["wind_dir"] or None,
                              faces=F.BEACH_FACES)
 
-    note = ""
-    if tide_note:
-        t = F.tides_for(date)
-        if t:
-            note, _ = F.tide_range_note(t, lang)
+    # This slot used to hold the tide-range line, whose big-range variant
+    # ended in a warning about the current. The owner asked for that
+    # sentence gone on 15/9/2026 -- it was the one line in the message that
+    # read as a reason not to come down -- and asked for a light mention of
+    # rain in its place. `tide_note` is kept so the flag still parses.
+    note = F.rain_line(s.get("sky") or [], lang)
 
     wind = ""
     if s["wind"] and s["wind_dir"]:
@@ -122,7 +131,7 @@ def message(date, s, today, lang, tide_note=True):
                            s.get("onshore_eases"))
 
     return F.build(date, s["waves"], s["period"], compare, spot, note,
-                   wind, lang)
+                   wind, lang, energy=s.get("energy"))
 
 
 def deliver(lang, text, dry_run):

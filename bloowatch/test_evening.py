@@ -31,6 +31,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import evening                                                  # noqa: E402
+import forecast_message                                         # noqa: E402
 
 fails = []
 
@@ -47,6 +48,10 @@ SUMMARY = {"waves": "0.4-0.8", "period": "13", "wind": "3-7",
            "hours": 13}
 TODAY = "0.3-0.9"
 DATE = "2026-09-15"
+# The sky and the energy now reach build() too, so the two paths have to be
+# handed the same ones or they are not building the same message.
+SKY = [(8, "LIGHT_RAIN"), (9, "DRIZZLE"), (17, "THUNDER_STORMS")]
+ENERGY = 140.0
 
 
 def via_cli(lang, s=SUMMARY, today=TODAY, date=DATE):
@@ -54,7 +59,9 @@ def via_cli(lang, s=SUMMARY, today=TODAY, date=DATE):
            "--lang", lang, "--date", date,
            "--waves", s["waves"], "--period", s["period"],
            "--wind", s["wind"], "--wind-dir", s["wind_dir"],
-           "--waves-today", today, "--tide-note"]
+           "--waves-today", today,
+           "--rain", forecast_message.rain_line(SKY, lang),
+           "--energy", str(ENERGY)]
     if s.get("onshore_from"):
         cmd += ["--onshore-from", s["onshore_from"]]
     if s.get("onshore_eases"):
@@ -68,7 +75,9 @@ def via_cli(lang, s=SUMMARY, today=TODAY, date=DATE):
 def main():
     # --- the two paths must agree, in both languages --------------------
     for lang in ("he", "en"):
-        mine, err = evening.message(DATE, SUMMARY, TODAY, lang)
+        mine, err = evening.message(DATE, dict(SUMMARY, sky=SKY,
+                                                    energy=ENERGY),
+                                    TODAY, lang)
         check("evening builds a %s forecast without error" % lang, not err,
               str(err))
         theirs = via_cli(lang)
@@ -81,14 +90,17 @@ def main():
     # An onshore afternoon changes the wind line; the two paths have to
     # agree about that too, since it is assembled from three arguments.
     windy = dict(SUMMARY, onshore_from="13:00", onshore_eases=True)
-    mine, err = evening.message(DATE, windy, TODAY, "he")
+    mine, err = evening.message(DATE, dict(windy, sky=SKY, energy=ENERGY),
+                                TODAY, "he")
     check("an onshore afternoon builds", not err, str(err))
     check("and still matches the documented path",
           mine == via_cli("he", s=windy))
 
     # --- both groups read the same sea ----------------------------------
-    he, _ = evening.message(DATE, SUMMARY, TODAY, "he")
-    en, _ = evening.message(DATE, SUMMARY, TODAY, "en")
+    he, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=ENERGY),
+                            TODAY, "he")
+    en, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=ENERGY),
+                            TODAY, "en")
     for number in (SUMMARY["waves"], SUMMARY["period"]):
         check("both languages carry %s" % number,
               number in he and number in en)
@@ -120,6 +132,7 @@ def main():
     check("English goes to the English group",
           evening.GROUP["en"] == "surfers_en")
 
+    _forecast_changes()
     _evening_sends()
 
     print()
@@ -130,6 +143,71 @@ def main():
     return 0
 
 
+
+
+# ---------------------------------------------------------------------------
+# What the owner asked for on 15/9/2026: the current warning gone, a light
+# word about rain, and the recommended hours kept away from a low on a day
+# with no energy behind the swell.
+# ---------------------------------------------------------------------------
+
+def _forecast_changes():
+    import forecast_message as FM
+
+    # --- the sentence about the current is gone -------------------------
+    # It was the one line in the message that read as a reason to stay out
+    # of the water, and it went to both surfer groups every spring tide.
+    for lang in ("he", "en"):
+        msg, err = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=ENERGY),
+                                   TODAY, lang)
+        check("no %s forecast mentions the current" % lang,
+              not err and "זרם" not in msg and "current" not in msg.lower(),
+              (err or "")[:60])
+
+    # --- a dry day says nothing about the sky ---------------------------
+    # A line that appears every evening to announce good weather is a line
+    # people stop reading, and then they miss the one that matters.
+    check("a clear day gets no weather line",
+          FM.rain_line([(8, "CLEAR"), (12, "MOSTLY_CLOUDY")]) == "")
+    check("and neither does a missing weather feed",
+          FM.rain_line([]) == "" and FM.rain_line(None) == "")
+
+    # --- a wet one names the hours and stays out of the way -------------
+    light = FM.rain_line([(8, "LIGHT_RAIN"), (9, "DRIZZLE")])
+    check("light rain is mentioned with its hours",
+          "08:00-10:00" in light, light)
+    check("and does not tell anybody to stay home",
+          "לא מושפעים" in light, light)
+    heavy = FM.rain_line([(17, "THUNDER_STORMS"), (18, "THUNDER_STORMS")])
+    check("thunder is named with its hours", "17:00-19:00" in heavy, heavy)
+    check("and framed as a reason to surf earlier, not to skip",
+          "מוקדם יותר" in heavy, heavy)
+
+    # --- a weak sea keeps further off the low ---------------------------
+    # The owner, in his own words: a low sea with weak energy has no wave at
+    # the low, so do not point people at it.
+    t = FM.tides_for(DATE)
+    strong_low, _, strong_mid = FM.windows(t, weak=False)
+    weak_low, _, weak_mid = FM.windows(t, weak=True)
+    check("a day with energy still recommends the low", bool(strong_low),
+          repr(strong_low))
+    check("a weak day does not", weak_low == [], repr(weak_low))
+    check("and its windows are no closer to the low than before",
+          len(weak_mid) == len(strong_mid)
+          and all(FM.mins(w[1]) - FM.mins(w[0])
+                  <= FM.mins(v[1]) - FM.mins(v[0])
+                  for w, v in zip(weak_mid, strong_mid)),
+          "%r vs %r" % (weak_mid, strong_mid))
+    check("the threshold is the owner's own number", FM.WEAK_ENERGY == 100)
+
+    # --- and the beginners are not sent to an empty low -----------------
+    msg, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=50.0),
+                             TODAY, "he")
+    check("a weak day drops the near-low advice for beginners",
+          "קרוב לשפל" not in msg)
+    msg, _ = evening.message(DATE, dict(SUMMARY, sky=SKY, energy=200.0),
+                             TODAY, "he")
+    check("a day with energy keeps it", "קרוב לשפל" in msg)
 
 
 # ---------------------------------------------------------------------------

@@ -48,7 +48,13 @@ BASE = "https://services.surfline.com/kbyg/spots/forecasts"
 # The three feeds and the units each one needs, in the order they are read.
 FEEDS = (("surf", "&units%5BwaveHeight%5D=M"),
          ("swells", ""),
-         ("wind", "&units%5BwindSpeed%5D=KTS"))
+         ("wind", "&units%5BwindSpeed%5D=KTS"),
+         ("weather", ""))
+
+# The weather feed is the only one the forecast can do without: a missing
+# sea stops the send, a missing sky just means the message says nothing
+# about rain. Kept in one place so both routes agree about which.
+OPTIONAL_FEEDS = ("weather",)
 
 # Cloudflare lets these through and refuses a bare curl. Keep them together:
 # dropping Origin or Referer is what turns a 200 back into a 403.
@@ -182,14 +188,20 @@ def fetch(days=2, timeout=45000):
                     return {status: r.status, body: await r.text()};
                 }""", u)
                 if got["status"] != 200:
+                    if name in OPTIONAL_FEEDS:
+                        # The sky is not the sea. A weather feed that will
+                        # not answer costs the message one line about rain;
+                        # stopping the whole forecast over it would cost two
+                        # hundred customers their evening.
+                        continue
                     raise SystemExit("surfline %s answered %s -- do not send, "
                                      "and do not guess" % (name, got["status"]))
                 d = json.loads(got["body"])
-                out[name] = (d.get("data") or d)[name]
+                out[name] = (d.get("data") or d).get(name) or []
         finally:
             b.close()
 
-    if not all(out.get(n) for n, _ in FEEDS):
+    if not all(out.get(n) for n, _ in FEEDS if n not in OPTIONAL_FEEDS):
         raise SystemExit("surfline returned no rows -- do not send, and do not guess")
     return {
         "surf": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
@@ -201,6 +213,9 @@ def fetch(days=2, timeout=45000):
         "wind": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
                   "speed": r.get("speed"), "direction": r.get("direction"),
                   "directionType": r.get("directionType")} for r in out["wind"]],
+        "weather": [{"timestamp": r["timestamp"], "utcOffset": r["utcOffset"],
+                     "condition": r.get("condition")}
+                    for r in out.get("weather") or []],
     }
 
 
@@ -236,6 +251,55 @@ PY'''
 def _rows(payload, key):
     d = payload.get("data", payload)
     return d[key]
+
+
+def energy(rows_):
+    """The sea's energy, per hour, as the number the owner reads on Surfline.
+
+    Sum of h^2 * T over the swell trains. It is a proxy rather than their
+    exact figure, but it lands on the same scale -- 66-90 through a
+    0.6-0.9 m day, 100-120 on the 1.2 m days after it -- and the scale is
+    what a threshold is written in.
+
+    It exists because height alone does not say whether there is a wave.
+    A small sea with long-period energy behind it still breaks; a small sea
+    with none does not, and at low tide on that day there is nothing at
+    all. That is the distinction the recommended hours now turn on.
+    """
+    out = {}
+    for r in rows_ or []:
+        t = _local(r["timestamp"], r.get("utcOffset") or 0)
+        out[t] = sum((s.get("height") or 0) ** 2 * (s.get("period") or 0)
+                     for s in (r.get("swells") or []))
+    return out
+
+
+def day_energy(rows_, date, lo=DAY_FROM, hi=DAY_TO):
+    """The mean energy across the hours anybody actually goes in.
+
+    None when the swell feed did not reach us. None is not zero: a sea we
+    could not read must not be described as a flat one.
+    """
+    want = dt.date.fromisoformat(date) if isinstance(date, str) else date
+    vals = [e for t, e in energy(rows_).items()
+            if t.date() == want and lo <= t.hour <= hi]
+    return sum(vals) / len(vals) if vals else None
+
+
+def sky(rows_, date, lo=DAY_FROM, hi=DAY_TO):
+    """Surfline's hourly condition word, for the daylight hours of `date`.
+
+    Returns [(hour, CONDITION), ...] in order, or [] when the feed is
+    missing -- which is a message with no weather line, never a claim that
+    the day is clear.
+    """
+    want = dt.date.fromisoformat(date) if isinstance(date, str) else date
+    out = []
+    for r in rows_ or []:
+        t = _local(r["timestamp"], r.get("utcOffset") or 0)
+        if t.date() == want and lo <= t.hour <= hi and r.get("condition"):
+            out.append((t.hour, str(r["condition"]).upper()))
+    return sorted(out)
 
 
 def load(paths):

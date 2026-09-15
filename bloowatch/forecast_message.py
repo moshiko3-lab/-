@@ -123,6 +123,19 @@ CLEAR_AT_NEAP, CLEAR_AT_SPRING = 105, 40
 # 07:00-10:00 and 14:00-17:00 -- and 135 minutes is what he opened them to.
 MID_HALF = 135
 
+# Below this, the sea has no push behind it and low tide has nothing at all.
+# The owner's words on 15/9/2026: "יש ים נמוך עם אנרגיה חלשה כמו 100, אנחנו
+# לא רוצים להתקרב יותר מדי ללואו טייד כי אין גלים." The scale is
+# surfline.day_energy's -- 76 on the flat 0.9 m day he was describing, 103
+# and 118 on the 1.2 m days either side of it -- so 100 is his own number in
+# his own units, and it separates those days cleanly.
+WEAK_ENERGY = 100
+
+# And how much further off the low to stay on such a day, on top of the
+# clearance the tide range already buys. Half an hour: enough to matter on a
+# morning window, not enough to cut a session in half.
+WEAK_EXTRA = 30
+
 
 def snap_up(m, step=30):
     """To the next half hour, never back to the last one.
@@ -149,19 +162,26 @@ def tide_range(t):
     return (max(hs) - min(ls)) if hs and ls else None
 
 
-def clear_of_low(rng):
-    """Minutes to stay off a low, by the day's range. See the constants above."""
+def clear_of_low(rng, weak=False):
+    """Minutes to stay off a low, by the day's range. See the constants above.
+
+    `weak` adds WEAK_EXTRA on a day with no energy behind the swell. The
+    distance that works on a day with push is not the distance that works on
+    a day without one: the same hour that is merely shallower at 1.2 m is
+    flat at 0.9 m with nothing behind it.
+    """
     lo, hi = min(CLEAR_AT_NEAP, CLEAR_AT_SPRING), max(CLEAR_AT_NEAP, CLEAR_AT_SPRING)
     try:
         rng = float(rng)
     except (TypeError, ValueError):
-        return CLEAR_AT_NEAP
+        return CLEAR_AT_NEAP + (WEAK_EXTRA if weak else 0)
     span = RANGE_SPRING_M - RANGE_NEAP_M
     f = (rng - RANGE_NEAP_M) / span if span else 0
-    return max(lo, min(hi, CLEAR_AT_NEAP + f * (CLEAR_AT_SPRING - CLEAR_AT_NEAP)))
+    out = max(lo, min(hi, CLEAR_AT_NEAP + f * (CLEAR_AT_SPRING - CLEAR_AT_NEAP)))
+    return out + (WEAK_EXTRA if weak else 0)
 
 
-def mid_window(centre, lows, rng, half=MID_HALF):
+def mid_window(centre, lows, rng, half=MID_HALF, weak=False):
     """A recommendation window: mid-tide either side, then held off the low.
 
     The low and not the last peak of the day, whichever that happens to be.
@@ -182,15 +202,89 @@ def mid_window(centre, lows, rng, half=MID_HALF):
     """
     a = max(REC_FROM, snap_up(centre - half))
     b = min(DAY_TO, snap_up(centre + half))
+    clear = clear_of_low(rng, weak)
     after = [x for x in lows if mins(x["t"]) > centre]
     if after:
         nxt = min(after, key=lambda x: mins(x["t"]))
-        b = min(b, snap_down(mins(nxt["t"]) - clear_of_low(rng)))
+        b = min(b, snap_down(mins(nxt["t"]) - clear))
+    # And, on a weak day only, the same distance coming out of a low. A
+    # window used to open right on top of the low it had just been held off
+    # the far side of; with push behind the swell that hour is merely
+    # shallow, with none there is nothing breaking in it.
+    #
+    # Only on a weak day, and that is not a preference. The owner wrote out
+    # 7/9 and 8/9's windows by hand -- 07:00 and 08:00 starts -- and
+    # test_forecast pins them. Backing every morning off the low by half an
+    # hour moved both of them to 07:30 and 08:30, which is exactly the
+    # correction he made in the other direction. His hours stand on the days
+    # he was describing; this changes only the days he was not.
+    if weak:
+        before = [x for x in lows if mins(x["t"]) < centre]
+        if before:
+            prv = max(before, key=lambda x: mins(x["t"]))
+            a = max(a, snap_up(mins(prv["t"]) + clear))
     return hhmm(a), hhmm(b)
 
 
-def windows(t):
-    """The three kinds of window the school talks about."""
+# Surfline's condition words, split by how much they matter to somebody
+# deciding whether to come down. Anything not listed is dry.
+WET_LIGHT = ("DRIZZLE", "LIGHT_RAIN", "LIGHT_SHOWERS", "SHOWERS", "RAIN")
+WET_HEAVY = ("THUNDER_SHOWERS", "THUNDER_STORMS", "HEAVY_RAIN",
+             "HEAVY_SHOWERS")
+
+
+def rain_line(sky, lang="he"):
+    """One line about the sky, or nothing at all.
+
+    The brief, in the owner's words on 15/9/2026: mention the rain, keep it
+    shallow, and do not frighten anybody out of coming down to surf. So a
+    dry day says nothing -- a line that appears every evening to announce
+    good weather is a line people stop reading -- and a wet one names the
+    hours and leaves it there.
+
+    Rain does not spoil surfing and the message should not imply it does.
+    Thunder is the one thing worth planning around, so it gets the hours and
+    a suggestion to go earlier, which is useful rather than alarming.
+    """
+    if not sky:
+        return ""
+    heavy = [h for h, c in sky if any(w in c for w in WET_HEAVY)]
+    light = [h for h, c in sky if any(w in c for w in WET_LIGHT)
+             and h not in heavy]
+    if not heavy and not light:
+        return ""
+
+    def span(hours):
+        return "%02d:00-%02d:00" % (min(hours), max(hours) + 1)
+
+    if lang == "en":
+        if heavy:
+            out = "*⛈ Thunder showers around %s* — worth planning your surf " \
+                  "for earlier in the day." % span(heavy)
+            if light:
+                out += " Light showers on and off the rest of the day."
+            return out
+        return ("*🌦 Light showers around %s* — the water is warm and the "
+                "waves do not mind. 🤙" % span(light))
+
+    if heavy:
+        out = ("*⛈ ממטרים וברקים בסביבות %s* – שווה לתכנן את הגלישה "
+               "למוקדם יותר." % span(heavy))
+        if light:
+            out += " בשאר היום ממטרים קלים לסירוגין."
+        return out
+    return ("*🌦 ממטרים קלים בסביבות %s* – המים חמימים והגלים לא מושפעים 🤙"
+            % span(light))
+
+
+def windows(t, weak=False):
+    """The three kinds of window the school talks about.
+
+    On a weak day the near-low window is not returned at all. It is not a
+    recommendation then -- "fast, hollow and shallower" describes a low with
+    a swell behind it, and saying it of a low without one sends people to an
+    empty sea.
+    """
     highs = sorted(mins(x["t"]) for x in (t.get("highs") or []))
     lows = sorted(mins(x["t"]) for x in (t.get("lows") or []))
 
@@ -231,10 +325,10 @@ def windows(t):
     # high windows above already apply. A forty-minute slot is not a
     # recommendation anybody acts on.
     lo_rows, rng = t.get("lows") or [], tide_range(t)
-    mid_w = [w for w in (mid_window(m, lo_rows, rng) for m in mids
+    mid_w = [w for w in (mid_window(m, lo_rows, rng, weak=weak) for m in mids
                          if REC_FROM <= m <= DAY_TO)
              if mins(w[1]) - mins(w[0]) >= 60]
-    return low_w, high_w, mid_w
+    return ([] if weak else low_w), high_w, mid_w
 
 
 def span(w):
@@ -672,7 +766,8 @@ def _build_en(d, highs, lows, waves, feet, period, compare, spot_note,
     L.append("*🏄‍♀️%s🏄‍♂️*" % spot_note)
     L.append("")
     L.append("*Near high tide: soft and slow.*")
-    L.append("*Near low tide: hollow and fast – good for whitewater.*")
+    if low_w:
+        L.append("*Near low tide: hollow and fast – good for whitewater.*")
     L.append("")
     L.append("*SUP paddling*")
     L.append("Around the tide peaks")
@@ -685,11 +780,17 @@ def _build_en(d, highs, lows, waves, feet, period, compare, spot_note,
 
 
 def build(date, waves, period, compare, spot_note, note="", wind="",
-          lang="he"):
+          lang="he", energy=None):
     t = tides_for(date)
     if not t:
         return None, "no tide table for " + date
-    low_w, high_w, mid_w = windows(t)
+    # `note` used to carry the tide-range line, which ended in a warning
+    # about the current. The owner asked for that sentence gone on
+    # 15/9/2026: it is the one line in the message that reads as a reason
+    # to stay out of the water. The parameter stays so callers need not
+    # change and so a note can be put back without rewriting this.
+    weak = energy is not None and energy < WEAK_ENERGY
+    low_w, high_w, mid_w = windows(t, weak=weak)
     d = dt.date.fromisoformat(date)
 
     # Only the tides anybody is going in for. A low at half past midnight is a
@@ -769,7 +870,11 @@ def build(date, waves, period, compare, spot_note, note="", wind="",
     L.append("*🏄‍♀️%s🏄‍♂️*" % spot_note)
     L.append("")
     L.append("*קרוב לגאות רך ואיטי.*")
-    L.append("*קרוב לשפל צינורי ומהיר – טוב לגלי קצף.*")
+    if low_w:
+        # Dropped on a weak day along with the near-low window itself. A
+        # beginner sent to the low on a flat morning finds no whitewater to
+        # stand up in, which is worse for them than for anybody.
+        L.append("*קרוב לשפל צינורי ומהיר – טוב לגלי קצף.*")
     L.append("")
     L.append("*חתירה בסאפ*")
     L.append("קרוב לשיאי הגאות/שפל")
@@ -807,8 +912,19 @@ def main():
                          "(180 = south). Getting this wrong inverts every "
                          "offshore/onshore call.")
     ap.add_argument("--tide-note", action="store_true",
-                    help="add a line when the tide range is unusually big or "
-                         "small — worked out from the table, not forecast")
+                    help="kept so older callers still parse. The line it used "
+                         "to add ended in a warning about the current, and "
+                         "the owner asked for that gone on 15/9/2026.")
+    ap.add_argument("--rain", default="",
+                    help="the sky in one line, from surfline.sky via "
+                         "rain_line(). Empty on a dry day, which is most of "
+                         "them, and then the message says nothing about it.")
+    ap.add_argument("--energy", type=float, default=None,
+                    help="the day's mean swell energy (surfline.day_energy). "
+                         "Below %d the recommended hours keep further off the "
+                         "low and the near-low advice is dropped — a small sea "
+                         "with nothing behind it has no wave there at all."
+                         % WEAK_ENERGY)
     ap.add_argument("--lang", choices=("he", "en"), default="he",
                     help="he for the Hebrew group, en for the English one — "
                          "same numbers, same windows, translated")
@@ -831,17 +947,16 @@ def main():
         a.waves_today, a.waves, a.lang, date=date, period=a.period,
         wind_kt=a.wind or None, wind_deg=a.wind_dir or None, faces=a.faces)
 
-    note = ""
-    if a.tide_note:
-        t = tides_for(date)
-        if t:
-            note, _rng = tide_range_note(t, a.lang)
+    # The slot that used to hold the tide-range line now holds the sky, so
+    # this path and evening.message stay the same message built twice --
+    # which is the whole thing test_evening exists to hold together.
+    note = a.rain
 
     wind = (wind_line(a.wind, a.wind_dir, a.faces, a.lang,
                       a.onshore_from or None, a.onshore_eases)
             if a.wind and a.wind_dir else "")
     msg, err = build(date, a.waves, a.period, compare, a.spot, note,
-                     wind, a.lang)
+                     wind, a.lang, energy=a.energy)
     if err:
         print("error: " + err, file=sys.stderr)
         return 1
