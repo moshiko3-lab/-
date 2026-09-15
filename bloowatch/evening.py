@@ -236,7 +236,9 @@ def forecast(args):
     picture, why = "", ""
     if not args.no_chart:
         picture = os.path.join(tempfile.gettempdir(), "surfline.png")
-        picture, why = surfshot.shoot(picture)
+        # The day the forecast is about, not the three the page shows: the
+        # owner asked for the chart to match the message.
+        picture, why = surfshot.shoot(picture, date)
         if not picture:
             # Never a refusal. The chart is a bonus; the forecast is the
             # point, and two hundred people are waiting for the numbers.

@@ -45,8 +45,21 @@ WIDTH, HEIGHT, SCALE = 1400, 1100, 2
 # Surf and wind are what the school's own message talks about; the swell
 # and energy graphs below them are for somebody reading a forecast, not
 # somebody deciding whether to come down.
-TOP = "#forecast"
+# The graph shows three days side by side and the owner wants one: the day
+# the forecast is about. The day headings ("Tomorrow, 9/16") sit above each
+# column and give its left edge and width, so the clip is cut to that
+# column and starts at the headings rather than at the ten-day strip --
+# a strip that spans all three days is meaningless sliced to one.
 BOTTOM = "[class*='windGraphSection']"
+
+# The reading panels above each graph describe *now* -- current surf height,
+# current wind -- which is today, and this picture is about tomorrow. They
+# also sit across the full width, so cropping to one day cuts them in half
+# and leaves the rest of their box as white space. Hidden rather than
+# cropped around: they take up layout, so removing them closes the gap too.
+HIDE = ("[class*='TooltipContainer'], [class*='SurfTooltip'], "
+        "[class*='WindTooltip'], [class*='surfGraphTooltip'], "
+        "[class*='windGraphTooltip']")
 SETTLE_MS = 10000
 SCROLL_MS = 5000
 
@@ -58,8 +71,14 @@ def _blocked(exc):
             or "403" in text and "CONNECT" in text)
 
 
-def shoot(out, width=WIDTH, height=HEIGHT, scale=SCALE, timeout=90000):
+def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
+          timeout=90000):
     """Save the chart to `out`. Returns (path, reason).
+
+    `date` is the day the forecast is about, as YYYY-MM-DD; the picture is
+    cut to that day's column alone. Without it the whole three-day graph is
+    kept, which is what the first version sent and what the owner asked to
+    narrow.
 
     A path and an empty reason on success; "" and a sentence otherwise. It
     never raises, because every caller is a send that must still go.
@@ -105,17 +124,65 @@ def shoot(out, width=WIDTH, height=HEIGHT, scale=SCALE, timeout=90000):
                 except Exception:                               # noqa: BLE001
                     pass
 
-                box = p.evaluate("""(sel) => {
-                    const top = document.querySelector(sel[0]);
-                    const end = document.querySelector(sel[1]);
-                    if (!top || !end) return null;
-                    const a = top.getBoundingClientRect();
-                    const b = end.getBoundingClientRect();
-                    const y = a.top + window.scrollY;
-                    return {x: a.left + window.scrollX, y: y,
-                            width: a.width,
-                            height: (b.bottom + window.scrollY) - y};
-                }""", [TOP, BOTTOM])
+                try:
+                    p.add_style_tag(content="%s { display: none !important; }"
+                                    % HIDE)
+                    p.wait_for_timeout(600)
+                except Exception:                               # noqa: BLE001
+                    pass                # a panel left in beats no picture
+
+                want = ""
+                if date:
+                    d = date.split("-")
+                    want = "%d/%d" % (int(d[1]), int(d[2]))      # 9/16
+
+                box = p.evaluate("""(arg) => {
+                    const [sel, want] = arg;
+                    const end = document.querySelector(sel);
+                    if (!end) return null;
+                    const bottom = end.getBoundingClientRect().bottom
+                                   + window.scrollY;
+
+                    // The day headings above each column, widest first so
+                    // the column's own width is used and not the label's.
+                    const heads = [...document.querySelectorAll("*")]
+                      .filter(e => e.children.length === 0
+                              && /^[A-Z][a-z]+(day)?, \\d+\\/\\d+/
+                                 .test((e.innerText || "").trim()))
+                      .map(e => {
+                        const r = e.getBoundingClientRect();
+                        return {t: (e.innerText || "").trim(),
+                                x: r.left + window.scrollX,
+                                w: r.width,
+                                y: r.top + window.scrollY};
+                      })
+                      .filter(h => h.w > 200)
+                      .sort((a, b) => a.x - b.x);
+                    if (!heads.length) return null;
+
+                    let i = want
+                      ? heads.findIndex(h => h.t.endsWith(" " + want))
+                      : -1;
+                    const top = heads[0].y - 24;
+                    if (i < 0) {
+                        // Whole graph: the day was not found, and a picture
+                        // of three days beats no picture at all.
+                        const last = heads[heads.length - 1];
+                        return {x: heads[0].x, y: top,
+                                width: (last.x + last.w) - heads[0].x,
+                                height: bottom - top, whole: true};
+                    }
+                    // Cut at the midpoints of the gaps either side, so the
+                    // divider lines are not clipped through.
+                    const me = heads[i];
+                    const prev = heads[i - 1];
+                    const next = heads[i + 1];
+                    const left = prev ? (prev.x + prev.w + me.x) / 2 : me.x;
+                    const right = next ? (me.x + me.w + next.x) / 2
+                                       : me.x + me.w;
+                    return {x: left, y: top, width: right - left,
+                            height: bottom - top};
+                }""", [BOTTOM, want])
 
                 if box and box["width"] > 200 and box["height"] > 200:
                     # full_page because the clip is far below the fold.
@@ -147,10 +214,12 @@ def main():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, help="where to write the PNG")
+    ap.add_argument("--date", default="",
+                    help="YYYY-MM-DD: cut the picture to this day's column")
     ap.add_argument("--width", type=int, default=WIDTH)
     ap.add_argument("--height", type=int, default=HEIGHT)
     a = ap.parse_args()
-    path, why = shoot(a.out, a.width, a.height)
+    path, why = shoot(a.out, a.date, a.width, a.height)
     if not path:
         print("no picture: " + why, file=sys.stderr)
         return 1
