@@ -45,9 +45,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import approval                                                 # noqa: E402
+import audit_reminders                                          # noqa: E402
 import forecast_message as F                                    # noqa: E402
 import send                                                     # noqa: E402
 import snapshot                                                 # noqa: E402
+import watch_sends                                              # noqa: E402
 import surfshot                                                 # noqa: E402
 import report                                                   # noqa: E402
 import surfline                                                 # noqa: E402
@@ -143,13 +145,24 @@ def message(date, s, today, lang, tide_note=True):
 
 
 def _one(lang, text, picture, dry_run, timeout=300):
-    """One send.py call: this text, to this group, with or without a file."""
+    """One send.py call: this text, to this group, with or without a file.
+
+    **`--once-today`, always.** From 24/9/2026 the forecast no longer goes
+    out from a single run at six: the office approves it, and a tick that
+    repeats every ten minutes until it does is what actually sends. That
+    turns "send this" from something said once into something said
+    eighteen times a night, and the only thing standing between that and a
+    group reading tomorrow's waves twice is Green-API's own journal.
+
+    It matches the exact text, so a corrected forecast still gets through
+    and only a literal repeat is skipped.
+    """
     fd, path = tempfile.mkstemp(suffix="-%s.txt" % lang, text=True)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(text + "\n")
     try:
         cmd = [sys.executable, os.path.join(HERE, "send.py"),
-               "--to", GROUP[lang], "--text", path]
+               "--to", GROUP[lang], "--text", path, "--once-today"]
         if picture:
             cmd += ["--file", picture]
         if dry_run:
@@ -255,26 +268,30 @@ def _office(text, picture=""):
 
 
 def preview(args):
-    """17:30 — tomorrow's forecast to the office, before it goes to the groups.
+    """18:00 — tomorrow's forecast to the office, and to nobody else yet.
 
     Four messages into the school's own chat: the chart under a heading, the
     Hebrew exactly as the Hebrew group will get it, the English exactly as
-    the English group will get it, and one line saying how to stop it. The
-    two forecasts are sent verbatim and on their own, not quoted or
-    summarised, because the thing being approved is the message and anything
-    that reformats it is a different message.
+    the English group will get it, and one line saying what to type. The two
+    forecasts are sent verbatim and on their own, not quoted or summarised,
+    because the thing being approved is the message and anything that
+    reformats it is a different message.
 
-    **It never blocks the 18:00 send by failing.** A preview that could not
-    be built or could not be delivered leaves no report in the journal, and
-    approval.state() reads that as silence -- which sends. The owner asked
-    to see the forecast first; he did not ask for a new way for it to not go
-    out.
+    **This is the whole of six o'clock now.** Until 24/9/2026 the 18:00
+    routine was the send; the owner moved it here -- *"במקום לשלוח אוטומטי
+    ב-18:00, לשלוח ב-18:00 לווצאפ העסק את שניהם לאישור"* -- and the send
+    became a tick that waits for his word. So a preview that fails is no
+    longer a cosmetic loss: with REQUIRE_YES set, no preview means nothing
+    for him to approve, and nothing to approve means the groups get nothing
+    all evening. It exits non-zero for that reason, and the routine's job
+    on a non-zero is to say so loudly while there is still time to re-run
+    it.
     """
     date = args.date or tomorrow()
     built, s, problem = build_both(date, ["he", "en"], args.no_tide_note)
     if problem:
         print("error: " + problem, file=sys.stderr)
-        _r("17:30 preview", "RESULT built=none sent=none why=%s" % problem[:60])
+        _r("18:00 preview", "RESULT built=none sent=none why=%s" % problem[:60])
         return 1
 
     picture = ""
@@ -285,13 +302,17 @@ def preview(args):
             print("note: no chart in the preview — %s" % why, file=sys.stderr)
 
     when = dt.date.fromisoformat(date).strftime("%d/%m")
-    head = ("👀 *תחזית למחר %s — לפני שליחה*\n"
-            "יוצאת לשתי קבוצות הגולשים ב-18:00." % when)
     if approval.REQUIRE_YES:
-        tail = ("⬆️ זה בדיוק מה שיישלח ב-18:00.\n"
-                "לאישור — תכתוב כאן: *אישור*\n"
-                "בלי אישור התחזית לא תישלח.")
+        head = ("👀 *תחזית למחר %s — לאישור*\n"
+                "לא נשלחה לאף קבוצה עדיין." % when)
+        tail = ("⬆️ זה בדיוק מה שיישלח לשתי הקבוצות.\n"
+                "לשליחה — תכתוב כאן: *אישור*\n"
+                "היא תצא תוך כמה דקות.\n\n"
+                "*בלי אישור עד %02d:00 — לא נשלח כלום.*"
+                % approval.DEADLINE_HOUR)
     else:
+        head = ("👀 *תחזית למחר %s — לפני שליחה*\n"
+                "יוצאת לשתי קבוצות הגולשים ב-18:00." % when)
         tail = ("⬆️ זה בדיוק מה שיישלח ב-18:00.\n"
                 "לעצור — תכתוב כאן: *עצור*\n"
                 "בלי תשובה זה נשלח כרגיל.")
@@ -315,31 +336,71 @@ def preview(args):
     # as the moment after which a reply means something, so a preview he
     # never saw must not open a window he was never asked about.
     if ok:
-        _r("17:30 preview", "RESULT built=he,en chart=%s sent=office"
+        _r("18:00 preview", "RESULT built=he,en chart=%s sent=office"
            % ("yes" if picture else "no"))
     else:
-        _r("17:30 preview", "RESULT built=he,en chart=%s sent=INCOMPLETE"
+        _r("18:00 preview", "RESULT built=he,en chart=%s sent=INCOMPLETE"
            % ("yes" if picture else "no"))
     return 0 if ok else 1
+
+
+def already_out(rows, langs, now=None):
+    """Which groups already have tonight's forecast, per the gateway's journal.
+
+    Not what prevents a duplicate -- `send.py --once-today` does that, and
+    it compares the text itself. This is what stops the ten-minute tick
+    from photographing Surfline another fifteen times on an evening the
+    forecast went out at ten past six.
+
+    The markers come from watch_sends, which pins them against
+    forecast_message's own source, so a reworded greeting fails loudly in
+    the tests rather than quietly making every tick think nothing was sent.
+    """
+    now = now or dt.datetime.now(watch_sends.PANAMA)
+    due = now.replace(hour=18, minute=0, second=0, microsecond=0)
+    said = audit_reminders.by_chat(rows, since=due - dt.timedelta(minutes=20))
+    groups = send.book()["groups"]
+    marker = {"he": watch_sends.FORECAST_HE, "en": watch_sends.FORECAST_EN}
+    out = []
+    for lang in langs:
+        jid = send.target(GROUP[lang], groups)["jid"]
+        if any(marker[lang] in text for text in said.get(jid, [])):
+            out.append(lang)
+    return out
 
 
 def forecast(args):
     date = args.date or tomorrow()
     langs = [args.only] if args.only else ["he", "en"]
 
-    # Asked before anything is built, so a held evening costs no browser and
-    # no Surfline call. Never asked on a dry run or a --print: those send to
-    # nobody, and somebody checking the wording at ten in the morning should
-    # not be told the office has not approved a message he is only reading.
+    # Both questions off one pair of journal reads, and both before anything
+    # is built: from 24/9/2026 this runs every ten minutes all evening, and
+    # a tick that opens a browser before finding out it has nothing to do is
+    # a tick that costs forty seconds fifteen times a night.
+    #
+    # Never asked on a dry run or a --print: those send to nobody, and
+    # somebody checking the wording at ten in the morning should not be told
+    # the office has not approved a message he is only reading.
     if not (args.dry_run or args.print):
-        st = approval.state()
+        journals = approval.fetch()
+        done = already_out(journals[0], langs)
+        langs = [l for l in langs if l not in done]
+        if not langs:
+            # No report: the tick that actually sent it already filed one,
+            # and a second line every ten minutes would bury the journal.
+            print("already out tonight: %s" % ", ".join(done))
+            return 0
+
+        st = approval.state(journals=journals)
         stop, why = approval.held(st, require_yes=args.need_approval or None)
         if stop:
             print("held: %s" % why, file=sys.stderr)
-            _r("18:00 forecast", "RESULT sent=none held=office why=%s"
-               % (approval.normalise(st["said"])[:40] or st["decision"]))
-            # Not a failure. The office decided; a non-zero status here would
-            # put a red routine on his phone for doing what he asked.
+            # Also no report, and for the same reason -- eighteen ticks an
+            # evening. The 19:50 safety net names the state once instead,
+            # so a night nobody approved is still visible in the morning.
+            #
+            # Not a failure either. The office decided; a non-zero status
+            # would put a red routine on his phone for doing what he asked.
             return 0
 
     built, s, problem = build_both(date, langs, args.no_tide_note)

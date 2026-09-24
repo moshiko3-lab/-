@@ -183,7 +183,14 @@ def already_said(where, text, ident, token, minutes=720):
     for m in sent if isinstance(sent, list) else []:
         if m.get("chatId") != where["jid"]:
             continue
-        had = m.get("textMessage") or m.get("extendedTextMessage") or ""
+        # `caption` matters as much as the other two. A message sent with a
+        # picture carries its text there and nowhere else, so leaving it out
+        # made this blind to exactly the send it now has to guard: from
+        # 24/9/2026 the forecast goes out from a tick that repeats every ten
+        # minutes until the office approves it, and the forecast is the one
+        # message that travels as a caption on the Surfline chart.
+        had = (m.get("textMessage") or m.get("caption")
+               or m.get("extendedTextMessage") or "")
         if isinstance(had, dict):
             had = had.get("text") or ""
         if " ".join(str(had).split()) == want:

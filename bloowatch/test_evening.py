@@ -323,10 +323,16 @@ def _forecast_changes():
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# What the owner asked for on 24/9/2026: "בוא נעשה את התחזיות לשתי הקבוצות
-# בהודעה לווצאפ של העסק לאישור לפני שליחה". The preview has to show him the
-# message and not a rendering of it, and the answer he gives has to actually
-# reach the send.
+# What the owner asked for on 24/9/2026. First: "בוא נעשה את התחזיות לשתי
+# הקבוצות בהודעה לווצאפ של העסק לאישור לפני שליחה" -- which was built as a
+# veto. Then, having seen it: "במקום לשלוח אוטומטי ב-18:00, לשלוח ב-18:00
+# לווצאפ העסק את שניהם לאישור."
+#
+# So six o'clock is now the preview, and the send is a tick that repeats
+# every ten minutes until he answers. That changes what has to hold: the
+# preview must show the message and not a rendering of it; the tick must
+# send nothing until he speaks; and once it has sent, the fifteen ticks
+# behind it must neither send again nor photograph Surfline again.
 # ---------------------------------------------------------------------------
 
 def _preview_and_gate():
@@ -336,15 +342,22 @@ def _preview_and_gate():
     BUILT = {"he": "ערב טוב חברים\nגובה גלים 0.5", "en": "Good evening everyone"}
 
     class Wired:
-        """Both sending paths and the Surfline round trip, replaced."""
+        """Both sending paths, the journals and the Surfline round trip."""
 
-        def __init__(self, state, chart="/tmp/chart.png", built=BUILT):
+        def __init__(self, state, chart="/tmp/chart.png", built=BUILT,
+                     out=()):
             self.state, self.chart, self.built = state, chart, built
+            self.out = list(out)            # groups already served tonight
             self.office, self.groups = [], []
+            self.fetched = 0
+
+        def _fetch(self, *a, **k):
+            self.fetched += 1
+            return [], [], True
 
         def __enter__(self):
             self.real = (E._office, E._one, E.build_both, E.surfshot.shoot,
-                         Ap.state)
+                         E.already_out, Ap.state, Ap.fetch)
             E._office = lambda text, picture="": (
                 self.office.append((text, picture)) or True)
             E._one = lambda lang, text, picture, dry_run, timeout=300: (
@@ -353,12 +366,15 @@ def _preview_and_gate():
                 {k: v for k, v in self.built.items() if k in langs},
                 {"waves": "0.3-0.6", "period": "9", "wind": "5"}, "")
             E.surfshot.shoot = lambda path, date: (self.chart, "")
+            E.already_out = lambda rows, langs, now=None: [
+                l for l in langs if l in self.out]
             Ap.state = lambda *a, **k: dict(self.state)
+            Ap.fetch = self._fetch
             return self
 
         def __exit__(self, *a):
             (E._office, E._one, E.build_both, E.surfshot.shoot,
-             Ap.state) = self.real
+             E.already_out, Ap.state, Ap.fetch) = self.real
 
     class Args:
         date = "2026-09-25"
@@ -370,11 +386,13 @@ def _preview_and_gate():
         need_approval = False
 
     silent = {"decision": "silent", "said": "", "when": 0, "preview": 0}
+    approved = {"decision": "go", "said": "אישור", "when": 1, "preview": 1}
+    stopped = {"decision": "stop", "said": "עצור", "when": 1, "preview": 1}
 
     # --- the preview shows the message, not a summary of it -------------
     with Wired(silent) as w:
         code = E.preview(Args())
-    check("the 17:30 preview exits 0", code == 0, str(code))
+    check("the 18:00 preview exits 0", code == 0, str(code))
     check("and sends four messages to the office and none to a group",
           len(w.office) == 4 and not w.groups,
           "%d office, %d group" % (len(w.office), len(w.groups)))
@@ -385,39 +403,77 @@ def _preview_and_gate():
           w.office[1][0] == BUILT["he"], repr(w.office[1][0][:40]))
     check("and the English group's, verbatim too",
           w.office[2][0] == BUILT["en"], repr(w.office[2][0][:40]))
-    check("and the last line says how to stop it",
-          "עצור" in w.office[3][0], repr(w.office[3][0]))
+    check("the last line says what to type, and by when",
+          "אישור" in w.office[3][0] and "21:00" in w.office[3][0],
+          repr(w.office[3][0]))
+    check("and the heading does not claim it was sent",
+          "לא נשלחה" in w.office[0][0], repr(w.office[0][0]))
 
-    # A preview that quietly went nowhere must not look like one he saw.
+    # A preview that quietly went nowhere must not look like one he saw --
+    # and under the gate it is worse than cosmetic: nothing to approve
+    # means the groups get nothing all evening.
     with Wired(silent) as w:
         E._office = lambda text, picture="": False
         code = E.preview(Args())
     check("a preview that could not be delivered exits 1", code == 1, str(code))
 
-    # --- silence sends, which is the whole bargain ----------------------
+    # --- the tick sends nothing until he answers ------------------------
     with Wired(silent) as w:
         code = E.forecast(Args())
-    check("with no answer the 18:00 forecast goes to both groups",
+    check("with no answer the forecast goes to nobody", not w.groups,
+          repr(w.groups))
+    check("and that is not a failure — it is what he asked for",
+          code == 0, str(code))
+
+    with Wired(stopped) as w:
+        code = E.forecast(Args())
+    check("a typed stop sends nothing either",
+          not w.groups and code == 0, "%s %r" % (code, w.groups))
+
+    # --- and the word releases it ---------------------------------------
+    with Wired(approved) as w:
+        code = E.forecast(Args())
+    check("an approval puts it in front of both groups",
           code == 0 and [l for l, _, _ in w.groups] == ["he", "en"],
           "%s %r" % (code, w.groups))
 
-    # --- and a typed word holds it --------------------------------------
-    stopped = {"decision": "stop", "said": "עצור", "when": 1, "preview": 1}
-    with Wired(stopped) as w:
-        code = E.forecast(Args())
-    check("a stop from the office sends nothing at all", not w.groups,
-          repr(w.groups))
-    check("and is not reported as a failure — he decided, it did not break",
-          code == 0, str(code))
-
-    # Nothing about a held evening should cost a browser: the check comes
-    # before the Surfline shot, not after it.
+    # --- what the other seventeen ticks must not do ----------------------
+    # This is the whole risk of driving the send off a ten-minute tick. The
+    # groups are already served; a tick that rebuilds is forty seconds of
+    # browser for nothing, and a tick that sends is the one mistake that
+    # cannot be taken back.
     shot = {"n": 0}
-    with Wired(stopped) as w:
+    with Wired(approved, out=("he", "en")) as w:
+        E.surfshot.shoot = lambda path, date: (shot.__setitem__("n", 1),
+                                               ("/tmp/c.png", ""))[1]
+        code = E.forecast(Args())
+    check("a tick after the send writes to nobody",
+          not w.groups and code == 0, "%s %r" % (code, w.groups))
+    check("and never opens a browser", shot["n"] == 0)
+
+    # Half sent is the case that actually happens: one group's send failed,
+    # or one language was filled in by the safety net. The tick has to
+    # finish the job without repeating the half that arrived.
+    with Wired(approved, out=("he",)) as w:
+        code = E.forecast(Args())
+    check("a tick with one group already served sends only the other",
+          [l for l, _, _ in w.groups] == ["en"], repr(w.groups))
+
+    # A held evening must cost no browser either — the question is asked
+    # before anything is built, not after.
+    shot["n"] = 0
+    with Wired(silent) as w:
         E.surfshot.shoot = lambda path, date: (shot.__setitem__("n", 1),
                                                ("/tmp/c.png", ""))[1]
         E.forecast(Args())
     check("a held evening never opens a browser", shot["n"] == 0)
+
+    # Both questions come off one pair of journal reads. Eighteen ticks an
+    # evening times two endpoints is what this is keeping off Green-API.
+    with Wired(silent) as w:
+        E.forecast(Args())
+    check("one tick costs one pair of journal reads, not two",
+          w.fetched == 1, w.fetched)
 
     # --- --print and --dry-run are nobody's send -------------------------
     # Somebody reading the wording at ten in the morning must not be told
@@ -432,20 +488,34 @@ def _preview_and_gate():
     check("--print neither asks the office nor is held by it",
           code == 0 and asked["n"] == 0, "%s %d" % (code, asked["n"]))
 
-    # --- the strict bargain, for the day he asks for it ------------------
-    with Wired(silent) as w:
-        a = Args()
-        a.need_approval = True
-        code = E.forecast(a)
-    check("--need-approval holds a forecast nobody approved",
-          not w.groups and code == 0, "%s %r" % (code, w.groups))
-    with Wired({"decision": "go", "said": "אישור", "when": 1,
-                "preview": 1}) as w:
-        a = Args()
-        a.need_approval = True
-        code = E.forecast(a)
-    check("and releases the one he approved",
-          [l for l, _, _ in w.groups] == ["he", "en"], repr(w.groups))
+    # --- the send is guarded twice, and the second guard is the real one -
+    # already_out stops the browser; send.py --once-today stops the message.
+    # The journal lags a few seconds, so a tick firing while the previous
+    # one is still sending sees nothing in already_out -- and then the only
+    # thing between two hundred people and a duplicate is this flag.
+    seen = []
+    real_one = E._one
+    try:
+        E._one = real_one
+        import subprocess as SP
+        real_run = SP.run
+
+        def spy(cmd, **kw):
+            seen.append(list(cmd))
+            class R:
+                returncode = 0
+                stdout = '{"skipped": "already sent today"}'
+                stderr = ""
+            return R()
+        SP.run = spy
+        try:
+            E._one("he", "x", "", False)
+        finally:
+            SP.run = real_run
+    finally:
+        E._one = real_one
+    check("every forecast send carries --once-today",
+          seen and "--once-today" in seen[0], repr(seen))
 
 
 def _evening_sends():

@@ -110,12 +110,13 @@ def audit(now=None, tomorrow=None):
     # start.
     raw = A.journal(ident, token)
 
-    # A forecast the office stopped is not a forecast that went astray.
-    # Without this the 18:25 net would find it missing, the recovery routine
-    # would send it, and the one thing the owner asked the preview for --
-    # being able to say no -- would be undone half an hour later by the
-    # safety net built to protect the same message.
-    stopped, _ = approval.held(approval.state(ident, token, now=now))
+    # A forecast the office has not released is not a forecast that went
+    # astray. Without this the 18:25 net would find it missing, the recovery
+    # routine would send it, and the approval the owner asked for on
+    # 24/9/2026 would be undone half an hour later by the safety net built
+    # to protect the same message.
+    verdict = approval.state(ident, token, now=now)
+    stopped, _ = approval.held(verdict)
 
     missing = []
     for item in due_times(today):
@@ -203,9 +204,19 @@ def main():
     # Filed either way, and that matters more here than anywhere else: a
     # safety net that only speaks up when it finds something is
     # indistinguishable from one that is not running at all.
+    #
+    # The approval state rides on the same line, and it is the only place it
+    # is written down. From 24/9/2026 the forecast waits for a typed word and
+    # the ten-minute tick that carries it files nothing while it waits --
+    # eighteen identical lines an evening would bury the journal. Without
+    # this, a night nobody approved and a night the routines never fired
+    # look exactly alike in the morning, which is the confusion this whole
+    # file exists to prevent.
     import report
-    report.result("safety net", "RESULT missing=%d %s" % (
-        len(missing), ",".join(m["what"] for m in missing) or "all sent"),
+    state = approval.state(now=now)
+    report.result("safety net", "RESULT missing=%d %s approval=%s" % (
+        len(missing), ",".join(m["what"] for m in missing) or "all sent",
+        state["decision"]),
         echo=not a.json)
     return 1 if missing else 0
 

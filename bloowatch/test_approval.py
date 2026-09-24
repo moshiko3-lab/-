@@ -15,8 +15,11 @@ gateway and without the risk of a test putting a message on WhatsApp.
 import os as _os
 _os.environ["SHOKOGI_NO_REPORT"] = "1"   # a test run must never put a message on WhatsApp
 import datetime as dt
+import io
+import json
 import os
 import sys
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -42,8 +45,16 @@ def msg(text, at, chat=MINE, key="textMessage"):
     return {"chatId": chat, "timestamp": at, key: text}
 
 
-def run(out, inc, now, require_yes=None):
-    """state() and held(), with both journals faked."""
+def run(out, inc, now, require_yes=False):
+    """state() and held(), with both journals faked.
+
+    `require_yes` defaults to False rather than to the module's own setting
+    so that the veto half of this file keeps testing veto semantics after
+    the owner switched the shipped default to the gate on 24/9/2026. Both
+    bargains have to keep working: he can switch back, and the checks that
+    prove the reading of a reply -- which word, whose chat, when -- are the
+    same either way.
+    """
     real_out, real_inc = A.journal, Ap.incoming
     try:
         A.journal = lambda i, t, minutes=1440: list(out)
@@ -99,7 +110,7 @@ def main():
     yesterday = dt.datetime(2026, 9, 23, 17, 35,
                             tzinfo=Ap.PANAMA).timestamp()
     preview = {"chatId": MINE, "timestamp": at(17, 30),
-               "textMessage": "#SHOKOGI-RUN 17:30 preview | auto 01x | "
+               "textMessage": "#SHOKOGI-RUN 18:00 preview | auto 01x | "
                               "09-24 22:30Z | RESULT built=he,en"}
     other = {"chatId": MINE, "timestamp": at(17, 45),
              "textMessage": "#SHOKOGI-RUN 19:00 rota | auto 01y | "
@@ -121,7 +132,7 @@ def main():
     # six o'clock tonight. Anchoring on it would reopen a window wide enough
     # for a reply about yesterday's forecast to hold today's.
     stale = {"chatId": MINE, "timestamp": yesterday,
-             "textMessage": "#SHOKOGI-RUN 17:30 preview | auto 01z | "
+             "textMessage": "#SHOKOGI-RUN 18:00 preview | auto 01z | "
                             "09-23 22:30Z | RESULT built=he,en"}
     check("last night's preview is not tonight's anchor",
           Ap.preview_at([stale], MINE, now) is None,
@@ -162,25 +173,38 @@ def main():
 
     # ---- silence ---------------------------------------------------------
     st, stop, why = run([preview], [], now)
-    check("silence sends, which is the whole bargain",
-          st["decision"] == "silent" and not stop, (st, why))
+    check("under the veto, silence sends", st["decision"] == "silent"
+          and not stop, (st, why))
 
     st, stop, _ = run([preview], [], now, require_yes=True)
-    check("and under REQUIRE_YES silence holds instead", stop, st)
+    check("and under the gate, silence holds instead", stop, st)
     st, stop, _ = run([preview, msg("אישור", at(17, 40))], [], now,
                       require_yes=True)
-    check("under REQUIRE_YES an approval releases it", not stop, st)
+    check("under the gate an approval releases it", not stop, st)
+
+    # A stop is still a stop after an approval, under the gate too: he is
+    # allowed to approve and then change his mind before the next tick.
+    st, stop, _ = run([preview, msg("אישור", at(17, 35)),
+                       msg("עצור", at(17, 55))], [], now, require_yes=True)
+    check("and a stop after an approval still holds it", stop, st)
 
     # ---- no preview at all ------------------------------------------------
-    # The 17:30 run died, or never ran. Nothing was shown, so nothing was
-    # approved and nothing was objected to -- and the 18:00 send, which has
-    # been going out every night since long before any of this, still goes.
+    # The 18:00 run died, or never ran. Under the veto nothing was objected
+    # to, so the send that has been going out every night since long before
+    # any of this still goes.
     st, stop, _ = run([], [], now)
-    check("a preview that never went out does not hold the forecast",
+    check("under the veto, a preview that never went out holds nothing",
           st["preview"] == 0 and not stop, st)
     st, stop, _ = run([msg("עצור", at(17, 40))], [], now)
     check("but a stop typed this evening still counts without one",
           stop, st)
+
+    # Under the gate it is the opposite, and this is the sharp edge of the
+    # bargain the owner chose: a preview that never went out is nothing for
+    # him to approve, so the groups get nothing. It is why the preview's own
+    # failure is loud and why 19:50 writes the state into the journal.
+    st, stop, why = run([], [], now, require_yes=True)
+    check("under the gate, no preview means no send", stop, (st, why))
 
     # ---- an unreachable gateway -------------------------------------------
     def boom(*a, **k):
@@ -194,13 +218,13 @@ def main():
         A.journal, Ap.incoming = real_out, real_inc
     check("neither journal readable is 'unknown', not 'silent'",
           st["decision"] == "unknown", st)
-    check("and an unreadable journal does not hold the send",
-          not Ap.held(st)[0], st)
-    check("though under REQUIRE_YES it does, because nothing was approved",
+    check("under the veto an unreadable journal does not hold the send",
+          not Ap.held(st, require_yes=False)[0], st)
+    check("under the gate it does, because nothing was approved",
           Ap.held(st, require_yes=True)[0], st)
 
     # One journal answering is enough: a 429 on one endpoint must not turn
-    # into "we could not tell", which under REQUIRE_YES would mean no send.
+    # into "we could not tell", which under the gate would mean no send.
     real_out, real_inc = A.journal, Ap.incoming
     try:
         A.journal = boom
@@ -212,7 +236,79 @@ def main():
           st["decision"] == "stop", st)
 
     # ---- the default is the one the owner is living with ------------------
-    check("the shipped default is: silence sends", Ap.REQUIRE_YES is False)
+    # He asked for the veto on 24/9/2026, read what it did, and asked for
+    # the gate instead: "במקום לשלוח אוטומטי ב-18:00, לשלוח ב-18:00 לווצאפ
+    # העסק את שניהם לאישור". Pinned so that a later edit here is a decision
+    # somebody makes rather than a line that drifts.
+    check("the shipped default is the gate: nothing goes out unapproved",
+          Ap.REQUIRE_YES is True)
+    check("and the deadline is written down beside it",
+          Ap.DEADLINE_HOUR == 21, Ap.DEADLINE_HOUR)
+    st, stop, why = run([preview], [], now, require_yes=None)
+    check("held() with no argument follows that default",
+          stop and "approved" in why, (st, why))
+
+    # ---- what stops the tick from repeating itself ------------------------
+    # Two guards, and they are not the same guard. already_out reads the
+    # groups' own chats and stops the browser; send.py --once-today reads
+    # the text and stops the message. The journal lags a few seconds, so a
+    # tick firing while the last one is still sending sees nothing in the
+    # first -- and the second is all that is left.
+    import evening as E
+    import send as S
+    import watch_sends as W
+
+    groups = S.book()["groups"]
+    he = S.target("surfers_he", groups)["jid"]
+    en = S.target("surfers_en", groups)["jid"]
+    tonight = int(at(18, 7))
+
+    rows = [{"chatId": he, "timestamp": tonight,
+             "textMessage": W.FORECAST_HE + " ..."}]
+    check("a group that has tonight's forecast is reported as served",
+          E.already_out(rows, ["he", "en"], now=now) == ["he"],
+          E.already_out(rows, ["he", "en"], now=now))
+
+    # The forecast travels as a caption on the chart most nights, and a
+    # caption is a different field. Reading only textMessage would make
+    # every tick think nothing had gone out.
+    rows = [{"chatId": en, "timestamp": tonight,
+             "caption": W.FORECAST_EN + " ..."}]
+    check("a forecast sent as a chart caption counts too",
+          E.already_out(rows, ["he", "en"], now=now) == ["en"],
+          E.already_out(rows, ["he", "en"], now=now))
+
+    rows = [{"chatId": he, "timestamp": int(yesterday),
+             "textMessage": W.FORECAST_HE + " ..."}]
+    check("last night's does not",
+          E.already_out(rows, ["he", "en"], now=now) == [],
+          E.already_out(rows, ["he", "en"], now=now))
+
+    # The same blind spot, one layer down. already_said is what actually
+    # refuses the duplicate, and until 24/9/2026 it never looked at a
+    # caption either -- which is the field the forecast uses.
+    real_open = urllib.request.urlopen
+
+    def answer(rows):
+        def fake(url, timeout=None):
+            body = json.dumps(rows).encode("utf-8")
+            r = io.BytesIO(body)
+            r.__enter__ = lambda: r
+            r.__exit__ = lambda *a: False
+            return r
+        return fake
+
+    where = {"jid": he}
+    text = "ערב טוב חברים — גלים 0.5"
+    try:
+        urllib.request.urlopen = answer([{"chatId": he, "caption": text}])
+        check("already_said sees a message that went as a caption",
+              S.already_said(where, text, "1", "t"))
+        urllib.request.urlopen = answer([{"chatId": en, "caption": text}])
+        check("but only in the chat it is asked about",
+              not S.already_said(where, text, "1", "t"))
+    finally:
+        urllib.request.urlopen = real_open
 
     print()
     if fails:

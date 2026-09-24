@@ -5,25 +5,35 @@
     python3 approval.py --state --json
 
 The owner asked for this on 24/9/2026: *"בוא נעשה את התחזיות לשתי הקבוצות
-בהודעה לווצאפ של העסק לאישור לפני שליחה"*. So at 17:30 `evening.py preview`
-builds exactly what 18:00 is going to send and puts it in the school's own
-chat -- the same chat every RESULT line and every board snapshot already
-goes to. Half an hour later the 18:00 run asks this file whether anybody
-objected.
+בהודעה לווצאפ של העסק לאישור לפני שליחה"*. It was built first as a veto --
+shown at 17:30, sent at 18:00 unless he objected -- and he read that and
+asked for the other thing, in his own words: *"במקום לשלוח אוטומטי ב-18:00,
+לשלוח ב-18:00 לווצאפ העסק את שניהם לאישור"*.
 
-**Silence sends.** That is the one decision in here worth arguing about,
-and it goes the way it does because of the owner's own standing rule: a
-forecast that does not arrive is a failure, and the whole point of the
-last three weeks of work was that the send happens without him having to
-watch. A gate that needs a typed "yes" turns every busy evening -- a
-lesson running late, a phone in a dry bag, a flat battery -- into two
-hundred people getting nothing, and it fails silently, which is the shape
-of failure that has cost this school the most. So the preview gives him
-the power to *stop* a send, not the duty to *permit* one.
+**So nothing reaches a customer until he types a word.** That is his call,
+made after being told what it costs, and what it costs is this: on an
+evening he is busy -- a lesson running late, a phone in a dry bag, a flat
+battery -- the two surfer groups get nothing, and by his own older rule a
+forecast that does not arrive is a failure. This file cannot make that
+trade-off go away. What the rest of the system does about it:
 
-Flip REQUIRE_YES if he ever wants the other bargain. It is one line here
-and one word in the 18:00 routine's prompt, and everything below already
-handles it; what it costs is written above.
+  * 18:00  `evening.py preview` puts both messages in the school's own
+           chat. Nothing else happens.
+  * 18:05  onwards, every ten minutes until 21:00, `evening.py forecast`
+           asks this file. Silence means it sends nothing and says
+           nothing. The evening he answers, the next tick sends -- so
+           "approved" costs him a wait of minutes, not a second command.
+  * 21:00  the last tick. After that the forecast does not go out at all.
+           A tomorrow-forecast arriving at midnight helps nobody, and a
+           deadline is the difference between a decision he made and a
+           message that leaked out while he was asleep.
+  * 19:50  the safety net names the state on its own line, so a night
+           nobody approved is visible in the journal the next morning
+           instead of looking like a night the routines never fired.
+
+REQUIRE_YES is the switch between the two bargains, and both halves of
+this file are live either way. Setting it back to False restores the veto:
+the preview still goes out, and silence sends.
 
 **Where the reply is read from.** Both journals, because the school's own
 chat is the one place where the distinction between them is not obvious.
@@ -54,15 +64,22 @@ import snapshot                                                 # noqa: E402
 
 PANAMA = dt.timezone(dt.timedelta(hours=-5))    # Panama, all year round
 
-# False: the preview is a veto. True: the preview is a gate and nothing
-# goes out without a typed yes. Read the docstring before changing it.
-REQUIRE_YES = False
+# True: the preview is a gate and nothing goes out without a typed yes --
+# the owner's own choice on 24/9/2026, made after reading what it costs.
+# False restores the veto, where silence sends. Read the docstring first.
+REQUIRE_YES = True
+
+# The last moment a typed approval still puts the forecast out, in Panama
+# time. Not enforced here -- the poller simply stops firing -- but written
+# down here because it is part of the bargain and belongs beside it.
+DEADLINE_HOUR = 21
 
 # The line the preview's own report starts with, and the hour to fall back
 # to when that report never made it into the journal. Tying the window to
 # the preview keeps a "stop" from yesterday out of tonight's answer.
-PREVIEW_REPORT = "17:30 preview"
-PREVIEW_HOUR = 17
+PREVIEW_REPORT = "18:00 preview"
+PREVIEW_HOUR = 17           # 17:00, not 18:00: a routine that fires a few
+                            # minutes early must still open its own window
 
 # Both lists are matched on the whole reply, or on its first word, so a
 # forecast that happens to contain "no" somewhere cannot be read as an
@@ -203,23 +220,17 @@ def _floor(preview, now):
     return start.timestamp()
 
 
-def state(ident="", token="", now=None, minutes=1440):
-    """What the office said about tonight's forecast, if anything.
+def fetch(ident="", token="", minutes=1440):
+    """Both journals, each best-effort: (outgoing, incoming, reached_either).
 
-        {"decision": "stop" | "go" | "silent" | "unknown",
-         "said": the reply verbatim, "when": unix time or 0,
-         "preview": unix time of tonight's preview, or 0}
-
-    "unknown" means neither journal could be read. It is kept distinct from
-    "silent" because the two deserve opposite treatment under REQUIRE_YES,
-    and because a caller that cannot tell them apart will eventually decide
-    that an unreachable gateway is consent.
+    Separate from state() so one caller can ask two questions of one pair
+    of fetches. That matters now: from 24/9/2026 the forecast is driven by
+    a tick that fires every ten minutes all evening, and each tick needs
+    both "did the office answer" and "has it already gone out" -- which is
+    two journal reads a tick, or one, depending on nothing but this split.
     """
     ident = ident or os.environ.get("GREENAPI_ID", "")
     token = token or os.environ.get("GREENAPI_TOKEN", "")
-    now = now or dt.datetime.now(PANAMA)
-    mine = snapshot.self_chat()
-
     out, inc, reached = [], [], False
     try:
         out = A.journal(ident, token, minutes=minutes)
@@ -231,6 +242,29 @@ def state(ident="", token="", now=None, minutes=1440):
         reached = True
     except Exception:                                           # noqa: BLE001
         pass
+    return out, inc, reached
+
+
+def state(ident="", token="", now=None, minutes=1440, journals=None):
+    """What the office said about tonight's forecast, if anything.
+
+        {"decision": "stop" | "go" | "silent" | "unknown",
+         "said": the reply verbatim, "when": unix time or 0,
+         "preview": unix time of tonight's preview, or 0}
+
+    "unknown" means neither journal could be read. It is kept distinct from
+    "silent" because the two deserve opposite treatment under REQUIRE_YES,
+    and because a caller that cannot tell them apart will eventually decide
+    that an unreachable gateway is consent.
+
+    `journals` takes a (outgoing, incoming, reached) triple from fetch(),
+    for a caller that has already paid for it.
+    """
+    now = now or dt.datetime.now(PANAMA)
+    mine = snapshot.self_chat()
+
+    out, inc, reached = (journals if journals is not None
+                         else fetch(ident, token, minutes))
 
     if not reached:
         return {"decision": "unknown", "said": "", "when": 0, "preview": 0}

@@ -217,13 +217,6 @@ def main():
         W._personal = lambda said, tom, book: []
         at_1930 = dt.datetime.combine(day, dt.time(19, 30), tzinfo=W.PANAMA)
 
-        Ap.state = lambda *a, **k: {"decision": "silent", "said": "",
-                                    "when": 0, "preview": 0}
-        missing = [m["what"] for m in W.audit(now=at_1930)]
-        check("with nothing sent and nobody objecting, everything is missing",
-              missing == ["forecast_he", "forecast_en", "staff_rota"],
-              repr(missing))
-
         Ap.state = lambda *a, **k: {"decision": "stop", "said": "עצור",
                                     "when": 1, "preview": 1}
         missing = [m["what"] for m in W.audit(now=at_1930)]
@@ -232,8 +225,36 @@ def main():
               repr(missing))
         check("and the rota, which nobody held, still is",
               missing == ["staff_rota"], repr(missing))
+
+        # From 24/9/2026 nothing goes out unapproved, so an evening nobody
+        # answered is the ordinary case -- and it must not look like an
+        # evening the routines never fired.
+        Ap.state = lambda *a, **k: {"decision": "silent", "said": "",
+                                    "when": 0, "preview": 1}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("an evening nobody answered is not a pile of missing sends",
+              missing == ["staff_rota"], repr(missing))
+
+        # And once he answers, the net goes back to doing its job: an
+        # approved forecast that did not reach a group is a real failure.
+        Ap.state = lambda *a, **k: {"decision": "go", "said": "אישור",
+                                    "when": 1, "preview": 1}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("but an approved forecast that never arrived still is",
+              missing == ["forecast_he", "forecast_en", "staff_rota"],
+              repr(missing))
     finally:
         A.journal, Ap.state, W._personal = real_journal, real_state, real_personal
+
+    # --- the state has to be written down somewhere ---------------------
+    # The ten-minute tick files nothing while it waits, so without this line
+    # the journal shows a preview and then silence, and "he never approved"
+    # and "the poller never ran" are indistinguishable in the morning.
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "watch_sends.py"), encoding="utf-8") as f:
+        source = f.read()
+    check("the safety net's RESULT line carries the approval state",
+          "approval=%s" in source, "not found in watch_sends.py")
 
     print()
     if fails:
