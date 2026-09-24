@@ -134,6 +134,7 @@ def main():
 
     _forecast_changes()
     _chart_attachment()
+    _preview_and_gate()
     _evening_sends()
 
     print()
@@ -320,6 +321,132 @@ def _forecast_changes():
 # commands each. What is pinned is not that they work -- the dry runs show
 # that -- but the three rules that cost something real when they were broken.
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# What the owner asked for on 24/9/2026: "בוא נעשה את התחזיות לשתי הקבוצות
+# בהודעה לווצאפ של העסק לאישור לפני שליחה". The preview has to show him the
+# message and not a rendering of it, and the answer he gives has to actually
+# reach the send.
+# ---------------------------------------------------------------------------
+
+def _preview_and_gate():
+    import evening as E
+    import approval as Ap
+
+    BUILT = {"he": "ערב טוב חברים\nגובה גלים 0.5", "en": "Good evening everyone"}
+
+    class Wired:
+        """Both sending paths and the Surfline round trip, replaced."""
+
+        def __init__(self, state, chart="/tmp/chart.png", built=BUILT):
+            self.state, self.chart, self.built = state, chart, built
+            self.office, self.groups = [], []
+
+        def __enter__(self):
+            self.real = (E._office, E._one, E.build_both, E.surfshot.shoot,
+                         Ap.state)
+            E._office = lambda text, picture="": (
+                self.office.append((text, picture)) or True)
+            E._one = lambda lang, text, picture, dry_run, timeout=300: (
+                self.groups.append((lang, text, bool(picture))), (True, []))[1]
+            E.build_both = lambda date, langs, no_tide=False: (
+                {k: v for k, v in self.built.items() if k in langs},
+                {"waves": "0.3-0.6", "period": "9", "wind": "5"}, "")
+            E.surfshot.shoot = lambda path, date: (self.chart, "")
+            Ap.state = lambda *a, **k: dict(self.state)
+            return self
+
+        def __exit__(self, *a):
+            (E._office, E._one, E.build_both, E.surfshot.shoot,
+             Ap.state) = self.real
+
+    class Args:
+        date = "2026-09-25"
+        dry_run = False
+        print = False
+        only = ""
+        no_tide_note = False
+        no_chart = False
+        need_approval = False
+
+    silent = {"decision": "silent", "said": "", "when": 0, "preview": 0}
+
+    # --- the preview shows the message, not a summary of it -------------
+    with Wired(silent) as w:
+        code = E.preview(Args())
+    check("the 17:30 preview exits 0", code == 0, str(code))
+    check("and sends four messages to the office and none to a group",
+          len(w.office) == 4 and not w.groups,
+          "%d office, %d group" % (len(w.office), len(w.groups)))
+    check("the chart rides on the heading, where nothing can truncate the "
+          "forecast", w.office[0][1] == "/tmp/chart.png"
+          and not any(p for _, p in w.office[1:]), repr([p for _, p in w.office]))
+    check("the Hebrew group's message is shown verbatim",
+          w.office[1][0] == BUILT["he"], repr(w.office[1][0][:40]))
+    check("and the English group's, verbatim too",
+          w.office[2][0] == BUILT["en"], repr(w.office[2][0][:40]))
+    check("and the last line says how to stop it",
+          "עצור" in w.office[3][0], repr(w.office[3][0]))
+
+    # A preview that quietly went nowhere must not look like one he saw.
+    with Wired(silent) as w:
+        E._office = lambda text, picture="": False
+        code = E.preview(Args())
+    check("a preview that could not be delivered exits 1", code == 1, str(code))
+
+    # --- silence sends, which is the whole bargain ----------------------
+    with Wired(silent) as w:
+        code = E.forecast(Args())
+    check("with no answer the 18:00 forecast goes to both groups",
+          code == 0 and [l for l, _, _ in w.groups] == ["he", "en"],
+          "%s %r" % (code, w.groups))
+
+    # --- and a typed word holds it --------------------------------------
+    stopped = {"decision": "stop", "said": "עצור", "when": 1, "preview": 1}
+    with Wired(stopped) as w:
+        code = E.forecast(Args())
+    check("a stop from the office sends nothing at all", not w.groups,
+          repr(w.groups))
+    check("and is not reported as a failure — he decided, it did not break",
+          code == 0, str(code))
+
+    # Nothing about a held evening should cost a browser: the check comes
+    # before the Surfline shot, not after it.
+    shot = {"n": 0}
+    with Wired(stopped) as w:
+        E.surfshot.shoot = lambda path, date: (shot.__setitem__("n", 1),
+                                               ("/tmp/c.png", ""))[1]
+        E.forecast(Args())
+    check("a held evening never opens a browser", shot["n"] == 0)
+
+    # --- --print and --dry-run are nobody's send -------------------------
+    # Somebody reading the wording at ten in the morning must not be told
+    # the office has not approved a message that is going to nobody.
+    asked = {"n": 0}
+    with Wired(stopped) as w:
+        Ap.state = lambda *a, **k: (asked.__setitem__("n", asked["n"] + 1),
+                                    dict(stopped))[1]
+        a = Args()
+        a.print = True
+        code = E.forecast(a)
+    check("--print neither asks the office nor is held by it",
+          code == 0 and asked["n"] == 0, "%s %d" % (code, asked["n"]))
+
+    # --- the strict bargain, for the day he asks for it ------------------
+    with Wired(silent) as w:
+        a = Args()
+        a.need_approval = True
+        code = E.forecast(a)
+    check("--need-approval holds a forecast nobody approved",
+          not w.groups and code == 0, "%s %r" % (code, w.groups))
+    with Wired({"decision": "go", "said": "אישור", "when": 1,
+                "preview": 1}) as w:
+        a = Args()
+        a.need_approval = True
+        code = E.forecast(a)
+    check("and releases the one he approved",
+          [l for l, _, _ in w.groups] == ["he", "en"], repr(w.groups))
+
 
 def _evening_sends():
     import evening as E

@@ -44,8 +44,10 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import approval                                                 # noqa: E402
 import forecast_message as F                                    # noqa: E402
 import send                                                     # noqa: E402
+import snapshot                                                 # noqa: E402
 import surfshot                                                 # noqa: E402
 import report                                                   # noqa: E402
 import surfline                                                 # noqa: E402
@@ -200,10 +202,15 @@ def deliver(lang, text, dry_run, picture=""):
     return ok, tail
 
 
-def forecast(args):
-    date = args.date or tomorrow()
-    langs = [args.only] if args.only else ["he", "en"]
+def build_both(date, langs, no_tide_note=False):
+    """Tomorrow's forecast in each language, or a reason to send nothing.
 
+    Factored out so the 17:30 preview and the 18:00 send build through the
+    same lines rather than two copies that agree tonight. What the owner is
+    shown at half past five has to be the message, not a rendering of it:
+    a preview that can differ from what goes out is worse than no preview,
+    because it is approval given to something nobody sent.
+    """
     days = tides.ahead(tides.CATALOG)
     if days < TIDE_DAYS_WANTED:
         # Not a refusal: a forecast carrying an older tide beats no forecast.
@@ -212,16 +219,133 @@ def forecast(args):
 
     s, today, problem = sea(date)
     if problem:
-        print("error: " + problem, file=sys.stderr)
-        return 1
+        return None, None, problem
 
     built = {}
     for lang in langs:
-        text, err = message(date, s, today, lang, tide_note=not args.no_tide_note)
+        text, err = message(date, s, today, lang, tide_note=not no_tide_note)
         if err:
-            print("error: %s (%s)" % (err, lang), file=sys.stderr)
-            return 1
+            return None, None, "%s (%s)" % (err, lang)
         built[lang] = text
+    return built, s, ""
+
+
+def _office(text, picture=""):
+    """Put one message in the school's own chat, where nobody but the office reads.
+
+    In process rather than through send.py, exactly as report.py does. The
+    alternative is passing the school's own number on a command line, and
+    the one rule that has never been bent here is that a phone number does
+    not go anywhere it can be read back out of a transcript.
+    """
+    gateway, ident, token = send.pick_gateway()
+    if gateway != "green":
+        print("preview not sent: no Green-API credentials", file=sys.stderr)
+        return False
+    where = send.target(snapshot.self_chat(), {})
+    try:
+        code, body = send.via_green(where, text, picture, ident, token)
+    except Exception as exc:                                    # noqa: BLE001
+        print("preview not sent: %s" % exc, file=sys.stderr)
+        return False
+    if code != 200 or '"idMessage"' not in body:
+        print("preview not sent: %s %s" % (code, body[:200]), file=sys.stderr)
+        return False
+    return True
+
+
+def preview(args):
+    """17:30 — tomorrow's forecast to the office, before it goes to the groups.
+
+    Four messages into the school's own chat: the chart under a heading, the
+    Hebrew exactly as the Hebrew group will get it, the English exactly as
+    the English group will get it, and one line saying how to stop it. The
+    two forecasts are sent verbatim and on their own, not quoted or
+    summarised, because the thing being approved is the message and anything
+    that reformats it is a different message.
+
+    **It never blocks the 18:00 send by failing.** A preview that could not
+    be built or could not be delivered leaves no report in the journal, and
+    approval.state() reads that as silence -- which sends. The owner asked
+    to see the forecast first; he did not ask for a new way for it to not go
+    out.
+    """
+    date = args.date or tomorrow()
+    built, s, problem = build_both(date, ["he", "en"], args.no_tide_note)
+    if problem:
+        print("error: " + problem, file=sys.stderr)
+        _r("17:30 preview", "RESULT built=none sent=none why=%s" % problem[:60])
+        return 1
+
+    picture = ""
+    if not args.no_chart:
+        picture, why = surfshot.shoot(
+            os.path.join(tempfile.gettempdir(), "surfline-preview.png"), date)
+        if not picture:
+            print("note: no chart in the preview — %s" % why, file=sys.stderr)
+
+    when = dt.date.fromisoformat(date).strftime("%d/%m")
+    head = ("👀 *תחזית למחר %s — לפני שליחה*\n"
+            "יוצאת לשתי קבוצות הגולשים ב-18:00." % when)
+    if approval.REQUIRE_YES:
+        tail = ("⬆️ זה בדיוק מה שיישלח ב-18:00.\n"
+                "לאישור — תכתוב כאן: *אישור*\n"
+                "בלי אישור התחזית לא תישלח.")
+    else:
+        tail = ("⬆️ זה בדיוק מה שיישלח ב-18:00.\n"
+                "לעצור — תכתוב כאן: *עצור*\n"
+                "בלי תשובה זה נשלח כרגיל.")
+
+    if args.dry_run:
+        for part in (head, built["he"], built["en"], tail):
+            print(part)
+            print()
+        print("would send 4 messages to the office  chart %s"
+              % ("yes" if picture else "no"))
+        return 0
+
+    ok = _office(head, picture) if picture else _office(head)
+    for part in (built["he"], built["en"], tail):
+        ok = _office(part) and ok
+
+    print("preview %s  waves %s m  chart %s"
+          % ("sent" if ok else "INCOMPLETE", s["waves"],
+             "yes" if picture else "no"))
+    # Filed last and only on success: this line is what the 18:00 run uses
+    # as the moment after which a reply means something, so a preview he
+    # never saw must not open a window he was never asked about.
+    if ok:
+        _r("17:30 preview", "RESULT built=he,en chart=%s sent=office"
+           % ("yes" if picture else "no"))
+    else:
+        _r("17:30 preview", "RESULT built=he,en chart=%s sent=INCOMPLETE"
+           % ("yes" if picture else "no"))
+    return 0 if ok else 1
+
+
+def forecast(args):
+    date = args.date or tomorrow()
+    langs = [args.only] if args.only else ["he", "en"]
+
+    # Asked before anything is built, so a held evening costs no browser and
+    # no Surfline call. Never asked on a dry run or a --print: those send to
+    # nobody, and somebody checking the wording at ten in the morning should
+    # not be told the office has not approved a message he is only reading.
+    if not (args.dry_run or args.print):
+        st = approval.state()
+        stop, why = approval.held(st, require_yes=args.need_approval or None)
+        if stop:
+            print("held: %s" % why, file=sys.stderr)
+            _r("18:00 forecast", "RESULT sent=none held=office why=%s"
+               % (approval.normalise(st["said"])[:40] or st["decision"]))
+            # Not a failure. The office decided; a non-zero status here would
+            # put a red routine on his phone for doing what he asked.
+            return 0
+
+    built, s, problem = build_both(date, langs, args.no_tide_note)
+    if problem:
+        print("error: " + problem, file=sys.stderr)
+        return 1
 
     if args.print:
         for lang in langs:
@@ -542,7 +666,20 @@ def main():
     f.add_argument("--no-tide-note", action="store_true")
     f.add_argument("--no-chart", action="store_true",
                    help="send the text alone, without the Surfline chart")
+    f.add_argument("--need-approval", action="store_true",
+                   help="send nothing unless the office approved the 17:30 "
+                        "preview. Without it, only a typed 'עצור' holds the "
+                        "send — see approval.py for why that is the default.")
     f.set_defaults(run=forecast)
+
+    v = sub.add_parser("preview", help="17:30 — tomorrow's forecast to the "
+                                       "office, before the groups get it")
+    v.add_argument("--date", help="YYYY-MM-DD, default tomorrow in Panama")
+    v.add_argument("--dry-run", action="store_true",
+                   help="print the four messages and send nothing")
+    v.add_argument("--no-tide-note", action="store_true")
+    v.add_argument("--no-chart", action="store_true")
+    v.set_defaults(run=preview)
 
     r = sub.add_parser("rota", help="tomorrow's rota to the staff group, "
                                     "with the board, and the snapshot after")

@@ -46,6 +46,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import approval                                                # noqa: E402
 import audit_reminders as A                                    # noqa: E402
 import daily_report                                            # noqa: E402
 import rota                                                    # noqa: E402
@@ -109,10 +110,19 @@ def audit(now=None, tomorrow=None):
     # start.
     raw = A.journal(ident, token)
 
+    # A forecast the office stopped is not a forecast that went astray.
+    # Without this the 18:25 net would find it missing, the recovery routine
+    # would send it, and the one thing the owner asked the preview for --
+    # being able to say no -- would be undone half an hour later by the
+    # safety net built to protect the same message.
+    stopped, _ = approval.held(approval.state(ident, token, now=now))
+
     missing = []
     for item in due_times(today):
         if now < item["due"] + dt.timedelta(minutes=GRACE_MINUTES):
             continue                                   # not late yet
+        if stopped and item["what"].startswith("forecast"):
+            continue
 
         said = A.by_chat(raw, since=item["due"] - dt.timedelta(minutes=10))
 

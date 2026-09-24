@@ -202,6 +202,39 @@ def main():
     check("half past six, both forecasts are late and nothing else is",
           late == ["forecast_he", "forecast_en"], repr(late))
 
+    # --- a forecast the office stopped is not a forecast that went astray -
+    # Without this the 18:25 net finds it missing, the recovery routine
+    # sends it, and the veto the owner asked for on 24/9/2026 is undone
+    # half an hour later by the safety net built to protect that same
+    # message. The staff rota, which nobody vetoed, must still be checked.
+    import approval as Ap
+    os.environ.setdefault("GREENAPI_ID", "1")
+    os.environ.setdefault("GREENAPI_TOKEN", "t")
+    os.environ.setdefault("GREENAPI_URL", "https://x")
+    real_journal, real_state, real_personal = A.journal, Ap.state, W._personal
+    try:
+        A.journal = lambda i, t, minutes=1440: []
+        W._personal = lambda said, tom, book: []
+        at_1930 = dt.datetime.combine(day, dt.time(19, 30), tzinfo=W.PANAMA)
+
+        Ap.state = lambda *a, **k: {"decision": "silent", "said": "",
+                                    "when": 0, "preview": 0}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("with nothing sent and nobody objecting, everything is missing",
+              missing == ["forecast_he", "forecast_en", "staff_rota"],
+              repr(missing))
+
+        Ap.state = lambda *a, **k: {"decision": "stop", "said": "עצור",
+                                    "when": 1, "preview": 1}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("a forecast the office held is not reported as missing",
+              "forecast_he" not in missing and "forecast_en" not in missing,
+              repr(missing))
+        check("and the rota, which nobody held, still is",
+              missing == ["staff_rota"], repr(missing))
+    finally:
+        A.journal, Ap.state, W._personal = real_journal, real_state, real_personal
+
     print()
     if fails:
         print("%d failed: %s" % (len(fails), ", ".join(fails)))
