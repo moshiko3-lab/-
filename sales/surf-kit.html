@@ -31,6 +31,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
 }
 *{box-sizing:border-box}
+html,body{overflow-x:clip}
 body{background:var(--ground);color:var(--text);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 56px}
 .wrap{max-width:1040px;margin-inline:auto}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.08}
@@ -104,9 +105,48 @@ details p{color:var(--text-2);margin-top:10px;font-size:15px;max-width:65ch}
 footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3);font-size:13px}
 
 @media (min-width:860px){.hero{grid-template-columns:1.05fr .95fr;align-items:center}}
+
+/* ---------- effects ---------- */
+/* the sea behind the hero: a canvas of layered swells */
+.stage{position:relative;isolation:isolate}
+#sea{position:absolute;left:50%;bottom:0;height:46%;width:100vw;transform:translateX(-50%);z-index:-1;pointer-events:none}
+
+/* the kit floats: each piece bobs on its own swell, the whole lay tilts toward the pointer */
+.lay{perspective:900px;transform-style:preserve-3d}
+.lay svg{transition:transform .35s cubic-bezier(.2,.7,.3,1);will-change:transform}
+.lay g.piece{transform-box:fill-box;transform-origin:center}
+.lay::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(circle at var(--gx,30%) var(--gy,20%),rgba(255,255,255,.35),transparent 45%);mix-blend-mode:soft-light}
+
+/* wax sheen sweeping across the buy button */
+.btn.wax{position:relative;overflow:hidden}
+.btn.wax::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-20deg)}
+
+/* ticker */
+.ticker{overflow:hidden;width:100vw;margin-left:50%;transform:translateX(-50%);background:var(--wax);color:var(--wax-ink)}
+.ticker div{display:flex;width:max-content;font:800 clamp(16px,2.4vw,22px)/1 var(--display);letter-spacing:.02em;padding-block:14px;white-space:nowrap}
+.ticker span{padding-inline:18px}
+.ticker i{font-style:normal;opacity:.45}
+
+/* cards lift in 3D */
+.item{transition:transform .25s ease,box-shadow .25s ease;transform-style:preserve-3d}
+.item:hover{box-shadow:var(--shadow)}
+
+#splash{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+
 @media (prefers-reduced-motion:no-preference){
-  .lay g.piece{transition:transform .25s ease}
-  .lay:hover g.piece:nth-of-type(odd){transform:translateY(-3px)}
+  .lay g.piece{animation:bob 4.2s ease-in-out infinite}
+  .lay g.piece:nth-of-type(2){animation-duration:5s;animation-delay:-1.3s}
+  .lay g.piece:nth-of-type(3){animation-duration:4.6s;animation-delay:-2.4s}
+  .lay g.piece:nth-of-type(4){animation-duration:3.8s;animation-delay:-.7s}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-9px) rotate(1.6deg)}}
+  .btn.wax::after{animation:sheen 3.4s ease-in-out infinite}
+  @keyframes sheen{0%,55%{left:-60%}85%,100%{left:130%}}
+  .ticker div{animation:tick 22s linear infinite}
+  @keyframes tick{to{transform:translateX(-50%)}}
+  .hero h1 mark{background-size:0 100%;background-repeat:no-repeat;background-image:linear-gradient(transparent 58%,var(--wax) 58%);background-color:transparent;animation:swipe .9s .3s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes swipe{to{background-size:100% 100%}}
 }
 </style>
 
@@ -116,6 +156,8 @@ footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3)
     <span class="label">Playa Venao</span>
   </header>
 
+  <div class="stage">
+  <canvas id="sea" aria-hidden="true"></canvas>
   <div class="hero">
     <div class="hero-copy">
       <span class="label">Everything that goes missing from your board bag</span>
@@ -170,6 +212,12 @@ footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3)
       <span class="tag">Illustration · photo of the real kit coming</span>
     </figure>
   </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true"><div>
+    <span>WAX</span><i>✦</i><span>COMB</span><i>✦</i><span>FIN KEY</span><i>✦</i><span>SPARE SCREWS</span><i>✦</i><span>POUCH</span><i>✦</i><span>PLAYA VENAO</span><i>✦</i>
+    <span>WAX</span><i>✦</i><span>COMB</span><i>✦</i><span>FIN KEY</span><i>✦</i><span>SPARE SCREWS</span><i>✦</i><span>POUCH</span><i>✦</i><span>PLAYA VENAO</span><i>✦</i>
+  </div></div>
 
   <section class="contents" id="contents">
     <span class="label">Inside</span>
@@ -222,6 +270,7 @@ footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3)
 
   <footer>Sold by Shokogi surf school · Playa Venao, Panama</footer>
 </div>
+<canvas id="splash" aria-hidden="true"></canvas>
 
 <script>
 /* Everything a customer is promised lives here. Fill it in from the kit you
@@ -283,4 +332,91 @@ var KIT = {
     });
   }
 })(KIT);
+</script>
+
+<script>
+/* Effects. Everything above renders without them; these only add motion. */
+(function(){
+  var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var css = function(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||"#1f6f8b"};
+
+  /* the sea: three swells, each a sum of two sines, drifting at different speeds */
+  var sea=document.getElementById("sea"), sx=sea.getContext("2d"), W=0, H=0, dpr=Math.min(window.devicePixelRatio||1,2);
+  function size(){W=sea.clientWidth;H=sea.clientHeight;sea.width=W*dpr;sea.height=H*dpr;sx.setTransform(dpr,0,0,dpr,0,0)}
+  var swells=[
+    {y:.30,a:10,k:.010,k2:.023,s:.35,alpha:.18},
+    {y:.52,a:13,k:.008,k2:.019,s:-.5,alpha:.26},
+    {y:.74,a:9, k:.013,k2:.031,s:.8, alpha:.38}
+  ];
+  function drawSea(t){
+    sx.clearRect(0,0,W,H);
+    var col=css("--sea");
+    swells.forEach(function(w){
+      sx.beginPath();sx.moveTo(0,H);
+      for(var x=0;x<=W;x+=6){
+        var y=H*w.y + Math.sin(x*w.k + t*w.s)*w.a + Math.sin(x*w.k2 - t*w.s*1.7)*w.a*.45;
+        sx.lineTo(x,y);
+      }
+      sx.lineTo(W,H);sx.closePath();
+      sx.globalAlpha=w.alpha;sx.fillStyle=col;sx.fill();
+    });
+    /* foam flecks riding the front swell */
+    sx.globalAlpha=.55;sx.fillStyle=css("--panel");
+    for(var i=0;i<18;i++){
+      var fx=((i*97 + t*22*(1+i%3)) % (W+40)) - 20;
+      var w=swells[2], fy=H*w.y + Math.sin(fx*w.k + t*w.s)*w.a + Math.sin(fx*w.k2 - t*w.s*1.7)*w.a*.45;
+      sx.beginPath();sx.arc(fx,fy+2,1.2+(i%3)*.6,0,6.3);sx.fill();
+    }
+    sx.globalAlpha=1;
+  }
+  size();addEventListener("resize",size);
+  if(still){drawSea(0)}else{(function loop(ts){drawSea(ts/1000);requestAnimationFrame(loop)})(0)}
+
+  if(still) return;
+
+  /* the lay tilts toward the pointer, and its glare follows */
+  var lay=document.querySelector(".lay"), art=lay.querySelector("svg");
+  lay.addEventListener("pointermove",function(e){
+    var r=lay.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+    art.style.transform="rotateY("+((px-.5)*16)+"deg) rotateX("+((.5-py)*14)+"deg) translateZ(10px)";
+    lay.style.setProperty("--gx",(px*100)+"%");lay.style.setProperty("--gy",(py*100)+"%");
+  });
+  lay.addEventListener("pointerleave",function(){art.style.transform=""});
+
+  /* the contents cards lean toward the pointer too */
+  document.querySelectorAll(".item").forEach(function(c){
+    c.addEventListener("pointermove",function(e){
+      var r=c.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+      c.style.transform="perspective(700px) rotateY("+(px*10)+"deg) rotateX("+(-py*10)+"deg) translateY(-4px)";
+    });
+    c.addEventListener("pointerleave",function(){c.style.transform=""});
+  });
+
+  /* splash: spray thrown up from where the buy buttons are pressed */
+  var sp=document.getElementById("splash"), px2=sp.getContext("2d"), drops=[], running=false;
+  function spSize(){sp.width=innerWidth*dpr;sp.height=innerHeight*dpr;px2.setTransform(dpr,0,0,dpr,0,0)}
+  spSize();addEventListener("resize",spSize);
+  function splash(x,y){
+    var cols=[css("--sea"),css("--wax"),css("--panel")];
+    for(var i=0;i<46;i++){
+      var ang=-Math.PI/2+(Math.random()-.5)*2.2, v=4+Math.random()*7;
+      drops.push({x:x,y:y,vx:Math.cos(ang)*v,vy:Math.sin(ang)*v,r:1.5+Math.random()*3.5,life:1,c:cols[i%3]});
+    }
+    if(!running){running=true;requestAnimationFrame(step)}
+  }
+  function step(){
+    px2.clearRect(0,0,innerWidth,innerHeight);
+    drops=drops.filter(function(d){return d.life>0});
+    drops.forEach(function(d){
+      d.vy+=.28;d.x+=d.vx;d.y+=d.vy;d.life-=.018;
+      px2.globalAlpha=Math.max(d.life,0);px2.fillStyle=d.c;
+      px2.beginPath();px2.ellipse(d.x,d.y,d.r,d.r*1.35,Math.atan2(d.vy,d.vx),0,6.3);px2.fill();
+    });
+    px2.globalAlpha=1;
+    if(drops.length){requestAnimationFrame(step)}else{running=false}
+  }
+  document.querySelectorAll(".btn.wax").forEach(function(b){
+    b.addEventListener("click",function(e){var r=b.getBoundingClientRect();splash(e.clientX||r.left+r.width/2,e.clientY||r.top)});
+  });
+})();
 </script>
