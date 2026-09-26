@@ -1,281 +1,310 @@
 <title>Shokogi Surf Kit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
+/* One deliberate look: dusk at Playa Venao. The page is dark by design in both themes. */
 :root{
-  --ground:#f3f6f4;--panel:#ffffff;--panel-2:#e8eeea;--line:#d3ddd7;
-  --text:#14212b;--text-2:#4a5a63;--text-3:#76858c;
-  --wax:#f2c230;--wax-ink:#1f1703;--wax-soft:#fbefc4;
-  --sea:#1f6f8b;--sea-soft:#dcebf0;--good:#1f7a4d;
-  --tool:#2b3a44;--pouch:#1f6f8b;
-  --shadow:0 1px 2px rgba(20,33,43,.06),0 18px 40px -22px rgba(20,33,43,.35);
-  --display:"Unbounded","Figtree",system-ui,sans-serif;
+  color-scheme:dark;
+  --night:#061219;--deep:#0a2330;--sea:#1f8a9e;--foam:#e8f3f1;
+  --wax:#f5c542;--wax-ink:#1c1402;--glow:#ff9a5c;
+  --text:#eef5f3;--text-2:#a9bfc3;--text-3:#6f8a90;
+  --glass:rgba(12,34,44,.55);--line:rgba(232,243,241,.12);
+  --display:"Syne","Figtree",system-ui,sans-serif;
   --sans:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  color-scheme:dark;
-  --ground:#0e161b;--panel:#152128;--panel-2:#1a2931;--line:#27383f;
-  --text:#eaf0ee;--text-2:#a9b8bd;--text-3:#7d8f95;
-  --wax:#f5cc4a;--wax-soft:#3a3013;--sea:#5fb0cc;--sea-soft:#15303a;--good:#5cc592;
-  --tool:#c9d4d8;--pouch:#5fb0cc;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
-}}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --ground:#0e161b;--panel:#152128;--panel-2:#1a2931;--line:#27383f;
-  --text:#eaf0ee;--text-2:#a9b8bd;--text-3:#7d8f95;
-  --wax:#f5cc4a;--wax-soft:#3a3013;--sea:#5fb0cc;--sea-soft:#15303a;--good:#5cc592;
-  --tool:#c9d4d8;--pouch:#5fb0cc;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 *{box-sizing:border-box}
 html,body{overflow-x:clip}
-body{background:var(--ground);color:var(--text);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 56px}
-.wrap{max-width:1040px;margin-inline:auto}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.08}
+body{background:var(--night);color:var(--text);font:16px/1.6 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:.98;text-wrap:balance}
 p{margin:0}
-:focus-visible{outline:2px solid var(--sea);outline-offset:3px;border-radius:6px}
-.label{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--wax);outline-offset:4px;border-radius:8px}
+.label{font:600 11.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+.gutter{padding-inline:clamp(16px,4vw,48px)}
+.wrap{max-width:1200px;margin-inline:auto}
 
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px}
-.logo{font:800 16px var(--display);letter-spacing:-.01em}
-.logo b{background:var(--wax);color:var(--wax-ink);padding:2px 8px;border-radius:6px;margin-left:4px}
+/* ---------- the 3D stage ---------- */
+#gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block}
+.grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:60;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+main{position:relative;z-index:1}
 
-/* hero */
-.hero{display:grid;gap:32px;padding-block:16px 48px}
-.hero h1{font-size:clamp(32px,5.6vw,60px);font-weight:800;letter-spacing:-.03em}
-.hero h1 mark{background:linear-gradient(transparent 58%,var(--wax) 58%);color:inherit;padding-inline:2px}
-.lede{font-size:18px;color:var(--text-2);max-width:48ch}
-.hero-copy{display:flex;flex-direction:column;gap:22px}
-.buy{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
-.price{font:800 40px/1 var(--display);font-variant-numeric:tabular-nums}
-.price s{font:500 18px var(--sans);color:var(--text-3);margin-left:8px}
-.save{font:600 12px var(--mono);letter-spacing:.04em;background:var(--wax-soft);color:var(--text);padding:5px 9px;border-radius:999px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:12px;font:700 16px var(--sans);text-decoration:none;border:0;cursor:pointer}
-.btn.wax{background:var(--wax);color:var(--wax-ink)}
-.btn.wax:hover{filter:brightness(1.04)}
-.btn.line{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1.5px var(--line)}
-.note{font-size:14px;color:var(--text-3)}
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:40;padding-top:env(safe-area-inset-top,0px)}
+.nav .in{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;transition:padding .4s}
+.nav.solid .in{padding-block:10px}
+.nav::before{content:"";position:absolute;inset:0;background:rgba(6,18,25,.6);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--line);opacity:0;transition:opacity .4s}
+.nav.solid::before{opacity:1}
+.logo{position:relative;font:800 17px var(--display);letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.logo i{font-style:normal;background:var(--wax);color:var(--wax-ink);border-radius:6px;padding:3px 8px;font-size:13px}
+.nav .btn{position:relative}
 
-/* flat lay: the kit laid out on a board deck */
-.lay{background:var(--panel-2);border-radius:24px;padding:22px;aspect-ratio:1/1;max-width:100%;display:grid;place-items:center;position:relative;overflow:hidden}
-.lay svg{width:100%;max-width:420px;height:auto}
-.lay .tag{position:absolute;left:18px;bottom:14px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;border-radius:999px;font:700 15.5px var(--sans);text-decoration:none;border:0;cursor:pointer;will-change:transform}
+.btn.wax{background:var(--wax);color:var(--wax-ink);position:relative;overflow:hidden;box-shadow:0 10px 40px -10px rgba(245,197,66,.55)}
+.btn.wax::after{content:"";position:absolute;inset:0;width:45%;left:-70%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg)}
+.btn.ghost{background:rgba(232,243,241,.06);color:var(--text);box-shadow:inset 0 0 0 1px var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.btn.small{padding:10px 16px;font-size:14px}
+.btn svg{width:16px;height:16px}
 
-/* contents */
-.contents{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:28px}
-.contents h2,.order h2,.faq h2{font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.02em}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.item{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;grid-template-rows:auto auto 1fr auto;gap:8px}
-.item .qty{font:600 12px var(--mono);color:var(--sea)}
-.item h3{font:700 18px var(--sans)}
-.item p{color:var(--text-2);font-size:15px}
-.item .val{font:600 13px var(--mono);color:var(--text-3);font-variant-numeric:tabular-nums}
-.sum{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:14px 18px;border-radius:12px;background:var(--wax-soft);font-weight:600}
-.sum span{font-variant-numeric:tabular-nums}
+/* ---------- hero ---------- */
+.hero{min-height:100svh;display:flex;align-items:center;padding-block:120px 80px}
+.hero .wrap{width:100%}
+.hero-copy{max-width:640px;display:flex;flex-direction:column;gap:26px}
+.hero h1{font-size:clamp(46px,8.4vw,112px);font-weight:800;letter-spacing:-.045em}
+.hero h1 .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em;margin-bottom:-.06em}
+.hero h1 .w>span{display:inline-block}
+.hero h1 .gold{color:var(--wax)}
+.lede{font-size:clamp(17px,1.6vw,19px);color:var(--text-2);max-width:46ch}
+.buy{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.price{font:800 44px/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.price s{font:500 18px var(--sans);color:var(--text-3);margin-left:10px;letter-spacing:0}
+.chip{font:600 12px var(--mono);letter-spacing:.04em;padding:7px 11px;border-radius:999px;background:rgba(245,197,66,.14);color:var(--wax);box-shadow:inset 0 0 0 1px rgba(245,197,66,.3)}
+.scrollhint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px}
+.scrollhint span{width:1px;height:46px;background:linear-gradient(var(--text-2),transparent);transform-origin:top}
+.fallback{display:none}
 
-/* why */
-.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;padding-block:48px;border-top:1px solid var(--line)}
-.why div{display:flex;flex-direction:column;gap:8px}
-.why h3{font:700 19px var(--sans)}
-.why p{color:var(--text-2);font-size:15.5px}
+/* ---------- exploded view ---------- */
+.explode{position:relative;height:520vh}
+.sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.tags{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;will-change:transform,opacity;white-space:nowrap}
+.tag b{font:700 13px var(--sans);padding:7px 12px;border-radius:999px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px var(--line);transition:background .3s,color .3s}
+.tag i{width:1px;height:34px;background:linear-gradient(var(--text-2),transparent)}
+.tag.on b{background:var(--wax);color:var(--wax-ink)}
+.steps{position:absolute;left:clamp(16px,4vw,48px);bottom:clamp(24px,7vh,72px);width:min(440px,calc(100% - 32px))}
+.step{position:absolute;left:0;bottom:0;display:flex;flex-direction:column;gap:12px;opacity:0;transform:translateY(24px);transition:opacity .5s,transform .6s cubic-bezier(.2,.7,.2,1)}
+.step.on{opacity:1;transform:none}
+.step .n{font:600 12px var(--mono);letter-spacing:.14em;color:var(--wax)}
+.step h3{font-size:clamp(30px,4vw,48px);font-weight:800;letter-spacing:-.03em}
+.step p{color:var(--text-2);font-size:16.5px;max-width:40ch}
+.step .v{font:600 13px var(--mono);color:var(--text-3)}
+.progress{position:absolute;right:clamp(16px,4vw,48px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px}
+.progress span{width:3px;height:28px;border-radius:3px;background:var(--line);overflow:hidden;position:relative}
+.progress span::after{content:"";position:absolute;inset:0;background:var(--wax);transform:scaleY(var(--f,0));transform-origin:top}
 
-/* order */
-.order{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:24px}
-.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
-.way{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
-.way.hot{border-color:var(--wax);box-shadow:var(--shadow)}
-.way h3{font:700 20px var(--sans)}
-.way p{color:var(--text-2);font-size:15px}
-.way .when{font:600 14px var(--mono);color:var(--sea)}
+/* ---------- solid sections that slide over the sea ---------- */
+.panel{position:relative;background:var(--night);box-shadow:0 -60px 80px -20px var(--night)}
+.statement{padding-block:clamp(90px,16vh,180px)}
+.statement p{font:800 clamp(34px,5.6vw,78px)/1.04 var(--display);letter-spacing:-.035em;max-width:17ch}
+.statement .wd{opacity:.18;transition:opacity .2s linear}
+.statement .wd.lit{opacity:1}
+.statement .wd.gold.lit{color:var(--wax)}
+
+.numbers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border-block:1px solid var(--line)}
+.numbers div{background:var(--night);padding:36px clamp(16px,3vw,32px);display:flex;flex-direction:column;gap:10px}
+.numbers strong{font:800 clamp(52px,7vw,88px)/1 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.numbers strong small{font-size:.42em;letter-spacing:-.01em;color:var(--text-2)}
+.numbers p{color:var(--text-2);max-width:26ch}
+
+.marquee{overflow:hidden;padding-block:26px;border-bottom:1px solid var(--line)}
+.marquee .row{display:flex;width:max-content;gap:0;font:800 clamp(40px,7vw,96px)/1 var(--display);letter-spacing:-.03em;white-space:nowrap}
+.marquee .row span{padding-inline:.35em}
+.marquee .row .o{color:transparent;-webkit-text-stroke:1.5px var(--text-3)}
+.marquee .row .g{color:var(--wax)}
+
+.contents{padding-block:clamp(80px,12vh,140px);display:grid;gap:40px}
+.contents h2,.order h2,.faq h2{font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-.04em}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{position:relative;border-radius:22px;padding:24px;background:linear-gradient(160deg,rgba(31,138,158,.16),rgba(10,35,48,.5));box-shadow:inset 0 0 0 1px var(--line);display:grid;grid-template-rows:auto auto 1fr auto;gap:10px;overflow:hidden;transition:transform .35s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,0%),rgba(245,197,66,.18),transparent 40%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover::before{opacity:1}
+.card .q{font:600 12px var(--mono);color:var(--wax)}
+.card h3{font:700 21px var(--sans);letter-spacing:-.01em}
+.card p{color:var(--text-2);font-size:15px}
+.card .v{font:600 13px var(--mono);color:var(--text-3);font-variant-numeric:tabular-nums}
+.total{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:18px 22px;border-radius:16px;background:rgba(245,197,66,.1);box-shadow:inset 0 0 0 1px rgba(245,197,66,.25);font-weight:600}
+.total b{color:var(--wax)}
+
+.order{padding-block:clamp(80px,12vh,140px);display:grid;gap:36px;border-top:1px solid var(--line)}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.way{border-radius:24px;padding:28px;background:rgba(232,243,241,.04);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:14px}
+.way.hot{background:linear-gradient(160deg,rgba(245,197,66,.16),rgba(245,197,66,.03));box-shadow:inset 0 0 0 1px rgba(245,197,66,.4)}
+.way .when{font:600 13px var(--mono);color:var(--wax);letter-spacing:.04em}
+.way h3{font:700 26px var(--display);letter-spacing:-.02em}
+.way p{color:var(--text-2)}
 .way .btn{align-self:flex-start;margin-top:auto}
-.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.contact code{font:600 15px var(--mono);background:var(--panel-2);border-radius:8px;padding:8px 12px;user-select:all}
-.ok{font-size:13px;color:var(--good)}
+.note{font-size:14px;color:var(--text-3)}
+.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:var(--text-2)}
+.contact code{font:600 15px var(--mono);background:rgba(232,243,241,.06);border-radius:10px;padding:9px 13px;user-select:all;color:var(--text)}
+.ok{font-size:13px;color:var(--wax)}
 
-/* faq */
-.faq{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:20px}
-.faqs{display:grid;gap:12px}
-details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-summary{cursor:pointer;font-weight:700}
-details p{color:var(--text-2);margin-top:10px;font-size:15px;max-width:65ch}
+.faq{padding-block:clamp(60px,10vh,120px);display:grid;gap:28px;border-top:1px solid var(--line)}
+.faqs{display:grid;gap:10px;max-width:820px}
+details{border-radius:18px;background:rgba(232,243,241,.04);box-shadow:inset 0 0 0 1px var(--line);padding:0 22px;overflow:hidden}
+summary{cursor:pointer;font-weight:700;font-size:17px;padding-block:20px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:500 22px/1 var(--mono);color:var(--wax);transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--text-2);padding-bottom:20px;max-width:64ch}
 
-footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3);font-size:13px}
+footer{border-top:1px solid var(--line);padding-block:40px 32px;display:grid;gap:26px}
+.bigword{font:800 clamp(64px,17vw,240px)/.82 var(--display);letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1px rgba(232,243,241,.22);user-select:none}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;color:var(--text-3);font-size:13px}
 
-@media (min-width:860px){.hero{grid-template-columns:1.05fr .95fr;align-items:center}}
+/* ---------- cursor ---------- */
+.cursor{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(245,197,66,.8);pointer-events:none;z-index:70;transition:width .25s,height .25s,margin .25s,background .25s;display:none}
+.cursor.big{width:70px;height:70px;margin:-35px 0 0 -35px;background:rgba(245,197,66,.12)}
+@media (hover:hover) and (pointer:fine){.cursor{display:block}}
 
-/* ---------- effects ---------- */
-/* the sea behind the hero: a canvas of layered swells */
-.stage{position:relative;isolation:isolate}
-#sea{position:absolute;left:50%;bottom:0;height:46%;width:100vw;transform:translateX(-50%);z-index:-1;pointer-events:none}
-
-/* the kit floats: each piece bobs on its own swell, the whole lay tilts toward the pointer */
-.lay{perspective:900px;transform-style:preserve-3d}
-.lay svg{transition:transform .35s cubic-bezier(.2,.7,.3,1);will-change:transform}
-.lay g.piece{transform-box:fill-box;transform-origin:center}
-.lay::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(circle at var(--gx,30%) var(--gy,20%),rgba(255,255,255,.35),transparent 45%);mix-blend-mode:soft-light}
-
-/* wax sheen sweeping across the buy button */
-.btn.wax{position:relative;overflow:hidden}
-.btn.wax::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-20deg)}
-
-/* ticker */
-.ticker{overflow:hidden;width:100vw;margin-left:50%;transform:translateX(-50%);background:var(--wax);color:var(--wax-ink)}
-.ticker div{display:flex;width:max-content;font:800 clamp(16px,2.4vw,22px)/1 var(--display);letter-spacing:.02em;padding-block:14px;white-space:nowrap}
-.ticker span{padding-inline:18px}
-.ticker i{font-style:normal;opacity:.45}
-
-/* cards lift in 3D */
-.item{transition:transform .25s ease,box-shadow .25s ease;transform-style:preserve-3d}
-.item:hover{box-shadow:var(--shadow)}
-
-#splash{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
-
+/* ---------- motion ---------- */
 @media (prefers-reduced-motion:no-preference){
-  .lay g.piece{animation:bob 4.2s ease-in-out infinite}
-  .lay g.piece:nth-of-type(2){animation-duration:5s;animation-delay:-1.3s}
-  .lay g.piece:nth-of-type(3){animation-duration:4.6s;animation-delay:-2.4s}
-  .lay g.piece:nth-of-type(4){animation-duration:3.8s;animation-delay:-.7s}
-  @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-9px) rotate(1.6deg)}}
-  .btn.wax::after{animation:sheen 3.4s ease-in-out infinite}
-  @keyframes sheen{0%,55%{left:-60%}85%,100%{left:130%}}
-  .ticker div{animation:tick 22s linear infinite}
-  @keyframes tick{to{transform:translateX(-50%)}}
-  .hero h1 mark{background-size:0 100%;background-repeat:no-repeat;background-image:linear-gradient(transparent 58%,var(--wax) 58%);background-color:transparent;animation:swipe .9s .3s cubic-bezier(.2,.7,.3,1) forwards}
-  @keyframes swipe{to{background-size:100% 100%}}
+  .btn.wax::after{animation:sheen 3.6s ease-in-out infinite}
+  @keyframes sheen{0%,55%{left:-70%}85%,100%{left:130%}}
+  .scrollhint span{animation:drip 2s ease-in-out infinite}
+  @keyframes drip{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+  .marquee .row{animation:slide 26s linear infinite}
+  .marquee .row.rev{animation-direction:reverse;animation-duration:32s}
+  @keyframes slide{to{transform:translateX(-50%)}}
+}
+@media (prefers-reduced-motion:reduce){.cursor{display:none!important}}
+
+/* ---------- no WebGL: a still illustration, and the steps as a plain list ---------- */
+.no3d #gl{display:none}
+.no3d body{background:radial-gradient(120% 80% at 70% 30%,#12404f 0%,var(--night) 60%)}
+.no3d .fallback{display:block;max-width:420px;margin-top:10px}
+.no3d .explode{height:auto}
+.no3d .sticky{position:relative;height:auto;overflow:visible;padding-block:60px}
+.no3d .tags,.no3d .progress{display:none}
+.no3d .steps{position:relative;left:auto;bottom:auto;width:auto;display:grid;gap:36px;padding-inline:clamp(16px,4vw,48px);max-width:1200px;margin-inline:auto}
+.no3d .step{position:relative;opacity:1;transform:none}
+
+@media (max-width:700px){
+  .hero{align-items:flex-start;padding-top:108px}
+  .progress{display:none}
+  .step p{font-size:15.5px}
+  .nav .btn{display:none}
 }
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <div class="logo">Shokogi<b>Surf Kit</b></div>
-    <span class="label">Playa Venao</span>
-  </header>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor" aria-hidden="true"></div>
 
-  <div class="stage">
-  <canvas id="sea" aria-hidden="true"></canvas>
-  <div class="hero">
-    <div class="hero-copy">
-      <span class="label">Everything that goes missing from your board bag</span>
-      <h1>Wax, comb, fin key. <mark>One kit</mark>, in your pocket.</h1>
-      <p class="lede">The small things you need before every session and can never find. Picked by the instructors at Shokogi surf school, in one pouch you can take into the car.</p>
-      <div class="buy">
-        <div class="price" id="price"></div>
-        <span class="save" id="save"></span>
-      </div>
-      <div class="buy">
-        <a class="btn wax" href="#order">Get the kit</a>
-        <a class="btn line" href="#contents">What's inside</a>
-      </div>
-    </div>
-
-    <figure class="lay" aria-label="The kit laid out: a bar of wax, a wax comb with fin key, spare fin screws and a zip pouch" style="margin:0">
-      <svg viewBox="0 0 400 400" aria-hidden="true">
-        <!-- pouch -->
-        <g class="piece">
-          <rect x="40" y="210" width="190" height="140" rx="22" fill="var(--pouch)"/>
-          <rect x="40" y="226" width="190" height="10" fill="var(--text)" opacity=".25"/>
-          <rect x="190" y="220" width="22" height="30" rx="6" fill="var(--text)" opacity=".35"/>
-          <text x="135" y="304" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="800" font-size="20" fill="var(--panel)">SHOKOGI</text>
-        </g>
-        <!-- wax bar -->
-        <g class="piece">
-          <path d="M70 70 C70 52 90 44 150 44 C210 44 230 52 230 70 L230 150 C230 168 210 176 150 176 C90 176 70 168 70 150Z" fill="var(--wax)"/>
-          <path d="M70 70 C70 88 90 96 150 96 C210 96 230 88 230 70" fill="none" stroke="var(--wax-ink)" stroke-opacity=".25" stroke-width="3"/>
-          <text x="150" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15" fill="var(--wax-ink)">TROPICAL · 26°C+</text>
-        </g>
-        <!-- comb + fin key tool -->
-        <g class="piece" transform="rotate(-18 320 200)">
-          <rect x="275" y="80" width="90" height="200" rx="16" fill="var(--tool)"/>
-          <g fill="var(--panel-2)">
-            <rect x="285" y="92" width="6" height="40" rx="2"/><rect x="297" y="92" width="6" height="40" rx="2"/>
-            <rect x="309" y="92" width="6" height="40" rx="2"/><rect x="321" y="92" width="6" height="40" rx="2"/>
-            <rect x="333" y="92" width="6" height="40" rx="2"/><rect x="345" y="92" width="6" height="40" rx="2"/>
-          </g>
-          <polygon points="320,210 332,217 332,231 320,238 308,231 308,217" fill="var(--panel-2)"/>
-          <rect x="296" y="252" width="48" height="14" rx="7" fill="var(--panel-2)"/>
-        </g>
-        <!-- fin screws -->
-        <g class="piece" fill="var(--tool)">
-          <circle cx="285" cy="320" r="13"/><rect x="281" y="320" width="8" height="30" rx="2"/>
-          <circle cx="330" cy="330" r="13"/><rect x="326" y="330" width="8" height="30" rx="2"/>
-        </g>
-        <g fill="var(--panel-2)">
-          <polygon points="285,314 290,317 290,323 285,326 280,323 280,317"/>
-          <polygon points="330,324 335,327 335,333 330,336 325,333 325,327"/>
-        </g>
-      </svg>
-      <span class="tag">Illustration · photo of the real kit coming</span>
-    </figure>
+<header class="nav" id="nav">
+  <div class="in wrap gutter">
+    <div class="logo">Shokogi <i>Surf Kit</i></div>
+    <a class="btn wax small mag" href="#order">Get the kit</a>
   </div>
+</header>
+
+<main>
+  <section class="hero gutter" aria-label="Shokogi Surf Kit">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="label intro">Playa Venao · Panama</span>
+        <h1 id="headline">Wax. Comb. Fin key. <span class="gold">One&nbsp;kit.</span></h1>
+        <p class="lede intro">The small things you need before every session and can never find, in one pouch that lives in your car.</p>
+        <div class="buy intro">
+          <div class="price" id="price"></div>
+          <span class="chip" id="save"></span>
+        </div>
+        <div class="buy intro">
+          <a class="btn wax mag" href="#order">Get the kit
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+          <a class="btn ghost mag" href="#inside">See what's inside</a>
+        </div>
+        <svg class="fallback" viewBox="0 0 400 300" aria-hidden="true">
+          <rect x="30" y="150" width="190" height="130" rx="26" fill="#1f8a9e"/>
+          <text x="125" y="226" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="22" fill="#eef5f3">SHOKOGI</text>
+          <path d="M50 50 C50 34 70 26 130 26 C190 26 210 34 210 50 L210 120 C210 136 190 142 130 142 C70 142 50 136 50 120Z" fill="#f5c542"/>
+          <rect x="260" y="40" width="80" height="190" rx="16" fill="#2a3a42" transform="rotate(-14 300 135)"/>
+          <circle cx="300" cy="262" r="12" fill="#b9c6ca"/><circle cx="340" cy="270" r="12" fill="#b9c6ca"/>
+        </svg>
+      </div>
+    </div>
+    <div class="scrollhint label" aria-hidden="true">Scroll<span></span></div>
+  </section>
+
+  <section class="explode" id="inside" aria-label="What's in the kit, piece by piece">
+    <div class="sticky">
+      <div class="tags" id="tags"></div>
+      <div class="steps" id="steps"></div>
+      <div class="progress" id="progress" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <div class="panel">
+    <section class="statement gutter">
+      <div class="wrap">
+        <p id="statement">Everything that goes missing from your board bag. <span class="gold">Found.</span> In one pouch. Ready before the tide turns.</p>
+      </div>
+    </section>
+
+    <section class="numbers" aria-label="The kit in numbers">
+      <div><strong data-count="5" data-suffix=""><span class="c">5</span><small> pieces</small></strong><p>Wax, a comb with a fin key, two spare screws, and the pouch that holds them.</p></div>
+      <div><strong><span class="c" id="n-price">24</span><small> USD</small></strong><p>For the whole kit. The pieces bought separately cost more.</p></div>
+      <div><strong><span class="c">0</span><small> days</small></strong><p>Wait when you pick it up at the school desk after your lesson.</p></div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="row"><span>WAX</span><span class="o">COMB</span><span class="g">FIN KEY</span><span class="o">SCREWS</span><span>POUCH</span><span class="o">VENAO</span><span>WAX</span><span class="o">COMB</span><span class="g">FIN KEY</span><span class="o">SCREWS</span><span>POUCH</span><span class="o">VENAO</span></div>
+    </div>
+
+    <div class="gutter">
+      <div class="wrap">
+        <section class="contents" aria-label="Contents">
+          <span class="label">The contents</span>
+          <h2>Five pieces. One price.</h2>
+          <div class="cards" id="cards"></div>
+          <div class="total"><span id="t-apart"></span><span id="t-kit"></span></div>
+        </section>
+
+        <section class="order" id="order">
+          <span class="label">Order</span>
+          <h2>Two ways to get it.</h2>
+          <div class="ways">
+            <div class="way hot">
+              <span class="when">After your lesson · same day</span>
+              <h3>Pick up at the school</h3>
+              <p>Ask at the desk at Shokogi surf school, Playa Venao. Pay there and take it with you.</p>
+              <p class="note" id="stock"></p>
+            </div>
+            <div class="way">
+              <span class="when" id="ship-when"></span>
+              <h3>Ship it to me</h3>
+              <p id="ship-text"></p>
+              <a class="btn ghost mag" id="checkout" href="#" target="_blank" rel="noopener" hidden>Go to checkout</a>
+            </div>
+          </div>
+          <div class="contact" id="contact" hidden>
+            <span>Questions, or to reserve one:</span>
+            <code id="contact-val"></code>
+            <button class="btn ghost small" id="copy" type="button">Copy</button>
+            <span class="ok" id="copied" hidden>Copied</span>
+          </div>
+        </section>
+
+        <section class="faq" aria-label="Questions">
+          <span class="label">Before you buy</span>
+          <h2>Questions.</h2>
+          <div class="faqs">
+            <details open><summary>Does the fin key fit my board?</summary><p>It fits the standard fin screw used by most fin systems, including FCS and Futures. If your fins use something else, ask us before you buy.</p></details>
+            <details><summary>Which wax is in it?</summary><p id="faq-wax"></p></details>
+            <details><summary>How long does shipping take?</summary><p id="faq-ship"></p></details>
+            <details><summary>Can I return it?</summary><p id="faq-return"></p></details>
+          </div>
+        </section>
+
+        <footer>
+          <div class="bigword" aria-hidden="true">SURF KIT</div>
+          <div class="foot"><span>Sold by Shokogi surf school · Playa Venao, Panama</span><span>The kit shown is a 3D model. Photos of the real kit are coming.</span></div>
+        </footer>
+      </div>
+    </div>
   </div>
+</main>
 
-  <div class="ticker" aria-hidden="true"><div>
-    <span>WAX</span><i>✦</i><span>COMB</span><i>✦</i><span>FIN KEY</span><i>✦</i><span>SPARE SCREWS</span><i>✦</i><span>POUCH</span><i>✦</i><span>PLAYA VENAO</span><i>✦</i>
-    <span>WAX</span><i>✦</i><span>COMB</span><i>✦</i><span>FIN KEY</span><i>✦</i><span>SPARE SCREWS</span><i>✦</i><span>POUCH</span><i>✦</i><span>PLAYA VENAO</span><i>✦</i>
-  </div></div>
-
-  <section class="contents" id="contents">
-    <span class="label">Inside</span>
-    <h2>What's in the kit</h2>
-    <div class="items" id="items"></div>
-    <div class="sum"><span id="sum-apart"></span><span id="sum-kit"></span></div>
-  </section>
-
-  <section class="why" aria-label="Why a kit">
-    <div><span class="label">Before the session</span><h3>Fresh wax where your feet go</h3><p>Rough up the old wax with the comb, add a new coat, and paddle out with grip.</p></div>
-    <div><span class="label">Fins on, fins off</span><h3>No hunting for a fin key</h3><p>The key is built into the comb. Swap fins on the beach, not back at the car.</p></div>
-    <div><span class="label">Afterwards</span><h3>One pouch in the car</h3><p>Everything goes back in one place. Next time it's all there.</p></div>
-  </section>
-
-  <section class="order" id="order">
-    <span class="label">Order</span>
-    <h2>Two ways to get it</h2>
-    <div class="ways">
-      <div class="way hot">
-        <span class="when">After your lesson</span>
-        <h3>Pick up at the school</h3>
-        <p>Ask at the desk at Shokogi surf school, Playa Venao. Pay there and take it with you.</p>
-        <p class="note" id="stock"></p>
-      </div>
-      <div class="way">
-        <span class="when" id="ship-when"></span>
-        <h3>Ship it to me</h3>
-        <p id="ship-text"></p>
-        <a class="btn line" id="checkout" href="#" target="_blank" rel="noopener" hidden>Go to checkout</a>
-      </div>
-    </div>
-    <div class="contact" id="contact" hidden>
-      <span>Questions or to reserve one:</span>
-      <code id="contact-val"></code>
-      <button class="btn line" id="copy" type="button" style="padding:8px 14px;font-size:14px">Copy</button>
-      <span class="ok" id="copied" hidden>Copied</span>
-    </div>
-  </section>
-
-  <section class="faq">
-    <span class="label">Before you buy</span>
-    <h2>Questions</h2>
-    <div class="faqs">
-      <details open><summary>Does the fin key fit my board?</summary><p>It fits the standard fin screw used by most fin systems, including FCS and Futures. If your fins use a different screw, ask us before you buy.</p></details>
-      <details><summary>Which wax is in it?</summary><p id="faq-wax"></p></details>
-      <details><summary>How long does shipping take?</summary><p id="faq-ship"></p></details>
-      <details><summary>Can I return it?</summary><p id="faq-return"></p></details>
-    </div>
-  </section>
-
-  <footer>Sold by Shokogi surf school · Playa Venao, Panama</footer>
-</div>
-<canvas id="splash" aria-hidden="true"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
 <script>
 /* Everything a customer is promised lives here. Fill it in from the kit you
    actually put together, not from the suppliers' listings. "apart" is what
-   each piece costs bought on its own, and is used for the saving shown. */
+   each piece costs bought on its own, and drives the saving shown. */
 var KIT = {
   price: 24,
   currency: "$",
@@ -284,41 +313,54 @@ var KIT = {
   checkoutUrl: "",
   contact: "",
   returnDays: 14,
-  wax: "A full bar for warm water, 26°C and up, which is the water at Venao most of the year. Cold water where you surf? Tell us and we'll swap it.",
+  wax: "A full bar for warm water, 26°C and up. Surfing somewhere colder? Tell us and we'll swap it.",
   items: [
-    { qty:"1 ×", name:"Surf wax", text:"A full bar for tropical water.", apart:4 },
-    { qty:"1 ×", name:"Wax comb with fin key", text:"Comb on one end, fin key in the middle, bottle opener on the other end.", apart:8 },
-    { qty:"2 ×", name:"Spare fin screws", text:"For the day one goes into the sand.", apart:5 },
-    { qty:"1 ×", name:"Zip pouch", text:"Holds all of it, with the school's logo.", apart:9 }
+    { key:"wax",    qty:"1 ×", name:"Surf wax",              text:"A full bar for tropical water. Fresh grip where your feet go.",                apart:4 },
+    { key:"comb",   qty:"1 ×", name:"Wax comb + fin key",    text:"Comb on one edge, fin key in the middle, bottle opener at the end.",           apart:8 },
+    { key:"screws", qty:"2 ×", name:"Spare fin screws",      text:"For the day one disappears into the sand.",                                    apart:5 },
+    { key:"pouch",  qty:"1 ×", name:"Zip pouch",             text:"Holds all of it. Lives in the car, so it's there every session.",             apart:9 }
   ]
 };
+</script>
 
+<script>
+/* ---------------- content from KIT ---------------- */
 (function(k){
   var $=function(id){return document.getElementById(id)};
   var money=function(n){return k.currency+n};
   var apart=k.items.reduce(function(s,i){return s+i.apart},0);
 
   $("price").innerHTML=money(k.price)+(apart>k.price?"<s>"+money(apart)+"</s>":"");
-  if(apart>k.price) $("save").textContent="Save "+money(apart-k.price)+" vs. buying separately"; else $("save").hidden=true;
+  if(apart>k.price) $("save").textContent="Save "+money(apart-k.price); else $("save").hidden=true;
+  $("n-price").textContent=k.price;
 
-  var box=$("items");
+  var cards=$("cards"), tags=$("tags"), steps=$("steps"), prog=$("progress");
+  var stepData=k.items.map(function(i){return {n:i.qty, h:i.name, p:i.text, v:money(i.apart)+" on its own"}});
+  stepData.push({n:"All together", h:"Packed. Ready.", p:"Everything goes back in the pouch, and the pouch goes in the car. Next session it's all there.", v:money(k.price)+" for the kit"});
+
   k.items.forEach(function(i){
-    var d=document.createElement("div");d.className="item";
-    var q=document.createElement("span");q.className="qty";q.textContent=i.qty;
-    var h=document.createElement("h3");h.textContent=i.name;
-    var p=document.createElement("p");p.textContent=i.text;
-    var v=document.createElement("span");v.className="val";v.textContent=money(i.apart)+" on its own";
-    d.append(q,h,p,v);box.append(d);
+    var c=document.createElement("div");c.className="card";
+    c.innerHTML='<span class="q"></span><h3></h3><p></p><span class="v"></span>';
+    c.children[0].textContent=i.qty;c.children[1].textContent=i.name;c.children[2].textContent=i.text;c.children[3].textContent=money(i.apart)+" on its own";
+    cards.append(c);
+    var t=document.createElement("div");t.className="tag";t.dataset.key=i.key;
+    t.innerHTML="<b></b><i></i>";t.firstChild.textContent=i.name;tags.append(t);
   });
-  $("sum-apart").textContent="Bought separately: "+money(apart);
-  $("sum-kit").textContent="The kit: "+money(k.price);
+  stepData.forEach(function(s,ix){
+    var d=document.createElement("div");d.className="step"+(ix===0?" on":"");
+    d.innerHTML='<span class="n"></span><h3></h3><p></p><span class="v"></span>';
+    d.children[0].textContent=String(ix+1).padStart(2,"0")+" / "+String(stepData.length).padStart(2,"0");d.children[1].textContent=s.h;d.children[2].textContent=s.p;d.children[3].textContent=s.v;
+    steps.append(d);
+    prog.append(document.createElement("span"));
+  });
+  $("t-apart").textContent="Bought separately: "+money(apart);
+  $("t-kit").innerHTML="The kit: <b>"+money(k.price)+"</b>";
 
   var n=k.inStockAtSchool;
   $("stock").textContent = n>0 ? n+" kits at the school right now." : "Ask at the desk. If we're out, we'll put one aside for you.";
-  $("ship-when").textContent=k.shipDays+" days";
+  $("ship-when").textContent=k.shipDays+" days · tracked";
   $("ship-text").textContent="We post it to you. It takes "+k.shipDays+" days to arrive, and we send you the tracking number.";
   if(k.checkoutUrl){var c=$("checkout");c.href=k.checkoutUrl;c.hidden=false}
-
   $("faq-wax").textContent=k.wax;
   $("faq-ship").textContent="From the school: same day. Shipped: "+k.shipDays+" days, with tracking.";
   $("faq-return").textContent="Yes. Within "+k.returnDays+" days of receiving it, unused, for a full refund.";
@@ -331,92 +373,343 @@ var KIT = {
       try{navigator.clipboard.writeText(k.contact).then(ok,sel)}catch(e){sel()}
     });
   }
+
+  /* split the headline into masked words for the intro */
+  var h=$("headline");
+  (function split(node){
+    Array.prototype.slice.call(node.childNodes).forEach(function(ch){
+      if(ch.nodeType===3){
+        var frag=document.createDocumentFragment();
+        ch.textContent.split(/(\s+)/).forEach(function(part){
+          if(!part) return;
+          if(/^\s+$/.test(part)){frag.append(document.createTextNode(part));return}
+          var w=document.createElement("span");w.className="w";var s=document.createElement("span");s.textContent=part;w.append(s);frag.append(w);
+        });
+        node.replaceChild(frag,ch);
+      } else if(ch.nodeType===1) split(ch);
+    });
+  })(h);
+
+  /* split the statement into words that light up as you scroll */
+  var st=$("statement");
+  (function split2(node,gold){
+    Array.prototype.slice.call(node.childNodes).forEach(function(ch){
+      if(ch.nodeType===3){
+        var frag=document.createDocumentFragment();
+        ch.textContent.split(/(\s+)/).forEach(function(part){
+          if(!part) return;
+          if(/^\s+$/.test(part)){frag.append(document.createTextNode(part));return}
+          var w=document.createElement("span");w.className="wd"+(gold?" gold":"");w.textContent=part;frag.append(w);
+        });
+        node.replaceChild(frag,ch);
+      } else if(ch.nodeType===1){ split2(ch, ch.classList.contains("gold")); }
+    });
+  })(st,false);
 })(KIT);
 </script>
 
 <script>
-/* Effects. Everything above renders without them; these only add motion. */
+/* ---------------- the 3D scene ---------------- */
+var STILL = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+var SCENE = null;
+
 (function(){
-  var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var css = function(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||"#1f6f8b"};
+  var canvas=document.getElementById("gl"), renderer;
+  try{
+    if(!window.THREE) throw 0;
+    renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,powerPreference:"high-performance"});
+  }catch(e){ document.documentElement.classList.add("no3d"); return; }
 
-  /* the sea: three swells, each a sum of two sines, drifting at different speeds */
-  var sea=document.getElementById("sea"), sx=sea.getContext("2d"), W=0, H=0, dpr=Math.min(window.devicePixelRatio||1,2);
-  function size(){W=sea.clientWidth;H=sea.clientHeight;sea.width=W*dpr;sea.height=H*dpr;sx.setTransform(dpr,0,0,dpr,0,0)}
-  var swells=[
-    {y:.30,a:10,k:.010,k2:.023,s:.35,alpha:.18},
-    {y:.52,a:13,k:.008,k2:.019,s:-.5,alpha:.26},
-    {y:.74,a:9, k:.013,k2:.031,s:.8, alpha:.38}
-  ];
-  function drawSea(t){
-    sx.clearRect(0,0,W,H);
-    var col=css("--sea");
-    swells.forEach(function(w){
-      sx.beginPath();sx.moveTo(0,H);
-      for(var x=0;x<=W;x+=6){
-        var y=H*w.y + Math.sin(x*w.k + t*w.s)*w.a + Math.sin(x*w.k2 - t*w.s*1.7)*w.a*.45;
-        sx.lineTo(x,y);
-      }
-      sx.lineTo(W,H);sx.closePath();
-      sx.globalAlpha=w.alpha;sx.fillStyle=col;sx.fill();
-    });
-    /* foam flecks riding the front swell */
-    sx.globalAlpha=.55;sx.fillStyle=css("--panel");
-    for(var i=0;i<18;i++){
-      var fx=((i*97 + t*22*(1+i%3)) % (W+40)) - 20;
-      var w=swells[2], fy=H*w.y + Math.sin(fx*w.k + t*w.s)*w.a + Math.sin(fx*w.k2 - t*w.s*1.7)*w.a*.45;
-      sx.beginPath();sx.arc(fx,fy+2,1.2+(i%3)*.6,0,6.3);sx.fill();
-    }
-    sx.globalAlpha=1;
+  var dpr=Math.min(window.devicePixelRatio||1,1.75);
+  renderer.setPixelRatio(dpr);
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=.95;
+
+  var scene=new THREE.Scene();
+  function lin(h){return new THREE.Color(h).convertSRGBToLinear()}
+  var camera=new THREE.PerspectiveCamera(38,1,.1,200);
+
+  var HORIZON=new THREE.Color("#f08a58"), ZENITH=new THREE.Color("#07141d"), MID=new THREE.Color("#173a4a");
+  var SUN_DIR=new THREE.Vector3(.55,.10,-1).normalize();
+
+  /* sky: a dome with a dusk gradient and the sun sitting low */
+  var sky=new THREE.Mesh(new THREE.SphereGeometry(90,32,16),new THREE.ShaderMaterial({
+    side:THREE.BackSide,depthWrite:false,
+    uniforms:{uH:{value:HORIZON},uM:{value:MID},uZ:{value:ZENITH},uS:{value:SUN_DIR}},
+    vertexShader:"varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+    fragmentShader:[
+      "uniform vec3 uH,uM,uZ,uS;varying vec3 vD;",
+      "void main(){float y=max(vD.y,0.);",
+      "vec3 c=mix(uH,uM,smoothstep(0.,.18,y));c=mix(c,uZ,smoothstep(.12,.7,y));",
+      "float s=max(dot(normalize(vD),uS),0.);",
+      "c+=vec3(1.,.8,.55)*pow(s,2400.)*2.5;c+=vec3(1.,.55,.3)*pow(s,40.)*.3;",
+      "if(vD.y<0.)c=uH*.6;",
+      "gl_FragColor=vec4(c,1.);}"
+    ].join("")
+  }));
+  scene.add(sky);
+
+  /* the sea: one shared wave function, used by the shader and by the floating pieces */
+  function wave(x,z,t){
+    return .22*Math.sin(.42*x+.9*t) + .16*Math.sin(.36*z+.7*t+.3*x) + .07*Math.sin(1.1*(x+z)+1.7*t);
   }
-  size();addEventListener("resize",size);
-  if(still){drawSea(0)}else{(function loop(ts){drawSea(ts/1000);requestAnimationFrame(loop)})(0)}
-
-  if(still) return;
-
-  /* the lay tilts toward the pointer, and its glare follows */
-  var lay=document.querySelector(".lay"), art=lay.querySelector("svg");
-  lay.addEventListener("pointermove",function(e){
-    var r=lay.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
-    art.style.transform="rotateY("+((px-.5)*16)+"deg) rotateX("+((.5-py)*14)+"deg) translateZ(10px)";
-    lay.style.setProperty("--gx",(px*100)+"%");lay.style.setProperty("--gy",(py*100)+"%");
+  var WAVE_GLSL="float wave(float x,float z,float t){return .22*sin(.42*x+.9*t)+.16*sin(.36*z+.7*t+.3*x)+.07*sin(1.1*(x+z)+1.7*t);}";
+  var seaMat=new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0},uH:{value:HORIZON},uS:{value:SUN_DIR},uDeep:{value:new THREE.Color("#021019")},uShal:{value:new THREE.Color("#0b5a6a")},uM:{value:MID}},
+    vertexShader:[
+      "uniform float uT;varying vec3 vW;varying vec3 vN;varying float vH;",WAVE_GLSL,
+      "void main(){vec3 p=position;float h=wave(p.x,p.z,uT);p.y+=h;vH=h;",
+      "float e=.08;float hx=wave(p.x+e,p.z,uT)-wave(p.x-e,p.z,uT);float hz=wave(p.x,p.z+e,uT)-wave(p.x,p.z-e,uT);",
+      "vN=normalize(vec3(-hx/(2.*e),1.,-hz/(2.*e)));",
+      "vec4 w=modelMatrix*vec4(p,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}"
+    ].join(""),
+    fragmentShader:[
+      "uniform vec3 uH,uS,uDeep,uShal,uM;varying vec3 vW;varying vec3 vN;varying float vH;",
+      "void main(){vec3 V=normalize(cameraPosition-vW);vec3 N=normalize(vN);",
+      "float fr=pow(1.-max(dot(N,V),0.),4.);",
+      "vec3 base=mix(uDeep,uShal,smoothstep(-.3,.4,vH));",
+      "vec3 R=reflect(-V,N);float s=max(dot(R,uS),0.);",
+      "vec3 sk=mix(uM,uH,smoothstep(.25,.02,R.y));vec3 c=mix(base,sk,fr*.7);",
+      "c+=vec3(1.,.78,.55)*pow(s,260.)*1.6+vec3(1.,.6,.35)*pow(s,40.)*.08;",
+      "c+=vec3(.9,.97,.96)*smoothstep(.34,.44,vH)*.12;",
+      "float d=length(vW-cameraPosition);c=mix(c,uH*.7,smoothstep(18.,70.,d));",
+      "gl_FragColor=vec4(c,1.);}"
+    ].join("")
   });
-  lay.addEventListener("pointerleave",function(){art.style.transform=""});
+  var sea=new THREE.Mesh(new THREE.PlaneGeometry(140,140,220,220).rotateX(-Math.PI/2),seaMat);
+  scene.add(sea);
 
-  /* the contents cards lean toward the pointer too */
-  document.querySelectorAll(".item").forEach(function(c){
+  /* light and reflections: a small studio made of glowing panels, baked into an env map */
+  var pm=new THREE.PMREMGenerator(renderer);
+  var env=new THREE.Scene();env.background=new THREE.Color("#0c2330");
+  function panel(color,w,h,x,y,z){var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:color,side:THREE.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);env.add(m)}
+  panel("#c9a47e",8,3,6,3,-8);panel("#9fb4ba",4,6,-7,5,2);panel("#5fc7d9",10,2,0,8,4);panel("#ff9a5c",12,2,0,-2,-10);
+  scene.environment=pm.fromScene(env,.04).texture;
+
+  scene.add(new THREE.HemisphereLight("#b9dfe6","#2a1a10",.5));
+  var sun=new THREE.DirectionalLight("#ffc08a",2.2);sun.position.set(6,5,-6);scene.add(sun);
+  var rim=new THREE.DirectionalLight("#7fe0f0",1.1);rim.position.set(-6,3,5);scene.add(rim);
+
+  /* ---------- the pieces ---------- */
+  function rounded(w,h,r){
+    var s=new THREE.Shape(),x=-w/2,y=-h/2;
+    s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s;
+  }
+  function labelTex(draw,w,h){var c=document.createElement("canvas");c.width=w;c.height=h;var g=c.getContext("2d");draw(g,w,h);var t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=8;return t}
+
+  var pieces={};
+
+  // wax: a domed bar with an embossed top
+  (function(){
+    var g=new THREE.Group();
+    var geo=new THREE.ExtrudeGeometry(rounded(1.5,.9,.3),{depth:.34,bevelEnabled:true,bevelThickness:.14,bevelSize:.12,bevelSegments:8,curveSegments:24});
+    geo.center();geo.rotateX(-Math.PI/2);
+    var mat=new THREE.MeshPhysicalMaterial({color:lin("#ffab1f"),roughness:.6,clearcoat:.3,clearcoatRoughness:.5,envMapIntensity:.55});
+    g.add(new THREE.Mesh(geo,mat));
+    var top=new THREE.Mesh(new THREE.PlaneGeometry(1.3,.7),new THREE.MeshStandardMaterial({transparent:true,roughness:.7,map:labelTex(function(x,w,h){
+      x.fillStyle="rgba(110,70,0,.6)";x.textAlign="center";x.font="800 92px Syne, sans-serif";x.fillText("SHOKOGI",w/2,h*.52);
+      x.font="600 34px JetBrains Mono, monospace";x.fillText("TROPICAL · 26°C+",w/2,h*.8);
+    },640,340)}));
+    top.rotation.x=-Math.PI/2;top.position.y=.315;g.add(top);
+    pieces.wax=g;
+  })();
+
+  // comb + fin key: a flat plate with teeth, a hex key socket and an opener slot
+  (function(){
+    var g=new THREE.Group(),W=.78,H=2.1,r=.14,s=new THREE.Shape(),x=-W/2,y=-H/2;
+    s.moveTo(x+r,y);s.lineTo(x+W-r,y);s.quadraticCurveTo(x+W,y,x+W,y+r);s.lineTo(x+W,y+H-.52);
+    var teeth=7,tw=W/(teeth*2-1);
+    for(var i=0;i<teeth;i++){
+      var tx=x+W-i*2*tw;
+      s.lineTo(tx,y+H);s.lineTo(tx-tw,y+H);
+      if(i<teeth-1){s.lineTo(tx-tw,y+H-.42);s.lineTo(tx-2*tw,y+H-.42);}
+    }
+    s.lineTo(x,y+H-.52);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
+    var hex=new THREE.Path();for(var k=0;k<6;k++){var a=k/6*Math.PI*2;var px=Math.cos(a)*.1,py=Math.sin(a)*.1+.05;k?hex.lineTo(px,py):hex.moveTo(px,py)}hex.closePath();s.holes.push(hex);
+    var slot=rounded(.42,.14,.07);var sp=new THREE.Path(slot.getPoints().map(function(p){return new THREE.Vector2(p.x,p.y-.62)}));s.holes.push(sp);
+    var geo=new THREE.ExtrudeGeometry(s,{depth:.1,bevelEnabled:true,bevelThickness:.025,bevelSize:.025,bevelSegments:4,curveSegments:16});geo.center();
+    g.add(new THREE.Mesh(geo,new THREE.MeshPhysicalMaterial({color:lin("#1d2a30"),roughness:.4,metalness:.1,clearcoat:.6,clearcoatRoughness:.3,envMapIntensity:.6})));
+    pieces.comb=g;
+  })();
+
+  // two stainless fin screws
+  (function(){
+    var g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:lin("#cfd8dc"),metalness:1,roughness:.25,envMapIntensity:.9});
+    [[-.22,0],[.22,.05]].forEach(function(o){
+      var s=new THREE.Group();
+      var head=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.07,6),m);
+      var shaft=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.36,24),m);shaft.position.y=-.21;
+      for(var i=0;i<6;i++){var th=new THREE.Mesh(new THREE.TorusGeometry(.062,.012,6,24),m);th.rotation.x=Math.PI/2;th.position.y=-.08-i*.05;s.add(th)}
+      s.add(head,shaft);s.position.set(o[0],o[1],0);s.rotation.z=o[0]*1.4;g.add(s);
+    });
+    g.scale.setScalar(1.3);
+    pieces.screws=g;
+  })();
+
+  // pouch: a soft, pillowy zip pouch with the school's name
+  (function(){
+    var g=new THREE.Group();
+    var geo=new THREE.ExtrudeGeometry(rounded(2.1,1.35,.34),{depth:.22,bevelEnabled:true,bevelThickness:.2,bevelSize:.16,bevelSegments:10,curveSegments:24});geo.center();
+    g.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:lin("#0f6173"),roughness:.92,envMapIntensity:.45})));
+    var zip=new THREE.Mesh(new THREE.BoxGeometry(1.9,.05,.05),new THREE.MeshStandardMaterial({color:lin("#0b1d24"),roughness:.6}));zip.position.set(0,.5,.32);g.add(zip);
+    var pull=new THREE.Mesh(new THREE.BoxGeometry(.1,.22,.04),new THREE.MeshStandardMaterial({color:lin("#f2b705"),metalness:.8,roughness:.3}));pull.position.set(.78,.38,.35);g.add(pull);
+    var logo=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.5),new THREE.MeshStandardMaterial({transparent:true,roughness:.8,map:labelTex(function(x,w,h){
+      x.fillStyle="#eef5f3";x.textAlign="center";x.font="800 120px Syne, sans-serif";x.fillText("SHOKOGI",w/2,h*.72);
+    },720,240)}));logo.position.set(0,-.08,.335);g.add(logo);
+    pieces.pouch=g;
+  })();
+
+  var order=["wax","comb","screws","pouch"];
+  order.forEach(function(k){scene.add(pieces[k])});
+
+  /* poses: floating in the water (hero), lined up in the air (exploded), packed into the pouch */
+  var FLOAT={ wax:{x:-1.3,z:.4,rx:0,ry:.5,rz:0,lift:.18},  comb:{x:.9,z:-.5,rx:-Math.PI/2,ry:0,rz:.9,lift:.06},
+              screws:{x:1.6,z:1.1,rx:Math.PI/2.4,ry:0,rz:.6,lift:.06}, pouch:{x:-.1,z:-1.8,rx:-Math.PI/2.3,ry:0,rz:-.25,lift:.12} };
+  var LINE ={ wax:{x:-3.0,y:2.05,z:0,rx:.55,ry:.35,rz:0}, comb:{x:-1.0,y:2.1,z:0,rx:.1,ry:-.3,rz:-.15},
+              screws:{x:.9,y:2.0,z:0,rx:.2,ry:0,rz:0}, pouch:{x:3.0,y:1.95,z:0,rx:.1,ry:-.35,rz:0} };
+  var PACK={x:0,y:1.95,z:0};
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function ease(t){t=clamp(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+  function lerp(a,b,t){return a+(b-a)*t}
+
+  var W=1,H=1,aspect=1;
+  function resize(){W=innerWidth;H=innerHeight;aspect=W/H;renderer.setSize(W,H,false);camera.aspect=aspect;camera.fov=aspect<.8?52:38;camera.updateProjectionMatrix()}
+  resize();addEventListener("resize",resize);
+
+  var mouse={x:0,y:0,tx:0,ty:0};
+  addEventListener("pointermove",function(e){mouse.tx=e.clientX/W*2-1;mouse.ty=e.clientY/H*2-1});
+
+  var explode=document.getElementById("inside"), tagEls={}, stepEls=[].slice.call(document.querySelectorAll(".step")), barEls=[].slice.call(document.querySelectorAll("#progress span"));
+  document.querySelectorAll(".tag").forEach(function(t){tagEls[t.dataset.key]=t});
+  var emph={wax:0,comb:0,screws:0,pouch:0}, activeStep=-1;
+  var v=new THREE.Vector3();
+
+  function frame(ms){
+    var t=STILL?2:ms/1000;
+    seaMat.uniforms.uT.value=t;
+    mouse.x+=(mouse.tx-mouse.x)*.05;mouse.y+=(mouse.ty-mouse.y)*.05;
+
+    var r=explode.getBoundingClientRect(), span=r.height-H;
+    var p=clamp(-r.top/span,0,1);
+    var heroOut=clamp(1-(r.top/H),0,1);           // 0 at the top of the page, 1 when the exploded view pins
+    var lift=ease(clamp(p/.12,0,1)), pack=ease(clamp((p-.8)/.14,0,1));
+    var wide=aspect>1.15, sx=wide?1.75:0, narrow=aspect<.8;
+
+    var step=p<.12?0:p<.8?Math.min(3,Math.floor((p-.12)/.17)):4;
+    if(step!==activeStep){activeStep=step;stepEls.forEach(function(s,i){s.classList.toggle("on",i===step)})}
+    barEls.forEach(function(b,i){var f=i<step?1:i===step?(step===4?pack:clamp(((p-.12)-.17*i)/.17,0,1)):0;b.style.setProperty("--f",f)});
+
+    /* camera: low over the water, rising to face the line-up */
+    var camX=lerp(0,0,lift)+mouse.x*.35, camY=lerp(1.55+heroOut*.3,2.35,lift)-mouse.y*.18, camZ=lerp(narrow?8.4:7.2,narrow?11.5:8.6,lift);
+    camera.position.set(camX,camY,camZ);
+    camera.lookAt(lerp(wide?-.2:0,0,lift),lerp(narrow?1.15:.55,1.95,lift),0);
+
+    var lineScale=narrow?.62:1;
+    order.forEach(function(k,i){
+      var g=pieces[k],f=FLOAT[k],l=LINE[k];
+      var fx=f.x*(narrow?.62:1)+sx, fz=f.z+(narrow?-.6:0);
+      var wy=wave(fx,fz,t);
+      var tilt=STILL?0:Math.sin(t*.9+i)*.08;
+      var hx=wave(fx+.2,fz,t)-wave(fx-.2,fz,t), hz=wave(fx,fz+.2,t)-wave(fx,fz-.2,t);
+      var bob=STILL?0:Math.sin(t*1.3+i*1.7)*.07;
+
+      var active=(step===i)?1:0; emph[k]+=(active-emph[k])*.08;
+      var lx=l.x*lineScale, ly=l.y+bob+(narrow?(i%2?.5:-.3):0)*1, lz=l.z+emph[k]*.9;
+
+      var x=lerp(fx,lx,lift), y=lerp(wy+f.lift,ly,lift), z=lerp(fz,lz,lift);
+      var rx=lerp(f.rx+hz*1.2,l.rx+tilt,lift), ry=lerp(f.ry,l.ry+(STILL?0:t*.25*emph[k])+mouse.x*.3,lift), rz=lerp(f.rz-hx*1.2,l.rz,lift);
+      var sc=1+emph[k]*.22;
+
+      if(k!=="pouch"){ x=lerp(x,PACK.x,pack); y=lerp(y,PACK.y,pack); z=lerp(z,PACK.z,pack); sc*=lerp(1,.08,pack*pack); }
+      else { x=lerp(x,PACK.x,pack); y=lerp(y,PACK.y,pack); z=lerp(z,1.2,pack); rx=lerp(rx,.12,pack); ry=lerp(ry,Math.sin(t*.4)*.35,pack); rz=lerp(rz,0,pack); sc*=lerp(1,1.35,pack); }
+
+      g.position.set(x,y,z);g.rotation.set(rx,ry,rz);g.scale.setScalar(sc*(k==="screws"?1.3:1));
+
+      /* the floating label above each piece, visible only in the line-up */
+      var tag=tagEls[k];
+      if(tag){
+        v.set(x,y+(k==="comb"?1.35:.95)*sc,z).project(camera);
+        var o=lift*(1-pack);
+        tag.style.opacity=o.toFixed(3);
+        tag.style.transform="translate("+((v.x*.5+.5)*W)+"px,"+((-v.y*.5+.5)*H)+"px) translate(-50%,-100%)";
+        tag.classList.toggle("on",step===i);
+      }
+    });
+
+    /* stop drawing once the solid sections have covered the sea */
+    if(r.bottom>-H*.2) renderer.render(scene,camera);
+    if(!STILL) requestAnimationFrame(frame);
+  }
+  if(STILL){frame(0);addEventListener("scroll",function(){requestAnimationFrame(frame)},{passive:true});addEventListener("resize",function(){frame(0)})}
+  else requestAnimationFrame(frame);
+
+  SCENE={canvas:canvas};
+})();
+</script>
+
+<script>
+/* ---------------- page motion ---------------- */
+(function(){
+  var nav=document.getElementById("nav");
+  addEventListener("scroll",function(){nav.classList.toggle("solid",scrollY>40)},{passive:true});
+
+  /* the statement lights up word by word as it crosses the screen */
+  var words=[].slice.call(document.querySelectorAll("#statement .wd"));
+  var st=document.getElementById("statement");
+  function light(){
+    var r=st.getBoundingClientRect(), p=(innerHeight*.85-r.top)/(r.height+innerHeight*.35);
+    var n=Math.round(Math.max(0,Math.min(1,p))*words.length);
+    words.forEach(function(w,i){w.classList.toggle("lit",STILL||i<n)});
+  }
+  addEventListener("scroll",light,{passive:true});light();
+
+  if(STILL||!window.gsap) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* intro: words rise out of their masks, then the rest follows */
+  var tl=gsap.timeline({defaults:{ease:"expo.out"}});
+  tl.from("#gl",{opacity:0,duration:1.6,ease:"power2.out"},0)
+    .from("#headline .w>span",{yPercent:110,duration:1.2,stagger:.07},.15)
+    .from(".intro",{y:24,opacity:0,duration:1,stagger:.1},.55)
+    .from(".nav .in",{y:-20,opacity:0,duration:.9},.5);
+
+  /* numbers count up when they arrive */
+  document.querySelectorAll(".numbers .c").forEach(function(el){
+    var end=parseFloat(el.textContent)||0, o={v:0};
+    ScrollTrigger.create({trigger:el,start:"top 85%",once:true,onEnter:function(){
+      gsap.to(o,{v:end,duration:1.4,ease:"power3.out",onUpdate:function(){el.textContent=Math.round(o.v)}});
+    }});
+  });
+
+  /* sections rise into place */
+  gsap.utils.toArray(".contents h2,.order h2,.faq h2,.card,.way,details,.total").forEach(function(el){
+    gsap.from(el,{y:40,opacity:0,duration:1,ease:"expo.out",scrollTrigger:{trigger:el,start:"top 90%",once:true}});
+  });
+  gsap.from(".bigword",{yPercent:40,opacity:0,duration:1.4,ease:"expo.out",scrollTrigger:{trigger:".bigword",start:"top 95%",once:true}});
+
+  /* cards: a glow follows the pointer and the card leans toward it */
+  document.querySelectorAll(".card").forEach(function(c){
     c.addEventListener("pointermove",function(e){
-      var r=c.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
-      c.style.transform="perspective(700px) rotateY("+(px*10)+"deg) rotateX("+(-py*10)+"deg) translateY(-4px)";
+      var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+      c.style.setProperty("--mx",x*100+"%");c.style.setProperty("--my",y*100+"%");
+      c.style.transform="perspective(800px) rotateY("+((x-.5)*10)+"deg) rotateX("+((.5-y)*10)+"deg) translateY(-4px)";
     });
     c.addEventListener("pointerleave",function(){c.style.transform=""});
   });
 
-  /* splash: spray thrown up from where the buy buttons are pressed */
-  var sp=document.getElementById("splash"), px2=sp.getContext("2d"), drops=[], running=false;
-  function spSize(){sp.width=innerWidth*dpr;sp.height=innerHeight*dpr;px2.setTransform(dpr,0,0,dpr,0,0)}
-  spSize();addEventListener("resize",spSize);
-  function splash(x,y){
-    var cols=[css("--sea"),css("--wax"),css("--panel")];
-    for(var i=0;i<46;i++){
-      var ang=-Math.PI/2+(Math.random()-.5)*2.2, v=4+Math.random()*7;
-      drops.push({x:x,y:y,vx:Math.cos(ang)*v,vy:Math.sin(ang)*v,r:1.5+Math.random()*3.5,life:1,c:cols[i%3]});
-    }
-    if(!running){running=true;requestAnimationFrame(step)}
-  }
-  function step(){
-    px2.clearRect(0,0,innerWidth,innerHeight);
-    drops=drops.filter(function(d){return d.life>0});
-    drops.forEach(function(d){
-      d.vy+=.28;d.x+=d.vx;d.y+=d.vy;d.life-=.018;
-      px2.globalAlpha=Math.max(d.life,0);px2.fillStyle=d.c;
-      px2.beginPath();px2.ellipse(d.x,d.y,d.r,d.r*1.35,Math.atan2(d.vy,d.vx),0,6.3);px2.fill();
+  /* magnetic buttons and a cursor ring that swells over them */
+  var cur=document.querySelector(".cursor"), cx=innerWidth/2, cy=innerHeight/2, tx=cx, ty=cy;
+  addEventListener("pointermove",function(e){tx=e.clientX;ty=e.clientY});
+  (function loop(){cx+=(tx-cx)*.2;cy+=(ty-cy)*.2;cur.style.transform="translate("+cx+"px,"+cy+"px)";requestAnimationFrame(loop)})();
+  document.querySelectorAll(".mag,.card,summary").forEach(function(b){
+    b.addEventListener("pointerenter",function(){cur.classList.add("big")});
+    b.addEventListener("pointerleave",function(){cur.classList.remove("big");if(b.classList.contains("mag"))gsap.to(b,{x:0,y:0,duration:.6,ease:"elastic.out(1,.4)"})});
+    if(b.classList.contains("mag")) b.addEventListener("pointermove",function(e){
+      var r=b.getBoundingClientRect();gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.3,y:(e.clientY-r.top-r.height/2)*.4,duration:.4,ease:"power3.out"});
     });
-    px2.globalAlpha=1;
-    if(drops.length){requestAnimationFrame(step)}else{running=false}
-  }
-  document.querySelectorAll(".btn.wax").forEach(function(b){
-    b.addEventListener("click",function(e){var r=b.getBoundingClientRect();splash(e.clientX||r.left+r.width/2,e.clientY||r.top)});
   });
 })();
 </script>
