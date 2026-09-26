@@ -1,0 +1,286 @@
+<title>Shokogi Surf Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --ground:#f3f6f4;--panel:#ffffff;--panel-2:#e8eeea;--line:#d3ddd7;
+  --text:#14212b;--text-2:#4a5a63;--text-3:#76858c;
+  --wax:#f2c230;--wax-ink:#1f1703;--wax-soft:#fbefc4;
+  --sea:#1f6f8b;--sea-soft:#dcebf0;--good:#1f7a4d;
+  --tool:#2b3a44;--pouch:#1f6f8b;
+  --shadow:0 1px 2px rgba(20,33,43,.06),0 18px 40px -22px rgba(20,33,43,.35);
+  --display:"Unbounded","Figtree",system-ui,sans-serif;
+  --sans:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#0e161b;--panel:#152128;--panel-2:#1a2931;--line:#27383f;
+  --text:#eaf0ee;--text-2:#a9b8bd;--text-3:#7d8f95;
+  --wax:#f5cc4a;--wax-soft:#3a3013;--sea:#5fb0cc;--sea-soft:#15303a;--good:#5cc592;
+  --tool:#c9d4d8;--pouch:#5fb0cc;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0e161b;--panel:#152128;--panel-2:#1a2931;--line:#27383f;
+  --text:#eaf0ee;--text-2:#a9b8bd;--text-3:#7d8f95;
+  --wax:#f5cc4a;--wax-soft:#3a3013;--sea:#5fb0cc;--sea-soft:#15303a;--good:#5cc592;
+  --tool:#c9d4d8;--pouch:#5fb0cc;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--text);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 56px}
+.wrap{max-width:1040px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.08}
+p{margin:0}
+:focus-visible{outline:2px solid var(--sea);outline-offset:3px;border-radius:6px}
+.label{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px}
+.logo{font:800 16px var(--display);letter-spacing:-.01em}
+.logo b{background:var(--wax);color:var(--wax-ink);padding:2px 8px;border-radius:6px;margin-left:4px}
+
+/* hero */
+.hero{display:grid;gap:32px;padding-block:16px 48px}
+.hero h1{font-size:clamp(32px,5.6vw,60px);font-weight:800;letter-spacing:-.03em}
+.hero h1 mark{background:linear-gradient(transparent 58%,var(--wax) 58%);color:inherit;padding-inline:2px}
+.lede{font-size:18px;color:var(--text-2);max-width:48ch}
+.hero-copy{display:flex;flex-direction:column;gap:22px}
+.buy{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.price{font:800 40px/1 var(--display);font-variant-numeric:tabular-nums}
+.price s{font:500 18px var(--sans);color:var(--text-3);margin-left:8px}
+.save{font:600 12px var(--mono);letter-spacing:.04em;background:var(--wax-soft);color:var(--text);padding:5px 9px;border-radius:999px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:12px;font:700 16px var(--sans);text-decoration:none;border:0;cursor:pointer}
+.btn.wax{background:var(--wax);color:var(--wax-ink)}
+.btn.wax:hover{filter:brightness(1.04)}
+.btn.line{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1.5px var(--line)}
+.note{font-size:14px;color:var(--text-3)}
+
+/* flat lay: the kit laid out on a board deck */
+.lay{background:var(--panel-2);border-radius:24px;padding:22px;aspect-ratio:1/1;max-width:100%;display:grid;place-items:center;position:relative;overflow:hidden}
+.lay svg{width:100%;max-width:420px;height:auto}
+.lay .tag{position:absolute;left:18px;bottom:14px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+
+/* contents */
+.contents{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:28px}
+.contents h2,.order h2,.faq h2{font-size:clamp(24px,3.4vw,34px);font-weight:800;letter-spacing:-.02em}
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;grid-template-rows:auto auto 1fr auto;gap:8px}
+.item .qty{font:600 12px var(--mono);color:var(--sea)}
+.item h3{font:700 18px var(--sans)}
+.item p{color:var(--text-2);font-size:15px}
+.item .val{font:600 13px var(--mono);color:var(--text-3);font-variant-numeric:tabular-nums}
+.sum{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:14px 18px;border-radius:12px;background:var(--wax-soft);font-weight:600}
+.sum span{font-variant-numeric:tabular-nums}
+
+/* why */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;padding-block:48px;border-top:1px solid var(--line)}
+.why div{display:flex;flex-direction:column;gap:8px}
+.why h3{font:700 19px var(--sans)}
+.why p{color:var(--text-2);font-size:15.5px}
+
+/* order */
+.order{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:24px}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.way{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.way.hot{border-color:var(--wax);box-shadow:var(--shadow)}
+.way h3{font:700 20px var(--sans)}
+.way p{color:var(--text-2);font-size:15px}
+.way .when{font:600 14px var(--mono);color:var(--sea)}
+.way .btn{align-self:flex-start;margin-top:auto}
+.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.contact code{font:600 15px var(--mono);background:var(--panel-2);border-radius:8px;padding:8px 12px;user-select:all}
+.ok{font-size:13px;color:var(--good)}
+
+/* faq */
+.faq{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:20px}
+.faqs{display:grid;gap:12px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+summary{cursor:pointer;font-weight:700}
+details p{color:var(--text-2);margin-top:10px;font-size:15px;max-width:65ch}
+
+footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3);font-size:13px}
+
+@media (min-width:860px){.hero{grid-template-columns:1.05fr .95fr;align-items:center}}
+@media (prefers-reduced-motion:no-preference){
+  .lay g.piece{transition:transform .25s ease}
+  .lay:hover g.piece:nth-of-type(odd){transform:translateY(-3px)}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="logo">Shokogi<b>Surf Kit</b></div>
+    <span class="label">Playa Venao</span>
+  </header>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="label">Everything that goes missing from your board bag</span>
+      <h1>Wax, comb, fin key. <mark>One kit</mark>, in your pocket.</h1>
+      <p class="lede">The small things you need before every session and can never find. Picked by the instructors at Shokogi surf school, in one pouch you can take into the car.</p>
+      <div class="buy">
+        <div class="price" id="price"></div>
+        <span class="save" id="save"></span>
+      </div>
+      <div class="buy">
+        <a class="btn wax" href="#order">Get the kit</a>
+        <a class="btn line" href="#contents">What's inside</a>
+      </div>
+    </div>
+
+    <figure class="lay" aria-label="The kit laid out: a bar of wax, a wax comb with fin key, spare fin screws and a zip pouch" style="margin:0">
+      <svg viewBox="0 0 400 400" aria-hidden="true">
+        <!-- pouch -->
+        <g class="piece">
+          <rect x="40" y="210" width="190" height="140" rx="22" fill="var(--pouch)"/>
+          <rect x="40" y="226" width="190" height="10" fill="var(--text)" opacity=".25"/>
+          <rect x="190" y="220" width="22" height="30" rx="6" fill="var(--text)" opacity=".35"/>
+          <text x="135" y="304" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="800" font-size="20" fill="var(--panel)">SHOKOGI</text>
+        </g>
+        <!-- wax bar -->
+        <g class="piece">
+          <path d="M70 70 C70 52 90 44 150 44 C210 44 230 52 230 70 L230 150 C230 168 210 176 150 176 C90 176 70 168 70 150Z" fill="var(--wax)"/>
+          <path d="M70 70 C70 88 90 96 150 96 C210 96 230 88 230 70" fill="none" stroke="var(--wax-ink)" stroke-opacity=".25" stroke-width="3"/>
+          <text x="150" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="15" fill="var(--wax-ink)">TROPICAL · 26°C+</text>
+        </g>
+        <!-- comb + fin key tool -->
+        <g class="piece" transform="rotate(-18 320 200)">
+          <rect x="275" y="80" width="90" height="200" rx="16" fill="var(--tool)"/>
+          <g fill="var(--panel-2)">
+            <rect x="285" y="92" width="6" height="40" rx="2"/><rect x="297" y="92" width="6" height="40" rx="2"/>
+            <rect x="309" y="92" width="6" height="40" rx="2"/><rect x="321" y="92" width="6" height="40" rx="2"/>
+            <rect x="333" y="92" width="6" height="40" rx="2"/><rect x="345" y="92" width="6" height="40" rx="2"/>
+          </g>
+          <polygon points="320,210 332,217 332,231 320,238 308,231 308,217" fill="var(--panel-2)"/>
+          <rect x="296" y="252" width="48" height="14" rx="7" fill="var(--panel-2)"/>
+        </g>
+        <!-- fin screws -->
+        <g class="piece" fill="var(--tool)">
+          <circle cx="285" cy="320" r="13"/><rect x="281" y="320" width="8" height="30" rx="2"/>
+          <circle cx="330" cy="330" r="13"/><rect x="326" y="330" width="8" height="30" rx="2"/>
+        </g>
+        <g fill="var(--panel-2)">
+          <polygon points="285,314 290,317 290,323 285,326 280,323 280,317"/>
+          <polygon points="330,324 335,327 335,333 330,336 325,333 325,327"/>
+        </g>
+      </svg>
+      <span class="tag">Illustration · photo of the real kit coming</span>
+    </figure>
+  </div>
+
+  <section class="contents" id="contents">
+    <span class="label">Inside</span>
+    <h2>What's in the kit</h2>
+    <div class="items" id="items"></div>
+    <div class="sum"><span id="sum-apart"></span><span id="sum-kit"></span></div>
+  </section>
+
+  <section class="why" aria-label="Why a kit">
+    <div><span class="label">Before the session</span><h3>Fresh wax where your feet go</h3><p>Rough up the old wax with the comb, add a new coat, and paddle out with grip.</p></div>
+    <div><span class="label">Fins on, fins off</span><h3>No hunting for a fin key</h3><p>The key is built into the comb. Swap fins on the beach, not back at the car.</p></div>
+    <div><span class="label">Afterwards</span><h3>One pouch in the car</h3><p>Everything goes back in one place. Next time it's all there.</p></div>
+  </section>
+
+  <section class="order" id="order">
+    <span class="label">Order</span>
+    <h2>Two ways to get it</h2>
+    <div class="ways">
+      <div class="way hot">
+        <span class="when">After your lesson</span>
+        <h3>Pick up at the school</h3>
+        <p>Ask at the desk at Shokogi surf school, Playa Venao. Pay there and take it with you.</p>
+        <p class="note" id="stock"></p>
+      </div>
+      <div class="way">
+        <span class="when" id="ship-when"></span>
+        <h3>Ship it to me</h3>
+        <p id="ship-text"></p>
+        <a class="btn line" id="checkout" href="#" target="_blank" rel="noopener" hidden>Go to checkout</a>
+      </div>
+    </div>
+    <div class="contact" id="contact" hidden>
+      <span>Questions or to reserve one:</span>
+      <code id="contact-val"></code>
+      <button class="btn line" id="copy" type="button" style="padding:8px 14px;font-size:14px">Copy</button>
+      <span class="ok" id="copied" hidden>Copied</span>
+    </div>
+  </section>
+
+  <section class="faq">
+    <span class="label">Before you buy</span>
+    <h2>Questions</h2>
+    <div class="faqs">
+      <details open><summary>Does the fin key fit my board?</summary><p>It fits the standard fin screw used by most fin systems, including FCS and Futures. If your fins use a different screw, ask us before you buy.</p></details>
+      <details><summary>Which wax is in it?</summary><p id="faq-wax"></p></details>
+      <details><summary>How long does shipping take?</summary><p id="faq-ship"></p></details>
+      <details><summary>Can I return it?</summary><p id="faq-return"></p></details>
+    </div>
+  </section>
+
+  <footer>Sold by Shokogi surf school · Playa Venao, Panama</footer>
+</div>
+
+<script>
+/* Everything a customer is promised lives here. Fill it in from the kit you
+   actually put together, not from the suppliers' listings. "apart" is what
+   each piece costs bought on its own, and is used for the saving shown. */
+var KIT = {
+  price: 24,
+  currency: "$",
+  inStockAtSchool: 0,
+  shipDays: "15–25",
+  checkoutUrl: "",
+  contact: "",
+  returnDays: 14,
+  wax: "A full bar for warm water, 26°C and up, which is the water at Venao most of the year. Cold water where you surf? Tell us and we'll swap it.",
+  items: [
+    { qty:"1 ×", name:"Surf wax", text:"A full bar for tropical water.", apart:4 },
+    { qty:"1 ×", name:"Wax comb with fin key", text:"Comb on one end, fin key in the middle, bottle opener on the other end.", apart:8 },
+    { qty:"2 ×", name:"Spare fin screws", text:"For the day one goes into the sand.", apart:5 },
+    { qty:"1 ×", name:"Zip pouch", text:"Holds all of it, with the school's logo.", apart:9 }
+  ]
+};
+
+(function(k){
+  var $=function(id){return document.getElementById(id)};
+  var money=function(n){return k.currency+n};
+  var apart=k.items.reduce(function(s,i){return s+i.apart},0);
+
+  $("price").innerHTML=money(k.price)+(apart>k.price?"<s>"+money(apart)+"</s>":"");
+  if(apart>k.price) $("save").textContent="Save "+money(apart-k.price)+" vs. buying separately"; else $("save").hidden=true;
+
+  var box=$("items");
+  k.items.forEach(function(i){
+    var d=document.createElement("div");d.className="item";
+    var q=document.createElement("span");q.className="qty";q.textContent=i.qty;
+    var h=document.createElement("h3");h.textContent=i.name;
+    var p=document.createElement("p");p.textContent=i.text;
+    var v=document.createElement("span");v.className="val";v.textContent=money(i.apart)+" on its own";
+    d.append(q,h,p,v);box.append(d);
+  });
+  $("sum-apart").textContent="Bought separately: "+money(apart);
+  $("sum-kit").textContent="The kit: "+money(k.price);
+
+  var n=k.inStockAtSchool;
+  $("stock").textContent = n>0 ? n+" kits at the school right now." : "Ask at the desk. If we're out, we'll put one aside for you.";
+  $("ship-when").textContent=k.shipDays+" days";
+  $("ship-text").textContent="We post it to you. It takes "+k.shipDays+" days to arrive, and we send you the tracking number.";
+  if(k.checkoutUrl){var c=$("checkout");c.href=k.checkoutUrl;c.hidden=false}
+
+  $("faq-wax").textContent=k.wax;
+  $("faq-ship").textContent="From the school: same day. Shipped: "+k.shipDays+" days, with tracking.";
+  $("faq-return").textContent="Yes. Within "+k.returnDays+" days of receiving it, unused, for a full refund.";
+
+  if(k.contact){
+    $("contact").hidden=false;$("contact-val").textContent=k.contact;
+    $("copy").addEventListener("click",function(){
+      var ok=function(){var c=$("copied");c.hidden=false;setTimeout(function(){c.hidden=true},1600)};
+      var sel=function(){var r=document.createRange();r.selectNodeContents($("contact-val"));var s=getSelection();s.removeAllRanges();s.addRange(r)};
+      try{navigator.clipboard.writeText(k.contact).then(ok,sel)}catch(e){sel()}
+    });
+  }
+})(KIT);
+</script>
