@@ -1,0 +1,262 @@
+<title>Venao Changing Poncho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --ground:#eef4f3;--panel:#ffffff;--panel-2:#e3eeec;--line:#cfdedb;
+  --text:#0f2a33;--text-2:#44616a;--text-3:#6f878e;
+  --sea:#17707c;--sea-deep:#0f4b55;--sun:#e8903a;--sun-ink:#1d1206;
+  --stripe-a:#17707c;--stripe-b:#e8903a;--stripe-c:#f3efe4;
+  --shadow:0 1px 2px rgba(15,42,51,.06),0 18px 40px -22px rgba(15,42,51,.35);
+  --display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --sans:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#0b1a1f;--panel:#12252b;--panel-2:#163038;--line:#23414a;
+  --text:#e8f1f0;--text-2:#a7bcc0;--text-3:#7c9398;
+  --sea:#4fb3c0;--sea-deep:#8fd3dc;--sun:#f0a45a;--sun-ink:#1d1206;
+  --stripe-c:#dcd6c8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0b1a1f;--panel:#12252b;--panel-2:#163038;--line:#23414a;
+  --text:#e8f1f0;--text-2:#a7bcc0;--text-3:#7c9398;
+  --sea:#4fb3c0;--sea-deep:#8fd3dc;--sun:#f0a45a;--sun-ink:#1d1206;
+  --stripe-c:#dcd6c8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--text);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 56px}
+.wrap{max-width:1040px;margin-inline:auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+p{margin:0}
+a{color:var(--sea)}
+:focus-visible{outline:2px solid var(--sun);outline-offset:3px;border-radius:6px}
+.label{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px}
+.logo{font:800 18px var(--display);letter-spacing:-.01em}
+.logo span{color:var(--sun)}
+.top .label{color:var(--sea)}
+
+/* hero */
+.hero{display:grid;gap:32px;padding-block:20px 48px}
+.hero h1{font-size:clamp(40px,7vw,76px);font-weight:800;letter-spacing:-.03em}
+.hero h1 span{color:var(--sea)}
+.lede{font-size:18px;color:var(--text-2);max-width:48ch}
+.buy{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.price{font:800 44px/1 var(--display);font-variant-numeric:tabular-nums}
+.price small{font:500 15px var(--sans);color:var(--text-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:999px;font:700 16px var(--sans);text-decoration:none;border:0;cursor:pointer}
+.btn.sun{background:var(--sun);color:var(--sun-ink)}
+.btn.sun:hover{filter:brightness(1.05)}
+.btn.line{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1.5px var(--line)}
+.note{font-size:14px;color:var(--text-3)}
+.hero-copy{display:flex;flex-direction:column;gap:22px}
+
+.art{background:var(--panel-2);border-radius:28px;display:grid;place-items:center;padding:28px;position:relative;overflow:hidden;aspect-ratio:1/1;max-width:100%}
+.art svg{width:min(100%,380px);height:auto}
+.art .tag{position:absolute;left:18px;bottom:16px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.art .waves{position:absolute;inset:auto 0 0 0;height:28%;opacity:.5}
+
+/* the moment it's for */
+.moment{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:28px;padding-block:48px;border-top:1px solid var(--line)}
+.moment div{display:flex;flex-direction:column;gap:8px}
+.moment h3{font-size:22px;font-weight:800}
+.moment p{color:var(--text-2);font-size:15.5px}
+.moment .label{color:var(--sun)}
+
+/* specs */
+.specs{display:grid;gap:28px;padding-block:48px;border-top:1px solid var(--line)}
+.specs h2,.faq h2,.order h2{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em}
+dl{display:grid;grid-template-columns:1fr;margin:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+dl div{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:16px;padding:14px 18px;border-bottom:1px solid var(--line)}
+dl div:last-child{border-bottom:0}
+dt{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding-top:3px}
+dd{margin:0;font-weight:600}
+
+/* order */
+.order{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:24px}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.way{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.way.hot{border-color:var(--sun);box-shadow:var(--shadow)}
+.way h3{font-size:22px}
+.way p{color:var(--text-2);font-size:15px}
+.way .when{font:600 14px var(--mono);color:var(--sea)}
+.way .btn{align-self:flex-start;margin-top:auto}
+.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.contact code{font:600 15px var(--mono);background:var(--panel-2);border-radius:8px;padding:8px 12px;user-select:all}
+.ok{font-size:13px;color:var(--sea)}
+
+/* faq */
+.faq{padding-block:48px;border-top:1px solid var(--line);display:grid;gap:20px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+summary{cursor:pointer;font-weight:700}
+details p{color:var(--text-2);margin-top:10px;font-size:15px;max-width:65ch}
+.faqs{display:grid;gap:12px}
+
+footer{border-top:1px solid var(--line);padding-block:28px 0;color:var(--text-3);font-size:13px}
+
+@media (min-width:860px){.hero{grid-template-columns:1.05fr .95fr;align-items:center}.specs{grid-template-columns:.8fr 1.2fr;align-items:start}}
+@media (prefers-reduced-motion:no-preference){
+  .waves path{animation:drift 9s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translateX(0)}to{transform:translateX(-30px)}}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="logo">Venao<span>.</span>poncho</div>
+    <span class="label">Pick up at Shokogi surf school</span>
+  </header>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="label">Hooded changing poncho</span>
+      <h1>Out of the wetsuit, <span>in the car park</span>, without the towel dance.</h1>
+      <p class="lede">A hooded microfibre poncho you change under after a session. It dries you while you change, then you wear it home.</p>
+      <div class="buy">
+        <div class="price" id="price"></div>
+        <a class="btn sun" href="#order">Order one</a>
+      </div>
+      <p class="note" id="stock-note"></p>
+    </div>
+
+    <figure class="art" aria-label="Illustration of the hooded changing poncho in teal and orange stripes" style="margin:0">
+      <svg viewBox="0 0 300 320" role="img" aria-hidden="true">
+        <defs>
+          <pattern id="stripes" width="300" height="36" patternUnits="userSpaceOnUse">
+            <rect width="300" height="12" fill="var(--stripe-a)"/>
+            <rect y="12" width="300" height="12" fill="var(--stripe-c)"/>
+            <rect y="24" width="300" height="12" fill="var(--stripe-b)"/>
+          </pattern>
+        </defs>
+        <!-- body -->
+        <path d="M150 58 C112 58 96 78 88 96 L28 150 C18 159 22 176 36 176 L70 176 L64 300 L236 300 L230 176 L264 176 C278 176 282 159 272 150 L212 96 C204 78 188 58 150 58Z" fill="url(#stripes)" stroke="var(--sea-deep)" stroke-width="3"/>
+        <!-- hood -->
+        <path d="M150 20 C118 20 100 44 102 78 C120 92 180 92 198 78 C200 44 182 20 150 20Z" fill="var(--stripe-a)" stroke="var(--sea-deep)" stroke-width="3"/>
+        <path d="M150 38 C132 38 122 52 124 72 C136 78 164 78 176 72 C178 52 168 38 150 38Z" fill="var(--sea-deep)" opacity=".55"/>
+        <!-- pocket -->
+        <path d="M110 214 L190 214 L184 256 L116 256Z" fill="var(--stripe-c)" stroke="var(--sea-deep)" stroke-width="3"/>
+      </svg>
+      <svg class="waves" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 30 Q25 10 50 30 T100 30 T150 30 T200 30 T250 30 T300 30 T350 30 T400 30 T450 30 V60 H0Z" fill="var(--sea)" opacity=".25"/>
+      </svg>
+      <span class="tag">Illustration · photo of the real one coming</span>
+    </figure>
+  </div>
+
+  <section class="moment" aria-label="When you use it">
+    <div><span class="label">After the session</span><h3>Change anywhere</h3><p>Wide enough to pull your arms inside and peel the wetsuit off underneath. No towel held in your teeth.</p></div>
+    <div><span class="label">Wind on the beach</span><h3>Hood up, stay warm</h3><p>The dawn session at Venao ends in a breeze. The hood and the length keep it off you.</p></div>
+    <div><span class="label">The ride home</span><h3>Wear it, don't pack it</h3><p>A front pocket for keys and wax. Throw it over the seat and your car stays dry.</p></div>
+  </section>
+
+  <section class="specs">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span class="label">Details</span>
+      <h2>What you get</h2>
+    </div>
+    <dl id="spec-list"></dl>
+  </section>
+
+  <section class="order" id="order">
+    <span class="label">Order</span>
+    <h2>Two ways to get one</h2>
+    <div class="ways">
+      <div class="way hot">
+        <span class="when" id="pickup-when">Today, from the school desk</span>
+        <h3>Pick up at Shokogi</h3>
+        <p>Pay and take it from the surf school at Playa Venao. No wait, no shipping cost.</p>
+        <p class="note" id="pickup-stock"></p>
+      </div>
+      <div class="way">
+        <span class="when" id="ship-when"></span>
+        <h3>Ship it to me</h3>
+        <p id="ship-text"></p>
+        <a class="btn line" id="checkout" href="#" target="_blank" rel="noopener" hidden>Go to checkout</a>
+      </div>
+    </div>
+    <div class="contact" id="contact" hidden>
+      <span>Questions or to reserve one:</span>
+      <code id="contact-val"></code>
+      <button class="btn line" id="copy" type="button" style="padding:8px 14px;font-size:14px">Copy</button>
+      <span class="ok" id="copied" hidden>Copied</span>
+    </div>
+  </section>
+
+  <section class="faq">
+    <span class="label">Before you buy</span>
+    <h2>Questions</h2>
+    <div class="faqs">
+      <details open><summary>Will it fit me?</summary><p id="faq-size"></p></details>
+      <details><summary>How long does shipping take?</summary><p id="faq-ship"></p></details>
+      <details><summary>Can I return it?</summary><p id="faq-return"></p></details>
+      <details><summary>Where is it made?</summary><p>It's made in China and chosen by us. We checked it before putting it on sale. We're a surf school, not a factory.</p></details>
+    </div>
+  </section>
+
+  <footer>Sold by Shokogi surf school · Playa Venao, Panama</footer>
+</div>
+
+<script>
+/* Everything a customer is promised lives here. Fill it in from the sample
+   you received, not from the supplier's listing. */
+var PRODUCT = {
+  price: 49,                 // USD, what the customer pays
+  currency: "$",
+  inStockAtSchool: 0,        // how many are sitting at the school right now
+  shipDays: "15–25",         // real delivery time for shipped orders, in days
+  checkoutUrl: "",           // Shopify / Stripe payment link; empty hides the button
+  contact: "",               // WhatsApp number or email; empty hides the line
+  returnDays: 14,
+  specs: [
+    ["Fabric", "Microfibre towelling, quick-drying"],
+    ["Fit", "One size, loose cut"],
+    ["Length", "Below the knee on most adults"],
+    ["Hood", "Yes, full"],
+    ["Pocket", "Front, for keys and wax"],
+    ["Care", "Machine wash cold, hang dry"]
+  ],
+  sizeNote: "It's one size and cut loose, so there's room to change inside it. If you're over 190 cm it may sit above the knee. Ask us and we'll measure one for you."
+};
+
+(function(p){
+  var $=function(id){return document.getElementById(id)};
+  $("price").innerHTML=p.currency+p.price+"<small> USD</small>";
+
+  var n=p.inStockAtSchool;
+  $("stock-note").textContent = n>0
+    ? n+" at the school now. Or have one shipped."
+    : "Pick up at the school or have it shipped. Ask before you come to check we have one.";
+  $("pickup-stock").textContent = n>0 ? n+" in stock right now." : "None in stock right now. Reserve one and we'll tell you when it arrives.";
+  if(n<=0) $("pickup-when").textContent="Reserve one at the school desk";
+
+  $("ship-when").textContent = p.shipDays+" days";
+  $("ship-text").textContent = "Sent straight from our supplier. It takes "+p.shipDays+" days to arrive, and we give you the tracking number.";
+  if(p.checkoutUrl){var c=$("checkout");c.href=p.checkoutUrl;c.hidden=false}
+
+  var dl=$("spec-list");
+  p.specs.forEach(function(s){
+    var d=document.createElement("div"),t=document.createElement("dt"),v=document.createElement("dd");
+    t.textContent=s[0];v.textContent=s[1];d.append(t,v);dl.append(d);
+  });
+
+  $("faq-size").textContent=p.sizeNote;
+  $("faq-ship").textContent="From the school: same day. Shipped: "+p.shipDays+" days, with tracking. We'd rather tell you now than have you wait wondering.";
+  $("faq-return").textContent="Yes. Within "+p.returnDays+" days of receiving it, unused, for a full refund.";
+
+  if(p.contact){
+    $("contact").hidden=false;$("contact-val").textContent=p.contact;
+    $("copy").addEventListener("click",function(){
+      var ok=function(){var c=$("copied");c.hidden=false;setTimeout(function(){c.hidden=true},1600)};
+      var sel=function(){var r=document.createRange();r.selectNodeContents($("contact-val"));var s=getSelection();s.removeAllRanges();s.addRange(r)};
+      try{navigator.clipboard.writeText(p.contact).then(ok,sel)}catch(e){sel()}
+    });
+  }
+})(PRODUCT);
+</script>
