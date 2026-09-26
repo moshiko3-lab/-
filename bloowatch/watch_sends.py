@@ -119,6 +119,26 @@ def audit(now=None, tomorrow=None):
     stopped, _ = approval.held(verdict)
 
     missing = []
+
+    # **But a gate with nothing behind it is a failure, and this is where it
+    # has to be caught.** On 24/9 and 25/9/2026 the forecast reached neither
+    # surfer group on either evening. REQUIRE_YES had gone live before the
+    # 18:00 routine was rewired to send the preview, so on the first evening
+    # the office got a preview that said silence would send -- and silence
+    # held -- and on the second there was no preview at all. Both nights this
+    # file ran twice and filed `missing=0 all sent approval=silent`: every
+    # word of it true, and it read like a quiet evening.
+    #
+    # So: no preview tonight, with the gate on, is a missing send in its own
+    # right. Nobody was asked, so "he did not approve" explains nothing, and
+    # it is the one state that cannot be the owner's decision.
+    preview_due = dt.datetime.combine(today, dt.time(18, 0), tzinfo=PANAMA)
+    if (approval.REQUIRE_YES and not verdict["preview"]
+            and verdict["decision"] != "stop"
+            and now >= preview_due + dt.timedelta(minutes=GRACE_MINUTES)):
+        missing.append({"what": "forecast_preview", "due": "18:00",
+                        "to": "the office", "for": tom.isoformat()})
+
     for item in due_times(today):
         if now < item["due"] + dt.timedelta(minutes=GRACE_MINUTES):
             continue                                   # not late yet

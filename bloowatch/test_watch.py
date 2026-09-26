@@ -235,6 +235,38 @@ def main():
         check("an evening nobody answered is not a pile of missing sends",
               missing == ["staff_rota"], repr(missing))
 
+        # --- but a gate with nothing behind it is a failure --------------
+        # This is the check that was not here on 24/9 and 25/9/2026, and its
+        # absence cost two evenings: the forecast reached neither group on
+        # either night, and this file filed `missing=0 all sent
+        # approval=silent` twice a night through both of them. Every word
+        # true. It read like a quiet evening.
+        Ap.state = lambda *a, **k: {"decision": "silent", "said": "",
+                                    "when": 0, "preview": 0}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("no preview at all, with the gate on, is a missing send",
+              "forecast_preview" in missing, repr(missing))
+        check("and it is named as the office's, not a group's",
+              [m["to"] for m in W.audit(now=at_1930)
+               if m["what"] == "forecast_preview"] == ["the office"])
+
+        # A stop is the one silence that explains itself: he was asked and
+        # he answered. That is not a broken preview.
+        Ap.state = lambda *a, **k: {"decision": "stop", "said": "עצור",
+                                    "when": 1, "preview": 0}
+        missing = [m["what"] for m in W.audit(now=at_1930)]
+        check("but a typed stop is not reported as a missing preview",
+              "forecast_preview" not in missing, repr(missing))
+
+        # And nothing is late before its time: at ten past six the preview
+        # routine may still be taking its Surfline screenshot.
+        at_1810 = dt.datetime.combine(day, dt.time(18, 10), tzinfo=W.PANAMA)
+        Ap.state = lambda *a, **k: {"decision": "silent", "said": "",
+                                    "when": 0, "preview": 0}
+        missing = [m["what"] for m in W.audit(now=at_1810)]
+        check("a preview is not missing ten minutes after it was due",
+              missing == [], repr(missing))
+
         # And once he answers, the net goes back to doing its job: an
         # approved forecast that did not reach a group is a real failure.
         Ap.state = lambda *a, **k: {"decision": "go", "said": "אישור",
