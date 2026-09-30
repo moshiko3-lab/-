@@ -136,12 +136,14 @@ def main():
     # a perfectly valid picture of the top of the page.
     fragments = [f.split("'")[1] for f in S.HIDE.split(",") if "'" in f]
     check("the crop is made by hiding, and the hiding is CSS",
-          len(fragments) == 3 and "[class*=" in S.HIDE, repr(S.HIDE))
+          len(fragments) == 4 and "[class*=" in S.HIDE, repr(S.HIDE))
 
-    # Real class names off the page, on 16/9/2026.
+    # Real class names off the page: the first three on 16/9/2026, the
+    # app-install drawer on 29/9/2026.
     GONE = ("GraphContainer_windGraphSection__xyz",
             "GraphContainer_windTooltipContainer__nducO",
-            "GraphContainer_featurePaywallWrapper__p0Frv")
+            "GraphContainer_featurePaywallWrapper__p0Frv",
+            "MuiDrawer-root MuiDrawer-modal AppBanner_banner__Rp6gy")
     KEPT = ("GraphContainer_surfGraphSection__tkfKf",
             "GraphContainer_tideGraphSection__Ml8cp",
             "GraphContainer_surfTooltipContainer__abc",
@@ -232,6 +234,59 @@ def main():
     # chart of somebody else's beach, and nothing in the message would say.
     import surfline
     check("the page is Playa Venao's own", surfline.SPOT in S.PAGE, S.PAGE)
+
+    # --- the app-install drawer, and the blind shot it went unseen behind -
+    # On 29/9/2026 the owner asked why there was no screenshot in the
+    # forecast. There was one every night: a full-height "Surfline is
+    # better on the app" drawer, photographed and sent, with chart=yes on
+    # every RESULT line. Two separate failures, and the second is the one
+    # that let it run for five evenings.
+    class Drawer(object):
+        """A page with the drawer up, or not, or with its button renamed."""
+
+        def __init__(self, answer, boom=False):
+            self.answer, self.boom, self.waited = answer, boom, 0
+
+        def evaluate(self, js, arg=None):
+            if self.boom:
+                raise RuntimeError("the page went away\nsecond line")
+            return self.answer
+
+        def wait_for_timeout(self, ms):
+            self.waited += 1
+
+    page = Drawer("dismissed")
+    check("the drawer is dismissed by its own button",
+          S._dismiss(page) == "dismissed")
+    check("and the page is given a moment to unwind the scroll lock",
+          page.waited == 1, page.waited)
+
+    page = Drawer("absent")
+    check("a night without the drawer is not an error",
+          S._dismiss(page) == "absent")
+    check("and costs no wait at all", page.waited == 0, page.waited)
+
+    check("a renamed button is reported, not raised",
+          S._dismiss(Drawer("no continue button")) == "no continue button")
+    got = S._dismiss(Drawer(None, boom=True))
+    check("and a page that dies mid-dismissal never reaches the caller",
+          isinstance(got, str) and got.startswith("failed:"), repr(got))
+    check("the reason stays one line — it goes into a WhatsApp report",
+          "\n" not in got, repr(got))
+
+    # Belt and braces: even if the button is never found, the drawer must
+    # not be in the picture.
+    check("the drawer is also in the hide list",
+          "AppBanner_banner" in S.HIDE, S.HIDE)
+
+    # **No picture rather than the wrong picture.** The blind viewport shot
+    # that used to stand in when the graphs were missing is what made an
+    # advert indistinguishable from a chart, everywhere downstream.
+    src = open(os.path.join(HERE, "surfshot.py"), encoding="utf-8").read()
+    check("shoot() no longer falls back to a blind viewport screenshot",
+          'p.screenshot(path=out, clip={"x": 0, "y": 0,' not in src)
+    check("and returns a reason instead when the graphs are not there",
+          "the surf and tide graphs were not on the" in src)
 
     print("\n" + ("all checks passed" if not fails
                   else "%d FAILED: %s" % (len(fails), ", ".join(fails))))

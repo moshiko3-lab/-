@@ -63,6 +63,27 @@ SETTLE_MS = 11000
 SCROLL_MS = 6000
 REDRAW_MS = 7000
 
+# **The picture stopped being of the sea on 29/9/2026 or thereabouts.**
+# Surfline began opening a full-height drawer over the page -- "Surfline is
+# better on the app", with Open App and Continue -- and every shot from
+# then on was a picture of that. The forecast still reported `chart=yes`,
+# because a file was produced and the gateway took it: nothing in the
+# pipeline looks at what is *in* the picture, and the owner found it before
+# any check did.
+#
+# It does two things, and the second is the one that matters. It covers the
+# page, and being a MUI modal it locks the body's scroll -- so the one
+# scroll this file is allowed does nothing, the day selector never comes
+# into view, and the day button is never really pressed either.
+#
+# So it is dismissed rather than hidden. Pressing the page's own Continue
+# unwinds the scroll lock with it; a stylesheet that merely hides the
+# drawer leaves the lock in place and the shot still never gets down the
+# page. HIDE below carries the same selector as a second line of defence,
+# for the day the button is renamed.
+BANNER = "[class*='AppBanner_banner']"
+DISMISS_MS = 1500
+
 # Surfline's tide chart is only drawn correctly on the page's *first*
 # render. Press any day button -- including the one for the day already
 # showing -- and the curve comes back with a vertical cliff at one tide
@@ -116,7 +137,7 @@ NUDGE_MS = 2500
 # "Something went wrong here" where the graphs had been. Injecting CSS
 # leaves React's tree alone; changing it does not.
 HIDE = ("[class*='windGraphSection'], [class*='windTooltipContainer'], "
-        "[class*='featurePaywallWrapper']")
+        "[class*='featurePaywallWrapper'], [class*='AppBanner_banner']")
 
 
 def _labels(date):
@@ -148,6 +169,31 @@ def _nudge(page):
         return True
     except Exception:                                           # noqa: BLE001
         return False
+
+
+def _dismiss(page):
+    """Send the app-install drawer away. Returns what happened, for the log.
+
+    Its own Continue button, not a stylesheet: see BANNER. "absent" is the
+    ordinary answer on a day Surfline does not show it, and every answer
+    here is survivable -- HIDE carries the same selector, so a drawer that
+    will not close is at least not in the picture.
+    """
+    try:
+        what = page.evaluate("""(sel) => {
+            const box = document.querySelector(sel);
+            if (!box) return "absent";
+            const btn = [...box.querySelectorAll("button")].find(
+                b => /continue/i.test(b.innerText || ""));
+            if (!btn) return "no continue button";
+            btn.click();
+            return "dismissed";
+        }""", BANNER)
+    except Exception as exc:                                    # noqa: BLE001
+        return "failed: %s" % str(exc).splitlines()[0][:60]
+    if what == "dismissed":
+        page.wait_for_timeout(DISMISS_MS)
+    return what
 
 
 def _blocked(exc):
@@ -200,6 +246,11 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                 p.goto(PAGE, wait_until="domcontentloaded", timeout=timeout)
                 p.wait_for_timeout(SETTLE_MS)
 
+                # Before the scroll, not after: while the drawer is up the
+                # body cannot scroll at all and everything below is a shot
+                # of the drawer.
+                _dismiss(p)
+
                 # One scroll, then wait. A second one, added to give the
                 # wind graph more time, broke both graphs and opened a
                 # cam-matches panel over the chart.
@@ -244,19 +295,31 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                     return {top: top, bottom: bot};
                 }""", [TOP, BOTTOM])
 
-                if box and box["bottom"] - box["top"] > 200:
-                    y = max(0, box["top"] - PAD_TOP)
-                    p.screenshot(path=out, full_page=True,
-                                 clip={"x": 0, "y": y, "width": width,
-                                       "height": (box["bottom"] - y)
-                                       + PAD_BOTTOM})
-                else:
-                    # The graphs did not appear. The top of the page still
-                    # names the spot and today's conditions, which beats
-                    # sending nothing.
-                    p.screenshot(path=out, clip={"x": 0, "y": 0,
-                                                 "width": width,
-                                                 "height": height})
+                if not box or box["bottom"] - box["top"] <= 200:
+                    # **No picture rather than the wrong picture.** This
+                    # used to shoot the viewport blind and hand the caller
+                    # a path, on the reasoning that the top of the page at
+                    # least names the spot and today's conditions. That was
+                    # true of the page it was written against. It stopped
+                    # being true the day Surfline put a full-height
+                    # app-install drawer over everything (see BANNER), and
+                    # for five evenings the forecast carried a photograph
+                    # of an advert while every RESULT line said chart=yes.
+                    #
+                    # The caller treats "" as "send the text, say why" --
+                    # which is the honest outcome and a visible one. A
+                    # wrong picture is worse than none: it reaches two
+                    # hundred customers looking like the school is broken,
+                    # and nothing downstream can tell it from a good one.
+                    return "", ("the surf and tide graphs were not on the "
+                                "page — something is covering it or the "
+                                "layout changed; nothing was sent rather "
+                                "than a picture of whatever was there")
+
+                y = max(0, box["top"] - PAD_TOP)
+                p.screenshot(path=out, full_page=True,
+                             clip={"x": 0, "y": y, "width": width,
+                                   "height": (box["bottom"] - y) + PAD_BOTTOM})
             finally:
                 b.close()
     except Exception as exc:                                    # noqa: BLE001
