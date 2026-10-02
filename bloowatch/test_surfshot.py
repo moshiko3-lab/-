@@ -286,7 +286,9 @@ def main():
     check("shoot() no longer falls back to a blind viewport screenshot",
           'p.screenshot(path=out, clip={"x": 0, "y": 0,' not in src)
     check("and returns a reason instead when the graphs are not there",
-          "the surf and tide graphs were not on the" in src)
+          "served the page without its" in src)
+    check("but only after asking Surfline more than once",
+          "ATTEMPTS = 3" in src and "if attempt + 1 < ATTEMPTS:" in src)
 
     print("\n" + ("all checks passed" if not fails
                   else "%d FAILED: %s" % (len(fails), ", ".join(fails))))

@@ -84,6 +84,25 @@ REDRAW_MS = 7000
 BANNER = "[class*='AppBanner_banner']"
 DISMISS_MS = 1500
 
+# **Once is not enough, and the lock is the reason.** On 2/10/2026 the
+# chart came out on one run and not the next, minutes apart, on the same
+# code and the same page. The drawer does not always arrive inside the
+# eleven seconds this file waits before pressing Continue -- it is loaded
+# by a script of its own and sometimes lands later. Miss it by a second
+# and the body is still scroll-locked, so the page never moves, the graph
+# sections never reach their place, and the clip finds nothing.
+#
+# So it is pressed three times across the run -- before the scroll, after
+# it, and again before measuring -- and the body's own scroll is freed by
+# stylesheet as well. The rule is harmless when no drawer ever appeared:
+# `overflow: auto` is what an unlocked page already has.
+UNLOCK_CSS = "html, body { overflow: auto !important; }"
+
+# How many times to ask Surfline for the page before giving up on the
+# chart. See the retry in shoot(): three runs minutes apart went fail,
+# fail, pass, so one try throws away a chart roughly two evenings in three.
+ATTEMPTS = 3
+
 # Surfline's tide chart is only drawn correctly on the page's *first*
 # render. Press any day button -- including the one for the day already
 # showing -- and the curve comes back with a vertical cliff at one tide
@@ -193,6 +212,13 @@ def _dismiss(page):
         return "failed: %s" % str(exc).splitlines()[0][:60]
     if what == "dismissed":
         page.wait_for_timeout(DISMISS_MS)
+    # The scroll lock outlives a drawer that was hidden rather than closed,
+    # and a locked page is one the clip can never reach the graphs on. Free
+    # it either way; on a page that was never locked this changes nothing.
+    try:
+        page.add_style_tag(content=UNLOCK_CSS)
+    except Exception:                                           # noqa: BLE001
+        pass
     return what
 
 
@@ -237,6 +263,7 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                 how["proxy"] = {"server": proxy}
             b = pw.chromium.launch(**how)
             try:
+              for attempt in range(ATTEMPTS):
                 ctx = b.new_context(
                     user_agent=IPHONE,
                     viewport={"width": width, "height": height},
@@ -256,6 +283,9 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                 # cam-matches panel over the chart.
                 p.mouse.wheel(0, 2500)
                 p.wait_for_timeout(SCROLL_MS)
+
+                # Again, in case it arrived while the page was settling.
+                _dismiss(p)
 
                 picked = False
                 if date:
@@ -285,6 +315,11 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                     except Exception:                           # noqa: BLE001
                         pass            # a panel left in beats no picture
 
+                # The last chance before measuring: a drawer that arrived
+                # late is still holding the scroll, and the measurement
+                # below is what decides whether there is a picture at all.
+                _dismiss(p)
+
                 box = p.evaluate("""(sel) => {
                     const a = document.querySelector(sel[0]);
                     const b = document.querySelector(sel[1]);
@@ -296,6 +331,25 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                 }""", [TOP, BOTTOM])
 
                 if not box or box["bottom"] - box["top"] <= 200:
+                    # **Not our page and not our bug: try it again.** The
+                    # graph components are missing entirely on a run like
+                    # this -- no surf section, no tide section, not one of
+                    # the ten day buttons, and a document barely a third of
+                    # its usual height. The network trace says why:
+                    # Surfline sits behind Cloudflare, and now and then it
+                    # answers 403 and the challenge script is itself on a
+                    # host this environment does not allow. The page comes
+                    # back without its data and renders the frame around
+                    # nothing.
+                    #
+                    # It clears on a retry -- three runs minutes apart went
+                    # fail, fail, pass. So: a fresh context, which drops
+                    # whatever cookie the challenge left, and another go.
+                    # Nothing here works around the block; it asks again,
+                    # which is what a person refreshing the page would do.
+                    ctx.close()
+                    if attempt + 1 < ATTEMPTS:
+                        continue
                     # **No picture rather than the wrong picture.** This
                     # used to shoot the viewport blind and hand the caller
                     # a path, on the reasoning that the top of the page at
@@ -311,15 +365,18 @@ def shoot(out, date=None, width=WIDTH, height=HEIGHT, scale=SCALE,
                     # wrong picture is worse than none: it reaches two
                     # hundred customers looking like the school is broken,
                     # and nothing downstream can tell it from a good one.
-                    return "", ("the surf and tide graphs were not on the "
-                                "page — something is covering it or the "
-                                "layout changed; nothing was sent rather "
-                                "than a picture of whatever was there")
+                    return "", ("Surfline served the page without its "
+                                "graphs on %d tries — it answers 403 from "
+                                "Cloudflare now and then. The forecast is "
+                                "unaffected; only the chart is missing."
+                                % ATTEMPTS)
 
                 y = max(0, box["top"] - PAD_TOP)
                 p.screenshot(path=out, full_page=True,
                              clip={"x": 0, "y": y, "width": width,
                                    "height": (box["bottom"] - y) + PAD_BOTTOM})
+                ctx.close()
+                break
             finally:
                 b.close()
     except Exception as exc:                                    # noqa: BLE001
