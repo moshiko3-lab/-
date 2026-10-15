@@ -92,7 +92,8 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .sub{color:var(--text-2);max-width:62ch;margin:0 0 28px}
 
 /* facts */
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:26px 0}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+@media (max-width:560px){.facts{grid-template-columns:1fr}}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
 .fact b{display:block;font-size:30px;line-height:1.1;color:var(--sea-2);margin-bottom:6px}
 .fact span{color:var(--text-2);font-size:14.5px}
@@ -124,11 +125,11 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .grp{position:absolute;bottom:14px;inset-inline-start:20px;z-index:1;margin:0;color:#fff;
   font-size:clamp(20px,2.6vw,28px);letter-spacing:.02em}
 .grpSub{color:var(--text-2);margin:-6px 0 16px;max-width:62ch}
-.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px}
-#tiersFoil{grid-template-columns:repeat(auto-fill,minmax(260px,380px))}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+@media (max-width:560px){.tiers{grid-template-columns:1fr 1fr;gap:10px}.tier{padding:16px}.tier .price{font-size:34px!important}}
 .tier{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
-.tier.featured{border:2px solid var(--pink)}
+.tier.featured{border:1px solid var(--line)}
 .tier .ribbon{position:absolute;top:-12px;inset-inline-start:20px;background:var(--pink);color:#fff;font-size:11.5px;
   font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
 .tier .price{font-size:38px;font-weight:800;line-height:1;margin:6px 0 4px}
@@ -188,7 +189,7 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gallery iframe{width:100%;height:560px;border:0;display:block;background:#fff}
 
 /* gear */
-.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,330px));justify-content:center;gap:14px;margin-top:14px}
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px}
 .gcard{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
 .gcard .gimg{position:relative;aspect-ratio:4/5;background:#f3f0ee;overflow:hidden}
 .gcard .gimg img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
@@ -198,6 +199,9 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gcard .price small{font-size:14px;color:var(--text-3)}
 .gcard .btn{margin-top:auto;width:100%}
 .dots{display:flex;flex-wrap:wrap;gap:8px}
+.fitsw{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;align-self:flex-start}
+.fitsw button{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;color:var(--text-2)}
+.fitsw button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
 .dots button{appearance:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
 .dots button[aria-pressed="true"]{outline:2px solid var(--pink);outline-offset:2px}
 .gcard .sizes button{min-width:40px;padding:6px 8px;font-size:13px}
@@ -312,30 +316,6 @@ footer{background:var(--sea)}
     <h2 data-i18n="shopTitle">Shokogi tees, lycras &amp; surf hats</h2>
     <p class="sub" data-i18n="shopSub">Our own surf gear from Playa Venao. Every piece you wear helps the school through this season.</p>
     <div class="gear" id="gear"></div>
-    <div class="merch" id="merch" hidden>
-      <div class="pic" id="merchPic"></div>
-      <div class="body">
-        <div class="eyebrow" data-i18n="mEyebrow">Wear Venao</div>
-        <h3 data-i18n="mName">The Shokogi lycra</h3>
-        <p data-i18n="mDesc">Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Adult and kids' sizes. Every lycra sold helps the school through this season.</p>
-        <div class="row"><div class="price" id="merchPrice"></div></div>
-        <div id="fitBox" hidden>
-          <div style="font-weight:700;font-size:14px;margin-bottom:6px" data-i18n="mFit">For</div>
-          <div class="colors" id="fits" role="group" aria-label="Fit"></div>
-        </div>
-        <div>
-          <div style="font-weight:700;font-size:14px;margin-bottom:6px" data-i18n="mColor">Colour</div>
-          <div class="colors" id="colors" role="group" aria-label="Colour"></div>
-        </div>
-        <div>
-          <div style="font-weight:700;font-size:14px;margin-bottom:6px" data-i18n="mSize">Size</div>
-          <div class="sizes" id="sizes" role="group" aria-label="Size"></div>
-        </div>
-        <p id="merchShip" style="font-size:14px"></p>
-        <div class="row"><button class="btn" id="merchBtn" data-i18n="mBuy">Buy the lycra</button></div>
-      </div>
-    </div>
-    <div class="gear" id="gear2"></div>
     <p class="fine" data-i18n="shopShip">Shipped to you or collected at the school in Playa Venao: enter your address at checkout to see the shipping cost.</p>
   </div>
 </section>
@@ -349,27 +329,11 @@ footer{background:var(--sea)}
       <div class="fact"><b>7.7</b><span data-i18n="f1">Magnitude (USGS), at a shallow depth of about 12.6 km</span></div>
       <div class="fact"><b>1882</b><span data-i18n="f2">The last time Panama felt an earthquake this strong</span></div>
       <div class="fact"><b>350+</b><span data-i18n="f3">Aftershocks recorded in the first three days (Panama's Geosciences Institute)</span></div>
-      <div class="fact"><b>6.6</b><span data-i18n="f4">Strongest aftershocks, felt the same day</span></div>
     </div>
-    <div class="story">
-      <div>
-        <p data-i18n="s1">In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.</p>
-        <p data-i18n="s2">In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.</p>
-        <p data-i18n="s4">Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.</p>
-        <p id="ourStory" data-i18n="s3">Like everyone here, we felt the earthquake. We are getting ready to welcome you back. Every lesson you buy ahead and every lycra you wear keeps the school going through this season, until we see you in the water.</p>
-      </div>
-      <div class="card">
-        <h3 data-i18n="usesTitle">What your support does</h3>
-        <ul class="uses">
-          <li><div class="ic">🏄</div><div><b data-i18n="u1t">Brings travellers back</b><span data-i18n="u1">Every lesson booked ahead is one more reason to come back to Venao</span></div></li>
-          <li><div class="ic">🤝</div><div><b data-i18n="u2t">Keeps the school going</b><span data-i18n="u2">The school, the boards and the daily running, ready for when travellers come back</span></div></li>
-          <li><div class="ic">🌊</div><div><b data-i18n="u3t">Keeps kids surfing</b><span data-i18n="u3">Our kids' surf programme for Venao children carries on</span></div></li>
-        </ul>
-        <div class="progress" id="progress" hidden>
-          <div class="bar"><i id="barFill"></i></div>
-          <div class="nums"><span><b id="raised"></b> <span data-i18n="raised">raised</span></span><span><span data-i18n="goal">goal</span> <b id="goal"></b></span></div>
-        </div>
-      </div>
+    <p class="sub" data-i18n="s4">Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.</p>
+    <div class="progress" id="progress" hidden>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="nums"><span><b id="raised"></b> <span data-i18n="raised">raised</span></span><span><span data-i18n="goal">goal</span> <b id="goal"></b></span></div>
     </div>
   </div>
 </section>
@@ -388,11 +352,7 @@ footer{background:var(--sea)}
     <div class="eyebrow" data-i18n="rwEyebrow">Buy now, surf later</div>
     <h2 data-i18n="rwTitle">Get your lesson now, surf it when you come</h2>
     <p class="sub" data-i18n="rwSub">Every purchase helps us through this season. Lessons and sessions are valid for 24 months from purchase, and you can give them to someone else.</p>
-    <figure class="grpHead"><img src="img/surf.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gSurf">Surf lessons</h3></figure>
     <div class="tiers" id="tiers"></div>
-    <figure class="grpHead"><img src="img/foil.webp" alt="" style="object-position:50% 70%" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
-    <p class="grpSub" data-i18n="gFoilSub">Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.</p>
-    <div class="tiers" id="tiersFoil"></div>
     <p class="fine" data-i18n="fine">Prices are in US dollars, the same as our regular prices. Book your lesson with us when you plan your trip; lessons depend on sea conditions.</p>
   </div>
 </section>
@@ -419,7 +379,7 @@ footer{background:var(--sea)}
   </div>
 </section>
 
-<section class="band" id="faq">
+<section id="faq">
   <div class="wrap">
     <div class="eyebrow">FAQ</div>
     <h2 data-i18n="faqTitle">Questions</h2>
@@ -537,7 +497,7 @@ var CONFIG = {
   supporters: { updated: "", list: [] },
 
   // Shokogi tees, tank tops and hats: store variant ids per colour and size.
-  gear: [{"id":"tee","price":30,"sizes":["S","M","L","XL"],"colors":[{"id":"ash","swatch":"#d8d8d4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-back.jpg?v=1792101157","v":{"S":"45599795675202","M":"45599795707970","L":"45599795740738","XL":"45599795773506"}},{"id":"green","swatch":"#7f9170","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-back.jpg?v=1792101157","v":{"S":"45599795806274","M":"45599795839042","L":"45599795871810","XL":"45599795904578"}}]},{"id":"teeKids","price":30,"sizes":["S","M","L"],"colors":[{"id":"cblue","swatch":"#7fa3e0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-back.jpg?v=1792101158","v":{"S":"45599797346370","M":"45599797379138","L":"45599797411906"}},{"id":"lpink","swatch":"#f3c4d2","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-back.jpg?v=1792101158","v":{"S":"45599797444674","M":"45599797477442","L":"45599797510210"}}]},{"id":"hat","after":true,"price":45,"sizes":["M","L"],"views":["vModel","vProduct"],"colors":[{"id":"pink","swatch":"#e0337a","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-product.jpg?v=1792102120","v":{"M":"45599904563266","L":"45599904596034"}},{"id":"black","swatch":"#1a1719","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-product.jpg?v=1792102120","v":{"M":"45599904628802","L":"45599904661570"}}]}]
+  gear: [{"id":"tee","fits":[{"id":"adult","price":30,"sizes":["S","M","L","XL"],"colors":[{"id":"ash","swatch":"#d8d8d4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-back.jpg?v=1792101157","v":{"S":"45599795675202","M":"45599795707970","L":"45599795740738","XL":"45599795773506"}},{"id":"green","swatch":"#7f9170","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-back.jpg?v=1792101157","v":{"S":"45599795806274","M":"45599795839042","L":"45599795871810","XL":"45599795904578"}}]},{"id":"kids","price":30,"sizes":["S","M","L"],"colors":[{"id":"cblue","swatch":"#7fa3e0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-back.jpg?v=1792101158","v":{"S":"45599797346370","M":"45599797379138","L":"45599797411906"}},{"id":"lpink","swatch":"#f3c4d2","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-back.jpg?v=1792101158","v":{"S":"45599797444674","M":"45599797477442","L":"45599797510210"}}]}]},{"id":"lycra","fits":[{"id":"adult","price":45,"sizes":["S","M","L","XL"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-back.jpg?v=1792107639","v":{"S":"45572895244354","M":"45572895277122","L":"45572895309890","XL":"45572895342658"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-back.jpg?v=1792107639","v":{"S":"45572895408194","M":"45572895440962","L":"45572895473730","XL":"45572895506498"}}]},{"id":"kids","price":40,"sizes":["S","M","L"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-back.jpg?v=1792107639","v":{"S":"45573904269378","M":"45573904302146","L":"45573904334914"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-back.jpg?v=1792107639","v":{"S":"45573904400450","M":"45573904433218","L":"45573904465986"}}]}]},{"id":"hat","price":45,"sizes":["M","L"],"views":["vModel","vProduct"],"colors":[{"id":"pink","swatch":"#e0337a","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-product.jpg?v=1792102120","v":{"M":"45599904563266","L":"45599904596034"}},{"id":"black","swatch":"#1a1719","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-product.jpg?v=1792102120","v":{"M":"45599904628802","L":"45599904661570"}}]}]
 
 };
 
@@ -818,22 +778,21 @@ function setLang(l){
 }
 
 function renderTiers(){
-  var boxes = {surf: document.getElementById("tiers"), foil: document.getElementById("tiersFoil")};
-  boxes.surf.innerHTML = ""; boxes.foil.innerHTML = "";
+  var box = document.getElementById("tiers");
+  box.innerHTML = "";
   TIERS.forEach(function(tier){
     var el = document.createElement("div");
     el.className = "tier" + (tier.featured ? " featured" : "");
     var html = "";
-    if (tier.featured) html += '<span class="ribbon">' + t("popular") + "</span>";
     html += "<h3>" + t("t_" + tier.id) + "</h3>";
     html += '<div class="price">' + money(tier.price) + " <small>USD</small></div><ul>";
-    t("b_" + tier.id).forEach(function(b){ html += "<li>" + b + "</li>"; });
+    t("b_" + tier.id).slice(0, 2).forEach(function(b){ html += "<li>" + b + "</li>"; });
     html += '</ul><button class="btn">' + t("choose") + "</button>";
     el.innerHTML = html;
     el.querySelector("button").addEventListener("click", function(){
       pay(tier.id, t("t_" + tier.id), tier.price);
     });
-    boxes[tier.group || "surf"].appendChild(el);
+    box.appendChild(el);
   });
 }
 
@@ -870,6 +829,7 @@ function lycraCur(){
   return lycraFit === "kids" && L.kids ? L.kids : L;
 }
 function renderMerch(){
+  if (!document.getElementById("merch")) return;
   var L0 = CONFIG.lycra;
   var show = L0 && (typeof L0.price === "number" || CONFIG.preview);
   document.getElementById("merch").hidden = !show;
@@ -983,15 +943,17 @@ function renderQuake(){
 
 var gearSel = {};
 function renderGear(){
-  var boxes = [document.getElementById("gear"), document.getElementById("gear2")];
-  boxes[0].innerHTML = ""; boxes[1].innerHTML = "";
-  (CONFIG.gear || []).forEach(function(g){
-    var sel = gearSel[g.id] || (gearSel[g.id] = {color: g.colors[0].id, size: ""});
+  var box = document.getElementById("gear");
+  box.innerHTML = "";
+  (CONFIG.gear || []).forEach(function(G){
+    var sel = gearSel[G.id] || (gearSel[G.id] = {fit: G.fits ? G.fits[0].id : "", color: "", size: ""});
+    var g = G.fits ? (G.fits.filter(function(f){ return f.id === sel.fit; })[0] || G.fits[0]) : G;
+    g = Object.assign({}, g, {fit: g.id, id: G.id, views: G.views, ref: g});
     var col = g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0];
     var el = document.createElement("div");
     el.className = "gcard";
     el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><h3></h3>' +
-      '<div class="price"></div><div class="dots" role="group"></div><div class="sizes" role="group"></div>' +
+      '<div class="price"></div><div class="fitsw" role="group"></div><div class="dots" role="group"></div><div class="sizes" role="group"></div>' +
       '<button class="btn" type="button"></button></div>';
     var img = el.querySelector("img");
     var side = sel.side === "back" && col.back ? "back" : "front";
@@ -1008,6 +970,15 @@ function renderGear(){
     });
     el.querySelector("h3").textContent = t("g_" + g.id);
     el.querySelector(".price").innerHTML = money(g.price) + " <small>USD</small>";
+    var fw = el.querySelector(".fitsw");
+    fw.hidden = !G.fits;
+    (G.fits || []).forEach(function(f){
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = t(f.id === "kids" ? "fitKids" : "fitAdult");
+      b.setAttribute("aria-pressed", f === g.ref ? "true" : "false");
+      b.addEventListener("click", function(){ if (sel.fit !== f.id) { sel.fit = f.id; sel.color = ""; sel.size = ""; } renderGear(); });
+      fw.appendChild(b);
+    });
     var dots = el.querySelector(".dots");
     dots.setAttribute("aria-label", t("mColor"));
     g.colors.forEach(function(c){
@@ -1034,9 +1005,9 @@ function renderGear(){
       if (g.sizes.length && !sel.size) { toast(t("mPickSize")); return; }
       var vid = col.v[g.sizes.length ? sel.size : ""];
       if (CONFIG.checkout && vid) { location.href = "/cart/" + vid + ":1"; return; }
-      pay("gear", fmt(t("gItem"), {name: t("g_" + g.id), color: t("c_" + col.id), size: sel.size ? ", " + sel.size : ""}), g.price);
+      pay("gear", fmt(t("gItem"), {name: t("g_" + g.id) + (g.fit === "kids" ? " (" + t("fitKids") + ")" : ""), color: t("c_" + col.id), size: sel.size ? ", " + sel.size : ""}), g.price);
     });
-    boxes[g.after ? 1 : 0].appendChild(el);
+    box.appendChild(el);
   });
 }
 
@@ -1069,6 +1040,7 @@ function renderWall(){
   var wall = document.getElementById("wall"), stats = document.getElementById("wallStats");
   wall.innerHTML = ""; stats.innerHTML = "";
   document.getElementById("wallEmpty").hidden = list.length > 0;
+  document.getElementById("wallSec").hidden = !list.length;
   wall.hidden = stats.hidden = !list.length;
   var n = {people: list.length, lessons: 0, kids: 0, lycra: 0};
   list.forEach(function(e){
@@ -1147,7 +1119,7 @@ function init(){
   document.querySelectorAll(".langs button").forEach(function(b){
     b.addEventListener("click", function(){ setLang(b.dataset.lang); });
   });
-  document.getElementById("merchBtn").addEventListener("click", function(){
+  if (document.getElementById("merchBtn")) document.getElementById("merchBtn").addEventListener("click", function(){
     if (!lycraSize) { toast(t("mPickSize")); return; }
     pay("lycra", fmt(t(lycraFit === "kids" ? "mItemKids" : "mItem"), {size: lycraSize, color: t("c_" + lycraColor)}), lycraCur().price);
   });
