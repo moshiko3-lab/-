@@ -86,7 +86,8 @@ assert "img/" not in body.replace("cdn.shopify.com", ""), "an image is not on th
 
 extra = """
 /* inside the store's page template */
-.page-header:has(+ .rte #rv){display:none}
+.page-header:has(+ .rte #rv),.section-header:has(+ .rte #rv){display:none}
+.rte:has(> #rv){max-width:none}
 #rv{font:17px/1.6 var(--f-body);color:var(--text);background:var(--bg);text-align:start}
 #rv .hero,#rv .band,#rv footer{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
 #rv .hero{margin-top:0}
