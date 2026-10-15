@@ -187,6 +187,26 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gallery .ig{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-height:420px}
 .gallery iframe{width:100%;height:560px;border:0;display:block;background:#fff}
 
+/* supporters wall */
+.wallStats{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0 0 22px}
+.wallStats div{display:flex;align-items:baseline;gap:8px}
+.wallStats b{font-family:var(--f-head);font-weight:600;font-size:40px;line-height:1;color:var(--pink-deep)}
+.wallStats span{color:var(--text-2);font-size:14.5px}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;list-style:none;margin:0;padding:0}
+.wall li{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+  border-inline-start:3px solid var(--pink);border-radius:var(--radius);padding:14px 16px;animation:wallIn .5s ease both}
+.wall .flag{font-size:28px;line-height:1;flex:none}
+.wall b{display:block;font-size:15.5px;line-height:1.25}
+.wall .what{display:block;color:var(--text-2);font-size:14.5px}
+.wall time{display:block;color:var(--text-3);font-size:12.5px;margin-top:2px}
+@keyframes wallIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.wall li{animation:none}}
+.wallEmpty{display:flex;flex-wrap:wrap;align-items:center;gap:16px;background:var(--panel);border:1.5px dashed var(--pink);
+  border-radius:var(--radius);padding:22px 24px}
+.wallEmpty p{margin:0;flex:1;min-width:220px;font-weight:600}
+.wallMore{margin-top:14px}
+.wallNote{font-size:13px;color:var(--text-3);margin-top:14px}
+
 /* faq */
 details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px}
 summary{cursor:pointer;font-weight:700}
@@ -347,6 +367,19 @@ footer{background:var(--sea)}
   </div>
 </section>
 
+<section id="wallSec">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="wEyebrow">Wall of supporters</div>
+    <h2 data-i18n="wTitle">They're already keeping Venao surfing</h2>
+    <p class="sub" data-i18n="wSub">Every purchase from this page shows up here, anonymously: only the country and what was bought. No names.</p>
+    <div class="wallStats" id="wallStats"></div>
+    <ul class="wall" id="wall"></ul>
+    <div class="wallEmpty" id="wallEmpty" hidden><p data-i18n="wEmpty">No one here yet. Be the first to keep Venao surfing.</p><a class="btn small" href="#rewards" data-i18n="heroCta">Buy a lesson ahead</a></div>
+    <button class="btn small ghost wallMore" id="wallMore" hidden data-i18n="wMore">Show everyone</button>
+    <p class="wallNote" id="wallNote" hidden></p>
+  </div>
+</section>
+
 <section id="venao" hidden>
   <div class="wrap">
     <div class="eyebrow" data-i18n="galEyebrow">From our Instagram</div>
@@ -435,7 +468,7 @@ var CONFIG = {
   // The Shokogi lycra. price:null hides it. image: a file next to this page.
   // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
   lycra: {
-    price: 50, sizes: ["XS","S","M","L","XL"], delivery: "both",
+    price: 50, sizes: ["S","M","L","XL"], delivery: "both",
     colors: [
       { id: "pink",  swatch: "#ff7fc4", front: "img/lycra-pink-front.jpg",  back: "img/lycra-pink-back.jpg",  model: "img/lycra-pink-onmodel.jpg" },
       { id: "black", swatch: "#1d1f24", front: "img/lycra-black-front.jpg", back: "img/lycra-black-back.jpg", model: "img/lycra-black-onmodel.jpg" }
@@ -466,7 +499,12 @@ var CONFIG = {
 
   // The school's own posts shown in the gallery (the code from each post's link).
   // Empty hides the section. Earlier picks: "Ddo9PIKlHiT","DagQo4olE-Z","CuuX2TIOgp1","DSycms4jDec","CqLdEjnuvfQ","Cozq2v3ujWP"
-  instagramPosts: []
+  instagramPosts: [],
+
+  // Wall of supporters: filled from the store's orders, anonymously.
+  // One entry per order: { d: "2026-10-15", c: "DE" (country code, or ""), items: [{ i: "lesson", q: 1 }] }.
+  // On shokogi.com the list comes from <script type="application/json" id="rv-supporters"> in the page body.
+  supporters: { updated: "", list: [] }
 };
 
 /* Rewards. Lesson prices are the school's regular catalogue prices. */
@@ -513,11 +551,11 @@ en:{
   footAbout:"The OG surf school of Playa Venao, Los Santos, Panama. Est. 2009.", sources:"Sources",
   choose:"Choose", popular:"Our pick",
   t_supporter:"Venao Supporter", t_lesson:"One surf lesson", t_kid:"Support & treat a local kid", t_course3:"3-lesson course", t_course5:"5-lesson course",
-  b_supporter:["A personal thank-you from Shokogi", "Your name on our wall of supporters", "News from the beach"],
-  b_lesson:["A 1-hour surf lesson, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
-  b_kid:["5 surf sessions for a kid from Venao or the Venao area", "After the earthquakes, time in the water gives them some calm and peace", "A photo and update from the water", "Your name on our wall of supporters"],
-  b_course3:["3 surf lessons, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
-  b_course5:["5 surf lessons, whenever you come", "Transferable: give it as a gift", "A video analysis session", "Your name on our wall of supporters"],
+  b_supporter:["A personal thank-you from Shokogi", "A spot on our supporters' wall, anonymously", "News from the beach"],
+  b_lesson:["A 1-hour surf lesson, whenever you come", "Transferable: give it as a gift", "A spot on our supporters' wall, anonymously"],
+  b_kid:["5 surf sessions for a kid from Venao or the Venao area", "After the earthquakes, time in the water gives them some calm and peace", "A photo and update from the water", "A spot on our supporters' wall, anonymously"],
+  b_course3:["3 surf lessons, whenever you come", "Transferable: give it as a gift", "A spot on our supporters' wall, anonymously"],
+  b_course5:["5 surf lessons, whenever you come", "Transferable: give it as a gift", "A video analysis session", "A spot on our supporters' wall, anonymously"],
   mTitle:"Thank you", mText:"You chose: {item}. Send us a message and we will reply with how to pay and confirm it.",
   viaWa:"Message us on WhatsApp", viaMail:"Send an email", viaIg:"Message us on Instagram",
   msg:"Hi Shokogi! I want to support the school through this season: {item}{price}. My name is ",
@@ -534,11 +572,18 @@ en:{
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
   t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
-  b_foil2:["Three 3-hour tow-in sessions, spread over your stay", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
-  b_foil3:["Five tow-in sessions, 10 hours on the water", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
+  b_foil2:["Three 3-hour tow-in sessions, spread over your stay", "Equipment and safety gear included", "Transferable: give it as a gift", "A spot on our supporters' wall, anonymously"],
+  b_foil3:["Five tow-in sessions, 10 hours on the water", "Equipment and safety gear included", "Transferable: give it as a gift", "A spot on our supporters' wall, anonymously"],
   vidPlay:"Watch: the earthquake in Panama",
   vidSrc:"Video: {source}, on YouTube",
-  customItem:"a donation", contact:"Contact"
+  customItem:"a donation", contact:"Contact",
+  wEyebrow:"Wall of supporters", wTitle:"They're already keeping Venao surfing",
+  wSub:"Every purchase from this page shows up here, anonymously: only the country and what was bought. No names.",
+  wEmpty:"No one here yet. Be the first to keep Venao surfing.", wMore:"Show everyone",
+  wSomewhere:"Somewhere in the world", wUpdated:"Updated {date}",
+  st_people:["supporter","supporters"], st_lessons:["lesson bought ahead","lessons bought ahead"], st_kids:["surf session for local kids","surf sessions for local kids"], st_lycra:["lycra","lycras"],
+  w_lesson:"A surf lesson", w_course3:"3 surf lessons", w_kid:"5 surf sessions for a local kid", w_foil1:"A foil session",
+  w_lycra:"A Shokogi lycra", w_lycraKids:"A kids' lycra"
 },
 es:{
   brandSub:"Playa Venao · Panamá", ctaShort:"Apoyar",
@@ -575,11 +620,11 @@ es:{
   footAbout:"La escuela de surf original de Playa Venao, Los Santos, Panamá. Desde 2009.", sources:"Fuentes",
   choose:"Elegir", popular:"Recomendado",
   t_supporter:"Amigo de Venao", t_lesson:"Una clase de surf", t_kid:"Apoya y consiente a un niño local", t_course3:"Curso de 3 clases", t_course5:"Curso de 5 clases",
-  b_supporter:["Un agradecimiento personal de Shokogi", "Tu nombre en nuestro muro de apoyo", "Noticias desde la playa"],
-  b_lesson:["Una clase de surf de 1 hora, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
-  b_kid:["5 sesiones de surf para un niño de Venao o sus alrededores", "Después de los terremotos, el mar les da un poco de calma y paz", "Una foto y novedades desde el agua", "Tu nombre en nuestro muro de apoyo"],
-  b_course3:["3 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
-  b_course5:["5 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Una sesión de análisis de video", "Tu nombre en nuestro muro de apoyo"],
+  b_supporter:["Un agradecimiento personal de Shokogi", "Un lugar en nuestro muro de apoyo, de forma anónima", "Noticias desde la playa"],
+  b_lesson:["Una clase de surf de 1 hora, cuando vengas", "Transferible: puedes regalarla", "Un lugar en nuestro muro de apoyo, de forma anónima"],
+  b_kid:["5 sesiones de surf para un niño de Venao o sus alrededores", "Después de los terremotos, el mar les da un poco de calma y paz", "Una foto y novedades desde el agua", "Un lugar en nuestro muro de apoyo, de forma anónima"],
+  b_course3:["3 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Un lugar en nuestro muro de apoyo, de forma anónima"],
+  b_course5:["5 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Una sesión de análisis de video", "Un lugar en nuestro muro de apoyo, de forma anónima"],
   mTitle:"Gracias", mText:"Elegiste: {item}. Escríbenos y te respondemos cómo pagar y confirmarlo.",
   viaWa:"Escríbenos por WhatsApp", viaMail:"Enviar un correo", viaIg:"Escríbenos por Instagram",
   msg:"¡Hola Shokogi! Quiero apoyar a la escuela en esta temporada: {item}{price}. Mi nombre es ",
@@ -596,11 +641,18 @@ es:{
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
   t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
-  b_foil2:["Tres sesiones de 3 horas con remolque, repartidas durante tu estadía", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
-  b_foil3:["Cinco sesiones con remolque, 10 horas en el agua", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
+  b_foil2:["Tres sesiones de 3 horas con remolque, repartidas durante tu estadía", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Un lugar en nuestro muro de apoyo, de forma anónima"],
+  b_foil3:["Cinco sesiones con remolque, 10 horas en el agua", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Un lugar en nuestro muro de apoyo, de forma anónima"],
   vidPlay:"Mira: el terremoto en Panamá",
   vidSrc:"Video: {source}, en YouTube",
-  customItem:"donación", contact:"Contacto"
+  customItem:"donación", contact:"Contacto",
+  wEyebrow:"Muro de apoyo", wTitle:"Ya están ayudando a que Venao siga surfeando",
+  wSub:"Cada compra de esta página aparece aquí de forma anónima: solo el país y lo que se compró. Sin nombres.",
+  wEmpty:"Todavía no hay nadie. Sé el primero en ayudar a que Venao siga surfeando.", wMore:"Ver a todos",
+  wSomewhere:"Desde algún lugar del mundo", wUpdated:"Actualizado: {date}",
+  st_people:["persona apoyando","personas apoyando"], st_lessons:["clase comprada por adelantado","clases compradas por adelantado"], st_kids:["sesión de surf para niños locales","sesiones de surf para niños locales"], st_lycra:["licra","licras"],
+  w_lesson:"Una clase de surf", w_course3:"3 clases de surf", w_kid:"5 sesiones de surf para un niño local", w_foil1:"Una sesión de foil",
+  w_lycra:"Una licra Shokogi", w_lycraKids:"Una licra de niño"
 },
 he:{
   brandSub:"פלאיה ונאו · פנמה", ctaShort:"לתמיכה",
@@ -637,11 +689,11 @@ he:{
   footAbout:"בית ספר הגלישה הוותיק של פלאיה ונאו, לוס סנטוס, פנמה. מאז 2009.", sources:"מקורות",
   choose:"בחירה", popular:"ההמלצה שלנו",
   t_supporter:"חברי ונאו", t_lesson:"שיעור גלישה", t_kid:"תמכו ופנקו ילד מקומי", t_course3:"קורס 3 שיעורים", t_course5:"קורס 5 שיעורים",
-  b_supporter:["תודה אישית משוקוגי", "השם שלכם על קיר התומכים", "עדכונים מהחוף"],
-  b_lesson:["שיעור גלישה של שעה, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
-  b_kid:["5 מפגשי גלישה לילד מוונאו או מהאזור", "לילדים שחוו את רעידות האדמה, הגלישה נותנת קצת שקט ושלווה", "תמונה ועדכון מהמים", "השם שלכם על קיר התומכים"],
-  b_course3:["3 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
-  b_course5:["5 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "מפגש ניתוח וידאו", "השם שלכם על קיר התומכים"],
+  b_supporter:["תודה אישית משוקוגי", "מקום על קיר התומכים שלנו, בעילום שם", "עדכונים מהחוף"],
+  b_lesson:["שיעור גלישה של שעה, מתי שתגיעו", "ניתן להעביר במתנה", "מקום על קיר התומכים שלנו, בעילום שם"],
+  b_kid:["5 מפגשי גלישה לילד מוונאו או מהאזור", "לילדים שחוו את רעידות האדמה, הגלישה נותנת קצת שקט ושלווה", "תמונה ועדכון מהמים", "מקום על קיר התומכים שלנו, בעילום שם"],
+  b_course3:["3 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "מקום על קיר התומכים שלנו, בעילום שם"],
+  b_course5:["5 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "מפגש ניתוח וידאו", "מקום על קיר התומכים שלנו, בעילום שם"],
   mTitle:"תודה", mText:"בחרתם: {item}. שלחו לנו הודעה ונחזור אליכם עם פרטי התשלום והאישור.",
   viaWa:"הודעה בוואטסאפ", viaMail:"שליחת מייל", viaIg:"הודעה באינסטגרם",
   msg:"היי שוקוגי! אני רוצה לעזור לכם בתקופה הזאת: {item}{price}. השם שלי: ",
@@ -658,11 +710,18 @@ he:{
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
   t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
-  b_foil2:["שלושה סשנים של 3 שעות בגרירה, לאורך השהות שלכם", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
-  b_foil3:["חמישה סשנים בגרירה, 10 שעות על המים", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
+  b_foil2:["שלושה סשנים של 3 שעות בגרירה, לאורך השהות שלכם", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "מקום על קיר התומכים שלנו, בעילום שם"],
+  b_foil3:["חמישה סשנים בגרירה, 10 שעות על המים", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "מקום על קיר התומכים שלנו, בעילום שם"],
   vidPlay:"צפו: רעידת האדמה בפנמה",
   vidSrc:"וידאו: {source}, ביוטיוב",
-  customItem:"תרומה", contact:"יצירת קשר"
+  customItem:"תרומה", contact:"יצירת קשר",
+  wEyebrow:"קיר התומכים", wTitle:"הם כבר שומרים על ונאו גולשת",
+  wSub:"כל רכישה מהדף הזה מופיעה כאן בעילום שם: רק המדינה ומה נרכש. בלי שמות.",
+  wEmpty:"עוד אין כאן אף אחד. היו הראשונים לשמור על ונאו גולשת.", wMore:"להציג את כולם",
+  wSomewhere:"מאי שם בעולם", wUpdated:"עודכן: {date}",
+  st_people:["תומך","תומכים"], st_lessons:["שיעור שנקנה מראש","שיעורים שנקנו מראש"], st_kids:["מפגש גלישה לילדים מקומיים","מפגשי גלישה לילדים מקומיים"], st_lycra:["לייקרה","לייקרות"],
+  w_lesson:"שיעור גלישה", w_course3:"3 שיעורי גלישה", w_kid:"5 מפגשי גלישה לילד מקומי", w_foil1:"סשן פויל",
+  w_lycra:"לייקרה של שוקוגי", w_lycraKids:"לייקרת ילדים"
 }};
 
 var lang = "en";
@@ -685,6 +744,7 @@ function setLang(l){
   renderContact();
   renderMerch();
   renderQuake();
+  renderWall();
   if (document.getElementById("heroVid")) renderVideo();
   try { localStorage.setItem("venao-lang", lang); } catch(e) {}
 }
@@ -853,6 +913,74 @@ function renderQuake(){
   });
 }
 
+var wallAll = false;
+function supporters(){
+  var el = document.getElementById("rv-supporters");
+  if (el) { try { return JSON.parse(el.textContent); } catch(e) {} }
+  return CONFIG.supporters || {list: []};
+}
+function flag(cc){
+  if (!/^[A-Z]{2}$/.test(cc || "")) return "🌊";
+  return String.fromCodePoint(cc.charCodeAt(0) + 127397, cc.charCodeAt(1) + 127397);
+}
+function country(cc){
+  if (!cc) return t("wSomewhere");
+  try { return new Intl.DisplayNames([lang], {type: "region"}).of(cc) || cc; } catch(e) { return cc; }
+}
+function ago(d){
+  var days = Math.round((Date.now() - new Date(d + "T12:00:00Z")) / 864e5);
+  try {
+    var rtf = new Intl.RelativeTimeFormat(lang, {numeric: "auto"});
+    if (days < 1) return rtf.format(0, "day");
+    if (days < 14) return rtf.format(-days, "day");
+    if (days < 60) return rtf.format(-Math.round(days / 7), "week");
+    return rtf.format(-Math.round(days / 30), "month");
+  } catch(e) { return d; }
+}
+function renderWall(){
+  var S = supporters(), list = (S.list || []).slice().sort(function(a, b){ return a.d < b.d ? 1 : -1; });
+  var wall = document.getElementById("wall"), stats = document.getElementById("wallStats");
+  wall.innerHTML = ""; stats.innerHTML = "";
+  document.getElementById("wallEmpty").hidden = list.length > 0;
+  wall.hidden = stats.hidden = !list.length;
+  var n = {people: list.length, lessons: 0, kids: 0, lycra: 0};
+  list.forEach(function(e){
+    (e.items || []).forEach(function(it){
+      var q = it.q || 1;
+      if (it.i === "lesson") n.lessons += q;
+      if (it.i === "course3") n.lessons += 3 * q;
+      if (it.i === "kid") n.kids += 5 * q;
+      if (it.i === "lycra" || it.i === "lycraKids") n.lycra += q;
+    });
+  });
+  ["people","lessons","kids","lycra"].forEach(function(k){
+    if (!n[k]) return;
+    var d = document.createElement("div");
+    d.innerHTML = "<b></b><span></span>";
+    d.firstChild.textContent = n[k].toLocaleString(lang);
+    d.lastChild.textContent = t("st_" + k)[n[k] === 1 ? 0 : 1];
+    stats.appendChild(d);
+  });
+  var LIMIT = 12;
+  (wallAll ? list : list.slice(0, LIMIT)).forEach(function(e, i){
+    var li = document.createElement("li");
+    li.style.animationDelay = Math.min(i, 12) * 40 + "ms";
+    li.innerHTML = '<span class="flag" aria-hidden="true"></span><div><b></b><span class="what"></span><time></time></div>';
+    li.querySelector(".flag").textContent = flag(e.c);
+    li.querySelector("b").textContent = country(e.c);
+    li.querySelector(".what").textContent = (e.items || []).map(function(it){
+      return (t("w_" + it.i) || "") + ((it.q || 1) > 1 ? " ×" + it.q : "");
+    }).join(" · ");
+    li.querySelector("time").textContent = ago(e.d);
+    li.querySelector("time").setAttribute("datetime", e.d);
+    wall.appendChild(li);
+  });
+  document.getElementById("wallMore").hidden = wallAll || list.length <= LIMIT;
+  var note = document.getElementById("wallNote");
+  note.hidden = !(S.updated && list.length);
+  if (S.updated) note.textContent = fmt(t("wUpdated"), {date: new Date(S.updated).toLocaleString(lang, {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})});
+}
+
 function toast(msg){
   var el = document.getElementById("toast");
   el.textContent = msg; el.classList.add("show");
@@ -896,6 +1024,7 @@ function init(){
     if (!lycraSize) { toast(t("mPickSize")); return; }
     pay("lycra", fmt(t(lycraFit === "kids" ? "mItemKids" : "mItem"), {size: lycraSize, color: t("c_" + lycraColor)}), lycraCur().price);
   });
+  document.getElementById("wallMore").addEventListener("click", function(){ wallAll = true; renderWall(); });
   var modal = document.getElementById("modal");
   document.getElementById("mClose").addEventListener("click", function(){ modal.classList.remove("open"); });
   modal.addEventListener("click", function(e){ if (e.target === modal) modal.classList.remove("open"); });
