@@ -425,7 +425,7 @@ var CONFIG = {
   // Payment link per tier: a Stripe Payment Link, PayPal, Yappy, bank page...
   // Leave "" and that button falls back to WhatsApp / email instead.
   // "custom" is used for the free-amount donation.
-  payLinks: { supporter:"", lesson:"", course3:"", kid:"", course5:"", foil1:"", custom:"", lycra:"" },
+  payLinks: { lesson:"", course3:"", kid:"", foil1:"", custom:"", lycra:"" },
 
   // Contact. WhatsApp with country code, digits only, e.g. "5076XXXXXXX".
   whatsapp: "50762596666",
@@ -484,11 +484,9 @@ var CONFIG = {
 
 /* Rewards. Lesson prices are the school's regular catalogue prices. */
 var TIERS = [
-  { id:"supporter", price:25,  featured:false },
   { id:"lesson",    price:60,  featured:true  },
-  { id:"kid",       price:100, featured:false },
   { id:"course3",   price:180, featured:false },
-  { id:"course5",   price:300, featured:false },
+  { id:"kid",       price:100, featured:false },
   { id:"foil1",     price:450,  featured:false, group:"foil" }
 ];
 
