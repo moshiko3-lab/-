@@ -14,7 +14,8 @@ Everything the school fills in sits in `CONFIG` at the bottom of `index.html`:
 * `goal` / `raised` -- `raised: null` hides the bar. Only put real figures.
 * `heroImage` -- a photo file placed next to `index.html`; empty keeps the gradient.
 * `instagramPosts` -- the school's own posts shown in the gallery.
-* `lycra` -- the Shokogi lycra: price (`null` hides it), sizes, photo, and
+* `lycra` -- the Shokogi lycra: price (`null` hides it), sizes, colours with
+  their front and back photos in `img/`, and
   whether it is collected at the school or shipped.
 * `quakePhotos` -- the team's own photos from after the earthquake, with a
   caption per language. Empty hides the section.
