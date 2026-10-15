@@ -116,5 +116,10 @@ markup, code = re.match(r"(.*)<script>(.*)</script>\s*$", page, re.S).groups()
 sys.stdout.write("(function(){\n"
                  "var rv = document.getElementById('rv');\n"
                  "if (!rv) return;\n"
+                 # Lift the page out of whatever narrow column the page template wraps it in,
+                 # and hide that template's own title, so the theme's layout CSS can't squeeze it.
+                 "var main = document.getElementById('MainContent'), box = main && rv.parentNode;\n"
+                 "while (box && box.parentNode !== main) box = box.parentNode;\n"
+                 "if (box && box !== rv) { main.insertBefore(rv, box); box.style.display = 'none'; }\n"
                  "rv.innerHTML = " + json.dumps(markup) + ";\n"
                  + code + "\n})();\n")
