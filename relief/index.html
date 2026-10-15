@@ -76,6 +76,18 @@ img{max-width:100%;display:block}
 .hero p.lead{font-size:clamp(17px,2.2vw,20px);max-width:56ch;opacity:.95;margin:0 0 28px}
 .hero .actions{display:flex;flex-wrap:wrap;gap:12px}
 .hero .actions .ghost{color:#fff}
+.heroGrid{display:grid;grid-template-columns:1fr;gap:32px;align-items:center}
+@media (min-width:980px){.heroGrid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}}
+.heroVid{margin:0}
+.heroVid .vbox{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;border-radius:6px;overflow:hidden;
+  background:#0a1e26 center/cover no-repeat;cursor:pointer;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.heroVid .vbox::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55))}
+.heroVid .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;
+  background:var(--pink);display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.heroVid .play::before{content:"";margin-left:5px;border-style:solid;border-width:13px 0 13px 21px;border-color:transparent transparent transparent var(--ink,#111)}
+.heroVid .vlabel{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;color:#fff;font-weight:700;text-align:start;font-size:15px}
+.heroVid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;display:block}
+.heroVid figcaption{font-size:12.5px;opacity:.8;margin-top:8px}
 .waves{position:absolute;left:0;right:0;bottom:-1px;height:90px}
 .waves path{fill:var(--bg)}
 
@@ -244,7 +256,8 @@ footer{background:var(--sea)}
 </header>
 
 <div class="hero" id="hero">
-  <div class="wrap">
+  <div class="wrap heroGrid">
+   <div class="heroText">
     <span class="tag" data-i18n="heroTag">After the 7.7 earthquake · 9 October 2026</span>
     <h1 data-i18n="heroTitle">Venao is still here.</h1>
     <p class="lead" data-i18n="heroLead">Help us through the quiet months. Shokogi came through the earthquake in one piece, and the waves are still here. But many of the places to stay along our beach were not so lucky, the beach is being restored, and it will take time before travellers come back. Buy a lesson now, use it when you come, and keep our team in the water until then.</p>
@@ -252,6 +265,8 @@ footer{background:var(--sea)}
       <a class="btn" href="#rewards" data-i18n="heroCta">Buy a lesson ahead</a>
       <a class="btn ghost" href="#what" data-i18n="heroCta2">What happened</a>
     </div>
+   </div>
+   <figure class="heroVid" id="heroVid" hidden></figure>
   </div>
   <svg class="waves" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
     <path d="M0,50 C180,90 360,10 540,40 C720,70 900,90 1080,55 C1260,20 1350,40 1440,50 L1440,90 L0,90 Z"/>
@@ -309,7 +324,7 @@ footer{background:var(--sea)}
     <figure class="grpHead"><img src="img/surf.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gSurf">Surf lessons</h3></figure>
     <div class="tiers" id="tiers"></div>
     <figure class="grpHead"><img src="img/foil.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
-    <p class="grpSub" data-i18n="gFoilSub">Tow-in foil with our coach, on the same Venao waves. Your first flights or your next level.</p>
+    <p class="grpSub" data-i18n="gFoilSub">Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.</p>
     <div class="tiers" id="tiersFoil"></div>
     <div class="custom">
       <p data-i18n="customText">Want to give a different amount, or just give? Every dollar helps the school and our team until visitors return.</p>
@@ -425,6 +440,10 @@ var CONFIG = {
   // e.g. "hero.jpg"). Empty keeps the drawn ocean gradient.
   heroImage: "img/hero.webp",
 
+  // News video shown in the opening (YouTube embed; it loads only when
+  // the visitor presses play). id: the part after watch?v= ; source: who made it.
+  heroVideo: { id: "d3RSeMMNPg0", source: "NBC News" },
+
   // The Shokogi lycra. price:null hides it. image: a file next to this page.
   // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
   lycra: {
@@ -469,9 +488,9 @@ var TIERS = [
   { id:"kid",       price:100, featured:false },
   { id:"course3",   price:180, featured:false },
   { id:"course5",   price:300, featured:false },
-  { id:"foil1",     price:150, featured:false, group:"foil" },
-  { id:"foil2",     price:300, featured:true,  group:"foil" },
-  { id:"foil3",     price:450, featured:false, group:"foil" }
+  { id:"foil1",     price:450,  featured:true,  group:"foil" },
+  { id:"foil2",     price:1350, featured:false, group:"foil" },
+  { id:"foil3",     price:2250, featured:false, group:"foil" }
 ];
 
 var T = {
@@ -527,11 +546,13 @@ en:{
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school, or we ship it to you (shipping quoted separately).",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
   mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
-  gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Tow-in foil with our coach, on the same Venao waves. Your first flights or your next level.",
-  t_foil1:"Foil tow-in, 1 hour", t_foil2:"Foil tow-in, 2 hours", t_foil3:"Foil tow-in, 3 hours",
-  b_foil1:["A 1-hour tow-in foil session with our coach, whenever you come", "Transferable: give it as a gift"],
-  b_foil2:["A 2-hour tow-in foil session with our coach, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
-  b_foil3:["2 hours plus an extra hour of tow-in foil, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
+  gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
+  t_foil1:"Foil session", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
+  b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
+  b_foil2:["Three 3-hour tow-in sessions, spread over your stay", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
+  b_foil3:["Five tow-in sessions, 10 hours on the water", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
+  vidPlay:"Watch: the earthquake in Panama",
+  vidSrc:"Video: {source}, on YouTube",
   customItem:"a donation", contact:"Contact"
 },
 es:{
@@ -586,11 +607,13 @@ es:{
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela o te la enviamos (el envío se cotiza aparte).",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
   mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
-  gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil con remolque y nuestro coach, en las mismas olas de Venao. Tus primeros vuelos o tu siguiente nivel.",
-  t_foil1:"Foil con remolque, 1 hora", t_foil2:"Foil con remolque, 2 horas", t_foil3:"Foil con remolque, 3 horas",
-  b_foil1:["Una sesión de foil con remolque de 1 hora con nuestro coach, cuando vengas", "Transferible: puedes regalarla"],
-  b_foil2:["Una sesión de foil con remolque de 2 horas con nuestro coach, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
-  b_foil3:["2 horas más una hora extra de foil con remolque, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
+  gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
+  t_foil1:"Sesión de foil", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
+  b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
+  b_foil2:["Tres sesiones de 3 horas con remolque, repartidas durante tu estadía", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
+  b_foil3:["Cinco sesiones con remolque, 10 horas en el agua", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
+  vidPlay:"Mira: el terremoto en Panamá",
+  vidSrc:"Video: {source}, en YouTube",
   customItem:"donación", contact:"Contacto"
 },
 he:{
@@ -645,11 +668,13 @@ he:{
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר או משלוח עד אליכם (עלות המשלוח בנפרד).",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
   mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
-  gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירה (Tow-in) עם המאמן שלנו, על אותם גלים של ונאו. הטיסות הראשונות שלכם או השלב הבא.",
-  t_foil1:"פויל בגרירה, שעה", t_foil2:"פויל בגרירה, שעתיים", t_foil3:"פויל בגרירה, 3 שעות",
-  b_foil1:["סשן פויל בגרירה של שעה עם המאמן שלנו, מתי שתגיעו", "ניתן להעביר במתנה"],
-  b_foil2:["סשן פויל בגרירה של שעתיים עם המאמן שלנו, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
-  b_foil3:["שעתיים ועוד שעה נוספת של פויל בגרירה, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
+  gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
+  t_foil1:"סשן פויל", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
+  b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
+  b_foil2:["שלושה סשנים של 3 שעות בגרירה, לאורך השהות שלכם", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
+  b_foil3:["חמישה סשנים בגרירה, 10 שעות על המים", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
+  vidPlay:"צפו: רעידת האדמה בפנמה",
+  vidSrc:"וידאו: {source}, ביוטיוב",
   customItem:"תרומה", contact:"יצירת קשר"
 }};
 
@@ -673,6 +698,7 @@ function setLang(l){
   renderContact();
   renderMerch();
   renderQuake();
+  if (document.getElementById("heroVid")) renderVideo();
   try { localStorage.setItem("venao-lang", lang); } catch(e) {}
 }
 
@@ -807,6 +833,27 @@ function renderMerch(){
     t(L.delivery === "ship" ? "mShip" : L.delivery === "both" ? "mBoth" : "mPickup");
 }
 
+function renderVideo(){
+  var V = CONFIG.heroVideo, box = document.getElementById("heroVid");
+  if (!V || !V.id) { box.hidden = true; return; }
+  box.hidden = false;
+  if (box.querySelector("iframe")) { box.querySelector("figcaption").textContent = fmt(t("vidSrc"), {source: V.source || ""}); return; }
+  box.innerHTML = '<button type="button" class="vbox"><span class="play"></span><span class="vlabel"></span></button><figcaption></figcaption>';
+  var b = box.querySelector(".vbox");
+  b.style.backgroundImage = 'url("https://i.ytimg.com/vi/' + V.id + '/hqdefault.jpg")';
+  b.setAttribute("aria-label", t("vidPlay"));
+  box.querySelector(".vlabel").textContent = t("vidPlay");
+  box.querySelector("figcaption").textContent = fmt(t("vidSrc"), {source: V.source || ""});
+  b.addEventListener("click", function(){
+    var f = document.createElement("iframe");
+    f.src = "https://www.youtube-nocookie.com/embed/" + V.id + "?autoplay=1&rel=0&playsinline=1";
+    f.title = t("vidPlay");
+    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    f.allowFullscreen = true;
+    b.replaceWith(f);
+  });
+}
+
 function renderQuake(){
   var list = CONFIG.quakePhotos || [];
   var sec = document.getElementById("after");
@@ -843,6 +890,7 @@ function renderContact(){
 }
 
 function init(){
+  renderVideo();
   if (CONFIG.heroImage) document.getElementById("hero").style.setProperty("--hero-img", 'url("' + CONFIG.heroImage + '")');
 
   if (typeof CONFIG.raised === "number" && CONFIG.goal) {

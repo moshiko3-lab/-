@@ -63,8 +63,9 @@ body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 # the site has its own header: drop ours, keep the language buttons in the hero
 langs = re.search(r'<div class="langs".*?</div>', body, re.S).group(0)
 body = re.sub(r'<header class="top">.*?</header>\s*', "", body, flags=re.S)
-body = body.replace('<div class="hero" id="hero">\n  <div class="wrap">',
-                    '<div class="hero" id="hero">\n  ' + langs.replace('class="langs"', 'class="langs rv-langs"') + '\n  <div class="wrap">', 1)
+HERO = '<div class="hero" id="hero">\n'
+assert body.count(HERO) == 1, "hero markup changed"
+body = body.replace(HERO, HERO + '  ' + langs.replace('class="langs"', 'class="langs rv-langs"') + '\n', 1)
 
 for name, url in STORE["images"].items():
     body = body.replace('"img/%s"' % name, '"%s"' % url)
