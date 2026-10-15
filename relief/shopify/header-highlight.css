@@ -1,0 +1,10 @@
+/* Keep Venao Surfing — highlighted menu link (added for the campaign) */
+@media(min-width:901px){
+  .skch__nav{position:relative}
+  .skch__links--l>a[href*="keep-venao-surfing"]{position:absolute;left:calc(50% + 92px);top:50%;transform:translateY(-50%)}
+}
+.skch .skch__links--l>a[href*="keep-venao-surfing"]{background:#f46e95;color:#12242b !important;opacity:1;padding:9px 16px;border-radius:3px;font-weight:700;letter-spacing:.06em;text-shadow:none;white-space:nowrap}
+.skch .skch__links--l>a[href*="keep-venao-surfing"]:hover{background:#12242b;color:#fff !important}
+@media(max-width:900px){
+  .skch .skch__links--l>a[href*="keep-venao-surfing"]{order:-1;margin:14px 16px 6px;justify-content:center;border-top:0}
+}
