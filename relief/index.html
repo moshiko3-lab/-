@@ -9,6 +9,7 @@
 <meta property="og:description" content="A 7.7 earthquake hit Playa Venao. Back the rebuild and surf with us when we reopen.">
 <meta property="og:image" content="logo.png">
 <link rel="icon" href="logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
 /* ------------------------------------------------------------------
    Everything the school has to fill in lives in CONFIG, in the script
@@ -16,58 +17,51 @@
    contact numbers, the goal, and the text about the school's own damage.
    ------------------------------------------------------------------ */
 :root{
-  --pink:#f46e95; --pink-deep:#d94f79; --pink-soft:#fdeaf0;
-  --sea:#0f4c5c; --sea-2:#13667a; --sand:#f6efe6;
-  --bg:#fbfaf8; --panel:#ffffff; --text:#1b232b; --text-2:#4a5560; --text-3:#7a858f;
-  --line:#e6e2dc; --good:#1f7a4d;
-  --shadow:0 1px 2px rgba(16,24,32,.05),0 10px 30px rgba(16,24,32,.07);
-  --radius:16px;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#10161b; --panel:#172028; --sand:#141c22; --text:#eef2f5; --text-2:#b8c2cb; --text-3:#83909b;
-    --line:#26323c; --pink-soft:#3a1f2a; --good:#5ec98d;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#10161b; --panel:#172028; --sand:#141c22; --text:#eef2f5; --text-2:#b8c2cb; --text-3:#83909b;
-  --line:#26323c; --pink-soft:#3a1f2a; --good:#5ec98d;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  /* shokogi.com's own theme values (Stockholm, read from the live site) */
+  --pink:#f46e95; --pink-deep:#b24d6a; --pink-soft:#fdeaf0; --btn-ink:#1e1419;
+  --sea:#1a1719; --sea-2:#12242b; --sand:#f3f0eb;
+  --bg:#ffffff; --panel:#ffffff; --text:#1a1719; --text-2:#5a5254; --text-3:#847c7a;
+  --line:#eae5df; --good:#1f7a4d;
+  --shadow:none;
+  --radius:4px;
+  --f-head:"Barlow Condensed","Oswald",sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,sans-serif;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);
-  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Hebrew",Helvetica,Arial,sans-serif;
+  font:17px/1.6 var(--f-body);
   -webkit-font-smoothing:antialiased}
 a{color:inherit}
 img{max-width:100%;display:block}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
 
 /* top bar */
-.top{position:sticky;top:0;z-index:20;background:rgba(15,76,92,.92);backdrop-filter:blur(8px);color:#fff}
+.top{position:sticky;top:0;z-index:20;background:var(--sea);color:#fff}
 .top .wrap{display:flex;align-items:center;gap:12px;height:60px}
 .mark{width:38px;height:38px;border-radius:10px;background:#fff;flex:none;overflow:hidden}
 .mark img{width:100%;height:100%;object-fit:contain}
-.brand{font-weight:800;letter-spacing:.14em;font-size:13px;text-transform:uppercase;line-height:1.2}
+.brand{font-family:var(--f-head);font-weight:600;letter-spacing:.12em;font-size:16px;text-transform:uppercase;line-height:1.1}
 .brand small{display:block;font-weight:600;letter-spacing:.08em;opacity:.8;font-size:10.5px}
 .spacer{flex:1}
 .langs{display:flex;gap:4px}
 .langs button{appearance:none;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;
-  font:inherit;font-size:12px;font-weight:700;padding:5px 9px;border-radius:8px;cursor:pointer}
+  font:inherit;font-size:12px;font-weight:700;padding:5px 9px;border-radius:3px;cursor:pointer}
 .langs button[aria-pressed="true"]{background:#fff;color:var(--sea)}
 .top .cta-sm{display:none}
 @media (min-width:640px){.top .cta-sm{display:inline-flex}}
 
 /* buttons */
 .btn{appearance:none;border:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--pink);color:#fff;font:inherit;font-weight:800;letter-spacing:.04em;
-  padding:14px 22px;border-radius:12px;cursor:pointer;text-decoration:none;
-  box-shadow:0 6px 18px rgba(244,110,149,.35);transition:transform .15s,background .15s}
-.btn:hover{background:var(--pink-deep);transform:translateY(-1px)}
+  background:var(--pink);color:var(--btn-ink);font-family:var(--f-head);font-size:17px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;line-height:1.1;
+  padding:14px 26px;border-radius:3px;cursor:pointer;text-decoration:none;
+  transition:background .25s,color .25s}
+.btn:hover{background:var(--pink-deep);color:#fff}
 .btn.ghost{background:transparent;color:inherit;border:1.5px solid currentColor;box-shadow:none}
-.btn.small{padding:8px 14px;font-size:13px;border-radius:10px}
+.btn.small{padding:9px 16px;font-size:14px;border-radius:3px}
 
 /* hero */
 .hero{position:relative;color:#fff;overflow:hidden;
@@ -95,8 +89,6 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:26px 0}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
 .fact b{display:block;font-size:30px;line-height:1.1;color:var(--sea-2);margin-bottom:6px}
-:root[data-theme="dark"] .fact b{color:#7fd0dd}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fact b{color:#7fd0dd}}
 .fact span{color:var(--text-2);font-size:14.5px}
 .story{display:grid;grid-template-columns:1fr;gap:28px}
 @media (min-width:860px){.story{grid-template-columns:1.15fr .85fr}}
@@ -212,6 +204,25 @@ footer li{margin-bottom:4px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
+
+/* type: headings, prices and labels in the site's display face */
+h1,h2,h3,.grp,.eyebrow,.tier .price,.fact b,.merch .price,summary,.tag,.ribbon{font-family:var(--f-head)}
+h1,h2,h3{font-weight:600;text-transform:uppercase;letter-spacing:.01em;line-height:1.02;text-wrap:balance}
+.hero h1{font-size:clamp(44px,7.4vw,84px)}
+h2{font-size:clamp(34px,4.6vw,52px)}
+.tier h3,.card h3,.merch h3{font-size:24px}
+.eyebrow{font-size:15px;letter-spacing:.16em;font-weight:600;color:var(--pink-deep)}
+.tier .price,.merch .price{font-weight:600;font-size:46px;letter-spacing:.01em}
+.fact b{font-weight:600;font-size:44px;color:var(--sea-2)}
+.tag{font-size:15px;letter-spacing:.12em;text-transform:uppercase;border-radius:3px;font-weight:600}
+.ribbon{font-size:13px!important;letter-spacing:.12em!important;font-weight:600!important;border-radius:3px!important;color:var(--btn-ink)!important}
+summary{font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+details{border-radius:3px!important}
+.grp{font-weight:600;text-transform:uppercase}
+.sizes button,.colors button,.custom input{border-radius:3px!important}
+.modal .box{border-radius:4px}
+.band{background:var(--sand)}
+footer{background:var(--sea)}
 </style>
 </head>
 <body>
@@ -258,6 +269,7 @@ footer li{margin-bottom:4px}
       <div>
         <p data-i18n="s1">In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.</p>
         <p data-i18n="s2">In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.</p>
+        <p data-i18n="s4">Many of the places to stay along our beach were destroyed or badly damaged, and the beach itself now has to be restored. It will take time before travellers come back to Venao, and a surf school lives from those visitors. That is why we are asking for your help now, and offering lessons you can use once Venao is ready again.</p>
         <p id="ourStory" data-i18n="s3">Playa Venao is our home. Our team, our neighbours and the beach where Shokogi has taught surfing since 2009 were all in the path of this earthquake.</p>
       </div>
       <div class="card">
@@ -453,6 +465,7 @@ en:{
   f3:"Estimated peak intensity in Pedasí district, where Playa Venao is", f4:"Strongest aftershocks, felt the same day",
   s1:"In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.",
   s2:"In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.",
+  s4:"Many of the places to stay along our beach were destroyed or badly damaged, and the beach itself now has to be restored. It will take time before travellers come back to Venao, and a surf school lives from those visitors. That is why we are asking for your help now, and offering lessons you can use once Venao is ready again.",
   s3:"Playa Venao is our home. Our team, our neighbours and the beach where Shokogi has taught surfing since 2009 were all in the path of this earthquake.",
   usesTitle:"Where your support goes",
   u1t:"Rebuild the school", u1:"Repair the base, boards and equipment so lessons can start again",
@@ -510,6 +523,7 @@ es:{
   f3:"Intensidad máxima estimada en el distrito de Pedasí, donde está Playa Venao", f4:"Las réplicas más fuertes, el mismo día",
   s1:"En Playa Venao, edificios de hoteles y hostales de varios pisos colapsaron o sufrieron daños graves. La Autoridad de Turismo (ATP) incluye establecimientos de Venao entre los que esperan evaluación estructural.",
   s2:"En el distrito de Pedasí hubo familias que pasaron la noche en parques y centros deportivos, sin atreverse a volver a sus casas. El puente sobre el río Oria se cerró por daños estructurales, y distritos vecinos quedaron sin agua ni electricidad.",
+  s4:"Muchos de los hospedajes a lo largo de nuestra playa quedaron destruidos o muy dañados, y la propia playa tiene que recuperarse. Pasará tiempo antes de que los viajeros vuelvan a Venao, y una escuela de surf vive de esos visitantes. Por eso pedimos tu ayuda ahora, y te ofrecemos clases para usar cuando Venao esté lista otra vez.",
   s3:"Playa Venao es nuestro hogar. Nuestro equipo, nuestros vecinos y la playa donde Shokogi enseña surf desde 2009 estuvieron en el camino de este terremoto.",
   usesTitle:"A dónde va tu apoyo",
   u1t:"Reconstruir la escuela", u1:"Reparar la base, las tablas y el equipo para volver a dar clases",
@@ -567,6 +581,7 @@ he:{
   f3:"עוצמת הטלטלה המרבית המוערכת במחוז פדאסי, שבו נמצאת פלאיה ונאו", f4:"רעידות המשנה החזקות ביותר, באותו היום",
   s1:"בפלאיה ונאו קרסו או ניזוקו קשות בנייני מלונות והוסטלים רבי קומות. רשות התיירות של פנמה (ATP) מונה עסקים בוונאו בין אלה שממתינים לבדיקה הנדסית.",
   s2:"במחוז פדאסי משפחות העבירו את הלילה בפארקים ובמתקני ספורט, בלי להעז לחזור הביתה. הגשר על נהר אוריה נסגר בגלל נזק מבני, וביישובים השכנים לא היו מים וחשמל.",
+  s4:"רבים ממקומות הלינה לאורך החוף שלנו נהרסו או ניזוקו קשות, והחוף עצמו עובר עכשיו תהליך שיקום. ייקח זמן עד שהתיירים יחזרו לוונאו, ובית ספר לגלישה חי מהמבקרים האלה. לכן אנחנו מבקשים את העזרה שלכם עכשיו, ומציעים שיעורים שתוכלו לממש כשוונאו תהיה מוכנה שוב.",
   s3:"פלאיה ונאו היא הבית שלנו. הצוות שלנו, השכנים שלנו והחוף שבו שוקוגי מלמדת גלישה מאז 2009 היו כולם בדרכה של הרעידה הזו.",
   usesTitle:"לאן הולכת התמיכה שלכם",
   u1t:"לשקם את בית הספר", u1:"לתקן את הבסיס, הגלשנים והציוד כדי לחזור ללמד",
