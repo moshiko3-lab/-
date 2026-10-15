@@ -79,14 +79,7 @@ img{max-width:100%;display:block}
 .heroGrid{display:grid;grid-template-columns:1fr;gap:32px;align-items:center}
 @media (min-width:980px){.heroGrid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}}
 .heroVid{margin:0}
-.heroVid .vbox{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;border-radius:6px;overflow:hidden;
-  background:#0a1e26 center/cover no-repeat;cursor:pointer;box-shadow:0 18px 40px rgba(0,0,0,.35)}
-.heroVid .vbox::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55))}
-.heroVid .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;
-  background:var(--pink);display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-.heroVid .play::before{content:"";margin-left:5px;border-style:solid;border-width:13px 0 13px 21px;border-color:transparent transparent transparent var(--ink,#111)}
-.heroVid .vlabel{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;color:#fff;font-weight:700;text-align:start;font-size:15px}
-.heroVid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;display:block}
+.heroVid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;display:block;background:#0a1e26;box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .heroVid figcaption{font-size:12.5px;opacity:.8;margin-top:8px}
 .waves{position:absolute;left:0;right:0;bottom:-1px;height:90px}
 .waves path{fill:var(--bg)}
@@ -359,7 +352,7 @@ footer{background:var(--sea)}
   </div>
 </section>
 
-<section id="venao">
+<section id="venao" hidden>
   <div class="wrap">
     <div class="eyebrow" data-i18n="galEyebrow">From our Instagram</div>
     <h2 data-i18n="galTitle">This is the Venao waiting for you</h2>
@@ -479,7 +472,8 @@ var CONFIG = {
   preview: false,
 
   // The school's own posts shown in the gallery (the code from each post's link).
-  instagramPosts: ["Ddo9PIKlHiT","DagQo4olE-Z","CuuX2TIOgp1","DSycms4jDec","CqLdEjnuvfQ","Cozq2v3ujWP"]
+  // Empty hides the section. Earlier picks: "Ddo9PIKlHiT","DagQo4olE-Z","CuuX2TIOgp1","DSycms4jDec","CqLdEjnuvfQ","Cozq2v3ujWP"
+  instagramPosts: []
 };
 
 /* Rewards. Lesson prices are the school's regular catalogue prices. */
@@ -834,21 +828,14 @@ function renderVideo(){
   var V = CONFIG.heroVideo, box = document.getElementById("heroVid");
   if (!V || !V.id) { box.hidden = true; return; }
   box.hidden = false;
-  if (box.querySelector("iframe")) { box.querySelector("figcaption").textContent = fmt(t("vidSrc"), {source: V.source || ""}); return; }
-  box.innerHTML = '<button type="button" class="vbox"><span class="play"></span><span class="vlabel"></span></button><figcaption></figcaption>';
-  var b = box.querySelector(".vbox");
-  b.style.backgroundImage = 'url("https://i.ytimg.com/vi/' + V.id + '/hqdefault.jpg")';
-  b.setAttribute("aria-label", t("vidPlay"));
-  box.querySelector(".vlabel").textContent = t("vidPlay");
+  if (!box.querySelector("iframe")) {
+    // Browsers only start a video by themselves when it is muted; the viewer can turn the sound on.
+    box.innerHTML = '<iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><figcaption></figcaption>';
+    box.querySelector("iframe").src = "https://www.youtube-nocookie.com/embed/" + V.id +
+      "?autoplay=1&mute=1&loop=1&playlist=" + V.id + "&playsinline=1&rel=0&modestbranding=1";
+  }
+  box.querySelector("iframe").title = t("vidPlay");
   box.querySelector("figcaption").textContent = fmt(t("vidSrc"), {source: V.source || ""});
-  b.addEventListener("click", function(){
-    var f = document.createElement("iframe");
-    f.src = "https://www.youtube-nocookie.com/embed/" + V.id + "?autoplay=1&rel=0&playsinline=1";
-    f.title = t("vidPlay");
-    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    f.allowFullscreen = true;
-    b.replaceWith(f);
-  });
 }
 
 function renderQuake(){
@@ -856,7 +843,7 @@ function renderQuake(){
   var sec = document.getElementById("after");
   var box = document.getElementById("quake");
   box.innerHTML = "";
-  if (!list.length && !CONFIG.preview) { sec.hidden = true; return; }
+  if (!list.length) { sec.hidden = true; return; }
   sec.hidden = false;
   (list.length ? list : [null, null, null]).forEach(function(ph){
     var f = document.createElement("figure");
@@ -900,6 +887,7 @@ function init(){
   }
 
   var g = document.getElementById("gallery");
+  document.getElementById("venao").hidden = !CONFIG.instagramPosts.length;
   CONFIG.instagramPosts.forEach(function(code){
     var d = document.createElement("div");
     d.className = "ig";
