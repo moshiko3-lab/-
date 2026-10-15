@@ -14,6 +14,11 @@ Everything the school fills in sits in `CONFIG` at the bottom of `index.html`:
 * `goal` / `raised` -- `raised: null` hides the bar. Only put real figures.
 * `heroImage` -- a photo file placed next to `index.html`; empty keeps the gradient.
 * `instagramPosts` -- the school's own posts shown in the gallery.
+* `lycra` -- the Shokogi lycra: price (`null` hides it), sizes, photo, and
+  whether it is collected at the school or shipped.
+* `quakePhotos` -- the team's own photos from after the earthquake, with a
+  caption per language. Empty hides the section.
+* `preview` -- draws placeholders where those go; keep it `false` live.
 
 Rewards are the regular catalogue prices: lesson $60, 3 lessons $180,
 5 lessons $300, five Young Guns sessions $100. The $300 tier promises a video
