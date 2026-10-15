@@ -73,7 +73,8 @@ img{max-width:100%;display:block}
 .tag{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
   padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.06em}
 .hero h1{font-size:clamp(34px,6vw,62px);line-height:1.05;margin:18px 0 14px;letter-spacing:-.01em;max-width:14ch}
-.hero p.lead{font-size:clamp(17px,2.2vw,20px);max-width:56ch;opacity:.95;margin:0 0 28px}
+.hero p.lead{font-size:clamp(17px,2.2vw,20px);max-width:56ch;opacity:.95;margin:0 0 16px}
+.hero p.open{display:inline-block;max-width:56ch;margin:0 0 28px;padding:10px 14px;border-inline-start:3px solid var(--pink);background:rgba(255,255,255,.12);font-weight:700;font-size:clamp(15px,1.8vw,17px)}
 .hero .actions{display:flex;flex-wrap:wrap;gap:12px}
 .hero .actions .ghost{color:#fff}
 .heroGrid{display:grid;grid-template-columns:1fr;gap:32px;align-items:center}
@@ -253,6 +254,7 @@ footer{background:var(--sea)}
     <span class="tag" data-i18n="heroTag">After the 7.7 earthquake · 9 October 2026</span>
     <h1 data-i18n="heroTitle">Venao is still here.</h1>
     <p class="lead" data-i18n="heroLead">Help us through this season. The earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. We can't wait to welcome travellers back. Buy a lesson now, use it when you come, and help keep Shokogi going in the meantime.</p>
+    <p class="open" data-i18n="heroOpen">We hope and expect to soft-open in early November, with the full opening in early to mid December.</p>
     <div class="actions">
       <a class="btn" href="#rewards" data-i18n="heroCta">Buy a lesson ahead</a>
       <a class="btn ghost" href="#what" data-i18n="heroCta2">What happened</a>
@@ -281,7 +283,7 @@ footer{background:var(--sea)}
         <p data-i18n="s1">In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.</p>
         <p data-i18n="s2">In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.</p>
         <p data-i18n="s4">Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.</p>
-        <p id="ourStory" data-i18n="s3">Like everyone here, we felt the earthquake. We are here and ready to teach. Every lesson you buy ahead and every lycra you wear keeps the school going through this season, until we see you in the water.</p>
+        <p id="ourStory" data-i18n="s3">Like everyone here, we felt the earthquake. We are getting ready to welcome you back. Every lesson you buy ahead and every lycra you wear keeps the school going through this season, until we see you in the water.</p>
       </div>
       <div class="card">
         <h3 data-i18n="usesTitle">What your support does</h3>
@@ -359,7 +361,7 @@ footer{background:var(--sea)}
     <div class="eyebrow">FAQ</div>
     <h2 data-i18n="faqTitle">Questions</h2>
     <details><summary data-i18n="q1">Who receives the money?</summary><p id="a1" data-i18n="a1">Shokogi Surf School, Playa Venao, which runs this campaign. Every contribution goes to keeping the school going through this season.</p></details>
-    <details><summary data-i18n="q2">When can I use my lesson?</summary><p data-i18n="a2">Any time you come to Venao, starting now. Lessons stay valid for 24 months from purchase. Message us to book a time.</p></details>
+    <details><summary data-i18n="q2">When can I use my lesson?</summary><p data-i18n="a2">From our soft opening, which we expect in early November; the full opening follows in early to mid December. Lessons stay valid for 24 months from purchase. Message us to book a time.</p></details>
     <details><summary data-i18n="q3">Can I give the lesson as a gift?</summary><p data-i18n="a3">Yes. Tell us the name of the person who will surf and we will put the lesson under their name.</p></details>
     <details><summary data-i18n="q4">I can't donate. How else can I help?</summary><p data-i18n="a4">Share this page, and when you plan a trip, come to Venao. Every visitor helps the beach come back.</p></details>
     <div class="share">
@@ -481,6 +483,7 @@ en:{
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Venao is still here.",
   heroLead:"Help us through this season. The earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. We can't wait to welcome travellers back. Buy a lesson now, use it when you come, and help keep Shokogi going in the meantime.",
+  heroOpen:"We hope and expect to soft-open in early November, with the full opening in early to mid December.",
   heroCta:"Buy a lesson ahead", heroCta2:"What happened",
   whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake, a few kilometres from our beach",
   whatSub:"On Friday 9 October 2026 a magnitude 7.7 earthquake struck southern Panama, followed by aftershocks of up to 6.6. The worst damage was in Veraguas, Herrera and Los Santos, the province Playa Venao is in.",
@@ -489,7 +492,7 @@ en:{
   s1:"In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.",
   s2:"In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.",
   s4:"Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.",
-  s3:"Like everyone here, we felt the earthquake. We are here and ready to teach. Every lesson you buy ahead and every lycra you wear keeps the school going through this season, until we see you in the water.",
+  s3:"Like everyone here, we felt the earthquake. We are getting ready to welcome you back. Every lesson you buy ahead and every lycra you wear keeps the school going through this season, until we see you in the water.",
   usesTitle:"What your support does",
   u1t:"Brings travellers back", u1:"Every lesson booked ahead is one more reason to come back to Venao",
   u2t:"Keeps the school going", u2:"The school, the boards and the daily running, ready for when travellers come back",
@@ -503,7 +506,7 @@ en:{
   galSub:"Retreats, kids' camps and mornings on the water. Follow @shokogi_venao for news from the beach.",
   faqTitle:"Questions",
   q1:"Who receives the money?", a1:"{recipient}, which runs this campaign. Every contribution goes to keeping the school going through this season.",
-  q2:"When can I use my lesson?", a2:"Any time you come to Venao, starting now. Lessons stay valid for 24 months from purchase. Message us to book a time.",
+  q2:"When can I use my lesson?", a2:"From our soft opening, which we expect in early November; the full opening follows in early to mid December. Lessons stay valid for 24 months from purchase. Message us to book a time.",
   q3:"Can I give the lesson as a gift?", a3:"Yes. Tell us the name of the person who will surf and we will put the lesson under their name.",
   q4:"I can't donate. How else can I help?", a4:"Share this page, and when you plan a trip, come to Venao. Every visitor helps the beach come back.",
   shareWa:"Share on WhatsApp", copy:"Copy link", copied:"Link copied",
@@ -542,6 +545,7 @@ es:{
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Venao sigue aquí.",
   heroLead:"Ayúdanos a pasar esta temporada. El terremoto golpeó a todo Venao, también a nosotros, pero las olas siguen tan buenas como siempre y Venao se está recuperando. Tenemos muchas ganas de recibir de nuevo a los viajeros. Compra tu clase ahora, úsala cuando vengas y ayuda a que Shokogi siga adelante mientras tanto.",
+  heroOpen:"Esperamos una apertura suave a principios de noviembre y la apertura completa entre principios y mediados de diciembre.",
   heroCta:"Compra tu clase ya", heroCta2:"Qué pasó",
   whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 a pocos kilómetros de nuestra playa",
   whatSub:"El viernes 9 de octubre de 2026 un terremoto de magnitud 7.7 sacudió el sur de Panamá, seguido de réplicas de hasta 6.6. Los peores daños se registraron en Veraguas, Herrera y Los Santos, la provincia de Playa Venao.",
@@ -550,7 +554,7 @@ es:{
   s1:"En Playa Venao, edificios de hoteles y hostales de varios pisos colapsaron o sufrieron daños graves. La Autoridad de Turismo (ATP) incluye establecimientos de Venao entre los que esperan evaluación estructural.",
   s2:"En el distrito de Pedasí hubo familias que pasaron la noche en parques y centros deportivos, sin atreverse a volver a sus casas. El puente sobre el río Oria se cerró por daños estructurales, y distritos vecinos quedaron sin agua ni electricidad.",
   s4:"Muchos de los hospedajes de nuestra playa sufrieron daños y la playa se está recuperando. Venao se está levantando y tenemos muchas ganas de verla llena de surfistas otra vez.",
-  s3:"Como todos aquí, sentimos el terremoto. Estamos aquí y listos para enseñar. Cada clase que compras por adelantado y cada licra que usas mantienen la escuela en marcha esta temporada, hasta vernos en el agua.",
+  s3:"Como todos aquí, sentimos el terremoto. Nos estamos preparando para recibirte de nuevo. Cada clase que compras por adelantado y cada licra que usas mantienen la escuela en marcha esta temporada, hasta vernos en el agua.",
   usesTitle:"Lo que hace tu apoyo",
   u1t:"Trae de vuelta a los viajeros", u1:"Cada clase reservada es una razón más para volver a Venao",
   u2t:"La escuela sigue en marcha", u2:"La escuela, las tablas y el día a día, listos para cuando vuelvan los viajeros",
@@ -564,7 +568,7 @@ es:{
   galSub:"Retiros, campamentos de niños y mañanas en el agua. Sigue a @shokogi_venao para noticias desde la playa.",
   faqTitle:"Preguntas",
   q1:"¿Quién recibe el dinero?", a1:"{recipient}, que organiza esta campaña. Cada aporte va a mantener la escuela en marcha durante esta temporada.",
-  q2:"¿Cuándo puedo usar mi clase?", a2:"Cuando vengas a Venao, desde ya. Las clases son válidas por 24 meses desde la compra. Escríbenos para reservar.",
+  q2:"¿Cuándo puedo usar mi clase?", a2:"Desde nuestra apertura suave, que esperamos a principios de noviembre; la apertura completa llega entre principios y mediados de diciembre. Las clases son válidas por 24 meses desde la compra. Escríbenos para reservar.",
   q3:"¿Puedo regalar la clase?", a3:"Sí. Dinos el nombre de quien va a surfear y dejamos la clase a su nombre.",
   q4:"No puedo donar. ¿Cómo más puedo ayudar?", a4:"Comparte esta página y, cuando planees un viaje, ven a Venao. Cada visitante ayuda a que la playa se recupere.",
   shareWa:"Compartir en WhatsApp", copy:"Copiar enlace", copied:"Enlace copiado",
@@ -603,6 +607,7 @@ he:{
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"ונאו עדיין כאן.",
   heroLead:"עזרו לנו לעבור את התקופה הזאת. רעידת האדמה פגעה בכל ונאו, וגם בנו, אבל הגלים טובים כמו תמיד וונאו מתאוששת. אנחנו מחכים לראות אתכם שוב. קנו שיעור עכשיו, ממשו אותו כשתגיעו, ועזרו לשוקוגי להמשיך בינתיים.",
+  heroOpen:"אנחנו מקווים ומצפים לפתיחה רכה בתחילת נובמבר, ולפתיחה מלאה בתחילת עד אמצע דצמבר.",
   heroCta:"לקניית שיעור מראש", heroCta2:"מה קרה",
   whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7, קילומטרים ספורים מהחוף שלנו",
   whatSub:"ביום שישי, 9 באוקטובר 2026, פגעה רעידת אדמה בעוצמה 7.7 בדרום פנמה, ואחריה רעידות משנה של עד 6.6. הנזק הכבד ביותר נרשם במחוזות ורגואס, הררה ולוס סנטוס, המחוז שבו נמצאת פלאיה ונאו.",
@@ -611,7 +616,7 @@ he:{
   s1:"בפלאיה ונאו קרסו או ניזוקו קשות בנייני מלונות והוסטלים רבי קומות. רשות התיירות של פנמה (ATP) מונה עסקים בוונאו בין אלה שממתינים לבדיקה הנדסית.",
   s2:"במחוז פדאסי משפחות העבירו את הלילה בפארקים ובמתקני ספורט, בלי להעז לחזור הביתה. הגשר על נהר אוריה נסגר בגלל נזק מבני, וביישובים השכנים לא היו מים וחשמל.",
   s4:"רבים ממקומות הלינה לאורך החוף שלנו ניזוקו, והחוף עובר שיקום. ונאו מתאוששת, ואנחנו מחכים לראות אותה שוב מלאה בגולשים.",
-  s3:"כמו כולם כאן, גם אנחנו הרגשנו את הרעידה. אנחנו כאן ומוכנים ללמד. כל שיעור שקונים מראש וכל לייקרה שלובשים מחזיקים את בית הספר בתקופה הזאת, עד שניפגש במים.",
+  s3:"כמו כולם כאן, גם אנחנו הרגשנו את הרעידה. אנחנו מתכוננים לקבל אתכם בחזרה. כל שיעור שקונים מראש וכל לייקרה שלובשים מחזיקים את בית הספר בתקופה הזאת, עד שניפגש במים.",
   usesTitle:"מה התמיכה שלכם עושה",
   u1t:"מחזיר את המבקרים", u1:"כל שיעור שנקנה מראש הוא עוד סיבה לחזור לוונאו",
   u2t:"בית הספר ממשיך לפעול", u2:"בית הספר, הגלשנים והתפעול היומיומי, מוכנים לרגע שהתיירים יחזרו",
@@ -625,7 +630,7 @@ he:{
   galSub:"ריטריטים, מחנות לילדים ובקרים על המים. עקבו אחרי ‎@shokogi_venao לעדכונים מהחוף.",
   faqTitle:"שאלות",
   q1:"מי מקבל את הכסף?", a1:"{recipient}, שמפעילים את הקמפיין. כל תרומה הולכת להחזקת בית הספר בתקופה הזאת.",
-  q2:"מתי אפשר לממש את השיעור?", a2:"בכל פעם שתגיעו לוונאו, כבר מעכשיו. השיעורים בתוקף ל־24 חודשים מיום הרכישה. שלחו לנו הודעה כדי לקבוע מועד.",
+  q2:"מתי אפשר לממש את השיעור?", a2:"מהפתיחה הרכה, שאנחנו מצפים לה בתחילת נובמבר; הפתיחה המלאה בתחילת עד אמצע דצמבר. השיעורים בתוקף ל־24 חודשים מיום הרכישה. שלחו לנו הודעה כדי לקבוע מועד.",
   q3:"אפשר לתת את השיעור במתנה?", a3:"כן. ספרו לנו מי יגלוש ונרשום את השיעור על שמו.",
   q4:"אני לא יכול לתרום. איך עוד אפשר לעזור?", a4:"שתפו את הדף, וכשאתם מתכננים טיול, בואו לוונאו. כל מבקר עוזר לחוף לחזור לעצמו.",
   shareWa:"שיתוף בוואטסאפ", copy:"העתקת קישור", copied:"הקישור הועתק",
