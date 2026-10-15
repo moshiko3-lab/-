@@ -11,12 +11,13 @@ Hi! It's Shokogi from Playa Venao.
 The 9 October earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. We hope to soft-open in early November, with the full opening in early to mid December.
 
 You can help us through this season and surf it when you come:
-🏄 Surf lesson $60 · 3 lessons $180
-🧒 Treat a local kid to 5 surf sessions $150
-🚤 Foil session, 3 hours $450
+🏄 Surf lesson $60 (valid 24 months)
+🏄 3 surf lessons $180 (valid 24 months)
+🧒 Treat a local kid to 5 surf sessions $150 (valid 24 months)
+🚤 Foil session, 3 hours $450 (valid 24 months)
 👕 Shokogi lycra $50 · kids $40
 
-Valid for 24 months, and you can give them as a gift.
+Lessons and sessions can be given as a gift.
 👉 https://www.shokogi.com/pages/keep-venao-surfing
 
 Thank you, see you in the water 🤙
