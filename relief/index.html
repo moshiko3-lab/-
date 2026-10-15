@@ -318,11 +318,6 @@ footer{background:var(--sea)}
     <figure class="grpHead"><img src="img/foil.webp" alt="" style="object-position:50% 70%" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
     <p class="grpSub" data-i18n="gFoilSub">Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.</p>
     <div class="tiers" id="tiersFoil"></div>
-    <div class="custom">
-      <p data-i18n="customText">Want to give a different amount, or just give? Every dollar helps the school and our team until visitors return.</p>
-      <label>$ <input id="customAmt" type="number" min="5" step="5" value="50" inputmode="numeric" aria-label="Amount in US dollars"></label>
-      <button class="btn" id="customBtn" data-i18n="customBtn">Donate</button>
-    </div>
     <div class="merch" id="merch" hidden>
       <div class="pic" id="merchPic"></div>
       <div class="body">
@@ -415,8 +410,7 @@ var CONFIG = {
 
   // Payment link per tier: a Stripe Payment Link, PayPal, Yappy, bank page...
   // Leave "" and that button falls back to WhatsApp / email instead.
-  // "custom" is used for the free-amount donation.
-  payLinks: { lesson:"", course3:"", kid:"", foil1:"", custom:"", lycra:"" },
+  payLinks: { lesson:"", course3:"", kid:"", foil1:"", lycra:"" },
 
   // Contact. WhatsApp with country code, digits only, e.g. "5076XXXXXXX".
   whatsapp: "50762596666",
@@ -477,7 +471,7 @@ var CONFIG = {
 var TIERS = [
   { id:"lesson",    price:60,  featured:true  },
   { id:"course3",   price:180, featured:false },
-  { id:"kid",       price:100, featured:false },
+  { id:"kid",       price:150, featured:false },
   { id:"foil1",     price:450,  featured:false, group:"foil" }
 ];
 
@@ -896,10 +890,6 @@ function init(){
   document.getElementById("merchBtn").addEventListener("click", function(){
     if (!lycraSize) { toast(t("mPickSize")); return; }
     pay("lycra", fmt(t(lycraFit === "kids" ? "mItemKids" : "mItem"), {size: lycraSize, color: t("c_" + lycraColor)}), lycraCur().price);
-  });
-  document.getElementById("customBtn").addEventListener("click", function(){
-    var n = Math.max(5, Math.round(Number(document.getElementById("customAmt").value) || 0));
-    pay("custom", t("customItem"), n);
   });
   var modal = document.getElementById("modal");
   document.getElementById("mClose").addEventListener("click", function(){ modal.classList.remove("open"); });
