@@ -119,8 +119,12 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 
 /* rewards */
 .band{background:var(--sand)}
-.grp{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-2);margin:30px 0 14px}
-.grp:first-of-type{margin-top:6px}
+.grpHead{position:relative;margin:34px 0 16px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.grpHead:first-of-type{margin-top:8px}
+.grpHead img{width:100%;max-width:100%;height:clamp(140px,22vw,230px);object-fit:cover;display:block}
+.grpHead::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(6,30,38,.72),rgba(6,30,38,0) 60%)}
+.grp{position:absolute;bottom:14px;inset-inline-start:20px;z-index:1;margin:0;color:#fff;
+  font-size:clamp(20px,2.6vw,28px);letter-spacing:.02em}
 .grpSub{color:var(--text-2);margin:-6px 0 16px;max-width:62ch}
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px}
 .tier{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
@@ -286,9 +290,9 @@ footer li{margin-bottom:4px}
     <div class="eyebrow" data-i18n="rwEyebrow">Give and get</div>
     <h2 data-i18n="rwTitle">Back the rebuild, then come surf with us</h2>
     <p class="sub" data-i18n="rwSub">Every contribution comes with something back. Lessons are valid for 24 months from the day we reopen, and you can give them to someone else.</p>
-    <h3 class="grp" data-i18n="gSurf">Surf lessons</h3>
+    <figure class="grpHead"><img src="img/surf.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gSurf">Surf lessons</h3></figure>
     <div class="tiers" id="tiers"></div>
-    <h3 class="grp" data-i18n="gFoil">Foil sessions</h3>
+    <figure class="grpHead"><img src="img/foil.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
     <p class="grpSub" data-i18n="gFoilSub">Tow-in foil with our coach, on the same Venao waves. Your first flights or your next level.</p>
     <div class="tiers" id="tiersFoil"></div>
     <div class="custom">
@@ -399,7 +403,7 @@ var CONFIG = {
 
   // Optional: a photo for the top of the page (a file next to this one,
   // e.g. "hero.jpg"). Empty keeps the drawn ocean gradient.
-  heroImage: "",
+  heroImage: "img/hero.webp",
 
   // The Shokogi lycra. price:null hides it. image: a file next to this page.
   // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
