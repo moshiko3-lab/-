@@ -155,9 +155,7 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .merch .pic{overflow:hidden}
 .merch .pic img.model{position:relative;z-index:1;object-fit:contain;aspect-ratio:5/4;background:none}
 .merch .pic.fill::before{content:"";position:absolute;inset:-30px;background:var(--fill) center/cover;filter:blur(22px) saturate(1.1);opacity:.75}
-.merch .pic .views,.merch .pic .aiNote{z-index:2}
-.aiNote{position:absolute;top:10px;inset-inline-end:10px;background:rgba(10,30,38,.6);color:#fff;font-size:11px;
-  font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:.02em}
+.merch .pic .views{z-index:2}
 .views button{appearance:none;border:0;background:rgba(10,30,38,.72);color:#fff;font:inherit;font-size:12.5px;font-weight:700;
   padding:6px 12px;border-radius:999px;cursor:pointer}
 .views button[aria-pressed="true"]{background:#fff;color:#0b3a47}
@@ -446,10 +444,9 @@ var CONFIG = {
       { id: "pink",  swatch: "#ff7fc4", front: "img/lycra-pink-front.jpg",  back: "img/lycra-pink-back.jpg",  model: "img/lycra-pink-onmodel.jpg" },
       { id: "black", swatch: "#1d1f24", front: "img/lycra-black-front.jpg", back: "img/lycra-black-back.jpg", model: "img/lycra-black-onmodel.jpg" }
     ],
-    // Kids' lycra, same design. Leave out to sell adults only. ai:true labels
-    // every view as an illustration (these are not photos of the real item).
+    // Kids' lycra, same design. Leave out to sell adults only.
     kids: {
-      price: 40, sizes: ["XS","S","M","L"], ai: true,
+      price: 40, sizes: ["XS","S","M","L"],
       colors: [
         { id: "pink",  swatch: "#ff7fc4", front: "img/lycra-kids-pink-front.jpg",  back: "img/lycra-kids-pink-back.jpg",  model: "img/lycra-kids-pink-onmodel.jpg" },
         { id: "black", swatch: "#1d1f24", front: "img/lycra-kids-black-front.jpg", back: "img/lycra-kids-black-back.jpg", model: "img/lycra-kids-black-onmodel.jpg" }
@@ -521,7 +518,7 @@ en:{
   t_supporter:"Venao Supporter", t_lesson:"One surf lesson", t_kid:"Support & treat a local kid", t_course3:"3-lesson course", t_course5:"5-lesson course",
   b_supporter:["A personal thank-you from the team", "Your name on our wall of supporters", "News from the beach"],
   b_lesson:["A 1-hour surf lesson, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
-  b_kid:["5 surf sessions for a kid from Venao or the Venao area","A photo and update from the water","Your name on our wall of supporters"],
+  b_kid:["5 surf sessions for a kid from Venao or the Venao area", "After the earthquakes, time in the water gives them some calm and peace", "A photo and update from the water", "Your name on our wall of supporters"],
   b_course3:["3 surf lessons, whenever you come", "Transferable: give it as a gift", "Your name on our wall of supporters"],
   b_course5:["5 surf lessons, whenever you come", "Transferable: give it as a gift", "A video analysis session", "Your name on our wall of supporters"],
   mTitle:"Thank you", mText:"You chose: {item}. Send us a message and we will reply with how to pay and confirm it.",
@@ -532,7 +529,7 @@ en:{
   qPh:"Your photo from after the earthquake goes here",
   mEyebrow:"Wear Venao", mName:"The Shokogi lycra",
   mDesc:"Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Adult and kids' sizes. Every lycra sold helps the school through the quiet months.",
-  mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model", aiNote:"AI illustration",
+  mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model",
   mSize:"Size", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school, or we ship it to you (shipping quoted separately).",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
@@ -582,7 +579,7 @@ es:{
   t_supporter:"Amigo de Venao", t_lesson:"Una clase de surf", t_kid:"Apoya y consiente a un niño local", t_course3:"Curso de 3 clases", t_course5:"Curso de 5 clases",
   b_supporter:["Un agradecimiento personal del equipo", "Tu nombre en nuestro muro de apoyo", "Noticias desde la playa"],
   b_lesson:["Una clase de surf de 1 hora, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
-  b_kid:["5 sesiones de surf para un niño de Venao o sus alrededores","Una foto y novedades desde el agua","Tu nombre en nuestro muro de apoyo"],
+  b_kid:["5 sesiones de surf para un niño de Venao o sus alrededores", "Después de los terremotos, el mar les da un poco de calma y paz", "Una foto y novedades desde el agua", "Tu nombre en nuestro muro de apoyo"],
   b_course3:["3 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
   b_course5:["5 clases de surf, cuando vengas", "Transferible: puedes regalarla", "Una sesión de análisis de video", "Tu nombre en nuestro muro de apoyo"],
   mTitle:"Gracias", mText:"Elegiste: {item}. Escríbenos y te respondemos cómo pagar y confirmarlo.",
@@ -593,7 +590,7 @@ es:{
   qPh:"Aquí va tu foto de después del terremoto",
   mEyebrow:"Viste Venao", mName:"La licra Shokogi",
   mDesc:"Nuestra propia licra de surf de manga larga, con SHOKOGI · Playa Venao · Est. 2009 al frente y nuestro escudo en la espalda. Tallas de adulto y de niño. Cada licra vendida ayuda a la escuela en estos meses tranquilos.",
-  mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta", aiNote:"Ilustración con IA",
+  mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta",
   mSize:"Talla", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela o te la enviamos (el envío se cotiza aparte).",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
@@ -643,7 +640,7 @@ he:{
   t_supporter:"חברי ונאו", t_lesson:"שיעור גלישה", t_kid:"תמכו ופנקו ילד מקומי", t_course3:"קורס 3 שיעורים", t_course5:"קורס 5 שיעורים",
   b_supporter:["תודה אישית מהצוות", "השם שלכם על קיר התומכים", "עדכונים מהחוף"],
   b_lesson:["שיעור גלישה של שעה, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
-  b_kid:["5 מפגשי גלישה לילד מוונאו או מהאזור","תמונה ועדכון מהמים","השם שלכם על קיר התומכים"],
+  b_kid:["5 מפגשי גלישה לילד מוונאו או מהאזור", "לילדים שחוו את רעידות האדמה, הגלישה נותנת קצת שקט ושלווה", "תמונה ועדכון מהמים", "השם שלכם על קיר התומכים"],
   b_course3:["3 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
   b_course5:["5 שיעורי גלישה, מתי שתגיעו", "ניתן להעביר במתנה", "מפגש ניתוח וידאו", "השם שלכם על קיר התומכים"],
   mTitle:"תודה", mText:"בחרתם: {item}. שלחו לנו הודעה ונחזור אליכם עם פרטי התשלום והאישור.",
@@ -654,7 +651,7 @@ he:{
   qPh:"כאן תיכנס תמונה שלכם מאחרי הרעידה",
   mEyebrow:"לובשים את ונאו", mName:"הלייקרה של שוקוגי",
   mDesc:"לייקרת הגלישה שלנו עם שרוול ארוך, עם הלוגו של שוקוגי מלפנים והסמל שלנו על הגב. במידות למבוגרים ולילדים. כל לייקרה שנמכרת עוזרת לבית הספר לעבור את התקופה השקטה.",
-  mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן", aiNote:"הדמיה (AI)",
+  mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן",
   mSize:"מידה", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר או משלוח עד אליכם (עלות המשלוח בנפרד).",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
@@ -775,15 +772,13 @@ function renderMerch(){
     var views = ["model","front","back"].filter(function(v){ return cur[v]; });
     if (views.indexOf(lycraView) < 0) lycraView = views[0];
     var vName = {model:"vModel", front:"vFront", back:"vBack"};
-    var ai = lycraView === "model" || L.ai;
-    pic.innerHTML = '<img alt=""><div class="views"></div>' + (ai ? '<span class="aiNote"></span>' : "");
+    pic.innerHTML = '<img alt=""><div class="views"></div>';
     var img = pic.querySelector("img");
     img.src = cur[lycraView];
     img.className = lycraView === "model" ? "model" : "";
     pic.classList.toggle("fill", lycraView === "model");
     pic.style.setProperty("--fill", lycraView === "model" ? 'url("' + cur.model + '")' : "none");
     img.alt = t("mName") + ", " + t("c_" + cur.id) + ", " + t(vName[lycraView]);
-    if (ai) pic.querySelector(".aiNote").textContent = t("aiNote");
     views.forEach(function(v){
       var b = document.createElement("button");
       b.type = "button"; b.dataset.v = v;
