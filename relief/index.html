@@ -190,8 +190,8 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 /* gear */
 .gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,330px));justify-content:center;gap:14px;margin-top:14px}
 .gcard{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-.gcard .gimg{aspect-ratio:1/1;background:#f3f0ee;overflow:hidden}
-.gcard .gimg img{width:100%;height:100%;object-fit:cover;display:block}
+.gcard .gimg{position:relative;aspect-ratio:4/5;background:#f3f0ee;overflow:hidden}
+.gcard .gimg img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
 .gcard .gbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
 .gcard h3{margin:0;font-size:22px}
 .gcard .price{font-family:var(--f-head);font-weight:600;font-size:30px;line-height:1}
@@ -309,7 +309,7 @@ footer{background:var(--sea)}
 <section class="band" id="shop">
   <div class="wrap">
     <div class="eyebrow" data-i18n="shopEyebrow">Wear Venao</div>
-    <h2 data-i18n="shopTitle">Shokogi lycras, tees &amp; hats</h2>
+    <h2 data-i18n="shopTitle">Shokogi tees &amp; lycras</h2>
     <p class="sub" data-i18n="shopSub">Our own surf gear from Playa Venao. Every piece you wear helps the school through this season.</p>
     <div class="gear" id="gear"></div>
     <div class="merch" id="merch" hidden>
@@ -537,7 +537,7 @@ var CONFIG = {
   supporters: { updated: "", list: [] },
 
   // Shokogi tees, tank tops and hats: store variant ids per colour and size.
-  gear: [{"id":"tee","price":24,"sizes":["XS","S","M","L","XL","XXL"],"colors":[{"id":"pink","swatch":"#f6a5c0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3961_0.5x.png?v=1669217786","v":{"XS":"39879152435266","S":"39879152468034","M":"39879152500802","L":"39879152533570","XL":"39879152566338","XXL":"39879152599106"}},{"id":"white","swatch":"#ffffff","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3965_0.5x.png?v=1669217615","v":{"XS":"39881804644418","S":"39881804677186","M":"39881804709954","L":"39881804742722","XL":"39881804775490","XXL":"39881804808258"}},{"id":"blue","swatch":"#5b8fd6","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3972_0.5x.png?v=1669217659","v":{"XS":"39881873326146","S":"39881873358914","M":"39881873391682","L":"39881873424450","XL":"39881873457218","XXL":"39881873489986"}},{"id":"yellow","swatch":"#f4d35e","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3969_0.5x.png?v=1669217975","v":{"XS":"40094964285506","S":"40094964318274","M":"40094964351042","L":"40094964383810","XL":"40094964416578","XXL":"40094964449346"}}]},{"id":"tank","price":24,"sizes":["XS","S","M","L","XL","XXL"],"colors":[{"id":"pink","swatch":"#f6a5c0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3954_0.5x.png?v=1669217511","v":{"XS":"39881893052482","S":"39881893085250","M":"39881893118018","L":"39881893150786","XL":"39881893183554","XXL":"39881893216322"}},{"id":"white","swatch":"#ffffff","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3952_0.5x.png?v=1669217487","v":{"XS":"39881881452610","S":"39881881485378","M":"39881881518146","L":"39881881550914","XL":"39881881583682","XXL":"39881881616450"}},{"id":"blue","swatch":"#5b8fd6","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3958_0.5x.png?v=1669217544","v":{"XS":"39879173570626","S":"39879173603394","M":"39879173636162","L":"39879173668930","XL":"39879173701698","XXL":"39879173734466"}},{"id":"yellow","swatch":"#f4d35e","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/IMG_3924_0.5x.png?v=1669217435","v":{"XS":"39881883254850","S":"39881883287618","M":"39881883320386","L":"39881883353154","XL":"39881883385922","XXL":"39881883418690"}}]},{"id":"hat","after":true,"price":30,"sizes":[],"colors":[{"id":"black","swatch":"#1a1719","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/b.png?v=1674581602","v":{"":"39820111446082"}},{"id":"mustard","swatch":"#d4a53a","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/y.png?v=1674581721","v":{"":"40175924150338"}},{"id":"salmon","swatch":"#f2a58e","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/products/s.png?v=1674581886","v":{"":"40175927689282"}}]}]
+  gear: [{"id":"tee","price":30,"sizes":["S","M","L","XL"],"colors":[{"id":"ash","swatch":"#d8d8d4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-back.jpg?v=1792101157","v":{"S":"45599795675202","M":"45599795707970","L":"45599795740738","XL":"45599795773506"}},{"id":"green","swatch":"#7f9170","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-back.jpg?v=1792101157","v":{"S":"45599795806274","M":"45599795839042","L":"45599795871810","XL":"45599795904578"}}]},{"id":"teeKids","price":30,"sizes":["S","M","L"],"colors":[{"id":"cblue","swatch":"#7fa3e0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-back.jpg?v=1792101158","v":{"S":"45599797346370","M":"45599797379138","L":"45599797411906"}},{"id":"lpink","swatch":"#f3c4d2","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-back.jpg?v=1792101158","v":{"S":"45599797444674","M":"45599797477442","L":"45599797510210"}}]}]
 
 };
 
@@ -552,14 +552,19 @@ var TIERS = [
 var T = {
 en:{
   brandSub:"Playa Venao · Panama", ctaShort:"Support",
-  heroCtaShop:"Shop Shokogi gear", shopEyebrow:"Wear Venao", shopTitle:"Shokogi lycras, tees & hats",
+  c_lpink:"Light pink",
+  c_cblue:"Carolina blue",
+  c_green:"Green",
+  c_ash:"Ash",
+  g_teeKids:"Shokogi kids tee",
+  heroCtaShop:"Shop Shokogi gear", shopEyebrow:"Wear Venao", shopTitle:"Shokogi tees & lycras",
   shopSub:"Our own surf gear from Playa Venao. Every piece you wear helps the school through this season.",
   shopShip:"Shipped to you or collected at the school in Playa Venao: enter your address at checkout to see the shipping cost.",
-  g_tee:"Shokogi T-shirt", g_tank:"Shokogi tank top", g_hat:"Shokogi hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
+  g_tee:"Shokogi Playa Venao tee", g_tank:"Shokogi tank top", g_hat:"Shokogi hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
   c_white:"White", c_blue:"Blue", c_yellow:"Yellow", c_mustard:"Mustard", c_salmon:"Salmon",
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Venao is still here.",
-  heroLead:"The earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. The best way to help us through this season: wear Shokogi. Every lycra, tee and hat keeps the school going until we see you in the water.",
+  heroLead:"The earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. The best way to help us through this season: wear Shokogi. Every tee and lycra keeps the school going until we see you in the water.",
   heroOpen:"We hope and expect to soft-open in early November, with the full opening in early to mid December.",
   heroCta:"Buy a lesson ahead", heroCta2:"What happened",
   whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake, a few kilometres from our beach",
@@ -626,14 +631,19 @@ en:{
 },
 es:{
   brandSub:"Playa Venao · Panamá", ctaShort:"Apoyar",
-  heroCtaShop:"Compra ropa Shokogi", shopEyebrow:"Viste Venao", shopTitle:"Licras, camisetas y gorras Shokogi",
+  c_lpink:"Rosa claro",
+  c_cblue:"Azul Carolina",
+  c_green:"Verde",
+  c_ash:"Gris",
+  g_teeKids:"Camiseta Shokogi para niños",
+  heroCtaShop:"Compra ropa Shokogi", shopEyebrow:"Viste Venao", shopTitle:"Camisetas y licras Shokogi",
   shopSub:"Nuestra ropa de surf de Playa Venao. Cada prenda que usas ayuda a la escuela en esta temporada.",
   shopShip:"Te la enviamos o la recoges en la escuela en Playa Venao: ingresa tu dirección al pagar para ver el costo del envío.",
-  g_tee:"Camiseta Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Gorra Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
+  g_tee:"Camiseta Shokogi Playa Venao", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Gorra Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
   c_white:"Blanca", c_blue:"Azul", c_yellow:"Amarilla", c_mustard:"Mostaza", c_salmon:"Salmón",
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Venao sigue aquí.",
-  heroLead:"El terremoto golpeó a todo Venao, también a nosotros, pero las olas siguen tan buenas como siempre y Venao se está recuperando. La mejor forma de ayudarnos a pasar esta temporada: viste Shokogi. Cada licra, camiseta y gorra mantiene viva la escuela hasta vernos en el agua.",
+  heroLead:"El terremoto golpeó a todo Venao, también a nosotros, pero las olas siguen tan buenas como siempre y Venao se está recuperando. La mejor forma de ayudarnos a pasar esta temporada: viste Shokogi. Cada camiseta y licra mantiene viva la escuela hasta vernos en el agua.",
   heroOpen:"Esperamos una apertura suave a principios de noviembre y la apertura completa entre principios y mediados de diciembre.",
   heroCta:"Compra tu clase ya", heroCta2:"Qué pasó",
   whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 a pocos kilómetros de nuestra playa",
@@ -700,14 +710,19 @@ es:{
 },
 he:{
   brandSub:"פלאיה ונאו · פנמה", ctaShort:"לתמיכה",
-  heroCtaShop:"לחנות של שוקוגי", shopEyebrow:"לובשים את ונאו", shopTitle:"לייקרות, חולצות וכובעים של שוקוגי",
+  c_lpink:"ורוד בהיר",
+  c_cblue:"כחול",
+  c_green:"ירוק",
+  c_ash:"אפור",
+  g_teeKids:"חולצת שוקוגי לילדים",
+  heroCtaShop:"לחנות של שוקוגי", shopEyebrow:"לובשים את ונאו", shopTitle:"חולצות ולייקרות של שוקוגי",
   shopSub:"ציוד הגלישה שלנו מפלאיה ונאו. כל פריט שאתם לובשים עוזר לבית הספר לעבור את התקופה הזאת.",
   shopShip:"משלוח עד אליכם או איסוף מבית הספר בפלאיה ונאו: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
-  g_tee:"חולצת טי של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
+  g_tee:"חולצת שוקוגי פלאיה ונאו", g_tank:"גופייה של שוקוגי", g_hat:"כובע של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
   c_white:"לבן", c_blue:"כחול", c_yellow:"צהוב", c_mustard:"חרדל", c_salmon:"סלמון",
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"ונאו עדיין כאן.",
-  heroLead:"רעידת האדמה פגעה בכל ונאו, גם בנו, אבל הגלים טובים כמו תמיד וונאו מתאוששת. הדרך הכי טובה לעזור לנו לעבור את התקופה: ללבוש שוקוגי. כל לייקרה, חולצה וכובע שומרים על בית הספר עד שנתראה במים.",
+  heroLead:"רעידת האדמה פגעה בכל ונאו, גם בנו, אבל הגלים טובים כמו תמיד וונאו מתאוששת. הדרך הכי טובה לעזור לנו לעבור את התקופה: ללבוש שוקוגי. כל חולצה ולייקרה שומרות על בית הספר עד שנתראה במים.",
   heroOpen:"אנחנו מקווים ומצפים לפתיחה רכה בתחילת נובמבר, ולפתיחה מלאה בתחילת עד אמצע דצמבר.",
   heroCta:"לקניית שיעור מראש", heroCta2:"מה קרה",
   whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7, קילומטרים ספורים מהחוף שלנו",
@@ -972,12 +987,21 @@ function renderGear(){
     var col = g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0];
     var el = document.createElement("div");
     el.className = "gcard";
-    el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""></div><div class="gbody"><h3></h3>' +
+    el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><h3></h3>' +
       '<div class="price"></div><div class="dots" role="group"></div><div class="sizes" role="group"></div>' +
       '<button class="btn" type="button"></button></div>';
     var img = el.querySelector("img");
-    img.src = col.img + (col.img.indexOf("?") < 0 ? "?" : "&") + "width=600";
-    img.alt = t("g_" + g.id) + ", " + t("c_" + col.id);
+    var side = sel.side === "back" && col.back ? "back" : "front";
+    var src = side === "back" ? col.back : col.img;
+    img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "width=600";
+    img.alt = t("g_" + g.id) + ", " + t("c_" + col.id) + (col.back ? ", " + t(side === "back" ? "vBack" : "vFront") : "");
+    if (col.back) ["front","back"].forEach(function(v){
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = t(v === "back" ? "vBack" : "vFront");
+      b.setAttribute("aria-pressed", v === side ? "true" : "false");
+      b.addEventListener("click", function(){ sel.side = v; renderGear(); });
+      el.querySelector(".views").appendChild(b);
+    });
     el.querySelector("h3").textContent = t("g_" + g.id);
     el.querySelector(".price").innerHTML = money(g.price) + " <small>USD</small>";
     var dots = el.querySelector(".dots");
