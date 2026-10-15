@@ -433,7 +433,7 @@ var CONFIG = {
   // The Shokogi lycra. price:null hides it. image: a file next to this page.
   // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
   lycra: {
-    price: 50, sizes: ["XS","S","M","L","XL"], delivery: "pickup",
+    price: 50, sizes: ["XS","S","M","L","XL"], delivery: "both",
     colors: [
       { id: "pink",  swatch: "#ff7fc4", front: "img/lycra-pink-front.jpg",  back: "img/lycra-pink-back.jpg",  model: "img/lycra-pink-onmodel.jpg" },
       { id: "black", swatch: "#1d1f24", front: "img/lycra-black-front.jpg", back: "img/lycra-black-back.jpg", model: "img/lycra-black-onmodel.jpg" }
@@ -525,7 +525,7 @@ en:{
   mDesc:"Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Adult and kids' sizes. Every lycra sold helps the school through the quiet months.",
   mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model",
   mSize:"Size", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
-  mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school, or we ship it to you (shipping quoted separately).",
+  mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
   mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
@@ -586,7 +586,7 @@ es:{
   mDesc:"Nuestra propia licra de surf de manga larga, con SHOKOGI · Playa Venao · Est. 2009 al frente y nuestro escudo en la espalda. Tallas de adulto y de niño. Cada licra vendida ayuda a la escuela en estos meses tranquilos.",
   mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta",
   mSize:"Talla", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
-  mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela o te la enviamos (el envío se cotiza aparte).",
+  mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
   mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
@@ -647,7 +647,7 @@ he:{
   mDesc:"לייקרת הגלישה שלנו עם שרוול ארוך, עם הלוגו של שוקוגי מלפנים והסמל שלנו על הגב. במידות למבוגרים ולילדים. כל לייקרה שנמכרת עוזרת לבית הספר לעבור את התקופה השקטה.",
   mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן",
   mSize:"מידה", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
-  mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר או משלוח עד אליכם (עלות המשלוח בנפרד).",
+  mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
   mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
@@ -810,7 +810,7 @@ function renderMerch(){
     box.appendChild(b);
   });
   document.getElementById("merchShip").textContent =
-    t(L.delivery === "ship" ? "mShip" : L.delivery === "both" ? "mBoth" : "mPickup");
+    t(L0.delivery === "ship" ? "mShip" : L0.delivery === "both" ? "mBoth" : "mPickup");
 }
 
 function renderVideo(){
