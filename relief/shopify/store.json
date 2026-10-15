@@ -3,12 +3,12 @@
     "hero.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-hero.webp?v=1792043775",
     "surf.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-surf.webp?v=1792043775",
     "foil.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-foil.webp?v=1792043775",
-    "lycra-pink-model.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model.jpg?v=1792043776",
     "lycra-pink-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-front.jpg?v=1792043775",
     "lycra-pink-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-back.jpg?v=1792043775",
-    "lycra-black-model.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model.jpg?v=1792043775",
     "lycra-black-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-front.jpg?v=1792043776",
-    "lycra-black-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-back.jpg?v=1792043775"
+    "lycra-black-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-back.jpg?v=1792043775",
+    "lycra-pink-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-onmodel.jpg?v=1792045678",
+    "lycra-black-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-onmodel.jpg?v=1792045678"
   },
   "checkout": {
     "supporter": "45572889116738",
@@ -21,10 +21,16 @@
     "foil3": "45572894818370",
     "donation": "45572895014978",
     "lycra": {
-      "pink-XS": "45572895211586", "pink-S": "45572895244354", "pink-M": "45572895277122",
-      "pink-L": "45572895309890", "pink-XL": "45572895342658",
-      "black-XS": "45572895375426", "black-S": "45572895408194", "black-M": "45572895440962",
-      "black-L": "45572895473730", "black-XL": "45572895506498"
+      "pink-XS": "45572895211586",
+      "pink-S": "45572895244354",
+      "pink-M": "45572895277122",
+      "pink-L": "45572895309890",
+      "pink-XL": "45572895342658",
+      "black-XS": "45572895375426",
+      "black-S": "45572895408194",
+      "black-M": "45572895440962",
+      "black-L": "45572895473730",
+      "black-XL": "45572895506498"
     }
   }
 }
