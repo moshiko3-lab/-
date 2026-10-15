@@ -45,6 +45,8 @@ jobs:
           mkdir -p site
           python3 app/build.py --out site/index.html
           python3 app/build.py --minisite --out site/book.html
+          # The earthquake relief page: static, copied as it is
+          cp -r relief site/relief
           # The address the school uses, when there is one: Pages reads this
           # file and answers to the name in it. Without the file the site stays
           # on its github.io address -- so the copy is conditional, or removing
