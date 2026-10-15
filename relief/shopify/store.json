@@ -1,0 +1,30 @@
+{
+  "images": {
+    "hero.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-hero.webp?v=1792043775",
+    "surf.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-surf.webp?v=1792043775",
+    "foil.webp": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-foil.webp?v=1792043775",
+    "lycra-pink-model.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model.jpg?v=1792043776",
+    "lycra-pink-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-front.jpg?v=1792043775",
+    "lycra-pink-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-back.jpg?v=1792043775",
+    "lycra-black-model.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model.jpg?v=1792043775",
+    "lycra-black-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-front.jpg?v=1792043776",
+    "lycra-black-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-back.jpg?v=1792043775"
+  },
+  "checkout": {
+    "supporter": "45572889116738",
+    "lesson": "45572889346114",
+    "kid": "45572892393538",
+    "course3": "45572894457922",
+    "course5": "45572894523458",
+    "foil1": "45572894752834",
+    "foil2": "45572894785602",
+    "foil3": "45572894818370",
+    "donation": "45572895014978",
+    "lycra": {
+      "pink-XS": "45572895211586", "pink-S": "45572895244354", "pink-M": "45572895277122",
+      "pink-L": "45572895309890", "pink-XL": "45572895342658",
+      "black-XS": "45572895375426", "black-S": "45572895408194", "black-M": "45572895440962",
+      "black-L": "45572895473730", "black-XL": "45572895506498"
+    }
+  }
+}

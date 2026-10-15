@@ -208,7 +208,8 @@ footer li{margin-bottom:4px}
 /* type: headings, prices and labels in the site's display face */
 h1,h2,h3,.grp,.eyebrow,.tier .price,.fact b,.merch .price,summary,.tag,.ribbon{font-family:var(--f-head)}
 h1,h2,h3{font-weight:600;text-transform:uppercase;letter-spacing:.01em;line-height:1.02;text-wrap:balance}
-.hero h1{font-size:clamp(44px,7.4vw,84px)}
+.hero h1{font-size:clamp(44px,7.4vw,84px);color:#fff}
+.grpHead .grp{color:#fff}
 h2{font-size:clamp(34px,4.6vw,52px)}
 .tier h3,.card h3,.merch h3{font-size:24px}
 .eyebrow{font-size:15px;letter-spacing:.16em;font-weight:600;color:var(--pink-deep)}
@@ -404,7 +405,7 @@ var CONFIG = {
   payLinks: { supporter:"", lesson:"", course3:"", kid:"", course5:"", foil1:"", foil2:"", foil3:"", custom:"", lycra:"" },
 
   // Contact. WhatsApp with country code, digits only, e.g. "5076XXXXXXX".
-  whatsapp: "",
+  whatsapp: "50762596666",
   email: "shokogipanama@gmail.com",
   instagram: "shokogi_venao",
 
@@ -431,6 +432,11 @@ var CONFIG = {
   // { src: "quake-1.jpg", caption: { en: "...", es: "...", he: "..." } }
   // Empty hides the section.
   quakePhotos: [],
+
+  // Inside shokogi.com: the store's own variant ids. When set, every button
+  // goes straight to Shopify checkout (/cart/<variant>:<quantity>) instead of
+  // the payment links above. The donation is $5 a unit, so $50 is 10 units.
+  checkout: null,
 
   // Preview only: draws placeholders where the school's photos and the
   // lycra price will go. Must be false on the live page.
@@ -672,6 +678,13 @@ function renderTiers(){
 }
 
 function pay(id, item, price){
+  var C = CONFIG.checkout;
+  if (C) {
+    var vid = id === "lycra" ? C.lycra[lycraColor + "-" + lycraSize]
+            : id === "custom" ? C.donation : C[id];
+    var qty = id === "custom" ? Math.max(1, Math.round(price / 5)) : 1;
+    if (vid) { location.href = "/cart/" + vid + ":" + qty; return; }
+  }
   var link = CONFIG.payLinks[id];
   if (link) { window.open(link, "_blank", "noopener"); return; }
   var text = fmt(t("msg"), {item:item, price: typeof price === "number" ? " ($" + price + ")" : ""});
