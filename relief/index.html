@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rebuild Venao · Shokogi</title>
+<meta name="description" content="On 9 October 2026 a magnitude 7.7 earthquake hit Panama's Azuero coast. Shokogi Surf School has been part of Playa Venao since 2009. Back the rebuild and get a surf lesson in return.">
+<meta property="og:title" content="Rebuild Venao · Shokogi Surf School">
+<meta property="og:description" content="A 7.7 earthquake hit Playa Venao. Back the rebuild and surf with us when we reopen.">
+<meta property="og:image" content="logo.png">
+<link rel="icon" href="logo.png">
+<style>
+/* ------------------------------------------------------------------
+   Everything the school has to fill in lives in CONFIG, in the script
+   at the bottom of this file. The page reads it on load: payment links,
+   contact numbers, the goal, and the text about the school's own damage.
+   ------------------------------------------------------------------ */
+:root{
+  --pink:#f46e95; --pink-deep:#d94f79; --pink-soft:#fdeaf0;
+  --sea:#0f4c5c; --sea-2:#13667a; --sand:#f6efe6;
+  --bg:#fbfaf8; --panel:#ffffff; --text:#1b232b; --text-2:#4a5560; --text-3:#7a858f;
+  --line:#e6e2dc; --good:#1f7a4d;
+  --shadow:0 1px 2px rgba(16,24,32,.05),0 10px 30px rgba(16,24,32,.07);
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161b; --panel:#172028; --sand:#141c22; --text:#eef2f5; --text-2:#b8c2cb; --text-3:#83909b;
+    --line:#26323c; --pink-soft:#3a1f2a; --good:#5ec98d;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161b; --panel:#172028; --sand:#141c22; --text:#eef2f5; --text-2:#b8c2cb; --text-3:#83909b;
+  --line:#26323c; --pink-soft:#3a1f2a; --good:#5ec98d;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Hebrew",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:rgba(15,76,92,.92);backdrop-filter:blur(8px);color:#fff}
+.top .wrap{display:flex;align-items:center;gap:12px;height:60px}
+.mark{width:38px;height:38px;border-radius:10px;background:#fff;flex:none;overflow:hidden}
+.mark img{width:100%;height:100%;object-fit:contain}
+.brand{font-weight:800;letter-spacing:.14em;font-size:13px;text-transform:uppercase;line-height:1.2}
+.brand small{display:block;font-weight:600;letter-spacing:.08em;opacity:.8;font-size:10.5px}
+.spacer{flex:1}
+.langs{display:flex;gap:4px}
+.langs button{appearance:none;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;
+  font:inherit;font-size:12px;font-weight:700;padding:5px 9px;border-radius:8px;cursor:pointer}
+.langs button[aria-pressed="true"]{background:#fff;color:var(--sea)}
+.top .cta-sm{display:none}
+@media (min-width:640px){.top .cta-sm{display:inline-flex}}
+
+/* buttons */
+.btn{appearance:none;border:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--pink);color:#fff;font:inherit;font-weight:800;letter-spacing:.04em;
+  padding:14px 22px;border-radius:12px;cursor:pointer;text-decoration:none;
+  box-shadow:0 6px 18px rgba(244,110,149,.35);transition:transform .15s,background .15s}
+.btn:hover{background:var(--pink-deep);transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:inherit;border:1.5px solid currentColor;box-shadow:none}
+.btn.small{padding:8px 14px;font-size:13px;border-radius:10px}
+
+/* hero */
+.hero{position:relative;color:#fff;overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(9,40,50,.55),rgba(9,40,50,.75)),
+    var(--hero-img, linear-gradient(160deg,#0b3a47 0%,#13667a 45%,#2a8f9e 70%,#f2b8a0 100%));
+  background-size:cover;background-position:center}
+.hero .wrap{position:relative;padding:72px 20px 120px}
+.tag{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
+  padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.06em}
+.hero h1{font-size:clamp(34px,6vw,62px);line-height:1.05;margin:18px 0 14px;letter-spacing:-.01em;max-width:14ch}
+.hero p.lead{font-size:clamp(17px,2.2vw,20px);max-width:56ch;opacity:.95;margin:0 0 28px}
+.hero .actions{display:flex;flex-wrap:wrap;gap:12px}
+.hero .actions .ghost{color:#fff}
+.waves{position:absolute;left:0;right:0;bottom:-1px;height:90px}
+.waves path{fill:var(--bg)}
+
+/* sections */
+section{padding:64px 0}
+.eyebrow{color:var(--pink-deep);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12.5px}
+h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-spacing:-.01em}
+.sub{color:var(--text-2);max-width:62ch;margin:0 0 28px}
+
+/* facts */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:26px 0}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.fact b{display:block;font-size:30px;line-height:1.1;color:var(--sea-2);margin-bottom:6px}
+:root[data-theme="dark"] .fact b{color:#7fd0dd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fact b{color:#7fd0dd}}
+.fact span{color:var(--text-2);font-size:14.5px}
+.story{display:grid;grid-template-columns:1fr;gap:28px}
+@media (min-width:860px){.story{grid-template-columns:1.15fr .85fr}}
+.story p{margin:0 0 14px;color:var(--text-2)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px;font-size:18px}
+.uses{list-style:none;margin:0;padding:0}
+.uses li{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.uses li:first-child{border-top:0}
+.uses .ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--pink-soft);display:flex;align-items:center;justify-content:center;font-size:17px}
+.uses b{display:block}
+.uses span{color:var(--text-2);font-size:14.5px}
+
+/* progress */
+.progress{margin-top:22px}
+.bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),#ffb199);border-radius:999px;transition:width 1.2s ease}
+.progress .nums{display:flex;justify-content:space-between;font-size:14px;color:var(--text-2);margin-top:8px}
+.progress .nums b{color:var(--text)}
+
+/* rewards */
+.band{background:var(--sand)}
+.grp{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-2);margin:30px 0 14px}
+.grp:first-of-type{margin-top:6px}
+.grpSub{color:var(--text-2);margin:-6px 0 16px;max-width:62ch}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px}
+.tier{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.tier.featured{border:2px solid var(--pink)}
+.tier .ribbon{position:absolute;top:-12px;inset-inline-start:20px;background:var(--pink);color:#fff;font-size:11.5px;
+  font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.tier .price{font-size:38px;font-weight:800;line-height:1;margin:6px 0 4px}
+.tier .price small{font-size:15px;font-weight:600;color:var(--text-3)}
+.tier h3{margin:0;font-size:18px}
+.tier ul{margin:14px 0 20px;padding:0;list-style:none;flex:1}
+.tier li{padding:5px 0 5px 24px;position:relative;color:var(--text-2);font-size:14.5px}
+[dir="rtl"] .tier li{padding:5px 24px 5px 0}
+.tier li::before{content:"✓";position:absolute;inset-inline-start:0;color:var(--good);font-weight:800}
+.tier .btn{width:100%}
+.custom{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--panel);
+  border:1px dashed var(--line);border-radius:var(--radius);padding:18px 20px}
+.custom p{margin:0;flex:1;min-width:220px;color:var(--text-2)}
+.custom label{display:flex;align-items:center;gap:6px;font-weight:700}
+.custom input{width:110px;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+.fine{font-size:13px;color:var(--text-3);margin-top:16px}
+
+/* lycra */
+.merch{margin-top:22px;display:grid;grid-template-columns:1fr;gap:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:820px){.merch{grid-template-columns:1.15fr 1fr}}
+.merch .pic{position:relative;background:#f3f0ee;min-height:220px;display:flex;align-items:center;justify-content:center}
+.merch .pic img{width:100%;height:100%;object-fit:contain;aspect-ratio:16/9;max-width:100%;background:#f3f0ee}
+.views{position:absolute;bottom:12px;inset-inline-start:12px;display:flex;flex-wrap:wrap;gap:6px}
+.merch .pic img.model{object-fit:cover;object-position:50% 12%;aspect-ratio:4/3}
+.aiNote{position:absolute;top:10px;inset-inline-end:10px;background:rgba(10,30,38,.6);color:#fff;font-size:11px;
+  font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:.02em}
+.views button{appearance:none;border:0;background:rgba(10,30,38,.72);color:#fff;font:inherit;font-size:12.5px;font-weight:700;
+  padding:6px 12px;border-radius:999px;cursor:pointer}
+.views button[aria-pressed="true"]{background:#fff;color:#0b3a47}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.2);vertical-align:-2px;margin-inline-end:6px}
+.merch .pic .ph{color:#fff;font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:13px;text-align:center;padding:20px;opacity:.9}
+.merch .body{padding:24px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.merch h3{margin:0;font-size:22px}
+.merch p{margin:0;color:var(--text-2)}
+.merch .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.merch .price{font-size:32px;font-weight:800}
+.merch .price small{font-size:15px;font-weight:600;color:var(--text-3)}
+.sizes,.colors{display:flex;flex-wrap:wrap;gap:6px}
+.sizes button,.colors button{appearance:none;min-width:44px;padding:8px 10px;border:1.5px solid var(--line);background:var(--bg);color:var(--text);
+  border-radius:10px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.sizes button[aria-pressed="true"],.colors button[aria-pressed="true"]{border-color:var(--pink);background:var(--pink-soft)}
+.sizes button:focus-visible,.btn:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+
+/* earthquake photos */
+.quake{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.quake figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.quake img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.quake .ph{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;
+  background:repeating-linear-gradient(135deg,var(--sand),var(--sand) 12px,var(--bg) 12px,var(--bg) 24px);color:var(--text-3);font-weight:700;font-size:14px}
+.quake figcaption{padding:12px 14px;font-size:14px;color:var(--text-2)}
+
+/* gallery */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.gallery .ig{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-height:420px}
+.gallery iframe{width:100%;height:560px;border:0;display:block;background:#fff}
+
+/* faq */
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:700}
+details p{color:var(--text-2);margin:10px 0 0}
+
+/* share + footer */
+.share{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+footer{background:var(--sea);color:#d9e8ec;padding:44px 0;font-size:14px}
+footer a{color:#fff}
+footer .cols{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+footer h4{color:#fff;margin:0 0 8px;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+footer ol{margin:0;padding-inline-start:18px}
+footer li{margin-bottom:4px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(5,15,20,.6);padding:16px}
+.modal.open{display:flex}
+.modal .box{background:var(--panel);color:var(--text);border-radius:18px;max-width:440px;width:100%;padding:24px;box-shadow:var(--shadow)}
+.modal h3{margin:0 0 6px}
+.modal p{color:var(--text-2);margin:0 0 16px}
+.modal .opts{display:grid;gap:10px}
+.modal .close{float:inline-end;appearance:none;border:0;background:transparent;color:var(--text-3);font-size:22px;cursor:pointer;line-height:1}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="mark"><img src="logo.png" alt="Shokogi"></div>
+    <div class="brand">Shokogi<small data-i18n="brandSub">Playa Venao · Panama</small></div>
+    <div class="spacer"></div>
+    <a class="btn small cta-sm" href="#rewards" data-i18n="ctaShort">Support</a>
+    <div class="langs" role="group" aria-label="Language">
+      <button data-lang="en">EN</button><button data-lang="es">ES</button><button data-lang="he">עב</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero" id="hero">
+  <div class="wrap">
+    <span class="tag" data-i18n="heroTag">9 October 2026 · Magnitude 7.7</span>
+    <h1 data-i18n="heroTitle">The ground shook. Venao stands back up.</h1>
+    <p class="lead" data-i18n="heroLead">The strongest earthquake to hit Panama since 1882 struck our coast. Shokogi has been teaching surf on this beach since 2009, and now we need your help to rebuild. Back the rebuild and get a surf lesson for when we reopen.</p>
+    <div class="actions">
+      <a class="btn" href="#rewards" data-i18n="heroCta">Back the rebuild</a>
+      <a class="btn ghost" href="#what" data-i18n="heroCta2">What happened</a>
+    </div>
+  </div>
+  <svg class="waves" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,50 C180,90 360,10 540,40 C720,70 900,90 1080,55 C1260,20 1350,40 1440,50 L1440,90 L0,90 Z"/>
+  </svg>
+</div>
+
+<section id="what">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="whatEyebrow">What happened</div>
+    <h2 data-i18n="whatTitle">A 7.7 earthquake, a few kilometres from our beach</h2>
+    <p class="sub" data-i18n="whatSub">On Friday 9 October 2026 a magnitude 7.7 earthquake struck southern Panama, followed by aftershocks of up to 6.6. The worst damage was in Veraguas, Herrera and Los Santos, the province Playa Venao is in.</p>
+    <div class="facts">
+      <div class="fact"><b>7.7</b><span data-i18n="f1">Magnitude (USGS), at a shallow depth of about 12.6 km</span></div>
+      <div class="fact"><b>1882</b><span data-i18n="f2">The last time Panama felt an earthquake this strong</span></div>
+      <div class="fact"><b>IX</b><span data-i18n="f3">Estimated peak intensity in Pedasí district, where Playa Venao is</span></div>
+      <div class="fact"><b>6.6</b><span data-i18n="f4">Strongest aftershocks, felt the same day</span></div>
+    </div>
+    <div class="story">
+      <div>
+        <p data-i18n="s1">In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.</p>
+        <p data-i18n="s2">In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.</p>
+        <p id="ourStory" data-i18n="s3">Playa Venao is our home. Our team, our neighbours and the beach where Shokogi has taught surfing since 2009 were all in the path of this earthquake.</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="usesTitle">Where your support goes</h3>
+        <ul class="uses">
+          <li><div class="ic">🏄</div><div><b data-i18n="u1t">Rebuild the school</b><span data-i18n="u1">Repair the base, boards and equipment so lessons can start again</span></div></li>
+          <li><div class="ic">🤝</div><div><b data-i18n="u2t">Our local team</b><span data-i18n="u2">Support the instructors and staff whose homes and income were hit</span></div></li>
+          <li><div class="ic">🌊</div><div><b data-i18n="u3t">The Venao community</b><span data-i18n="u3">Back the kids' surf programme and the neighbours around us</span></div></li>
+        </ul>
+        <div class="progress" id="progress" hidden>
+          <div class="bar"><i id="barFill"></i></div>
+          <div class="nums"><span><b id="raised"></b> <span data-i18n="raised">raised</span></span><span><span data-i18n="goal">goal</span> <b id="goal"></b></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="after" hidden>
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="qEyebrow">After the earthquake</div>
+    <h2 data-i18n="qTitle">Playa Venao, after 9 October</h2>
+    <p class="sub" data-i18n="qSub">Photos from our beach and the school, taken by our team in the days after the earthquake.</p>
+    <div class="quake" id="quake"></div>
+  </div>
+</section>
+
+<section class="band" id="rewards">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="rwEyebrow">Give and get</div>
+    <h2 data-i18n="rwTitle">Back the rebuild, then come surf with us</h2>
+    <p class="sub" data-i18n="rwSub">Every contribution comes with something back. Lessons are valid for 24 months from the day we reopen, and you can give them to someone else.</p>
+    <h3 class="grp" data-i18n="gSurf">Surf lessons</h3>
+    <div class="tiers" id="tiers"></div>
+    <h3 class="grp" data-i18n="gFoil">Foil sessions</h3>
+    <p class="grpSub" data-i18n="gFoilSub">Tow-in foil with our coach, on the same Venao waves. Your first flights or your next level.</p>
+    <div class="tiers" id="tiersFoil"></div>
+    <div class="custom">
+      <p data-i18n="customText">Want to give a different amount, or just give? Every dollar goes to the rebuild.</p>
+      <label>$ <input id="customAmt" type="number" min="5" step="5" value="50" inputmode="numeric" aria-label="Amount in US dollars"></label>
+      <button class="btn" id="customBtn" data-i18n="customBtn">Donate</button>
+    </div>
+    <div class="merch" id="merch" hidden>
+      <div class="pic" id="merchPic"></div>
+      <div class="body">
+        <div class="eyebrow" data-i18n="mEyebrow">Wear the rebuild</div>
+        <h3 data-i18n="mName">The Shokogi lycra</h3>
+        <p data-i18n="mDesc">Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Every lycra sold goes to the rebuild.</p>
+        <div class="row"><div class="price" id="merchPrice"></div></div>
+        <div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px" data-i18n="mColor">Colour</div>
+          <div class="colors" id="colors" role="group" aria-label="Colour"></div>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:6px" data-i18n="mSize">Size</div>
+          <div class="sizes" id="sizes" role="group" aria-label="Size"></div>
+        </div>
+        <p id="merchShip" style="font-size:14px"></p>
+        <div class="row"><button class="btn" id="merchBtn" data-i18n="mBuy">Buy the lycra</button></div>
+      </div>
+    </div>
+    <p class="fine" data-i18n="fine">Prices are in US dollars, the same as our regular lesson prices. Lessons are booked once the school reopens and are subject to sea conditions.</p>
+  </div>
+</section>
+
+<section id="venao">
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="galEyebrow">From our Instagram</div>
+    <h2 data-i18n="galTitle">This is the Venao we are rebuilding</h2>
+    <p class="sub" data-i18n="galSub">Retreats, kids' camps and mornings on the water. Follow @shokogi_venao for updates on the rebuild.</p>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<section class="band" id="faq">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h2 data-i18n="faqTitle">Questions</h2>
+    <details><summary data-i18n="q1">Who receives the money?</summary><p id="a1" data-i18n="a1">Shokogi, the surf school in Playa Venao, which runs this campaign and puts every contribution into the rebuild.</p></details>
+    <details><summary data-i18n="q2">When can I use my lesson?</summary><p data-i18n="a2">As soon as the school reopens. Lessons stay valid for 24 months from the reopening date, and we will announce the date on Instagram and by email.</p></details>
+    <details><summary data-i18n="q3">Can I give the lesson as a gift?</summary><p data-i18n="a3">Yes. Tell us the name of the person who will surf and we will put the lesson under their name.</p></details>
+    <details><summary data-i18n="q4">I can't donate. How else can I help?</summary><p data-i18n="a4">Share this page. Every share reaches someone who has surfed Venao and wants to see it back.</p></details>
+    <div class="share">
+      <a class="btn small" id="shareWa" target="_blank" rel="noopener" data-i18n="shareWa">Share on WhatsApp</a>
+      <button class="btn small ghost" id="copyLink" data-i18n="copy">Copy link</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <h4>Shokogi Surf School</h4>
+      <p data-i18n="footAbout">The OG surf school of Playa Venao, Los Santos, Panama. Est. 2009.</p>
+      <p id="contactLine"></p>
+    </div>
+    <div>
+      <h4 data-i18n="sources">Sources</h4>
+      <ol>
+        <li><a href="https://en.wikipedia.org/wiki/2026_Panama_earthquake" target="_blank" rel="noopener">2026 Panama earthquake (Wikipedia)</a></li>
+        <li><a href="https://www.opb.org/article/2026/10/09/a-magnitude-7-7-earthquake-shakes-panama-prompting-evacuations/" target="_blank" rel="noopener">AP via OPB, 9 Oct 2026</a></li>
+        <li><a href="https://www.prensa.com/economia/danos-en-hoteles-de-penonome-playa-venao-y-santiago-tras-el-terremoto/" target="_blank" rel="noopener">La Prensa: hotels in Playa Venao</a></li>
+        <li><a href="https://www.prensa.com/politica/un-dia-despues-del-terremoto-mariato-tonosi-y-pedasi-buscan-agua-refugio-y-vias-de-acceso/" target="_blank" rel="noopener">La Prensa: Mariato, Tonosí and Pedasí the day after</a></li>
+        <li><a href="https://www.mapadelterremoto.com/panama/distrito/pedasi" target="_blank" rel="noopener">Mapa del terremoto: Pedasí</a></li>
+      </ol>
+    </div>
+  </div>
+</footer>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="box">
+    <button class="close" id="mClose" aria-label="Close">×</button>
+    <h3 id="mTitle"></h3>
+    <p id="mText"></p>
+    <div class="opts" id="mOpts"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   CONFIG: the only part the school needs to edit.
+   ================================================================ */
+var CONFIG = {
+  // Who receives the money, exactly as it should appear to donors.
+  // If there is a registered foundation (fundación), put its legal name here.
+  recipient: "Shokogi Surf School, Playa Venao",
+
+  // Payment link per tier: a Stripe Payment Link, PayPal, Yappy, bank page...
+  // Leave "" and that button falls back to WhatsApp / email instead.
+  // "custom" is used for the free-amount donation.
+  payLinks: { supporter:"", lesson:"", course3:"", kid:"", course5:"", foil1:"", foil2:"", foil3:"", custom:"", lycra:"" },
+
+  // Contact. WhatsApp with country code, digits only, e.g. "5076XXXXXXX".
+  whatsapp: "",
+  email: "shokogipanama@gmail.com",
+  instagram: "shokogi_venao",
+
+  // Fundraising goal and amount raised so far, in USD.
+  // raised:null hides the progress bar; never put in a number that is not real.
+  goal: 50000,
+  raised: null,
+
+  // Optional: a photo for the top of the page (a file next to this one,
+  // e.g. "hero.jpg"). Empty keeps the drawn ocean gradient.
+  heroImage: "",
+
+  // The Shokogi lycra. price:null hides it. image: a file next to this page.
+  // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
+  lycra: {
+    price: 50, sizes: ["XS","S","M","L","XL"], delivery: "pickup",
+    colors: [
+      { id: "pink",  swatch: "#ff7fc4", front: "img/lycra-pink-front.jpg",  back: "img/lycra-pink-back.jpg",  model: "img/lycra-pink-model.jpg" },
+      { id: "black", swatch: "#1d1f24", front: "img/lycra-black-front.jpg", back: "img/lycra-black-back.jpg", model: "img/lycra-black-model.jpg" }
+    ]
+  },
+
+  // Photos from after the earthquake, as files next to this page:
+  // { src: "quake-1.jpg", caption: { en: "...", es: "...", he: "..." } }
+  // Empty hides the section.
+  quakePhotos: [],
+
+  // Preview only: draws placeholders where the school's photos and the
+  // lycra price will go. Must be false on the live page.
+  preview: false,
+
+  // The school's own posts shown in the gallery (the code from each post's link).
+  instagramPosts: ["Ddo9PIKlHiT","DagQo4olE-Z","CuuX2TIOgp1","DSycms4jDec","CqLdEjnuvfQ","Cozq2v3ujWP"]
+};
+
+/* Rewards. Lesson prices are the school's regular catalogue prices. */
+var TIERS = [
+  { id:"supporter", price:25,  featured:false },
+  { id:"lesson",    price:60,  featured:true  },
+  { id:"kid",       price:100, featured:false },
+  { id:"course3",   price:180, featured:false },
+  { id:"course5",   price:300, featured:false },
+  { id:"foil1",     price:150, featured:false, group:"foil" },
+  { id:"foil2",     price:300, featured:true,  group:"foil" },
+  { id:"foil3",     price:450, featured:false, group:"foil" }
+];
+
+var T = {
+en:{
+  brandSub:"Playa Venao · Panama", ctaShort:"Support",
+  heroTag:"9 October 2026 · Magnitude 7.7",
+  heroTitle:"The ground shook. Venao stands back up.",
+  heroLead:"The strongest earthquake to hit Panama since 1882 struck our coast. Shokogi has been teaching surf on this beach since 2009, and now we need your help to rebuild. Back the rebuild and get a surf lesson for when we reopen.",
+  heroCta:"Back the rebuild", heroCta2:"What happened",
+  whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake, a few kilometres from our beach",
+  whatSub:"On Friday 9 October 2026 a magnitude 7.7 earthquake struck southern Panama, followed by aftershocks of up to 6.6. The worst damage was in Veraguas, Herrera and Los Santos, the province Playa Venao is in.",
+  f1:"Magnitude (USGS), at a shallow depth of about 12.6 km", f2:"The last time Panama felt an earthquake this strong",
+  f3:"Estimated peak intensity in Pedasí district, where Playa Venao is", f4:"Strongest aftershocks, felt the same day",
+  s1:"In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.",
+  s2:"In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.",
+  s3:"Playa Venao is our home. Our team, our neighbours and the beach where Shokogi has taught surfing since 2009 were all in the path of this earthquake.",
+  usesTitle:"Where your support goes",
+  u1t:"Rebuild the school", u1:"Repair the base, boards and equipment so lessons can start again",
+  u2t:"Our local team", u2:"Support the instructors and staff whose homes and income were hit",
+  u3t:"The Venao community", u3:"Back the kids' surf programme and the neighbours around us",
+  raised:"raised", goal:"goal",
+  rwEyebrow:"Give and get", rwTitle:"Back the rebuild, then come surf with us",
+  rwSub:"Every contribution comes with something back. Lessons are valid for 24 months from the day we reopen, and you can give them to someone else.",
+  customText:"Want to give a different amount, or just give? Every dollar goes to the rebuild.", customBtn:"Donate",
+  fine:"Prices are in US dollars, the same as our regular lesson prices. Lessons are booked once the school reopens and are subject to sea conditions.",
+  galEyebrow:"From our Instagram", galTitle:"This is the Venao we are rebuilding",
+  galSub:"Retreats, kids' camps and mornings on the water. Follow @shokogi_venao for updates on the rebuild.",
+  faqTitle:"Questions",
+  q1:"Who receives the money?", a1:"{recipient}, which runs this campaign and puts every contribution into the rebuild.",
+  q2:"When can I use my lesson?", a2:"As soon as the school reopens. Lessons stay valid for 24 months from the reopening date, and we will announce the date on Instagram and by email.",
+  q3:"Can I give the lesson as a gift?", a3:"Yes. Tell us the name of the person who will surf and we will put the lesson under their name.",
+  q4:"I can't donate. How else can I help?", a4:"Share this page. Every share reaches someone who has surfed Venao and wants to see it back.",
+  shareWa:"Share on WhatsApp", copy:"Copy link", copied:"Link copied",
+  footAbout:"The OG surf school of Playa Venao, Los Santos, Panama. Est. 2009.", sources:"Sources",
+  choose:"Choose", popular:"Our pick",
+  t_supporter:"Venao Supporter", t_lesson:"One surf lesson", t_kid:"Sponsor a local kid", t_course3:"3-lesson course", t_course5:"5-lesson course",
+  b_supporter:["A personal thank-you from the team","Your name on our wall of supporters","Rebuild updates from the beach"],
+  b_lesson:["A 1-hour surf lesson when we reopen","Transferable: give it as a gift","Your name on our wall of supporters"],
+  b_kid:["5 sessions of our kids' surf programme for a Venao child","A photo and update from the water","Your name on our wall of supporters"],
+  b_course3:["3 surf lessons when we reopen","Transferable: give it as a gift","Your name on our wall of supporters"],
+  b_course5:["5 surf lessons when we reopen","Transferable: give it as a gift","A video analysis session","Your name on our wall of supporters"],
+  mTitle:"Thank you", mText:"You chose: {item}. Send us a message and we will reply with how to pay and confirm it.",
+  viaWa:"Message us on WhatsApp", viaMail:"Send an email", viaIg:"Message us on Instagram",
+  msg:"Hi Shokogi! I want to back the Venao rebuild: {item}{price}. My name is ",
+  qEyebrow:"After the earthquake", qTitle:"Playa Venao, after 9 October",
+  qSub:"Photos from our beach and the school, taken by our team in the days after the earthquake.",
+  qPh:"Your photo from after the earthquake goes here",
+  mEyebrow:"Wear the rebuild", mName:"The Shokogi lycra",
+  mDesc:"Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Every lycra sold goes to the rebuild.",
+  mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model", aiNote:"AI illustration",
+  mSize:"Size", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
+  mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school, or we ship it to you (shipping quoted separately).",
+  mItem:"the Shokogi lycra, {color}, size {size}", mPricePh:"Price to be set",
+  gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Tow-in foil with our coach, on the same Venao waves. Your first flights or your next level.",
+  t_foil1:"Foil tow-in, 1 hour", t_foil2:"Foil tow-in, 2 hours", t_foil3:"Foil tow-in, 3 hours",
+  b_foil1:["A 1-hour tow-in foil session with our coach when we reopen","Transferable: give it as a gift"],
+  b_foil2:["A 2-hour tow-in foil session with our coach when we reopen","Transferable: give it as a gift","Your name on our wall of supporters"],
+  b_foil3:["2 hours plus an extra hour of tow-in foil when we reopen","Transferable: give it as a gift","Your name on our wall of supporters"],
+  customItem:"a donation", contact:"Contact"
+},
+es:{
+  brandSub:"Playa Venao · Panamá", ctaShort:"Apoyar",
+  heroTag:"9 de octubre de 2026 · Magnitud 7.7",
+  heroTitle:"La tierra tembló. Venao se levanta.",
+  heroLead:"El terremoto más fuerte en Panamá desde 1882 golpeó nuestra costa. Shokogi enseña surf en esta playa desde 2009 y hoy necesitamos tu ayuda para reconstruir. Apoya la reconstrucción y recibe una clase de surf para cuando reabramos.",
+  heroCta:"Apoya la reconstrucción", heroCta2:"Qué pasó",
+  whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 a pocos kilómetros de nuestra playa",
+  whatSub:"El viernes 9 de octubre de 2026 un terremoto de magnitud 7.7 sacudió el sur de Panamá, seguido de réplicas de hasta 6.6. Los peores daños se registraron en Veraguas, Herrera y Los Santos, la provincia de Playa Venao.",
+  f1:"Magnitud (USGS), a una profundidad de unos 12.6 km", f2:"La última vez que Panamá sintió un terremoto tan fuerte",
+  f3:"Intensidad máxima estimada en el distrito de Pedasí, donde está Playa Venao", f4:"Las réplicas más fuertes, el mismo día",
+  s1:"En Playa Venao, edificios de hoteles y hostales de varios pisos colapsaron o sufrieron daños graves. La Autoridad de Turismo (ATP) incluye establecimientos de Venao entre los que esperan evaluación estructural.",
+  s2:"En el distrito de Pedasí hubo familias que pasaron la noche en parques y centros deportivos, sin atreverse a volver a sus casas. El puente sobre el río Oria se cerró por daños estructurales, y distritos vecinos quedaron sin agua ni electricidad.",
+  s3:"Playa Venao es nuestro hogar. Nuestro equipo, nuestros vecinos y la playa donde Shokogi enseña surf desde 2009 estuvieron en el camino de este terremoto.",
+  usesTitle:"A dónde va tu apoyo",
+  u1t:"Reconstruir la escuela", u1:"Reparar la base, las tablas y el equipo para volver a dar clases",
+  u2t:"Nuestro equipo local", u2:"Apoyar a instructores y personal cuyas casas e ingresos fueron afectados",
+  u3t:"La comunidad de Venao", u3:"Sostener el programa de surf para niños y a los vecinos que nos rodean",
+  raised:"recaudado", goal:"meta",
+  rwEyebrow:"Da y recibe", rwTitle:"Apoya la reconstrucción y ven a surfear con nosotros",
+  rwSub:"Cada aporte trae algo de vuelta. Las clases son válidas por 24 meses desde la reapertura y puedes regalarlas.",
+  customText:"¿Quieres aportar otro monto o simplemente donar? Cada dólar va a la reconstrucción.", customBtn:"Donar",
+  fine:"Precios en dólares estadounidenses, iguales a nuestros precios regulares. Las clases se reservan al reabrir la escuela y dependen de las condiciones del mar.",
+  galEyebrow:"De nuestro Instagram", galTitle:"Este es el Venao que estamos reconstruyendo",
+  galSub:"Retiros, campamentos de niños y mañanas en el agua. Sigue a @shokogi_venao para ver cómo avanza la reconstrucción.",
+  faqTitle:"Preguntas",
+  q1:"¿Quién recibe el dinero?", a1:"{recipient}, que organiza esta campaña y destina cada aporte a la reconstrucción.",
+  q2:"¿Cuándo puedo usar mi clase?", a2:"En cuanto reabra la escuela. Las clases son válidas por 24 meses desde la reapertura; anunciaremos la fecha en Instagram y por correo.",
+  q3:"¿Puedo regalar la clase?", a3:"Sí. Dinos el nombre de quien va a surfear y dejamos la clase a su nombre.",
+  q4:"No puedo donar. ¿Cómo más puedo ayudar?", a4:"Comparte esta página. Cada vez que la compartes llega a alguien que surfeó en Venao y quiere verlo de pie otra vez.",
+  shareWa:"Compartir en WhatsApp", copy:"Copiar enlace", copied:"Enlace copiado",
+  footAbout:"La escuela de surf original de Playa Venao, Los Santos, Panamá. Desde 2009.", sources:"Fuentes",
+  choose:"Elegir", popular:"Recomendado",
+  t_supporter:"Amigo de Venao", t_lesson:"Una clase de surf", t_kid:"Apadrina a un niño local", t_course3:"Curso de 3 clases", t_course5:"Curso de 5 clases",
+  b_supporter:["Un agradecimiento personal del equipo","Tu nombre en nuestro muro de apoyo","Novedades de la reconstrucción"],
+  b_lesson:["Una clase de surf de 1 hora al reabrir","Transferible: puedes regalarla","Tu nombre en nuestro muro de apoyo"],
+  b_kid:["5 sesiones del programa de surf para un niño de Venao","Una foto y novedades desde el agua","Tu nombre en nuestro muro de apoyo"],
+  b_course3:["3 clases de surf al reabrir","Transferible: puedes regalarla","Tu nombre en nuestro muro de apoyo"],
+  b_course5:["5 clases de surf al reabrir","Transferible: puedes regalarla","Una sesión de análisis de video","Tu nombre en nuestro muro de apoyo"],
+  mTitle:"Gracias", mText:"Elegiste: {item}. Escríbenos y te respondemos cómo pagar y confirmarlo.",
+  viaWa:"Escríbenos por WhatsApp", viaMail:"Enviar un correo", viaIg:"Escríbenos por Instagram",
+  msg:"¡Hola Shokogi! Quiero apoyar la reconstrucción de Venao: {item}{price}. Mi nombre es ",
+  qEyebrow:"Después del terremoto", qTitle:"Playa Venao, después del 9 de octubre",
+  qSub:"Fotos de nuestra playa y de la escuela, tomadas por nuestro equipo en los días posteriores al terremoto.",
+  qPh:"Aquí va tu foto de después del terremoto",
+  mEyebrow:"Viste la reconstrucción", mName:"La licra Shokogi",
+  mDesc:"Nuestra propia licra de surf de manga larga, con SHOKOGI · Playa Venao · Est. 2009 al frente y nuestro escudo en la espalda. Cada licra vendida va a la reconstrucción.",
+  mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta", aiNote:"Ilustración con IA",
+  mSize:"Talla", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
+  mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela o te la enviamos (el envío se cotiza aparte).",
+  mItem:"la licra Shokogi, {color}, talla {size}", mPricePh:"Precio por definir",
+  gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil con remolque y nuestro coach, en las mismas olas de Venao. Tus primeros vuelos o tu siguiente nivel.",
+  t_foil1:"Foil con remolque, 1 hora", t_foil2:"Foil con remolque, 2 horas", t_foil3:"Foil con remolque, 3 horas",
+  b_foil1:["Una sesión de foil con remolque de 1 hora con nuestro coach al reabrir","Transferible: puedes regalarla"],
+  b_foil2:["Una sesión de foil con remolque de 2 horas con nuestro coach al reabrir","Transferible: puedes regalarla","Tu nombre en nuestro muro de apoyo"],
+  b_foil3:["2 horas más una hora extra de foil con remolque al reabrir","Transferible: puedes regalarla","Tu nombre en nuestro muro de apoyo"],
+  customItem:"donación", contact:"Contacto"
+},
+he:{
+  brandSub:"פלאיה ונאו · פנמה", ctaShort:"לתמיכה",
+  heroTag:"9 באוקטובר 2026 · עוצמה 7.7",
+  heroTitle:"האדמה רעדה. ונאו קמה מחדש.",
+  heroLead:"רעידת האדמה החזקה ביותר בפנמה מאז 1882 פגעה בחוף שלנו. שוקוגי מלמדת גלישה בחוף הזה מאז 2009, ועכשיו אנחנו צריכים את העזרה שלכם כדי לבנות מחדש. תמכו בשיקום וקבלו שיעור גלישה לכשנחזור לפעול.",
+  heroCta:"לתמיכה בשיקום", heroCta2:"מה קרה",
+  whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7, קילומטרים ספורים מהחוף שלנו",
+  whatSub:"ביום שישי, 9 באוקטובר 2026, פגעה רעידת אדמה בעוצמה 7.7 בדרום פנמה, ואחריה רעידות משנה של עד 6.6. הנזק הכבד ביותר נרשם במחוזות ורגואס, הררה ולוס סנטוס, המחוז שבו נמצאת פלאיה ונאו.",
+  f1:"עוצמה (USGS), בעומק רדוד של כ־12.6 ק\"מ", f2:"הפעם האחרונה שפנמה הרגישה רעידה חזקה כזו",
+  f3:"עוצמת הטלטלה המרבית המוערכת במחוז פדאסי, שבו נמצאת פלאיה ונאו", f4:"רעידות המשנה החזקות ביותר, באותו היום",
+  s1:"בפלאיה ונאו קרסו או ניזוקו קשות בנייני מלונות והוסטלים רבי קומות. רשות התיירות של פנמה (ATP) מונה עסקים בוונאו בין אלה שממתינים לבדיקה הנדסית.",
+  s2:"במחוז פדאסי משפחות העבירו את הלילה בפארקים ובמתקני ספורט, בלי להעז לחזור הביתה. הגשר על נהר אוריה נסגר בגלל נזק מבני, וביישובים השכנים לא היו מים וחשמל.",
+  s3:"פלאיה ונאו היא הבית שלנו. הצוות שלנו, השכנים שלנו והחוף שבו שוקוגי מלמדת גלישה מאז 2009 היו כולם בדרכה של הרעידה הזו.",
+  usesTitle:"לאן הולכת התמיכה שלכם",
+  u1t:"לשקם את בית הספר", u1:"לתקן את הבסיס, הגלשנים והציוד כדי לחזור ללמד",
+  u2t:"הצוות המקומי שלנו", u2:"לתמוך במדריכים ובעובדים שבתיהם ופרנסתם נפגעו",
+  u3t:"הקהילה בוונאו", u3:"לתמוך בתוכנית הגלישה לילדים ובשכנים סביבנו",
+  raised:"גויסו", goal:"יעד",
+  rwEyebrow:"נותנים ומקבלים", rwTitle:"תמכו בשיקום, ובואו לגלוש איתנו",
+  rwSub:"על כל תרומה מקבלים משהו בחזרה. השיעורים בתוקף ל־24 חודשים מיום הפתיחה מחדש, ואפשר להעביר אותם במתנה.",
+  customText:"רוצים לתרום סכום אחר, או פשוט לתרום? כל דולר הולך לשיקום.", customBtn:"לתרומה",
+  fine:"המחירים בדולר אמריקאי, זהים למחירון הרגיל שלנו. את השיעורים קובעים אחרי שבית הספר נפתח מחדש, בכפוף לתנאי הים.",
+  galEyebrow:"מהאינסטגרם שלנו", galTitle:"זו ונאו שאנחנו בונים מחדש",
+  galSub:"ריטריטים, מחנות לילדים ובקרים על המים. עקבו אחרי ‎@shokogi_venao לעדכונים על השיקום.",
+  faqTitle:"שאלות",
+  q1:"מי מקבל את הכסף?", a1:"{recipient}, שמפעילים את הקמפיין ומשקיעים כל תרומה בשיקום.",
+  q2:"מתי אפשר לממש את השיעור?", a2:"ברגע שבית הספר נפתח מחדש. השיעורים בתוקף ל־24 חודשים ממועד הפתיחה, ונודיע על התאריך באינסטגרם ובמייל.",
+  q3:"אפשר לתת את השיעור במתנה?", a3:"כן. ספרו לנו מי יגלוש ונרשום את השיעור על שמו.",
+  q4:"אני לא יכול לתרום. איך עוד אפשר לעזור?", a4:"שתפו את הדף. כל שיתוף מגיע למישהו שגלש בוונאו ורוצה לראות אותה עומדת שוב.",
+  shareWa:"שיתוף בוואטסאפ", copy:"העתקת קישור", copied:"הקישור הועתק",
+  footAbout:"בית ספר הגלישה הוותיק של פלאיה ונאו, לוס סנטוס, פנמה. מאז 2009.", sources:"מקורות",
+  choose:"בחירה", popular:"ההמלצה שלנו",
+  t_supporter:"חברי ונאו", t_lesson:"שיעור גלישה", t_kid:"אמצו ילד מקומי", t_course3:"קורס 3 שיעורים", t_course5:"קורס 5 שיעורים",
+  b_supporter:["תודה אישית מהצוות","השם שלכם על קיר התומכים","עדכונים מהחוף על השיקום"],
+  b_lesson:["שיעור גלישה של שעה כשנחזור לפעול","ניתן להעביר במתנה","השם שלכם על קיר התומכים"],
+  b_kid:["5 מפגשים בתוכנית הגלישה לילד מוונאו","תמונה ועדכון מהמים","השם שלכם על קיר התומכים"],
+  b_course3:["3 שיעורי גלישה כשנחזור לפעול","ניתן להעביר במתנה","השם שלכם על קיר התומכים"],
+  b_course5:["5 שיעורי גלישה כשנחזור לפעול","ניתן להעביר במתנה","מפגש ניתוח וידאו","השם שלכם על קיר התומכים"],
+  mTitle:"תודה", mText:"בחרתם: {item}. שלחו לנו הודעה ונחזור אליכם עם פרטי התשלום והאישור.",
+  viaWa:"הודעה בוואטסאפ", viaMail:"שליחת מייל", viaIg:"הודעה באינסטגרם",
+  msg:"היי שוקוגי! אני רוצה לתמוך בשיקום ונאו: {item}{price}. השם שלי: ",
+  qEyebrow:"אחרי הרעידה", qTitle:"פלאיה ונאו, אחרי ה־9 באוקטובר",
+  qSub:"תמונות מהחוף ומבית הספר, שצילם הצוות שלנו בימים שאחרי רעידת האדמה.",
+  qPh:"כאן תיכנס תמונה שלכם מאחרי הרעידה",
+  mEyebrow:"לובשים את השיקום", mName:"הלייקרה של שוקוגי",
+  mDesc:"לייקרת הגלישה שלנו עם שרוול ארוך, עם הלוגו של שוקוגי מלפנים והסמל שלנו על הגב. כל לייקרה שנמכרת הולכת לשיקום.",
+  mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן", aiNote:"הדמיה (AI)",
+  mSize:"מידה", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
+  mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר או משלוח עד אליכם (עלות המשלוח בנפרד).",
+  mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mPricePh:"המחיר ייקבע",
+  gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירה (Tow-in) עם המאמן שלנו, על אותם גלים של ונאו. הטיסות הראשונות שלכם או השלב הבא.",
+  t_foil1:"פויל בגרירה, שעה", t_foil2:"פויל בגרירה, שעתיים", t_foil3:"פויל בגרירה, 3 שעות",
+  b_foil1:["סשן פויל בגרירה של שעה עם המאמן שלנו כשנחזור לפעול","ניתן להעביר במתנה"],
+  b_foil2:["סשן פויל בגרירה של שעתיים עם המאמן שלנו כשנחזור לפעול","ניתן להעביר במתנה","השם שלכם על קיר התומכים"],
+  b_foil3:["שעתיים ועוד שעה נוספת של פויל בגרירה כשנחזור לפעול","ניתן להעביר במתנה","השם שלכם על קיר התומכים"],
+  customItem:"תרומה", contact:"יצירת קשר"
+}};
+
+var lang = "en";
+function t(k){ return (T[lang] && T[lang][k] !== undefined) ? T[lang][k] : T.en[k]; }
+function fmt(s, o){ return String(s).replace(/\{(\w+)\}/g, function(_, k){ return o[k] !== undefined ? o[k] : ""; }); }
+function money(n){ return "$" + Number(n).toLocaleString("en-US"); }
+
+function setLang(l){
+  lang = T[l] ? l : "en";
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    var v = t(el.getAttribute("data-i18n"));
+    if (typeof v === "string") el.textContent = fmt(v, {recipient: CONFIG.recipient});
+  });
+  document.querySelectorAll(".langs button").forEach(function(b){
+    b.setAttribute("aria-pressed", b.dataset.lang === lang ? "true" : "false");
+  });
+  renderTiers();
+  renderContact();
+  renderMerch();
+  renderQuake();
+  try { localStorage.setItem("venao-lang", lang); } catch(e) {}
+}
+
+function renderTiers(){
+  var boxes = {surf: document.getElementById("tiers"), foil: document.getElementById("tiersFoil")};
+  boxes.surf.innerHTML = ""; boxes.foil.innerHTML = "";
+  TIERS.forEach(function(tier){
+    var el = document.createElement("div");
+    el.className = "tier" + (tier.featured ? " featured" : "");
+    var html = "";
+    if (tier.featured) html += '<span class="ribbon">' + t("popular") + "</span>";
+    html += "<h3>" + t("t_" + tier.id) + "</h3>";
+    html += '<div class="price">' + money(tier.price) + " <small>USD</small></div><ul>";
+    t("b_" + tier.id).forEach(function(b){ html += "<li>" + b + "</li>"; });
+    html += '</ul><button class="btn">' + t("choose") + "</button>";
+    el.innerHTML = html;
+    el.querySelector("button").addEventListener("click", function(){
+      pay(tier.id, t("t_" + tier.id), tier.price);
+    });
+    boxes[tier.group || "surf"].appendChild(el);
+  });
+}
+
+function pay(id, item, price){
+  var link = CONFIG.payLinks[id];
+  if (link) { window.open(link, "_blank", "noopener"); return; }
+  var text = fmt(t("msg"), {item:item, price: typeof price === "number" ? " ($" + price + ")" : ""});
+  document.getElementById("mTitle").textContent = t("mTitle");
+  document.getElementById("mText").textContent = fmt(t("mText"), {item:item});
+  var opts = document.getElementById("mOpts");
+  opts.innerHTML = "";
+  function add(label, href, ghost){
+    var a = document.createElement("a");
+    a.className = "btn" + (ghost ? " ghost" : "");
+    a.href = href; a.target = "_blank"; a.rel = "noopener"; a.textContent = label;
+    opts.appendChild(a);
+  }
+  if (CONFIG.whatsapp) add(t("viaWa"), "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(text));
+  if (CONFIG.email) add(t("viaMail"), "mailto:" + CONFIG.email + "?subject=" + encodeURIComponent("Rebuild Venao: " + item) + "&body=" + encodeURIComponent(text), !!CONFIG.whatsapp);
+  if (CONFIG.instagram) add(t("viaIg"), "https://ig.me/m/" + CONFIG.instagram, true);
+  document.getElementById("modal").classList.add("open");
+}
+
+var lycraSize = "", lycraColor = "", lycraView = "model";
+function renderMerch(){
+  var L = CONFIG.lycra;
+  var show = L && (typeof L.price === "number" || CONFIG.preview);
+  document.getElementById("merch").hidden = !show;
+  if (!show) return;
+  var colors = L.colors || [];
+  if (!lycraColor && colors.length) lycraColor = colors[0].id;
+  var cur = colors.filter(function(c){ return c.id === lycraColor; })[0];
+  var pic = document.getElementById("merchPic");
+  if (cur) {
+    var views = ["model","front","back"].filter(function(v){ return cur[v]; });
+    if (views.indexOf(lycraView) < 0) lycraView = views[0];
+    var vName = {model:"vModel", front:"vFront", back:"vBack"};
+    pic.innerHTML = '<img alt=""><div class="views"></div>' + (lycraView === "model" ? '<span class="aiNote"></span>' : "");
+    var img = pic.querySelector("img");
+    img.src = cur[lycraView];
+    img.className = lycraView === "model" ? "model" : "";
+    img.alt = t("mName") + ", " + t("c_" + cur.id) + ", " + t(vName[lycraView]);
+    if (lycraView === "model") pic.querySelector(".aiNote").textContent = t("aiNote");
+    views.forEach(function(v){
+      var b = document.createElement("button");
+      b.type = "button"; b.dataset.v = v;
+      pic.querySelector(".views").appendChild(b);
+    });
+    pic.querySelectorAll(".views button").forEach(function(b){
+      b.textContent = t(vName[b.dataset.v]);
+      b.setAttribute("aria-pressed", b.dataset.v === lycraView ? "true" : "false");
+      b.addEventListener("click", function(){ lycraView = b.dataset.v; renderMerch(); });
+    });
+  } else {
+    pic.innerHTML = '<div class="ph">SHOKOGI<br>' + t("mPh") + "</div>";
+  }
+  var cbox = document.getElementById("colors");
+  cbox.innerHTML = "";
+  colors.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = '<span class="swatch"></span>';
+    b.firstChild.style.background = c.swatch;
+    b.appendChild(document.createTextNode(t("c_" + c.id)));
+    b.setAttribute("aria-pressed", c.id === lycraColor ? "true" : "false");
+    b.addEventListener("click", function(){ lycraColor = c.id; renderMerch(); });
+    cbox.appendChild(b);
+  });
+  document.getElementById("merchPrice").innerHTML = typeof L.price === "number"
+    ? money(L.price) + " <small>USD</small>" : '<small>' + t("mPricePh") + "</small>";
+  var box = document.getElementById("sizes");
+  box.innerHTML = "";
+  L.sizes.forEach(function(sz){
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = sz;
+    b.setAttribute("aria-pressed", sz === lycraSize ? "true" : "false");
+    b.addEventListener("click", function(){ lycraSize = sz; renderMerch(); });
+    box.appendChild(b);
+  });
+  document.getElementById("merchShip").textContent =
+    t(L.delivery === "ship" ? "mShip" : L.delivery === "both" ? "mBoth" : "mPickup");
+}
+
+function renderQuake(){
+  var list = CONFIG.quakePhotos || [];
+  var sec = document.getElementById("after");
+  var box = document.getElementById("quake");
+  box.innerHTML = "";
+  if (!list.length && !CONFIG.preview) { sec.hidden = true; return; }
+  sec.hidden = false;
+  (list.length ? list : [null, null, null]).forEach(function(ph){
+    var f = document.createElement("figure");
+    if (ph) {
+      var cap = ph.caption ? (ph.caption[lang] || ph.caption.en || "") : "";
+      f.innerHTML = '<img loading="lazy" src="' + ph.src + '" alt="">' + (cap ? "<figcaption></figcaption>" : "");
+      f.querySelector("img").alt = cap;
+      if (cap) f.querySelector("figcaption").textContent = cap;
+    } else {
+      f.innerHTML = '<div class="ph">' + t("qPh") + "</div>";
+    }
+    box.appendChild(f);
+  });
+}
+
+function toast(msg){
+  var el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  setTimeout(function(){ el.classList.remove("show"); }, 1600);
+}
+
+function renderContact(){
+  var parts = [];
+  if (CONFIG.email) parts.push('<a href="mailto:' + CONFIG.email + '">' + CONFIG.email + "</a>");
+  if (CONFIG.instagram) parts.push('<a href="https://instagram.com/' + CONFIG.instagram + '" target="_blank" rel="noopener">@' + CONFIG.instagram + "</a>");
+  if (CONFIG.whatsapp) parts.push('<a href="https://wa.me/' + CONFIG.whatsapp + '" target="_blank" rel="noopener">WhatsApp</a>');
+  document.getElementById("contactLine").innerHTML = parts.join(" · ");
+}
+
+function init(){
+  if (CONFIG.heroImage) document.getElementById("hero").style.setProperty("--hero-img", 'url("' + CONFIG.heroImage + '")');
+
+  if (typeof CONFIG.raised === "number" && CONFIG.goal) {
+    document.getElementById("progress").hidden = false;
+    document.getElementById("raised").textContent = money(CONFIG.raised);
+    document.getElementById("goal").textContent = money(CONFIG.goal);
+    requestAnimationFrame(function(){
+      document.getElementById("barFill").style.width = Math.min(100, CONFIG.raised / CONFIG.goal * 100) + "%";
+    });
+  }
+
+  var g = document.getElementById("gallery");
+  CONFIG.instagramPosts.forEach(function(code){
+    var d = document.createElement("div");
+    d.className = "ig";
+    d.innerHTML = '<iframe loading="lazy" title="Instagram post" src="https://www.instagram.com/p/' + code + '/embed/"></iframe>';
+    g.appendChild(d);
+  });
+
+  document.querySelectorAll(".langs button").forEach(function(b){
+    b.addEventListener("click", function(){ setLang(b.dataset.lang); });
+  });
+  document.getElementById("merchBtn").addEventListener("click", function(){
+    if (!lycraSize) { toast(t("mPickSize")); return; }
+    pay("lycra", fmt(t("mItem"), {size: lycraSize, color: t("c_" + lycraColor)}), CONFIG.lycra.price);
+  });
+  document.getElementById("customBtn").addEventListener("click", function(){
+    var n = Math.max(5, Math.round(Number(document.getElementById("customAmt").value) || 0));
+    pay("custom", t("customItem"), n);
+  });
+  var modal = document.getElementById("modal");
+  document.getElementById("mClose").addEventListener("click", function(){ modal.classList.remove("open"); });
+  modal.addEventListener("click", function(e){ if (e.target === modal) modal.classList.remove("open"); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") modal.classList.remove("open"); });
+
+  var url = location.href.split("#")[0];
+  document.getElementById("shareWa").href = "https://wa.me/?text=" + encodeURIComponent("Rebuild Venao · Shokogi " + url);
+  document.getElementById("copyLink").addEventListener("click", function(){
+    var done = function(){ toast(t("copied")); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, done); else done();
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem("venao-lang"); } catch(e) {}
+  var q = new URLSearchParams(location.search).get("lang");
+  var nav = (navigator.language || "en").slice(0, 2);
+  setLang(q || saved || (T[nav] ? nav : "en"));
+}
+init();
+</script>
+</body>
+</html>

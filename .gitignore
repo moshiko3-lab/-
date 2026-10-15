@@ -6,6 +6,7 @@ __pycache__/
 app/index.html
 app/booking.html
 index.html
+!relief/index.html
 booking.html
 
 # never commit credentials
