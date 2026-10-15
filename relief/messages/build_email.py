@@ -22,11 +22,11 @@ C = {
   title="Venao is still here.",
   p1="On 9 October a 7.7 earthquake hit Panama's Azuero coast, a few kilometres from our beach. It hit all of Venao, us included. The good news: the waves are as good as ever, and Venao is recovering.",
   open="We hope and expect to soft-open in early November, with the full opening in early to mid December.",
-  p2="Until then, you can help Shokogi through this season, and surf it when you come:",
+  p2="Until then, you can help Shokogi through this season, and surf it when you come. Everything is on one page:",
   items=[("Surf lesson · valid 24 months", "$60"), ("3-lesson course · valid 24 months", "$180"), ("Support & treat a local kid: 5 surf sessions · valid 24 months", "$150"),
          ("Foil session, 3 hours, jet-ski tow-in · valid 24 months", "$450"), ("The Shokogi lycra · kids", "$50 · $40")],
   note="Lessons and sessions are valid for 24 months from purchase, and you can give them as a gift. Lycras are shipped or collected at the school.",
-  cta="Keep Venao Surfing",
+  cta="See how you can help",
   share="Can't buy right now? Forwarding this email or sharing the page helps too.",
   sign="See you in the water,", team="Shokogi Surf School · Playa Venao, since 2009", lang="en", dir="ltr"),
 "es": dict(
@@ -36,11 +36,11 @@ C = {
   title="Venao sigue aquí.",
   p1="El 9 de octubre un terremoto de 7.7 sacudió la costa de Azuero, a pocos kilómetros de nuestra playa. Golpeó a todo Venao, también a nosotros. La buena noticia: las olas siguen tan buenas como siempre y Venao se está recuperando.",
   open="Esperamos una apertura suave a principios de noviembre y la apertura completa entre principios y mediados de diciembre.",
-  p2="Mientras tanto, puedes ayudar a Shokogi a pasar esta temporada y surfear cuando vengas:",
+  p2="Mientras tanto, puedes ayudar a Shokogi a pasar esta temporada y surfear cuando vengas. Todo está en una página:",
   items=[("Clase de surf", "$60"), ("Curso de 3 clases", "$180"), ("Apoya y consiente a un niño local: 5 sesiones de surf", "$150"),
          ("Sesión de foil, 3 horas, con remolque de moto de agua", "$450"), ("La licra Shokogi · niños", "$50 · $40")],
   note="Las clases y sesiones son válidas por 24 meses desde la compra y puedes regalarlas.",
-  cta="Keep Venao Surfing",
+  cta="Mira cómo ayudar",
   share="¿No puedes comprar ahora? Reenviar este correo o compartir la página también ayuda.",
   sign="Nos vemos en el agua,", team="Shokogi Surf School · Playa Venao, desde 2009", lang="es", dir="ltr"),
 "he": dict(
@@ -50,11 +50,11 @@ C = {
   title="ונאו עדיין כאן.",
   p1="ב-9 באוקטובר רעידת אדמה בעוצמה 7.7 פגעה בחוף אסוארו בפנמה, כמה קילומטרים מהחוף שלנו. היא פגעה בכל ונאו, גם בנו. החדשות הטובות: הגלים טובים כמו תמיד, וונאו מתאוששת.",
   open="אנחנו מקווים ומצפים לפתיחה רכה בתחילת נובמבר, ולפתיחה מלאה בתחילת עד אמצע דצמבר.",
-  p2="עד אז, אפשר לעזור לשוקוגי לעבור את התקופה הזאת, ולגלוש מתי שתגיעו:",
+  p2="עד אז, אפשר לעזור לשוקוגי לעבור את התקופה הזאת, ולגלוש מתי שתגיעו. הכל בדף אחד:",
   items=[("שיעור גלישה", "$60"), ("קורס של 3 שיעורים", "$180"), ("לתמוך ולפנק ילד מקומי: 5 מפגשי גלישה", "$150"),
          ("סשן פויל של 3 שעות בגרירת אופנוע ים", "$450"), ("הלייקרה של שוקוגי · ילדים", "$50 · $40")],
   note="השיעורים והסשנים בתוקף 24 חודשים מיום הרכישה, ואפשר לתת אותם במתנה.",
-  cta="Keep Venao Surfing",
+  cta="איך אפשר לעזור",
   share="לא מתאים לקנות עכשיו? גם העברה של המייל הזה או שיתוף של הדף עוזרים.",
   sign="נתראה במים,", team="בית הספר לגלישה שוקוגי · פלאיה ונאו, מאז 2009", lang="he", dir="rtl"),
 }
@@ -66,13 +66,13 @@ def build(c):
     al = "right" if c["dir"] == "rtl" else "left"
     font = "Helvetica,Arial,sans-serif"
     head = "'Barlow Condensed','Arial Narrow',Helvetica,Arial,sans-serif"
-    rows = "".join(
+    rows = "" and "".join(
         f'<tr><td style="padding:12px 0;border-top:1px solid #eae5df;font:16px/1.4 {font};color:#1a1719;text-align:{al}">{e(n)}</td>'
         f'<td style="padding:12px 0;border-top:1px solid #eae5df;font:600 18px/1.4 {head};color:#b24d6a;white-space:nowrap;text-align:{"left" if al=="right" else "right"}" dir="ltr">{e(p)}</td></tr>'
         for n, p in c["items"])
     btn = (f'<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>'
-           f'<td bgcolor="#f46e95" style="border-radius:3px"><a href="{link}" target="_blank" '
-           f'style="display:inline-block;padding:16px 34px;font:600 18px/1 {head};letter-spacing:2px;text-transform:uppercase;color:#1e1419;text-decoration:none">{e(c["cta"])}</a></td></tr></table>')
+           f'<td bgcolor="#f46e95" style="border-radius:3px"><a class="cta" href="{link}" target="_blank" '
+           f'style="display:inline-block;padding:16px 22px;font:600 17px/1 {head};letter-spacing:1px;white-space:nowrap;text-transform:uppercase;color:#1e1419;text-decoration:none">{e(c["cta"])}</a></td></tr></table>')
     return f'''<!doctype html>
 <html lang="{c["lang"]}" dir="{c["dir"]}">
 <head>
@@ -80,7 +80,7 @@ def build(c):
 <meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
 <title>{e(c["subject"])}</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&display=swap" rel="stylesheet">
-<style>@media (max-width:620px){{.px{{padding-left:22px!important;padding-right:22px!important}} .h1{{font-size:40px!important}}}}</style>
+<style>@media (max-width:620px){{.px{{padding-left:22px!important;padding-right:22px!important}} .h1{{font-size:40px!important}}}} @media (max-width:360px){{.cta{{font-size:15px!important;padding:14px 14px!important}}}}</style>
 </head>
 <body style="margin:0;padding:0;background:#f3f0eb">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">{e(c["pre"])}</div>
@@ -98,15 +98,8 @@ def build(c):
     <p style="font:17px/1.6 {font};color:#5a5254;margin:22px 0 6px">{e(c["p2"])}</p>
   </td></tr>
   <tr><td class="px" style="padding:0 44px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">{rows}</table>
-    <p style="font:14px/1.5 {font};color:#847c7a;margin:10px 0 28px;text-align:{al}">{e(c["note"])}</p>
+    <div style="height:14px;line-height:14px">&nbsp;</div>
     {btn}
-  </td></tr>
-  <tr><td class="px" style="padding:30px 44px 10px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-      <td width="50%" style="padding-{"left" if c["dir"]=="rtl" else "right"}:6px"><a href="{link}" target="_blank"><img src="{IMG_LYCRA}" width="250" alt="" style="display:block;width:100%;height:auto;border:0"></a></td>
-      <td width="50%" style="padding-{"right" if c["dir"]=="rtl" else "left"}:6px"><a href="{link}" target="_blank"><img src="{IMG_FOIL}" width="250" alt="" style="display:block;width:100%;height:auto;border:0"></a></td>
-    </tr></table>
   </td></tr>
   <tr><td class="px" style="padding:22px 44px 36px;text-align:{al}">
     <p style="font:16px/1.6 {font};color:#5a5254;margin:0 0 18px">{e(c["share"])}</p>
