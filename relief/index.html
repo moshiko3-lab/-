@@ -131,6 +131,7 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
   font-size:clamp(20px,2.6vw,28px);letter-spacing:.02em}
 .grpSub{color:var(--text-2);margin:-6px 0 16px;max-width:62ch}
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px}
+#tiersFoil{grid-template-columns:repeat(auto-fill,minmax(260px,380px))}
 .tier{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
 .tier.featured{border:2px solid var(--pink)}
@@ -323,7 +324,7 @@ footer{background:var(--sea)}
     <p class="sub" data-i18n="rwSub">Every purchase helps us through the quiet months. Lessons and sessions are valid for 24 months from purchase, and you can give them to someone else.</p>
     <figure class="grpHead"><img src="img/surf.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gSurf">Surf lessons</h3></figure>
     <div class="tiers" id="tiers"></div>
-    <figure class="grpHead"><img src="img/foil.webp" alt="" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
+    <figure class="grpHead"><img src="img/foil.webp" alt="" style="object-position:50% 70%" width="640" height="270" loading="lazy"><h3 class="grp" data-i18n="gFoil">Foil sessions</h3></figure>
     <p class="grpSub" data-i18n="gFoilSub">Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.</p>
     <div class="tiers" id="tiersFoil"></div>
     <div class="custom">
@@ -424,7 +425,7 @@ var CONFIG = {
   // Payment link per tier: a Stripe Payment Link, PayPal, Yappy, bank page...
   // Leave "" and that button falls back to WhatsApp / email instead.
   // "custom" is used for the free-amount donation.
-  payLinks: { supporter:"", lesson:"", course3:"", kid:"", course5:"", foil1:"", foil2:"", foil3:"", custom:"", lycra:"" },
+  payLinks: { supporter:"", lesson:"", course3:"", kid:"", course5:"", foil1:"", custom:"", lycra:"" },
 
   // Contact. WhatsApp with country code, digits only, e.g. "5076XXXXXXX".
   whatsapp: "50762596666",
@@ -488,9 +489,7 @@ var TIERS = [
   { id:"kid",       price:100, featured:false },
   { id:"course3",   price:180, featured:false },
   { id:"course5",   price:300, featured:false },
-  { id:"foil1",     price:450,  featured:true,  group:"foil" },
-  { id:"foil2",     price:1350, featured:false, group:"foil" },
-  { id:"foil3",     price:2250, featured:false, group:"foil" }
+  { id:"foil1",     price:450,  featured:false, group:"foil" }
 ];
 
 var T = {
@@ -547,7 +546,7 @@ en:{
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
   mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
-  t_foil1:"Foil session", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
+  t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
   b_foil2:["Three 3-hour tow-in sessions, spread over your stay", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
   b_foil3:["Five tow-in sessions, 10 hours on the water", "Equipment and safety gear included", "Transferable: give it as a gift", "Your name on our wall of supporters"],
@@ -608,7 +607,7 @@ es:{
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
   mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
-  t_foil1:"Sesión de foil", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
+  t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
   b_foil2:["Tres sesiones de 3 horas con remolque, repartidas durante tu estadía", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
   b_foil3:["Cinco sesiones con remolque, 10 horas en el agua", "Equipo y seguridad incluidos", "Transferible: puedes regalarla", "Tu nombre en nuestro muro de apoyo"],
@@ -669,7 +668,7 @@ he:{
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
   mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
-  t_foil1:"סשן פויל", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
+  t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
   b_foil2:["שלושה סשנים של 3 שעות בגרירה, לאורך השהות שלכם", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
   b_foil3:["חמישה סשנים בגרירה, 10 שעות על המים", "ציוד וציוד בטיחות כלולים", "ניתן להעביר במתנה", "השם שלכם על קיר התומכים"],
