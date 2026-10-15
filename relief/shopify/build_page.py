@@ -88,7 +88,7 @@ extra = """
 .page-header:has(+ .rte #rv){display:none}
 #rv{font:17px/1.6 var(--f-body);color:var(--text);background:var(--bg);text-align:start}
 #rv .hero,#rv .band,#rv footer{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
-#rv .hero{margin-top:-40px}
+#rv .hero{margin-top:0}
 #rv .rv-langs{position:absolute;top:16px;inset-inline-end:20px;z-index:2}
 #rv footer{background:var(--sand);color:var(--text-2)}
 #rv footer h4,#rv footer a{color:var(--text)}
