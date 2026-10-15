@@ -1,0 +1,12 @@
+{%- comment -%}
+  In the live theme, open Online Store → Themes → … → Edit code → snippets/meta-tags.liquid.
+  Replace the line   {%- if page_image -%}
+  with the block below (everything from {%- if request.page_type ... down to {%- elsif page_image -%}).
+  Only the Keep Venao Surfing page changes; every other page keeps the store's share image.
+{%- endcomment -%}
+{%- if request.page_type == 'page' and page.handle == 'keep-venao-surfing' -%}
+  <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-surf.webp?v=1792043775&format=jpg">
+  <meta property="og:image:secure_url" content="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/rebuild-venao-surf.webp?v=1792043775&format=jpg">
+  <meta property="og:image:width" content="640">
+  <meta property="og:image:height" content="270">
+{%- elsif page_image -%}
