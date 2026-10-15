@@ -8,7 +8,13 @@
     "lycra-black-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-front.jpg?v=1792043776",
     "lycra-black-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-back.jpg?v=1792043775",
     "lycra-pink-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-onmodel.jpg?v=1792045678",
-    "lycra-black-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-onmodel.jpg?v=1792045678"
+    "lycra-black-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-onmodel.jpg?v=1792045678",
+    "lycra-kids-pink-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-onmodel.jpg?v=1792046641",
+    "lycra-kids-pink-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-front.jpg?v=1792046641",
+    "lycra-kids-pink-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-back.jpg?v=1792046641",
+    "lycra-kids-black-onmodel.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-onmodel.jpg?v=1792046641",
+    "lycra-kids-black-front.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-front.jpg?v=1792046641",
+    "lycra-kids-black-back.jpg": "https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-back.jpg?v=1792046641"
   },
   "checkout": {
     "supporter": "45572889116738",
@@ -31,6 +37,16 @@
       "black-M": "45572895440962",
       "black-L": "45572895473730",
       "black-XL": "45572895506498"
+    },
+    "lycraKids": {
+      "pink-XS": "45573904236610",
+      "pink-S": "45573904269378",
+      "pink-M": "45573904302146",
+      "pink-L": "45573904334914",
+      "black-XS": "45573904367682",
+      "black-S": "45573904400450",
+      "black-M": "45573904433218",
+      "black-L": "45573904465986"
     }
   }
 }

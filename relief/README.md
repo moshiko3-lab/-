@@ -16,7 +16,8 @@ Everything the school fills in sits in `CONFIG` at the bottom of `index.html`:
 * `instagramPosts` -- the school's own posts shown in the gallery.
 * `lycra` -- the Shokogi lycra: price (`null` hides it), sizes, colours with
   their front and back photos in `img/`, and
-  whether it is collected at the school or shipped.
+  whether it is collected at the school or shipped. `lycra.kids` adds a
+  kids' version (own price, sizes and pictures) behind an Adults / Kids choice.
 * `quakePhotos` -- the team's own photos from after the earthquake, with a
   caption per language. Empty hides the section.
 * `preview` -- draws placeholders where those go; keep it `false` live.
