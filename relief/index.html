@@ -78,7 +78,7 @@ img{max-width:100%;display:block}
 .hero .actions{display:flex;flex-wrap:wrap;gap:12px}
 .hero .actions .ghost{color:#fff}
 .heroGrid{display:grid;grid-template-columns:1fr;gap:32px;align-items:center}
-@media (min-width:980px){.heroGrid{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}}
+.heroText{max-width:760px}
 .heroVid{margin:0}
 .heroVid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;display:block;background:#0a1e26;box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .heroVid figcaption{font-size:12.5px;opacity:.8;margin-top:8px}
@@ -325,7 +325,6 @@ footer{background:var(--sea)}
       <a class="btn ghost" href="#what" data-i18n="heroCta2">What happened</a>
     </div>
    </div>
-   <figure class="heroVid" id="heroVid" hidden></figure>
   </div>
   <svg class="waves" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
     <path d="M0,50 C180,90 360,10 540,40 C720,70 900,90 1080,55 C1260,20 1350,40 1440,50 L1440,90 L0,90 Z"/>
@@ -464,7 +463,7 @@ var CONFIG = {
 
   // News video shown in the opening (YouTube embed; it loads only when
   // the visitor presses play). id: the part after watch?v= ; source: who made it.
-  heroVideo: { id: "d3RSeMMNPg0", source: "NBC News" },
+  heroVideo: null,
 
   // The Shokogi lycra. price:null hides it. image: a file next to this page.
   // delivery: "pickup" (collect at the school), "ship" (we post it) or "both".
@@ -919,6 +918,7 @@ function renderMerch(){
 
 function renderVideo(){
   var V = CONFIG.heroVideo, box = document.getElementById("heroVid");
+  if (!box) return;
   if (!V || !V.id) { box.hidden = true; return; }
   box.hidden = false;
   if (!box.querySelector("iframe")) {
