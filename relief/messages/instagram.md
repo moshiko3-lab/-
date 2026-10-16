@@ -11,7 +11,7 @@ Venao is getting back to normal after the 9 October earthquake, step by step. Th
 
 We expect to be back in the water by mid-November 🤙
 
-The best way to help us get there: our new Playa Venao tees, surf lycras and surf hats, for adults and kids. Every piece helps the school, and part of the money goes to a surf program for local kids from the villages around Venao 💛
+The best way to help us get there: our new Playa Venao tees, surf lycras and surf hats, for adults and kids. Every piece helps the school, and with your help we'll set up a surf program for local kids from the villages around Playa Venao 💛
 
 📦 We ship worldwide, or pick up at the school in Playa Venao.
 🔗 Link in bio
@@ -27,6 +27,6 @@ The best way to help us get there: our new Playa Venao tees, surf lycras and sur
    Back in the water by mid-November 🤙
 
 3. Tees · Lycras · Surf hats
-   Part of the money goes to a surf program
-   for local kids from the villages around Venao 💛
+   With your help we'll set up a surf program
+   for local kids from the villages around Playa Venao 💛
    [link sticker: Shop & help Shokogi]
