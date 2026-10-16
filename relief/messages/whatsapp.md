@@ -10,7 +10,7 @@ The link opens the page in that language.
 Hi! It's Shokogi from Playa Venao.
 Venao is getting back to normal after the 9 October earthquake, and the waves are as good as ever. We expect to be back in the water by mid-November.
 
-The best way to help us get there: buy our new Playa Venao tees, surf lycras and surf hats. Every piece goes straight to the school 👇
+The best way to help us get there: buy our new Playa Venao tees, surf lycras and surf hats. Every piece goes straight to the school. We ship worldwide, or you can pick up at the school 👇
 https://www.shokogi.com/pages/keep-venao-surfing?utm_source=whatsapp
 
 Thank you, see you in the water 🤙
