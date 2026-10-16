@@ -194,6 +194,8 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gallery iframe{width:100%;height:560px;border:0;display:block;background:#fff}
 
 /* gear */
+.kidsNote{display:flex;gap:10px;align-items:flex-start;max-width:640px;margin:-4px 0 26px;padding:12px 16px;background:var(--pink-soft);border-inline-start:3px solid var(--pink);border-radius:4px;font-weight:600;color:var(--text)}
+.kidsNote::before{content:"\1F499";content:"\1F3C4";font-size:18px;line-height:1.3}
 .gear{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 22px;margin-top:8px}
 @media (max-width:860px){.gear{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gcard{display:flex;flex-direction:column;min-width:0}
@@ -319,7 +321,7 @@ footer{background:var(--sea)}
    <div class="heroText">
     <span class="tag" data-i18n="heroTag">After the 7.7 earthquake · 9 October 2026</span>
     <h1 data-i18n="heroTitle">Wear Shokogi. Help us get back in the water.</h1>
-    <p class="lead" data-i18n="heroLead">After the earthquake, Venao is getting back to normal. Every Shokogi tee, lycra and surf hat you buy here helps the school reopen, and part of the proceeds goes to the kids and communities of the villages around Venao.</p>
+    <p class="lead" data-i18n="heroLead">After the earthquake, Venao is getting back to normal. Every Shokogi tee, lycra and surf hat you buy here helps the school reopen, and part of the money goes to a surf program for local kids from the villages around Venao.</p>
     <p class="open" data-i18n="heroOpen">Back in the water by mid-November.</p>
     <div class="actions">
       <a class="btn" href="#shop" data-i18n="heroCtaShop">Shop & help Shokogi</a>
@@ -353,7 +355,8 @@ footer{background:var(--sea)}
   <div class="wrap">
     <div class="eyebrow" data-i18n="shopEyebrow">Wear Venao</div>
     <h2 data-i18n="shopTitle">Shokogi tees, lycras &amp; surf hats</h2>
-    <p class="sub" data-i18n="shopSub">This is your way to help: every Shokogi tee, lycra and surf hat helps us get back in the water and supports the kids of the villages around Venao.</p>
+    <p class="sub" data-i18n="shopSub">This is your way to help: every Shokogi tee, lycra and surf hat helps us get back in the water.</p>
+    <p class="kidsNote" data-i18n="kidsNote">Part of the money goes to a surf program for local kids from the villages around Venao.</p>
     <div class="gear" id="gear"></div>
     <p class="fine" data-i18n="shopShip">Shipped orders can take up to 90 days to arrive. You can also collect yours at the school in Playa Venao. Enter your address at checkout to see the shipping cost.</p>
   </div>
@@ -395,7 +398,7 @@ footer{background:var(--sea)}
     <div class="eyebrow">FAQ</div>
     <h2 data-i18n="faqTitle">Questions</h2>
     <details><summary data-i18n="q5">What is the beach like right now?</summary><p data-i18n="a5">Venao is getting back to normal, step by step. The supermarket and the gas station are already open, many businesses on the beach have reopened, and from early to mid-November there will be places to stay again.</p></details>
-    <details><summary data-i18n="q1">Who receives the money?</summary><p id="a1" data-i18n="a1">Shokogi Surf School, Playa Venao, which runs this campaign. Every purchase helps keep the school going through this season, and part of the proceeds goes to the kids and communities of the villages around Venao.</p></details>
+    <details><summary data-i18n="q1">Who receives the money?</summary><p id="a1" data-i18n="a1">Shokogi Surf School, Playa Venao, which runs this campaign. Every purchase helps keep the school going through this season, and part of the money goes to a surf program for local kids from the villages around Venao.</p></details>
     <details><summary data-i18n="q2">How do I get my order?</summary><p data-i18n="a2">We ship it to you; shipped orders can take up to 90 days to arrive. You can also collect it at the school in Playa Venao. Enter your address at checkout to see the shipping cost.</p></details>
     <details><summary data-i18n="q3">When do you reopen?</summary><p data-i18n="a3">We expect to be back in the water by mid-November.</p></details>
     <details><summary data-i18n="q4">I can't buy right now. How else can I help?</summary><p data-i18n="a4">Share this page, and when you plan a trip, come to Venao. Every visitor helps the beach come back.</p></details>
@@ -530,13 +533,13 @@ en:{
   c_ash:"Ash",
   g_teeKids:"Shokogi kids tee", g_lycraKids:"Shokogi kids surf lycra",
   heroCtaShop:"Shop & help Shokogi", shopEyebrow:"Wear Venao", shopTitle:"Shokogi tees, lycras & surf hats",
-  shopSub:"This is your way to help: every Shokogi tee, lycra and surf hat helps us get back in the water and supports the kids of the villages around Venao.",
+  shopSub:"This is your way to help: every Shokogi tee, lycra and surf hat helps us get back in the water.", kidsNote:"Part of the money goes to a surf program for local kids from the villages around Venao.",
   shopShip:"Shipped orders can take up to 90 days to arrive. You can also collect yours at the school in Playa Venao. Enter your address at checkout to see the shipping cost.",
   g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
   c_white:"White", c_blue:"Blue", c_yellow:"Yellow", c_mustard:"Mustard", c_salmon:"Salmon",
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Wear Shokogi. Help us get back in the water.",
-  heroLead:"After the earthquake, Venao is getting back to normal. Every Shokogi tee, lycra and surf hat you buy here helps the school reopen, and part of the proceeds goes to the kids and communities of the villages around Venao.",
+  heroLead:"After the earthquake, Venao is getting back to normal. Every Shokogi tee, lycra and surf hat you buy here helps the school reopen, and part of the money goes to a surf program for local kids from the villages around Venao.",
   heroOpen:"Back in the water by mid-November.",
   heroCta:"Buy a lesson ahead", heroCta2:"What happened",
   whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake on 9 October",
@@ -560,7 +563,7 @@ en:{
   galSub:"Retreats, kids' camps and mornings on the water. Follow @shokogi_venao for news from the beach.",
   faqTitle:"Questions",
   q5:"What is the beach like right now?", a5:"Venao is getting back to normal, step by step. The supermarket and the gas station are already open, many businesses on the beach have reopened, and from early to mid-November there will be places to stay again.",
-  q1:"Who receives the money?", a1:"{recipient}, which runs this campaign. Every purchase helps keep the school going through this season, and part of the proceeds goes to the kids and communities of the villages around Venao.",
+  q1:"Who receives the money?", a1:"{recipient}, which runs this campaign. Every purchase helps keep the school going through this season, and part of the money goes to a surf program for local kids from the villages around Venao.",
   q2:"How do I get my order?", a2:"We ship it to you; shipped orders can take up to 90 days to arrive. You can also collect it at the school in Playa Venao. Enter your address at checkout to see the shipping cost.",
   q3:"When do you reopen?", a3:"We expect to be back in the water by mid-November.",
   q4:"I can't buy right now. How else can I help?", a4:"Share this page, and when you plan a trip, come to Venao. Every visitor helps the beach come back.",
@@ -611,13 +614,13 @@ es:{
   c_ash:"Gris",
   g_teeKids:"Camiseta Shokogi para niños", g_lycraKids:"Licra de surf Shokogi para niños",
   heroCtaShop:"Compra y ayuda a Shokogi", shopEyebrow:"Viste Venao", shopTitle:"Camisetas, licras y sombreros de surf Shokogi",
-  shopSub:"Esta es tu forma de ayudar: cada camiseta, licra y sombrero de surf Shokogi nos ayuda a volver al agua y apoya a los niños de los pueblos alrededor de Venao.",
+  shopSub:"Esta es tu forma de ayudar: cada camiseta, licra y sombrero de surf Shokogi nos ayuda a volver al agua.", kidsNote:"Parte del dinero va a un programa de surf para niños de los pueblos alrededor de Venao.",
   shopShip:"Los envíos pueden tardar hasta 90 días en llegar. También puedes recoger tu pedido en la escuela en Playa Venao. Ingresa tu dirección al pagar para ver el costo del envío.",
   g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
   c_white:"Blanca", c_blue:"Azul", c_yellow:"Amarilla", c_mustard:"Mostaza", c_salmon:"Salmón",
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Viste Shokogi y ayúdanos a volver al agua.",
-  heroLead:"Tras el terremoto, Venao vuelve a la normalidad. Cada camiseta, licra o sombrero de surf Shokogi que compres aquí ayuda a la escuela a reabrir, y parte de lo recaudado va a los niños y las comunidades de los pueblos alrededor de Venao.",
+  heroLead:"Tras el terremoto, Venao vuelve a la normalidad. Cada camiseta, licra o sombrero de surf Shokogi que compres aquí ayuda a la escuela a reabrir, y parte del dinero va a un programa de surf para niños de los pueblos alrededor de Venao.",
   heroOpen:"De vuelta en el agua a mediados de noviembre.",
   heroCta:"Compra tu clase ya", heroCta2:"Qué pasó",
   whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 el 9 de octubre",
@@ -641,7 +644,7 @@ es:{
   galSub:"Retiros, campamentos de niños y mañanas en el agua. Sigue a @shokogi_venao para noticias desde la playa.",
   faqTitle:"Preguntas",
   q5:"¿Cómo está la playa ahora?", a5:"Venao vuelve poco a poco a la normalidad. El supermercado y la gasolinera ya están abiertos, muchos negocios de la playa reabrieron, y desde principios o mediados de noviembre volverá a haber dónde alojarse.",
-  q1:"¿Quién recibe el dinero?", a1:"{recipient}, que organiza esta campaña. Cada compra ayuda a mantener la escuela en esta temporada, y parte de lo recaudado va a los niños y las comunidades de los pueblos alrededor de Venao.",
+  q1:"¿Quién recibe el dinero?", a1:"{recipient}, que organiza esta campaña. Cada compra ayuda a mantener la escuela en esta temporada, y parte del dinero va a un programa de surf para niños de los pueblos alrededor de Venao.",
   q2:"¿Cómo recibo mi pedido?", a2:"Te lo enviamos; los envíos pueden tardar hasta 90 días en llegar. También puedes recogerlo en la escuela en Playa Venao. Pon tu dirección al pagar para ver el costo de envío.",
   q3:"¿Cuándo reabren?", a3:"Esperamos volver al agua a mediados de noviembre.",
   q4:"No puedo comprar ahora. ¿Cómo más puedo ayudar?", a4:"Comparte esta página y, cuando planees un viaje, ven a Venao. Cada visitante ayuda a que la playa se recupere.",
@@ -692,13 +695,13 @@ he:{
   c_ash:"אפור",
   g_teeKids:"חולצת שוקוגי לילדים", g_lycraKids:"לייקרת גלישה לילדים של שוקוגי",
   heroCtaShop:"לקנות ולעזור לשוקוגי", shopEyebrow:"לובשים את ונאו", shopTitle:"חולצות, לייקרות וכובעי גלישה של שוקוגי",
-  shopSub:"זו הדרך שלכם לעזור: כל חולצה, לייקרה וכובע גלישה של שוקוגי עוזרים לנו לחזור למים ותומכים בילדים של הכפרים שמסביב לוונאו.",
+  shopSub:"זו הדרך שלכם לעזור: כל חולצה, לייקרה וכובע גלישה של שוקוגי עוזרים לנו לחזור למים.", kidsNote:"חלק מהכסף הולך לתוכנית גלישה לילדים מקומיים מהכפרים שמסביב לוונאו.",
   shopShip:"משלוח עשוי לקחת עד 90 יום להגיע. אפשר גם לאסוף בבית הספר בפלאיה ונאו. מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
   c_white:"לבן", c_blue:"כחול", c_yellow:"צהוב", c_mustard:"חרדל", c_salmon:"סלמון",
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"לובשים שוקוגי, עוזרים לנו לחזור למים.",
-  heroLead:"אחרי רעידת האדמה ונאו חוזרת לשגרה. כל חולצה, לייקרה או כובע גלישה של שוקוגי שתקנו כאן עוזרים לבית הספר לחזור לפעילות, וחלק מההכנסות הולך לילדים ולקהילות בכפרים שמסביב לוונאו.",
+  heroLead:"אחרי רעידת האדמה ונאו חוזרת לשגרה. כל חולצה, לייקרה או כובע גלישה של שוקוגי שתקנו כאן עוזרים לבית הספר לחזור לפעילות, וחלק מהכסף הולך לתוכנית גלישה לילדים מקומיים מהכפרים שמסביב לוונאו.",
   heroOpen:"חוזרים למים כבר באמצע נובמבר.",
   heroCta:"לקניית שיעור מראש", heroCta2:"מה קרה",
   whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7 ב-9 באוקטובר",
@@ -722,7 +725,7 @@ he:{
   galSub:"ריטריטים, מחנות לילדים ובקרים על המים. עקבו אחרי ‎@shokogi_venao לעדכונים מהחוף.",
   faqTitle:"שאלות",
   q5:"מה המצב בחוף כרגע?", a5:"ונאו חוזרת לאט לאט לשגרה. הסופר ותחנת הדלק כבר פתוחים, הרבה עסקים בחוף נפתחו מחדש, ומתחילת עד אמצע נובמבר יהיו שוב מקומות ללון.",
-  q1:"מי מקבל את הכסף?", a1:"{recipient}, שמפעילים את הקמפיין. כל רכישה עוזרת להחזיק את בית הספר בתקופה הזאת, וחלק מההכנסות הולך לילדים ולקהילות בכפרים שמסביב לוונאו.",
+  q1:"מי מקבל את הכסף?", a1:"{recipient}, שמפעילים את הקמפיין. כל רכישה עוזרת להחזיק את בית הספר בתקופה הזאת, וחלק מהכסף הולך לתוכנית גלישה לילדים מקומיים מהכפרים שמסביב לוונאו.",
   q2:"איך מקבלים את ההזמנה?", a2:"אנחנו שולחים אליכם, והמשלוח עשוי לקחת עד 90 יום להגיע. אפשר גם לאסוף בבית הספר בפלאיה ונאו. מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   q3:"מתי אתם נפתחים?", a3:"אנחנו מצפים לחזור לפעילות כבר באמצע נובמבר.",
   q4:"אי אפשר לקנות כרגע. איך עוד אפשר לעזור?", a4:"שתפו את הדף, וכשאתם מתכננים טיול, בואו לוונאו. כל מבקר עוזר לחוף לחזור לעצמו.",
