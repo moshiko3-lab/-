@@ -194,28 +194,43 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gallery iframe{width:100%;height:560px;border:0;display:block;background:#fff}
 
 /* gear */
-.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px}
-.gcard{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-.gcard .gimg{position:relative;aspect-ratio:4/5;background:#f3f0ee;overflow:hidden}
-.gcard .gimg img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
-.gcard .gbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
-.gcard h3{margin:0;font-size:22px}
-.gcard .price{font-family:var(--f-head);font-weight:600;font-size:30px;line-height:1}
-.gcard .price small{font-size:14px;color:var(--text-3)}
-.gcard .btn{margin-top:auto;width:100%}
-.dots{display:flex;flex-wrap:wrap;gap:8px}
-.fitsw{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;align-self:flex-start}
-.fitsw button{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;color:var(--text-2)}
-.fitsw button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
-.dots button{appearance:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
-.dots button[aria-pressed="true"]{outline:2px solid var(--pink);outline-offset:2px}
-.gcard .sizes button{min-width:40px;padding:6px 8px;font-size:13px}
-@media (max-width:560px){.gear{grid-template-columns:1fr 1fr;gap:10px}.gcard .gbody{padding:12px;gap:8px}.gcard h3{font-size:18px}.gcard .price{font-size:24px}
-  .gcard .sizes{gap:4px;flex-wrap:nowrap}.gcard .sizes button{min-width:0;flex:1 1 0;padding:7px 0;font-size:12px}.dots button{width:26px;height:26px}
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px 22px;margin-top:8px}
+.gcard{display:flex;flex-direction:column;min-width:0}
+.gcard .gimg{position:relative;aspect-ratio:4/5;background:#f3f0ee;overflow:hidden;border-radius:6px}
+.gcard .gimg img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block;transition:opacity .25s}
+.gcard .views{inset-inline-start:auto;inset-inline-end:10px;bottom:10px;gap:0;padding:2px;border-radius:999px;background:rgba(255,255,255,.82);backdrop-filter:blur(6px)}
+.gcard .views button{background:none;color:var(--text-2);font-size:11.5px;font-weight:600;padding:4px 10px;letter-spacing:.02em}
+.gcard .views button[aria-pressed="true"]{background:var(--text);color:#fff}
+.gcard .gbody{padding:14px 2px 0;display:flex;flex-direction:column;gap:12px;flex:1}
+.gcard .ghead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.gcard h3{margin:0;font-size:19px!important;letter-spacing:.02em;line-height:1.15}
+.gcard .price{font-family:var(--f-head);font-weight:500;font-size:20px;line-height:1;white-space:nowrap;color:var(--text-2)}
+.gcard .opts{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-height:22px}
+.fitsw{display:inline-flex;gap:14px}
+.fitsw button{appearance:none;border:0;background:none;font:inherit;font-size:13px;font-weight:600;padding:2px 0;cursor:pointer;color:var(--text-3);border-bottom:1.5px solid transparent}
+.fitsw button[aria-pressed="true"]{color:var(--text);border-bottom-color:var(--text)}
+.dots{display:flex;align-items:center;gap:10px}
+.dots button{appearance:none;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.14);cursor:pointer;padding:0;
+  box-shadow:0 0 0 2px var(--bg),0 0 0 3px transparent;transition:box-shadow .15s}
+.dots button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--text)}
+.dots .cname{font-size:13px;color:var(--text-2);margin-inline-start:2px}
+.gcard .sizes{display:flex;flex-wrap:nowrap;gap:6px}
+.gcard .sizes button{flex:1 1 0;min-width:0;max-width:56px;height:34px;padding:0;border:1px solid var(--line);background:none;color:var(--text);
+  border-radius:999px!important;font-size:12.5px;font-weight:600;transition:border-color .15s,background .15s}
+.gcard .sizes button:hover{border-color:var(--text-3)}
+.gcard .sizes button[aria-pressed="true"]{background:var(--text);border-color:var(--text);color:var(--bg)}
+.gcard .btn{margin-top:auto;width:100%;background:var(--text);color:var(--bg);font-size:15px;letter-spacing:.14em;padding:12px 16px;border-radius:999px;box-shadow:none}
+.gcard .btn:hover{background:var(--pink-deep);color:#fff}
+@media (max-width:560px){.gear{grid-template-columns:1fr 1fr;gap:22px 12px}.gcard .gbody{padding-top:10px;gap:10px}
+  .gcard .ghead{flex-direction:column;align-items:flex-start;gap:4px}.gcard h3{font-size:16px!important}.gcard .price{font-size:17px}
+  .gcard .sizes{gap:4px}.gcard .sizes button{height:30px;font-size:11.5px}.dots{gap:9px}.dots .cname{display:none}
+  .fitsw{gap:12px}.fitsw button{font-size:12.5px}.gcard .btn{font-size:14px;padding:10px 12px}
   .gcard:last-child:nth-child(odd){grid-column:1/-1}.gcard:last-child:nth-child(odd) .gimg{aspect-ratio:16/10}
-  .gcard .views button{padding:5px 10px;font-size:12px}.fitsw button{padding:5px 10px}}
+  .gcard:last-child:nth-child(odd) .ghead{flex-direction:row;align-items:baseline}.gcard:last-child:nth-child(odd) .sizes button{max-width:64px}
+  .gcard .views button{padding:3px 8px;font-size:11px}}
 #merchShip{display:none}
 [dir="rtl"] .eyebrow{letter-spacing:0!important}
+[dir="rtl"] .gcard .btn{letter-spacing:0}
 
 /* supporters wall */
 .wallStats{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0 0 22px}
@@ -591,9 +606,9 @@ en:{
   wSub:"Every purchase from this page shows up here, anonymously: only the country and what was bought. No names.",
   wEmpty:"No one here yet. Be the first to keep Venao surfing.", wMore:"Show everyone",
   wSomewhere:"Somewhere in the world", wUpdated:"Updated {date}",
-  st_people:["supporter","supporters"], st_lessons:["lesson bought ahead","lessons bought ahead"], st_kids:["surf session for local kids","surf sessions for local kids"], st_lycra:["lycra","lycras"],
+  st_people:["supporter","supporters"], st_lessons:["lesson bought ahead","lessons bought ahead"], st_kids:["surf session for local kids","surf sessions for local kids"], st_lycra:["piece of Shokogi gear","pieces of Shokogi gear"],
   w_lesson:"A surf lesson", w_course3:"3 surf lessons", w_kid:"5 surf sessions for a local kid", w_foil1:"A foil session",
-  w_lycra:"A Shokogi lycra", w_lycraKids:"A kids' lycra"
+  w_lycra:"A Shokogi lycra", w_lycraKids:"A kids' lycra", w_tee:"A Shokogi tee", w_teeKids:"A kids' Shokogi tee", w_hat:"A Shokogi surf hat"
 },
 es:{
   brandSub:"Playa Venao · Panamá", ctaShort:"Apoyar",
@@ -671,9 +686,9 @@ es:{
   wSub:"Cada compra de esta página aparece aquí de forma anónima: solo el país y lo que se compró. Sin nombres.",
   wEmpty:"Todavía no hay nadie. Sé el primero en ayudar a que Venao siga surfeando.", wMore:"Ver a todos",
   wSomewhere:"Desde algún lugar del mundo", wUpdated:"Actualizado: {date}",
-  st_people:["persona apoyando","personas apoyando"], st_lessons:["clase comprada por adelantado","clases compradas por adelantado"], st_kids:["sesión de surf para niños locales","sesiones de surf para niños locales"], st_lycra:["licra","licras"],
+  st_people:["persona apoyando","personas apoyando"], st_lessons:["clase comprada por adelantado","clases compradas por adelantado"], st_kids:["sesión de surf para niños locales","sesiones de surf para niños locales"], st_lycra:["prenda Shokogi","prendas Shokogi"],
   w_lesson:"Una clase de surf", w_course3:"3 clases de surf", w_kid:"5 sesiones de surf para un niño local", w_foil1:"Una sesión de foil",
-  w_lycra:"Una licra Shokogi", w_lycraKids:"Una licra de niño"
+  w_lycra:"Una licra Shokogi", w_lycraKids:"Una licra de niño", w_tee:"Una camiseta Shokogi", w_teeKids:"Una camiseta Shokogi de niño", w_hat:"Un sombrero de surf Shokogi"
 },
 he:{
   brandSub:"פלאיה ונאו · פנמה", ctaShort:"לתמיכה",
@@ -751,9 +766,9 @@ he:{
   wSub:"כל רכישה מהדף הזה מופיעה כאן בעילום שם: רק המדינה ומה נרכש. בלי שמות.",
   wEmpty:"עוד אין כאן אף אחד. היו הראשונים לשמור על ונאו גולשת.", wMore:"להציג את כולם",
   wSomewhere:"מאי שם בעולם", wUpdated:"עודכן: {date}",
-  st_people:["תומך","תומכים"], st_lessons:["שיעור שנקנה מראש","שיעורים שנקנו מראש"], st_kids:["מפגש גלישה לילדים מקומיים","מפגשי גלישה לילדים מקומיים"], st_lycra:["לייקרה","לייקרות"],
+  st_people:["תומך","תומכים"], st_lessons:["שיעור שנקנה מראש","שיעורים שנקנו מראש"], st_kids:["מפגש גלישה לילדים מקומיים","מפגשי גלישה לילדים מקומיים"], st_lycra:["פריט של שוקוגי","פריטים של שוקוגי"],
   w_lesson:"שיעור גלישה", w_course3:"3 שיעורי גלישה", w_kid:"5 מפגשי גלישה לילד מקומי", w_foil1:"סשן פויל",
-  w_lycra:"לייקרה של שוקוגי", w_lycraKids:"לייקרת ילדים"
+  w_lycra:"לייקרה של שוקוגי", w_lycraKids:"לייקרת ילדים", w_tee:"חולצת שוקוגי", w_teeKids:"חולצת שוקוגי לילדים", w_hat:"כובע גלישה של שוקוגי"
 }};
 
 var lang = "en";
@@ -957,8 +972,8 @@ function renderGear(){
     var col = g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0];
     var el = document.createElement("div");
     el.className = "gcard";
-    el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><h3></h3>' +
-      '<div class="price"></div><div class="fitsw" role="group"></div><div class="dots" role="group"></div><div class="sizes" role="group"></div>' +
+    el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><div class="ghead"><h3></h3>' +
+      '<div class="price"></div></div><div class="fitsw" role="group"></div><div class="opts"><div class="dots" role="group"></div></div><div class="sizes" role="group"></div>' +
       '<button class="btn" type="button"></button></div>';
     var img = el.querySelector("img");
     var side = sel.side === "back" && col.back ? "back" : "front";
@@ -974,7 +989,7 @@ function renderGear(){
       el.querySelector(".views").appendChild(b);
     });
     el.querySelector("h3").textContent = t("g_" + g.id);
-    el.querySelector(".price").innerHTML = money(g.price) + " <small>USD</small>";
+    el.querySelector(".price").textContent = money(g.price);
     var fw = el.querySelector(".fitsw");
     fw.hidden = !G.fits;
     (G.fits || []).forEach(function(f){
@@ -994,6 +1009,9 @@ function renderGear(){
       b.addEventListener("click", function(){ sel.color = c.id; renderGear(); });
       dots.appendChild(b);
     });
+    var cn = document.createElement("span");
+    cn.className = "cname"; cn.textContent = t("c_" + col.id);
+    dots.appendChild(cn);
     var sizes = el.querySelector(".sizes");
     sizes.setAttribute("aria-label", t("mSize"));
     sizes.hidden = !g.sizes.length;
@@ -1054,7 +1072,7 @@ function renderWall(){
       if (it.i === "lesson") n.lessons += q;
       if (it.i === "course3") n.lessons += 3 * q;
       if (it.i === "kid") n.kids += 5 * q;
-      if (it.i === "lycra" || it.i === "lycraKids") n.lycra += q;
+      if (/^(lycra|lycraKids|tee|teeKids|hat)$/.test(it.i)) n.lycra += q;
     });
   });
   ["people","lessons","kids","lycra"].forEach(function(k){
