@@ -92,8 +92,13 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .sub{color:var(--text-2);max-width:62ch;margin:0 0 28px}
 
 /* facts */
-.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
-@media (max-width:560px){.facts{grid-template-columns:1fr}}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 0;max-width:640px}
+#what{padding:44px 0 40px}
+#what h2{font-size:clamp(28px,3.4vw,40px)!important;margin-bottom:8px}
+#what .sub{margin-bottom:0;max-width:60ch}
+#what .fact{background:none;border:0;border-inline-start:3px solid var(--pink);border-radius:0;padding:2px 0;padding-inline-start:12px;box-shadow:none}
+#what .fact b{font-size:30px!important;margin-bottom:2px}
+#what .fact span{font-size:13px;line-height:1.35;display:block}
 .fact{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
 .fact b{display:block;font-size:30px;line-height:1.1;color:var(--sea-2);margin-bottom:6px}
 .fact span{color:var(--text-2);font-size:14.5px}
@@ -320,7 +325,6 @@ footer{background:var(--sea)}
       <div class="fact"><b>1882</b><span data-i18n="f2">The last time Panama felt an earthquake this strong</span></div>
       <div class="fact"><b>350+</b><span data-i18n="f3">Aftershocks recorded in the first three days (Panama's Geosciences Institute)</span></div>
     </div>
-    <p class="sub" data-i18n="s4">Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.</p>
     <div class="progress" id="progress" hidden>
       <div class="bar"><i id="barFill"></i></div>
       <div class="nums"><span><b id="raised"></b> <span data-i18n="raised">raised</span></span><span><span data-i18n="goal">goal</span> <b id="goal"></b></span></div>
@@ -527,10 +531,10 @@ en:{
   heroLead:"The earthquake hit all of Venao, us included, but the waves are as good as ever and Venao is recovering. The best way to help us through this season: wear Shokogi. Every tee, lycra and surf hat keeps the school going until we see you in the water.",
   heroOpen:"We hope and expect to soft-open in early November, with the full opening in early to mid December.",
   heroCta:"Buy a lesson ahead", heroCta2:"What happened",
-  whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake, a few kilometres from our beach",
-  whatSub:"On Friday 9 October 2026 a magnitude 7.7 earthquake struck southern Panama, followed by aftershocks of up to 6.6. The worst damage was in Veraguas, Herrera and Los Santos, the province Playa Venao is in.",
-  f1:"Magnitude (USGS), at a shallow depth of about 12.6 km", f2:"The last time Panama felt an earthquake this strong",
-  f3:"Aftershocks recorded in the first three days (Panama's Geosciences Institute)", f4:"Strongest aftershocks, felt the same day",
+  whatEyebrow:"What happened", whatTitle:"A 7.7 earthquake on 9 October",
+  whatSub:"It struck a few kilometres from Playa Venao. Many places to stay along the beach were damaged; Venao is recovering, and we can't wait to see it full of surfers again.",
+  f1:"Magnitude (USGS)", f2:"Last time Panama felt one this strong",
+  f3:"Aftershocks in the first 3 days", f4:"Strongest aftershocks, felt the same day",
   s1:"In Playa Venao, multi-storey hotel and hostel buildings collapsed or were badly damaged. Panama's tourism authority (ATP) lists Venao establishments among those awaiting structural evaluation.",
   s2:"In Pedasí district, families spent the night in parks and sports centres, afraid to go back inside. The bridge over the Oria River was closed for structural damage, and neighbouring districts went without water and power.",
   s4:"Many of the places to stay along our beach were damaged, and the beach is being restored. Venao is recovering, and we can't wait to see it full of surfers again.",
@@ -607,10 +611,10 @@ es:{
   heroLead:"El terremoto golpeó a todo Venao, también a nosotros, pero las olas siguen tan buenas como siempre y Venao se está recuperando. La mejor forma de ayudarnos a pasar esta temporada: viste Shokogi. Cada camiseta, licra y sombrero de surf mantiene viva la escuela hasta vernos en el agua.",
   heroOpen:"Esperamos una apertura suave a principios de noviembre y la apertura completa entre principios y mediados de diciembre.",
   heroCta:"Compra tu clase ya", heroCta2:"Qué pasó",
-  whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 a pocos kilómetros de nuestra playa",
-  whatSub:"El viernes 9 de octubre de 2026 un terremoto de magnitud 7.7 sacudió el sur de Panamá, seguido de réplicas de hasta 6.6. Los peores daños se registraron en Veraguas, Herrera y Los Santos, la provincia de Playa Venao.",
-  f1:"Magnitud (USGS), a una profundidad de unos 12.6 km", f2:"La última vez que Panamá sintió un terremoto tan fuerte",
-  f3:"Réplicas registradas en los primeros tres días (Instituto de Geociencias)", f4:"Las réplicas más fuertes, el mismo día",
+  whatEyebrow:"Qué pasó", whatTitle:"Un terremoto de 7.7 el 9 de octubre",
+  whatSub:"Golpeó a pocos kilómetros de Playa Venao. Muchos alojamientos de la playa sufrieron daños; Venao se está recuperando y queremos verla llena de surfistas otra vez.",
+  f1:"Magnitud (USGS)", f2:"La última vez que Panamá sintió uno tan fuerte",
+  f3:"Réplicas en los primeros 3 días", f4:"Las réplicas más fuertes, el mismo día",
   s1:"En Playa Venao, edificios de hoteles y hostales de varios pisos colapsaron o sufrieron daños graves. La Autoridad de Turismo (ATP) incluye establecimientos de Venao entre los que esperan evaluación estructural.",
   s2:"En el distrito de Pedasí hubo familias que pasaron la noche en parques y centros deportivos, sin atreverse a volver a sus casas. El puente sobre el río Oria se cerró por daños estructurales, y distritos vecinos quedaron sin agua ni electricidad.",
   s4:"Muchos de los hospedajes de nuestra playa sufrieron daños y la playa se está recuperando. Venao se está levantando y tenemos muchas ganas de verla llena de surfistas otra vez.",
@@ -687,10 +691,10 @@ he:{
   heroLead:"רעידת האדמה פגעה בכל ונאו, גם בנו, אבל הגלים טובים כמו תמיד וונאו מתאוששת. הדרך הכי טובה לעזור לנו לעבור את התקופה: ללבוש שוקוגי. כל חולצה, לייקרה וכובע גלישה שומרים על בית הספר עד שנתראה במים.",
   heroOpen:"אנחנו מקווים ומצפים לפתיחה רכה בתחילת נובמבר, ולפתיחה מלאה בתחילת עד אמצע דצמבר.",
   heroCta:"לקניית שיעור מראש", heroCta2:"מה קרה",
-  whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7, קילומטרים ספורים מהחוף שלנו",
-  whatSub:"ביום שישי, 9 באוקטובר 2026, פגעה רעידת אדמה בעוצמה 7.7 בדרום פנמה, ואחריה רעידות משנה של עד 6.6. הנזק הכבד ביותר נרשם במחוזות ורגואס, הררה ולוס סנטוס, המחוז שבו נמצאת פלאיה ונאו.",
-  f1:"עוצמה (USGS), בעומק רדוד של כ־12.6 ק\"מ", f2:"הפעם האחרונה שפנמה הרגישה רעידה חזקה כזו",
-  f3:"רעידות משנה שנרשמו בשלושת הימים הראשונים (המכון לגיאו-מדעים של פנמה)", f4:"רעידות המשנה החזקות ביותר, באותו היום",
+  whatEyebrow:"מה קרה", whatTitle:"רעידת אדמה בעוצמה 7.7 ב-9 באוקטובר",
+  whatSub:"היא פגעה כמה קילומטרים מפלאיה ונאו. הרבה מקומות לינה לאורך החוף ניזוקו; ונאו מתאוששת, ואנחנו מחכים לראות אותה שוב מלאה בגולשים.",
+  f1:"עוצמה (USGS)", f2:"הפעם האחרונה שפנמה הרגישה רעידה כזו",
+  f3:"רעידות משנה בשלושת הימים הראשונים", f4:"רעידות המשנה החזקות ביותר, באותו היום",
   s1:"בפלאיה ונאו קרסו או ניזוקו קשות בנייני מלונות והוסטלים רבי קומות. רשות התיירות של פנמה (ATP) מונה עסקים בוונאו בין אלה שממתינים לבדיקה הנדסית.",
   s2:"במחוז פדאסי משפחות העבירו את הלילה בפארקים ובמתקני ספורט, בלי להעז לחזור הביתה. הגשר על נהר אוריה נסגר בגלל נזק מבני, וביישובים השכנים לא היו מים וחשמל.",
   s4:"רבים ממקומות הלינה לאורך החוף שלנו ניזוקו, והחוף עובר שיקום. ונאו מתאוששת, ואנחנו מחכים לראות אותה שוב מלאה בגולשים.",
