@@ -211,7 +211,9 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .dots button[aria-pressed="true"]{outline:2px solid var(--pink);outline-offset:2px}
 .gcard .sizes button{min-width:40px;padding:6px 8px;font-size:13px}
 @media (max-width:560px){.gear{grid-template-columns:1fr 1fr;gap:10px}.gcard .gbody{padding:12px;gap:8px}.gcard h3{font-size:18px}.gcard .price{font-size:24px}
-  .gcard .sizes{gap:4px}.gcard .sizes button{min-width:0;flex:1 0 30%;padding:6px 2px;font-size:12px}.dots button{width:26px;height:26px}}
+  .gcard .sizes{gap:4px;flex-wrap:nowrap}.gcard .sizes button{min-width:0;flex:1 1 0;padding:7px 0;font-size:12px}.dots button{width:26px;height:26px}
+  .gcard:last-child:nth-child(odd){grid-column:1/-1}.gcard:last-child:nth-child(odd) .gimg{aspect-ratio:16/10}
+  .gcard .views button{padding:5px 10px;font-size:12px}.fitsw button{padding:5px 10px}}
 #merchShip{display:none}
 [dir="rtl"] .eyebrow{letter-spacing:0!important}
 
@@ -524,7 +526,7 @@ en:{
   heroCtaShop:"Shop Shokogi gear", shopEyebrow:"Wear Venao", shopTitle:"Shokogi tees, lycras & surf hats",
   shopSub:"Our own surf gear from Playa Venao. Every piece you wear helps the school through this season.",
   shopShip:"Shipped to you or collected at the school in Playa Venao: enter your address at checkout to see the shipping cost.",
-  g_tee:"Shokogi Playa Venao tee", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
+  g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
   c_white:"White", c_blue:"Blue", c_yellow:"Yellow", c_mustard:"Mustard", c_salmon:"Salmon",
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Venao is still here.",
@@ -604,7 +606,7 @@ es:{
   heroCtaShop:"Compra ropa Shokogi", shopEyebrow:"Viste Venao", shopTitle:"Camisetas, licras y sombreros de surf Shokogi",
   shopSub:"Nuestra ropa de surf de Playa Venao. Cada prenda que usas ayuda a la escuela en esta temporada.",
   shopShip:"Te la enviamos o la recoges en la escuela en Playa Venao: ingresa tu dirección al pagar para ver el costo del envío.",
-  g_tee:"Camiseta Shokogi Playa Venao", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
+  g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
   c_white:"Blanca", c_blue:"Azul", c_yellow:"Amarilla", c_mustard:"Mostaza", c_salmon:"Salmón",
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Venao sigue aquí.",
@@ -684,7 +686,7 @@ he:{
   heroCtaShop:"לחנות של שוקוגי", shopEyebrow:"לובשים את ונאו", shopTitle:"חולצות, לייקרות וכובעי גלישה של שוקוגי",
   shopSub:"ציוד הגלישה שלנו מפלאיה ונאו. כל פריט שאתם לובשים עוזר לבית הספר לעבור את התקופה הזאת.",
   shopShip:"משלוח עד אליכם או איסוף מבית הספר בפלאיה ונאו: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
-  g_tee:"חולצת שוקוגי פלאיה ונאו", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
+  g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
   c_white:"לבן", c_blue:"כחול", c_yellow:"צהוב", c_mustard:"חרדל", c_salmon:"סלמון",
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"ונאו עדיין כאן.",
