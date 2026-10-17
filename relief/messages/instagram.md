@@ -7,16 +7,13 @@ https://www.shokogi.com/pages/keep-venao-surfing?utm_source=instagram
 
 🌊 Thank you for being part of our story.
 
-After the earthquake, we're back in the water and looking forward to seeing you again, with our full opening in early November 🤙
+We're back in the water, with our full opening in early November 🤙
+Wearing Shokogi is a small way to stay close to Venao, and it helps us come back stronger 💛
 
-Venao is getting back to normal, step by step: the supermarket and the gas station are open, many businesses on the beach have reopened, and there will be places to stay again from early to mid-November.
-
-Wearing Shokogi is a small way to stay close to Venao, and it helps us come back stronger. Our Playa Venao tees, surf lycras and surf hats, for adults and kids 💛
-
-📦 We ship worldwide, or pick up at the school in Playa Venao.
+Tees · Lycras · Surf hats, for adults and kids
 🔗 Link in bio
 
-#KeepVenaoSurfing #Shokogi #PlayaVenao #Panama #SurfPanama #SurfSchool
+#KeepVenaoSurfing #Shokogi #PlayaVenao #SurfPanama
 
 ## Story (3 frames)
 
