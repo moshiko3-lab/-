@@ -967,63 +967,81 @@ function renderGear(){
     if (!G.fits) { items.push(G); return; }
     G.fits.forEach(function(f){ items.push(Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), fit: f.id, views: G.views})); });
   });
-  items.forEach(function(G){
-    var sel = gearSel[G.id] || (gearSel[G.id] = {color: "", size: ""});
-    var g = G;
-    var col = g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0];
-    var el = document.createElement("div");
-    el.className = "gcard";
-    el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><div class="ghead"><h3></h3>' +
-      '<div class="price"></div></div><div class="opts"><div class="dots" role="group"></div></div><div class="sizes" role="group"></div>' +
-      '<button class="btn" type="button"></button></div>';
-    var img = el.querySelector("img");
-    var side = sel.side === "back" && col.back ? "back" : "front";
-    var src = side === "back" ? col.back : col.img;
-    img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "width=600";
-    var vl = g.views || ["vFront", "vBack"];
-    img.alt = t("g_" + g.id) + ", " + t("c_" + col.id) + (col.back ? ", " + t(side === "back" ? vl[1] : vl[0]) : "");
-    if (col.back) ["front","back"].forEach(function(v){
-      var b = document.createElement("button");
-      b.type = "button"; b.textContent = t(v === "back" ? vl[1] : vl[0]);
-      b.setAttribute("aria-pressed", v === side ? "true" : "false");
-      b.addEventListener("click", function(){ sel.side = v; renderGear(); });
-      el.querySelector(".views").appendChild(b);
-    });
-    el.querySelector("h3").textContent = t("g_" + g.id);
-    el.querySelector(".price").textContent = money(g.price);
-    var dots = el.querySelector(".dots");
-    dots.setAttribute("aria-label", t("mColor"));
-    g.colors.forEach(function(c){
-      var b = document.createElement("button");
-      b.type = "button"; b.style.background = c.swatch;
-      b.title = t("c_" + c.id); b.setAttribute("aria-label", t("c_" + c.id));
-      b.setAttribute("aria-pressed", c.id === col.id ? "true" : "false");
-      b.addEventListener("click", function(){ sel.color = c.id; renderGear(); });
-      dots.appendChild(b);
-    });
-    var cn = document.createElement("span");
-    cn.className = "cname"; cn.textContent = t("c_" + col.id);
-    dots.appendChild(cn);
-    var sizes = el.querySelector(".sizes");
-    sizes.setAttribute("aria-label", t("mSize"));
-    sizes.hidden = !g.sizes.length;
-    g.sizes.forEach(function(sz){
-      var b = document.createElement("button");
-      b.type = "button"; b.textContent = sz;
-      b.setAttribute("aria-pressed", sz === sel.size ? "true" : "false");
-      b.addEventListener("click", function(){ sel.size = sz; renderGear(); });
-      sizes.appendChild(b);
-    });
-    var buy = el.querySelector(".btn");
-    buy.textContent = t("gBuy");
-    buy.addEventListener("click", function(){
-      if (g.sizes.length && !sel.size) { toast(t("mPickSize")); return; }
-      var vid = col.v[g.sizes.length ? sel.size : ""];
-      if (CONFIG.checkout && vid) { location.href = "/cart/" + vid + ":1"; return; }
-      pay("gear", fmt(t("gItem"), {name: t("g_" + g.id), color: t("c_" + col.id), size: sel.size ? ", " + sel.size : ""}), g.price);
-    });
-    box.appendChild(el);
+  items.forEach(function(g){ box.appendChild(gearCard(g)); });
+}
+
+function sized(src){ return src + (src.indexOf("?") < 0 ? "?" : "&") + "width=600"; }
+
+// One card. Clicking a colour, size or view only updates this card in place,
+// so the page doesn't rebuild (and flicker) on every tap.
+function gearCard(g){
+  var sel = gearSel[g.id] || (gearSel[g.id] = {color: "", size: "", side: "front"});
+  var vl = g.views || ["vFront", "vBack"];
+  var el = document.createElement("div");
+  el.className = "gcard";
+  el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><div class="ghead"><h3></h3>' +
+    '<div class="price"></div></div><div class="opts"><div class="dots" role="group"></div></div><div class="sizes" role="group"></div>' +
+    '<button class="btn" type="button"></button></div>';
+  var img = el.querySelector("img"), views = el.querySelector(".views"), dots = el.querySelector(".dots"), sizes = el.querySelector(".sizes");
+  el.querySelector("h3").textContent = t("g_" + g.id);
+  el.querySelector(".price").textContent = money(g.price);
+  function col(){ return g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0]; }
+  function press(wrap, fn){ [].forEach.call(wrap.querySelectorAll("button"), function(b){ b.setAttribute("aria-pressed", fn(b) ? "true" : "false"); }); }
+  function update(){
+    var c = col(), side = sel.side === "back" && c.back ? "back" : "front";
+    var src = sized(side === "back" ? c.back : c.img);
+    if (img.getAttribute("src") !== src) img.src = src;
+    img.alt = t("g_" + g.id) + ", " + t("c_" + c.id) + (c.back ? ", " + t(side === "back" ? vl[1] : vl[0]) : "");
+    views.hidden = !c.back;
+    press(views, function(b){ return b.dataset.v === side; });
+    press(dots, function(b){ return b.dataset.c === c.id; });
+    cn.textContent = t("c_" + c.id);
+    press(sizes, function(b){ return b.textContent === sel.size; });
+  }
+  ["front","back"].forEach(function(v){
+    var b = document.createElement("button");
+    b.type = "button"; b.dataset.v = v; b.textContent = t(v === "back" ? vl[1] : vl[0]);
+    b.addEventListener("click", function(){ sel.side = v; update(); });
+    views.appendChild(b);
   });
+  dots.setAttribute("aria-label", t("mColor"));
+  g.colors.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button"; b.dataset.c = c.id; b.style.background = c.swatch;
+    b.title = t("c_" + c.id); b.setAttribute("aria-label", t("c_" + c.id));
+    b.addEventListener("click", function(){ sel.color = c.id; update(); });
+    dots.appendChild(b);
+  });
+  var cn = document.createElement("span");
+  cn.className = "cname";
+  dots.appendChild(cn);
+  sizes.setAttribute("aria-label", t("mSize"));
+  sizes.hidden = !g.sizes.length;
+  g.sizes.forEach(function(sz){
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = sz;
+    b.addEventListener("click", function(){ sel.size = sz; update(); });
+    sizes.appendChild(b);
+  });
+  // Fetch the other colours and views on first touch, so switching is instant.
+  var warmed = false;
+  function warm(){
+    if (warmed) return; warmed = true;
+    g.colors.forEach(function(c){ [c.img, c.back].forEach(function(u){ if (u) new Image().src = sized(u); }); });
+  }
+  el.addEventListener("pointerenter", warm);
+  el.addEventListener("touchstart", warm, {passive: true});
+  var buy = el.querySelector(".btn");
+  buy.textContent = t("gBuy");
+  buy.addEventListener("click", function(){
+    var c = col();
+    if (g.sizes.length && !sel.size) { toast(t("mPickSize")); return; }
+    var vid = c.v[g.sizes.length ? sel.size : ""];
+    if (CONFIG.checkout && vid) { location.href = "/cart/" + vid + ":1"; return; }
+    pay("gear", fmt(t("gItem"), {name: t("g_" + g.id), color: t("c_" + c.id), size: sel.size ? ", " + sel.size : ""}), g.price);
+  });
+  update();
+  return el;
 }
 
 var wallAll = false;
