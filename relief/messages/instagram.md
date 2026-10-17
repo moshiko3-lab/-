@@ -9,7 +9,7 @@ https://www.shokogi.com/pages/keep-venao-surfing?utm_source=instagram
 
 We're open and ready to welcome surfers, with our full opening in early November. Venao is getting back to normal, step by step: the supermarket and the gas station are open, many businesses on the beach have reopened, and there will be places to stay again from early to mid-November. The waves? As good as ever 🤙
 
-Want to help Venao get back on its feet faster? Our new Playa Venao tees, surf lycras and surf hats, for adults and kids, are a way to support us. With your help we also want to set up a surf program for local kids from the surrounding villages 💛
+Want to support us? Our new Playa Venao tees, surf lycras and surf hats, for adults and kids, help the school come back stronger after the earthquake 💛
 
 📦 We ship worldwide, or pick up at the school in Playa Venao.
 🔗 Link in bio
@@ -24,6 +24,5 @@ Want to help Venao get back on its feet faster? Our new Playa Venao tees, surf l
 2. Full opening in early November 🤙
 
 3. Tees · Lycras · Surf hats
-   Support Venao, and help us set up a surf program
-   for local kids from the surrounding villages 💛
+   Your support helps us come back stronger 💛
    [link sticker: Shop & help Shokogi]
