@@ -5,36 +5,36 @@ The link opens the page in that language.
 
 ## English
 
-🌊 *Keep Venao Surfing*
+🌊 *Back in the water. Stronger, and ready for you.*
 
 Hi! It's Shokogi from Playa Venao.
-Good news: Shokogi is back in the water and ready to welcome surfers, with our full opening in early November. Venao is getting back to normal after the 9 October earthquake, and the waves are as good as ever.
+The earthquake shook Venao, but the waves never left, and neither did we. Shokogi is open and ready to welcome you back, with our full opening in early November 🤙
 
-Want to support us? Our new Playa Venao tees, surf lycras and surf hats help the school come back stronger after the earthquake. We ship worldwide, or you can pick up at the school 👇
+If you'd like to be part of this new chapter, our Playa Venao tees, surf lycras and surf hats are a simple way to support the school. We ship worldwide, or you can pick up at the school 👇
 https://www.shokogi.com/pages/keep-venao-surfing?utm_source=whatsapp
 
-Thank you, see you in the water 🤙
+See you in the water 🌊
 
 ## Español
 
-🌊 *Keep Venao Surfing*
+🌊 *De vuelta en el agua. Más fuertes, y listos para ti.*
 
 ¡Hola! Te escribe Shokogi, de Playa Venao.
-Buenas noticias: Shokogi volvió al agua y está lista para recibir surfistas, con la apertura completa a principios de noviembre. Venao vuelve a la normalidad tras el terremoto del 9 de octubre, y las olas siguen tan buenas como siempre.
+El terremoto sacudió Venao, pero las olas nunca se fueron, y nosotros tampoco. Shokogi está abierta y lista para recibirte, con la apertura completa a principios de noviembre 🤙
 
-¿Quieres apoyarnos? Nuestras nuevas camisetas Playa Venao, licras y sombreros de surf ayudan a la escuela a volver más fuerte después del terremoto. Enviamos a todo el mundo, o puedes recogerlo en la escuela 👇
+Si quieres ser parte de este nuevo capítulo, nuestras camisetas Playa Venao, licras y sombreros de surf son una forma sencilla de apoyar a la escuela. Enviamos a todo el mundo, o puedes recogerlo en la escuela 👇
 https://www.shokogi.com/pages/keep-venao-surfing?lang=es&utm_source=whatsapp
 
-¡Gracias, nos vemos en el agua! 🤙
+¡Nos vemos en el agua! 🌊
 
 ## עברית
 
-🌊 *Keep Venao Surfing*
+🌊 *חזרנו למים. חזקים יותר, ומוכנים בשבילכם.*
 
 היי! כאן שוקוגי מפלאיה ונאו.
-חדשות טובות: שוקוגי חזרה למים ומוכנה לקבל גולשים, והפתיחה המלאה בתחילת נובמבר. ונאו חוזרת לשגרה אחרי רעידת האדמה ב-9 באוקטובר, והגלים טובים כמו תמיד.
+רעידת האדמה טלטלה את ונאו, אבל הגלים לא הלכו לשום מקום, וגם אנחנו לא. שוקוגי פתוחה ומחכה לכם, והפתיחה המלאה בתחילת נובמבר 🤙
 
-רוצים לתמוך בנו? החולצות החדשות של פלאיה ונאו, הלייקרות וכובעי הגלישה עוזרים לבית הספר לחזור חזק יותר אחרי רעידת האדמה. שולחים לכל העולם, או שאפשר לאסוף בבית הספר 👇
+אם תרצו להיות חלק מהפרק החדש, החולצות של פלאיה ונאו, הלייקרות וכובעי הגלישה הם דרך פשוטה לתמוך בבית הספר. שולחים לכל העולם, או שאפשר לאסוף בבית הספר 👇
 https://www.shokogi.com/pages/keep-venao-surfing?lang=he&utm_source=whatsapp
 
-תודה, נתראה במים 🤙
+נתראה במים 🌊
