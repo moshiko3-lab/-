@@ -8,9 +8,9 @@ The link opens the page in that language.
 🌊 *Keep Venao Surfing*
 
 Hi! It's Shokogi from Playa Venao.
-Venao is getting back to normal after the 9 October earthquake, and the waves are as good as ever. We expect to be back in the water by mid-November.
+Good news: Shokogi is back in the water and ready to welcome surfers, with our regular schedule from early November. Venao is getting back to normal after the 9 October earthquake, and the waves are as good as ever.
 
-The best way to help us get there: buy our new Playa Venao tees, surf lycras and surf hats. Every piece helps the school, and with your help we'll set up a surf program for local kids from the villages around Playa Venao. We ship worldwide, or you can pick up at the school 👇
+Want to help Venao get back on its feet faster? Our new Playa Venao tees, surf lycras and surf hats are a way to support us, and with your help we want to set up a surf program for local kids from the surrounding villages. We ship worldwide, or you can pick up at the school 👇
 https://www.shokogi.com/pages/keep-venao-surfing?utm_source=whatsapp
 
 Thank you, see you in the water 🤙
@@ -20,9 +20,9 @@ Thank you, see you in the water 🤙
 🌊 *Keep Venao Surfing*
 
 ¡Hola! Te escribe Shokogi, de Playa Venao.
-Venao está volviendo a la normalidad tras el terremoto del 9 de octubre, y las olas siguen tan buenas como siempre. Esperamos volver al agua a mediados de noviembre.
+Buenas noticias: Shokogi volvió al agua y está lista para recibir surfistas, con horario regular desde principios de noviembre. Venao vuelve a la normalidad tras el terremoto del 9 de octubre, y las olas siguen tan buenas como siempre.
 
-La mejor forma de ayudarnos a llegar: compra nuestras nuevas camisetas Playa Venao, licras y sombreros de surf. Cada prenda ayuda a la escuela, y con tu ayuda crearemos un programa de surf para niños de los pueblos alrededor de Playa Venao 👇
+¿Quieres ayudar a que Venao se recupere más rápido? Nuestras nuevas camisetas Playa Venao, licras y sombreros de surf son una forma de apoyarnos, y con tu ayuda queremos crear un programa de surf para los niños de los pueblos cercanos. Enviamos a todo el mundo, o puedes recogerlo en la escuela 👇
 https://www.shokogi.com/pages/keep-venao-surfing?lang=es&utm_source=whatsapp
 
 ¡Gracias, nos vemos en el agua! 🤙
@@ -32,9 +32,9 @@ https://www.shokogi.com/pages/keep-venao-surfing?lang=es&utm_source=whatsapp
 🌊 *Keep Venao Surfing*
 
 היי! כאן שוקוגי מפלאיה ונאו.
-ונאו חוזרת לעצמה אחרי רעידת האדמה ב-9 באוקטובר, והגלים טובים כמו תמיד. אנחנו מצפים לחזור למים כבר באמצע נובמבר.
+חדשות טובות: שוקוגי חזרה למים ומוכנה לקבל גולשים, עם פעילות סדירה מתחילת נובמבר. ונאו חוזרת לשגרה אחרי רעידת האדמה ב-9 באוקטובר, והגלים טובים כמו תמיד.
 
-הדרך הכי טובה לעזור לנו להגיע לשם: לקנות את החולצות החדשות של פלאיה ונאו, הלייקרות וכובעי הגלישה. כל פריט עוזר לבית הספר, ובעזרתכם נקים תוכנית גלישה לילדים מקומיים מהכפרים שמסביב לפלאיה ונאו 👇
+רוצים לעזור לוונאו לחזור לעצמה מהר יותר? החולצות החדשות של פלאיה ונאו, הלייקרות וכובעי הגלישה הם דרך לתמוך בנו, ובעזרתכם אנחנו רוצים להקים תוכנית גלישה לילדים מקומיים מהכפרים שמסביב. שולחים לכל העולם, או שאפשר לאסוף בבית הספר 👇
 https://www.shokogi.com/pages/keep-venao-surfing?lang=he&utm_source=whatsapp
 
 תודה, נתראה במים 🤙

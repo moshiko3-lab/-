@@ -5,13 +5,11 @@ https://www.shokogi.com/pages/keep-venao-surfing?utm_source=instagram
 
 ## Post caption
 
-🌊 Wear Shokogi. Help us get back in the water.
+🌊 Shokogi is back in the water.
 
-Venao is getting back to normal after the 9 October earthquake, step by step. The supermarket and the gas station are open, many businesses on the beach have reopened, and there will be places to stay again from early to mid-November. The waves? As good as ever.
+We're open and ready to welcome surfers, with our regular schedule from early November. Venao is getting back to normal, step by step: the supermarket and the gas station are open, many businesses on the beach have reopened, and there will be places to stay again from early to mid-November. The waves? As good as ever 🤙
 
-We expect to be back in the water by mid-November 🤙
-
-The best way to help us get there: our new Playa Venao tees, surf lycras and surf hats, for adults and kids. Every piece helps the school, and with your help we'll set up a surf program for local kids from the villages around Playa Venao 💛
+Want to help Venao get back on its feet faster? Our new Playa Venao tees, surf lycras and surf hats, for adults and kids, are a way to support us. With your help we also want to set up a surf program for local kids from the surrounding villages 💛
 
 📦 We ship worldwide, or pick up at the school in Playa Venao.
 🔗 Link in bio
@@ -20,13 +18,12 @@ The best way to help us get there: our new Playa Venao tees, surf lycras and sur
 
 ## Story (3 frames)
 
-1. Wear Shokogi.
-   Help us get back in the water 🌊
+1. Shokogi is back in the water 🌊
+   Ready to welcome surfers.
 
-2. Venao is coming back.
-   Back in the water by mid-November 🤙
+2. Regular schedule from early November 🤙
 
 3. Tees · Lycras · Surf hats
-   With your help we'll set up a surf program
-   for local kids from the villages around Playa Venao 💛
+   Support Venao, and help us set up a surf program
+   for local kids from the surrounding villages 💛
    [link sticker: Shop & help Shokogi]
