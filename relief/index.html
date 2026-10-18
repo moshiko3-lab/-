@@ -304,6 +304,9 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.v2 .fits{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--sand,#f4f2ee);border-radius:999px}
 .gear.v2 .fits button{appearance:none;border:0;background:none;height:38px;border-radius:999px;font:600 14.5px/1 var(--f-body);color:var(--text-2);cursor:pointer}
 .gear.v2 .fits button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.gear.v2 .fits button.kids[aria-pressed="false"]{color:var(--pink-deep)}
+.gear.v2 .kidsTag{position:absolute;top:12px;inset-inline-start:12px;z-index:2;appearance:none;border:0;cursor:pointer;
+  background:var(--pink);color:#fff;font:700 12.5px/1 var(--f-body);letter-spacing:.06em;padding:9px 14px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 @media (max-width:560px){
   .gear.v2{grid-template-columns:1fr;gap:18px}
   .gear.v2 .gcard .ghead,.gear.v2 .gcard:last-child:nth-child(odd) .ghead{flex-direction:row;align-items:baseline}
@@ -665,7 +668,7 @@ en:{
   mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", pickSz:"Choose a size", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
-  mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
+  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Kids sizes too", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
   t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Valid for 24 months from purchase", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
@@ -746,7 +749,7 @@ es:{
   mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", pickSz:"Elige una talla", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
-  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
+  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También para niños", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
   t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Válida por 24 meses desde la compra", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
@@ -827,7 +830,7 @@ he:{
   mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", pickSz:"בחרו מידה", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
-  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
+  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם לילדים", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
   t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "בתוקף 24 חודשים מיום הרכישה", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
@@ -1171,14 +1174,23 @@ function gearCard(g){
         var b = document.createElement("button");
         b.type = "button";
         b.textContent = t(f.id === "kids" ? "fitKids" : "fitAdult");
+        if (f.id === "kids") b.className = "kids";
         b.setAttribute("aria-pressed", f.id === g.fit ? "true" : "false");
-        b.addEventListener("click", function(){
-          if (f.id === g.fit) return;
-          gearFit[g.group.id] = f.id;
-          el.replaceWith(fitCard(g.group));
-        });
+        b.addEventListener("click", function(){ pickFit(f.id); });
         fits.appendChild(b);
       });
+      var pickFit = function(id){
+        if (id === g.fit) return;
+        gearFit[g.group.id] = id;
+        el.replaceWith(fitCard(g.group));
+      };
+      // On the adults view, a pink tag on the photo says kids' sizes exist too.
+      if (g.fit !== "kids" && g.group.fits.some(function(f){ return f.id === "kids"; })) {
+        var kt = document.createElement("button");
+        kt.type = "button"; kt.className = "kidsTag"; kt.textContent = t("kidsToo");
+        kt.addEventListener("click", function(){ pickFit("kids"); });
+        el.querySelector(".gimg").appendChild(kt);
+      }
       var opts = el.querySelector(".opts");
       opts.parentNode.insertBefore(fits, opts);
     }
