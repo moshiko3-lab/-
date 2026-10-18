@@ -332,7 +332,12 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 
 /* Quick add (on when #rv-flags sets quickAdd to true): small cards with photo, name, price, colours
    and one button; size, kids or adults and quantity are chosen in a panel that slides up. */
-.gear.qa{grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 16px;max-width:1040px;margin-inline:auto}
+.gear.qa{grid-template-columns:repeat(auto-fit,minmax(200px,240px));justify-content:center;gap:22px 16px;max-width:1040px;margin-inline:auto}
+.qtabs{display:flex;gap:4px;margin:0 auto 22px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:999px;width:max-content;max-width:100%}
+.qtabs button{appearance:none;border:0;background:none;height:40px;padding:0 22px;border-radius:999px;font:600 15px/1 var(--f-body);color:var(--text-2);cursor:pointer}
+.qtabs button.kids{color:#d63f72}
+.qtabs button[aria-pressed="true"]{background:var(--text);color:#fff}
+.gear.qa .qkids{align-self:flex-start;appearance:none;border:0;cursor:pointer;background:#fdeaf0;color:#b0325f;font:600 12.5px/1.2 var(--f-body);padding:6px 11px;border-radius:999px}
 @media (max-width:860px){.gear.qa{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
@@ -350,7 +355,9 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
   .gear.qa .qcard:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 5px)}
   .gear.qa .qbody{padding:10px 10px 12px;gap:6px}
   .gear.qa h3{font-size:15px!important}.gear.qa .qprice{font-size:15px}
-  .gear.qa .qadd{min-height:40px;font-size:11px;letter-spacing:.1em}}
+  .gear.qa .qadd{min-height:40px;font-size:11px;letter-spacing:.1em}
+  .gear.qa .qkids{font-size:11.5px;padding:5px 9px}
+  .qtabs button{padding:0 18px;height:38px;font-size:14.5px}}
 
 /* supporters wall */
 .wallStats{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0 0 22px}
@@ -704,7 +711,7 @@ en:{
   mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", pickSz:"Choose a size", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
-  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Kids sizes too", close:"Close", mPricePh:"Price to be set",
+  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Also in kids' sizes", close:"Close", fAll:"All", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
   t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Valid for 24 months from purchase", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
@@ -785,7 +792,7 @@ es:{
   mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", pickSz:"Elige una talla", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
-  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También para niños", close:"Cerrar", mPricePh:"Precio por definir",
+  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También en tallas de niño", close:"Cerrar", fAll:"Todo", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
   t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Válida por 24 meses desde la compra", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
@@ -866,7 +873,7 @@ he:{
   mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", pickSz:"בחרו מידה", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
-  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם לילדים", close:"סגירה", mPricePh:"המחיר ייקבע",
+  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם במידות ילדים", close:"סגירה", fAll:"הכל", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
   t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "בתוקף 24 חודשים מיום הרכישה", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
@@ -1161,11 +1168,31 @@ function renderGear(){
   var v2 = pageFlag("cardV2"), qa = pageFlag("quickAdd");
   box.classList.toggle("v2", v2 && !qa);
   box.classList.toggle("qa", qa);
+  var tabs = document.getElementById("qaTabs");
+  if (tabs) tabs.hidden = !qa;
   if (qa) {
-    // The kids' tee gets its own card next to the adults' tee; the lycra keeps its Adults / Kids switch.
+    // Tabs (All / Adults / Kids) above the cards, so the kids' gear is easy to find.
+    if (!tabs) {
+      tabs = document.createElement("div");
+      tabs.id = "qaTabs"; tabs.className = "qtabs"; tabs.setAttribute("role", "group");
+      box.parentNode.insertBefore(tabs, box);
+    }
+    tabs.innerHTML = "";
+    [["all", "fAll"], ["adult", "fitAdult"], ["kids", "fitKids"]].forEach(function(x){
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = t(x[1]);
+      if (x[0] === "kids") b.className = "kids";
+      b.setAttribute("aria-pressed", qaTab === x[0] ? "true" : "false");
+      b.addEventListener("click", function(){ qaTab = x[0]; renderGear(); });
+      tabs.appendChild(b);
+    });
+    function solo(G, f){ return Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), views: G.views, fits: null}); }
     (CONFIG.gear || []).forEach(function(G){
-      if (G.id !== "tee" || !G.fits) { box.appendChild(qaCard(G)); return; }
-      G.fits.forEach(function(f){ box.appendChild(qaCard(Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), views: G.views, fits: null}))); });
+      if (!G.fits) { if (qaTab !== "kids") box.appendChild(qaCard(G)); return; }
+      if (qaTab !== "all") { G.fits.forEach(function(f){ if (f.id === qaTab) box.appendChild(qaCard(solo(G, f))); }); return; }
+      // All: the kids' tee has its own card; the lycra keeps its Adults / Kids switch.
+      if (G.id === "tee") G.fits.forEach(function(f){ box.appendChild(qaCard(solo(G, f))); });
+      else box.appendChild(qaCard(G));
     });
     return;
   }
@@ -1322,7 +1349,7 @@ function gearCard(g){
 }
 
 // Quick add: the card only shows the product; the panel holds the choices.
-var qaState = {};
+var qaState = {}, qaTab = "all";
 function qaFits(G){ return G.fits || [G]; }
 function qaFit(G, id){ var fs = qaFits(G); return fs.filter(function(f){ return f.id === id; })[0] || fs[0]; }
 function qaName(G, f){ return t("g_" + G.id + (G.fits && f.id === "kids" ? "Kids" : "")); }
@@ -1355,9 +1382,9 @@ function qaCard(G){
   });
   if (G.fits && G.fits.some(function(f){ return f.id === "kids"; })) {
     var kt = document.createElement("button");
-    kt.type = "button"; kt.className = "kidsTag"; kt.textContent = t("kidsToo");
-    kt.addEventListener("click", function(e){ e.stopPropagation(); qaOpen(G, "kids"); });
-    el.querySelector(".qimg").appendChild(kt);
+    kt.type = "button"; kt.className = "qkids"; kt.textContent = t("kidsToo");
+    kt.addEventListener("click", function(){ qaOpen(G, "kids"); });
+    dots.parentNode.insertBefore(kt, dots);
   }
   el.querySelector(".qimg").addEventListener("click", function(){ qaOpen(G, f0.id); });
   var add = el.querySelector(".qadd");
