@@ -1356,7 +1356,7 @@ function gearCard(g){
 }
 
 // Quick add: the card only shows the product; the panel holds the choices.
-var qaState = {}, qaTab = "all", qaN = 0;
+var qaState = {}, qaTab = "all";
 function qaFits(G){ return G.fits || [G]; }
 function qaFit(G, id){ var fs = qaFits(G); return fs.filter(function(f){ return f.id === id; })[0] || fs[0]; }
 function qaName(G, f){ return t("g_" + G.id + (G.fits && f.id === "kids" ? "Kids" : "")); }
@@ -1410,19 +1410,6 @@ function qaCard(G){
     [].forEach.call(dots.children, function(b){ b.setAttribute("aria-pressed", b.dataset.c === c.id ? "true" : "false"); });
   }
   slides.addEventListener("scroll", pip, {passive: true});
-  // The photos move on by themselves every 3 seconds while the card is on screen (cards start
-  // staggered), and wait a while after the shopper touches them.
-  var seen = false, hold = 0, smooth = !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
-  if ("IntersectionObserver" in window) new IntersectionObserver(function(es){ seen = es[0].isIntersecting; }, {threshold: .5}).observe(el);
-  else seen = true;
-  ["pointerdown", "touchstart", "wheel"].forEach(function(ev){ slides.parentNode.addEventListener(ev, function(){ hold = Date.now() + 8000; }, {passive: true}); });
-  setTimeout(function(){
-    var timer = setInterval(function(){
-      if (!el.isConnected) return clearInterval(timer);
-      if (shots.length < 2 || !seen || document.hidden || Date.now() < hold || document.getElementById("rvSheet") && !document.getElementById("rvSheet").hidden) return;
-      slideTo(slides, (slideAt(slides) + 1) % shots.length, smooth);
-    }, 3000);
-  }, (qaN++ % 4) * 750);
   f0.colors.forEach(function(c){
     var b = document.createElement("button");
     b.type = "button"; b.dataset.c = c.id; b.setAttribute("aria-label", t("c_" + c.id));
