@@ -278,6 +278,10 @@ footer li{margin-bottom:4px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
+.cartbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:55;display:none;align-items:center;gap:14px;background:var(--text);color:var(--bg);padding:8px 8px 8px 18px;border-radius:999px;box-shadow:var(--shadow);font-size:15px;white-space:nowrap}
+.cartbar.show{display:flex}
+.cartbar .btn{padding:10px 18px;margin:0}
+.cartbar.show~.toast{bottom:84px}
 
 /* type: headings, prices and labels in the site's display face */
 h1,h2,h3,.grp,.eyebrow,.tier .price,.fact b,.merch .price,summary,.tag,.ribbon{font-family:var(--f-head)}
@@ -434,6 +438,7 @@ footer{background:var(--sea)}
     <div class="opts" id="mOpts"></div>
   </div>
 </div>
+<div class="cartbar" id="cartbar"><span id="cartN"></span><a class="btn" href="/checkout" data-i18n="toCheckout">Checkout</a></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -532,7 +537,7 @@ en:{
   heroCtaShop:"Shop the collection", shopEyebrow:"Wear Venao", shopTitle:"Shokogi tees, lycras & surf hats",
   shopSub:"Our own surf gear from Playa Venao. Your support helps us come back stronger.",
   shopShip:"Shipped orders can take up to 90 days to arrive. You can also collect yours at the school in Playa Venao. Enter your address at checkout to see the shipping cost.",
-  g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gItem:"{name}, {color}{size}",
+  g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gAdd:"Add to cart", added:"Added to cart", inCart:"In your cart: {n}", toCheckout:"Checkout", gItem:"{name}, {color}{size}",
   c_white:"White", c_blue:"Blue", c_yellow:"Yellow", c_mustard:"Mustard", c_salmon:"Salmon",
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Thank you for being part of our story.",
@@ -613,7 +618,7 @@ es:{
   heroCtaShop:"Ver la colección", shopEyebrow:"Viste Venao", shopTitle:"Camisetas, licras y sombreros de surf Shokogi",
   shopSub:"Nuestra ropa de surf de Playa Venao. Tu apoyo nos ayuda a volver más fuertes.",
   shopShip:"Los envíos pueden tardar hasta 90 días en llegar. También puedes recoger tu pedido en la escuela en Playa Venao. Ingresa tu dirección al pagar para ver el costo del envío.",
-  g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gItem:"{name}, {color}{size}",
+  g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gAdd:"Añadir al carrito", added:"Añadido al carrito", inCart:"En tu carrito: {n}", toCheckout:"Pagar", gItem:"{name}, {color}{size}",
   c_white:"Blanca", c_blue:"Azul", c_yellow:"Amarilla", c_mustard:"Mostaza", c_salmon:"Salmón",
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Gracias por ser parte de nuestra historia.",
@@ -694,7 +699,7 @@ he:{
   heroCtaShop:"לקולקציה", shopEyebrow:"לובשים את ונאו", shopTitle:"חולצות, לייקרות וכובעי גלישה של שוקוגי",
   shopSub:"ציוד הגלישה שלנו מפלאיה ונאו. התמיכה שלכם עוזרת לנו לחזור חזקים יותר.",
   shopShip:"משלוח עשוי לקחת עד 90 יום להגיע. אפשר גם לאסוף בבית הספר בפלאיה ונאו. מזינים כתובת בקופה ורואים את מחיר המשלוח.",
-  g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gItem:"{name}, {color}{size}",
+  g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gAdd:"הוספה לסל", added:"נוסף לסל", inCart:"בסל שלך: {n}", toCheckout:"לתשלום", gItem:"{name}, {color}{size}",
   c_white:"לבן", c_blue:"כחול", c_yellow:"צהוב", c_mustard:"חרדל", c_salmon:"סלמון",
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"תודה שאתם חלק מהסיפור שלנו.",
@@ -787,6 +792,7 @@ function setLang(l){
   renderQuake();
   renderGear();
   renderWall();
+  if (cartCount) showCart(cartCount);
   if (document.getElementById("heroVid")) renderVideo();
   try { localStorage.setItem("venao-lang", lang); } catch(e) {}
 }
@@ -811,13 +817,37 @@ function renderTiers(){
   });
 }
 
+// Inside the store: add to the Shopify cart and stay on the page, so people can
+// pick several items (two blue tees and a pink one) before checking out.
+var cartCount = 0;
+function showCart(n){
+  cartCount = n;
+  var bar = document.getElementById("cartbar");
+  if (!bar) return;
+  document.getElementById("cartN").textContent = fmt(t("inCart"), {n: n});
+  bar.classList.toggle("show", n > 0);
+}
+function toCart(vid, qty){
+  fetch("/cart/add.js", {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+    body: JSON.stringify({items: [{id: Number(vid), quantity: qty}]})})
+    .then(function(r){ if (!r.ok) throw r; return fetch("/cart.js", {headers: {"Accept": "application/json"}}); })
+    .then(function(r){ return r.json(); })
+    .then(function(c){ showCart(c.item_count); toast(t("added")); })
+    .catch(function(){ location.href = "/cart/" + vid + ":" + qty; });
+}
+function loadCart(){
+  if (!CONFIG.checkout || !window.fetch) return;
+  fetch("/cart.js", {headers: {"Accept": "application/json"}})
+    .then(function(r){ return r.json(); }).then(function(c){ showCart(c.item_count); }).catch(function(){});
+}
+
 function pay(id, item, price){
   var C = CONFIG.checkout;
   if (C) {
     var vid = id === "lycra" ? ((lycraFit === "kids" ? C.lycraKids : C.lycra) || {})[lycraColor + "-" + lycraSize]
             : id === "custom" ? C.donation : C[id];
     var qty = id === "custom" ? Math.max(1, Math.round(price / 5)) : 1;
-    if (vid) { location.href = "/cart/" + vid + ":" + qty; return; }
+    if (vid) { toCart(vid, qty); return; }
   }
   var link = CONFIG.payLinks[id];
   if (link) { window.open(link, "_blank", "noopener"); return; }
@@ -1032,12 +1062,12 @@ function gearCard(g){
   el.addEventListener("pointerenter", warm);
   el.addEventListener("touchstart", warm, {passive: true});
   var buy = el.querySelector(".btn");
-  buy.textContent = t("gBuy");
+  buy.textContent = t(CONFIG.checkout ? "gAdd" : "gBuy");
   buy.addEventListener("click", function(){
     var c = col();
     if (g.sizes.length && !sel.size) { toast(t("mPickSize")); return; }
     var vid = c.v[g.sizes.length ? sel.size : ""];
-    if (CONFIG.checkout && vid) { location.href = "/cart/" + vid + ":1"; return; }
+    if (CONFIG.checkout && vid) { toCart(vid, 1); return; }
     pay("gear", fmt(t("gItem"), {name: t("g_" + g.id), color: t("c_" + c.id), size: sel.size ? ", " + sel.size : ""}), g.price);
   });
   update();
@@ -1176,6 +1206,7 @@ function init(){
   setLang(q || saved || (T[nav] ? nav : "en"));
 }
 init();
+loadCart();
 </script>
 </body>
 </html>
