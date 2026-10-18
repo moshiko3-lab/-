@@ -301,11 +301,14 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.v2 .gcard .qty button{width:34px;font-size:20px}
 .gear.v2 .gcard .qty input{width:30px;font-size:16px}
 .gear.v2 .gcard .btn{flex:1;width:auto;margin:0;min-height:48px;padding:0 16px}
+.gear.v2 .fits{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--sand,#f4f2ee);border-radius:999px}
+.gear.v2 .fits button{appearance:none;border:0;background:none;height:38px;border-radius:999px;font:600 14.5px/1 var(--f-body);color:var(--text-2);cursor:pointer}
+.gear.v2 .fits button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 @media (max-width:560px){
   .gear.v2{grid-template-columns:1fr;gap:18px}
   .gear.v2 .gcard .ghead,.gear.v2 .gcard:last-child:nth-child(odd) .ghead{flex-direction:row;align-items:baseline}
   .gear.v2 .gcard h3{font-size:19px!important}.gear.v2 .gcard .price{font-size:19px}
-  .gear.v2 .gcard .gimg,.gear.v2 .gcard:last-child:nth-child(odd) .gimg{aspect-ratio:4/5}
+  .gear.v2 .gcard .gimg,.gear.v2 .gcard:last-child:nth-child(odd) .gimg{aspect-ratio:1/1}
   .gear.v2 .gcard .sizes button,.gear.v2 .gcard:last-child:nth-child(odd) .sizes button{height:42px;font-size:15px;max-width:none}
   .gear.v2 .gcard .btn{font-size:15px}}
 
@@ -1116,7 +1119,10 @@ function pageFlag(name){
 function renderGear(){
   var box = document.getElementById("gear");
   box.innerHTML = "";
-  box.classList.toggle("v2", pageFlag("cardV2"));
+  var v2 = pageFlag("cardV2");
+  box.classList.toggle("v2", v2);
+  // Card v2: one card per product, with an Adults / Kids switch inside it.
+  if (v2) { (CONFIG.gear || []).forEach(function(G){ box.appendChild(G.fits ? fitCard(G) : gearCard(G)); }); return; }
   // Every fit is its own card (adult tee, kids tee, ...), so kids' gear is in plain sight.
   var items = [];
   (CONFIG.gear || []).forEach(function(G){
@@ -1124,6 +1130,12 @@ function renderGear(){
     G.fits.forEach(function(f){ items.push(Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), fit: f.id, views: G.views})); });
   });
   items.forEach(function(g){ box.appendChild(gearCard(g)); });
+}
+
+var gearFit = {};
+function fitCard(G){
+  var f = G.fits.filter(function(x){ return x.id === gearFit[G.id]; })[0] || G.fits[0];
+  return gearCard(Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), fit: f.id, views: G.views, group: G}));
 }
 
 function sized(src){ return src + (src.indexOf("?") < 0 ? "?" : "&") + "width=600"; }
@@ -1150,6 +1162,26 @@ function gearCard(g){
       before.parentNode.insertBefore(d, before);
       return d;
     };
+    if (g.group) {
+      var fits = document.createElement("div");
+      fits.className = "fits";
+      fits.setAttribute("role", "group");
+      fits.setAttribute("aria-label", t("mFit"));
+      g.group.fits.forEach(function(f){
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = t(f.id === "kids" ? "fitKids" : "fitAdult");
+        b.setAttribute("aria-pressed", f.id === g.fit ? "true" : "false");
+        b.addEventListener("click", function(){
+          if (f.id === g.fit) return;
+          gearFit[g.group.id] = f.id;
+          el.replaceWith(fitCard(g.group));
+        });
+        fits.appendChild(b);
+      });
+      var opts = el.querySelector(".opts");
+      opts.parentNode.insertBefore(fits, opts);
+    }
     labC = lab(t("mColor"), el.querySelector(".opts"));
     if (g.sizes.length) labS = lab(t("mSize"), sizes);
     var qrow = document.createElement("div"), qb = el.querySelector(".qty");
