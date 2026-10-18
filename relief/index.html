@@ -332,7 +332,8 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 
 /* Quick add (on when #rv-flags sets quickAdd to true): small cards with photo, name, price, colours
    and one button; size, kids or adults and quantity are chosen in a panel that slides up. */
-.gear.qa{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px;max-width:920px;margin-inline:auto}
+.gear.qa{grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 16px;max-width:1040px;margin-inline:auto}
+@media (max-width:860px){.gear.qa{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
 .gear.qa .qimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block}
@@ -1160,7 +1161,14 @@ function renderGear(){
   var v2 = pageFlag("cardV2"), qa = pageFlag("quickAdd");
   box.classList.toggle("v2", v2 && !qa);
   box.classList.toggle("qa", qa);
-  if (qa) { (CONFIG.gear || []).forEach(function(G){ box.appendChild(qaCard(G)); }); return; }
+  if (qa) {
+    // The kids' tee gets its own card next to the adults' tee; the lycra keeps its Adults / Kids switch.
+    (CONFIG.gear || []).forEach(function(G){
+      if (G.id !== "tee" || !G.fits) { box.appendChild(qaCard(G)); return; }
+      G.fits.forEach(function(f){ box.appendChild(qaCard(Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), views: G.views, fits: null}))); });
+    });
+    return;
+  }
   // Card v2: one card per product, with an Adults / Kids switch inside it.
   if (v2) { (CONFIG.gear || []).forEach(function(G){ box.appendChild(G.fits ? fitCard(G) : gearCard(G)); }); return; }
   // Every fit is its own card (adult tee, kids tee, ...), so kids' gear is in plain sight.
