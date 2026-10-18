@@ -338,9 +338,7 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.qa .qcard{flex:0 1 200px;min-width:160px}
 .qtabs{display:flex;gap:4px;margin:0 auto 22px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:999px;width:max-content;max-width:100%}
 .qtabs button{appearance:none;border:0;background:none;height:40px;padding:0 22px;border-radius:999px;font:600 15px/1 var(--f-body);color:var(--text-2);cursor:pointer}
-.qtabs button.kids{color:#d63f72}
-.qtabs button[aria-pressed="true"]{background:var(--text);color:#fff}
-.gear.qa .qkids{align-self:flex-start;appearance:none;border:0;cursor:pointer;background:#fdeaf0;color:#b0325f;font:600 12.5px/1.2 var(--f-body);padding:6px 11px;border-radius:999px}
+.qtabs button[aria-pressed="true"]{background:var(--pink);color:#fff}
 .gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
 .gear.qa .qslides{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
@@ -350,22 +348,22 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.qa .qpips button{pointer-events:auto;appearance:none;border:0;background:none;padding:5px 3px;cursor:pointer}
 .gear.qa .qpips i{display:block;width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.65);box-shadow:0 0 3px rgba(0,0,0,.35);transition:width .2s}
 .gear.qa .qpips button[aria-pressed="true"] i{width:18px;background:#fff}
-.gear.qa .qbody{display:flex;flex-direction:column;gap:8px;padding:14px;flex:1}
-.gear.qa h3{margin:0;font-size:19px!important;line-height:1.1}
-.gear.qa .qprice{font:600 18px/1 var(--f-head)}
+.gear.qa .qbody{display:flex;flex-direction:column;gap:7px;padding:14px 14px 16px;flex:1}
+.gear.qa h3{margin:0;font-size:16px!important;line-height:1.15;letter-spacing:.04em}
+.gear.qa .qprice{font:500 14.5px/1 var(--f-body);color:var(--text-2)}
 .gear.qa .qdots{display:flex;gap:2px;margin:0 -5px 2px}
 .gear.qa .qdots button{appearance:none;border:0;background:none;padding:5px;cursor:pointer}
-.gear.qa .qdots i{display:block;width:22px;height:22px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
+.gear.qa .qdots i{display:block;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
 .gear.qa .qdots button[aria-pressed="true"] i{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
-.gear.qa .qadd{margin-top:auto;width:100%;min-height:44px;padding:0 10px;white-space:nowrap}
+.gear.qa .qadd{margin-top:auto;width:100%;min-height:40px;padding:0 10px;white-space:nowrap;background:var(--pink);color:#fff;font:700 11px/1 var(--f-body);letter-spacing:.18em;border:0}
+.gear.qa .qadd:hover{background:#e85a84}
 @media (max-width:560px){
   .gear.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;width:auto;margin-inline:0}
   .gear.qa .qcard{min-width:0}
   .gear.qa .qcard:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 5px)}
   .gear.qa .qbody{padding:10px 10px 12px;gap:6px}
-  .gear.qa h3{font-size:15px!important}.gear.qa .qprice{font-size:15px}
-  .gear.qa .qadd{min-height:40px;font-size:11px;letter-spacing:.1em}
-  .gear.qa .qkids{font-size:11.5px;padding:5px 9px}
+  .gear.qa h3{font-size:14px!important}.gear.qa .qprice{font-size:13.5px}
+  .gear.qa .qadd{min-height:38px;font-size:10.5px;letter-spacing:.12em}
   .qtabs button{padding:0 18px;height:38px;font-size:14.5px}}
 
 /* supporters wall */
@@ -1419,12 +1417,6 @@ function qaCard(G){
     b.addEventListener("click", function(){ st.fit = f0.id; st.color = c.id; show(); });
     dots.appendChild(b);
   });
-  if (G.fits && G.fits.some(function(f){ return f.id === "kids"; })) {
-    var kt = document.createElement("button");
-    kt.type = "button"; kt.className = "qkids"; kt.textContent = t("kidsToo");
-    kt.addEventListener("click", function(){ qaOpen(G, "kids"); });
-    dots.parentNode.insertBefore(kt, dots);
-  }
   el.querySelector(".qimg").addEventListener("click", function(){ qaOpen(G, f0.id); });
   var add = el.querySelector(".qadd");
   add.textContent = t("gAdd");
@@ -1474,7 +1466,7 @@ var QA_CSS = '#rvSheet{position:fixed;inset:0;z-index:2147483100;font:400 15px/1
   '#rvSheet .qty{display:flex;align-items:center;border:1px solid #e3e0d9;border-radius:999px;padding:0 4px;flex:none}' +
   '#rvSheet .qty button{width:38px;height:50px;border:0;background:none;font-size:20px}' +
   '#rvSheet .qty span{min-width:22px;text-align:center;font-weight:600}' +
-  '#rvSheet .add{flex:1;height:52px;border:0;border-radius:999px;background:#191a1a;color:#fff;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}' +
+  '#rvSheet .add{flex:1;height:52px;border:0;border-radius:999px;background:#f46e95;color:#fff;font-weight:700;font-size:12px;letter-spacing:.18em;text-transform:uppercase}' +
   '#rvSheet[dir=rtl] .add{letter-spacing:.02em;font-size:16px}#rvSheet .add:disabled{opacity:.6}';
 
 function qaSheet(){
