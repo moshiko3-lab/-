@@ -341,7 +341,13 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 @media (max-width:860px){.gear.qa{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
-.gear.qa .qimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block}
+.gear.qa .qslides{position:absolute;inset:0;display:flex;direction:ltr;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gear.qa .qslides::-webkit-scrollbar{display:none}
+.gear.qa .qslides img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block;scroll-snap-align:start}
+.gear.qa .qpips{position:absolute;left:0;right:0;bottom:6px;display:flex;direction:ltr;justify-content:center;pointer-events:none}
+.gear.qa .qpips button{pointer-events:auto;appearance:none;border:0;background:none;padding:5px 3px;cursor:pointer}
+.gear.qa .qpips i{display:block;width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.65);box-shadow:0 0 3px rgba(0,0,0,.35);transition:width .2s}
+.gear.qa .qpips button[aria-pressed="true"] i{width:18px;background:#fff}
 .gear.qa .qbody{display:flex;flex-direction:column;gap:8px;padding:14px;flex:1}
 .gear.qa h3{margin:0;font-size:19px!important;line-height:1.1}
 .gear.qa .qprice{font:600 18px/1 var(--f-head)}
@@ -635,7 +641,7 @@ var CONFIG = {
   supporters: { updated: "", list: [] },
 
   // Shokogi tees, tank tops and hats: store variant ids per colour and size.
-  gear: [{"id":"tee","fits":[{"id":"adult","price":30,"sizes":["S","M","L","XL"],"colors":[{"id":"ash","swatch":"#d8d8d4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-back.jpg?v=1792101157","v":{"S":"45599795675202","M":"45599795707970","L":"45599795740738","XL":"45599795773506"}},{"id":"green","swatch":"#7f9170","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-back.jpg?v=1792101157","v":{"S":"45599795806274","M":"45599795839042","L":"45599795871810","XL":"45599795904578"}}]},{"id":"kids","price":30,"sizes":["S","M","L"],"colors":[{"id":"cblue","swatch":"#7fa3e0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-back.jpg?v=1792101158","v":{"S":"45599797346370","M":"45599797379138","L":"45599797411906"}},{"id":"lpink","swatch":"#f3c4d2","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-back.jpg?v=1792101158","v":{"S":"45599797444674","M":"45599797477442","L":"45599797510210"}}]}]},{"id":"lycra","fits":[{"id":"adult","price":45,"sizes":["S","M","L","XL"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-back.jpg?v=1792107639","v":{"S":"45572895244354","M":"45572895277122","L":"45572895309890","XL":"45572895342658"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-back.jpg?v=1792107639","v":{"S":"45572895408194","M":"45572895440962","L":"45572895473730","XL":"45572895506498"}}]},{"id":"kids","price":40,"sizes":["S","M","L"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-back.jpg?v=1792107639","v":{"S":"45573904269378","M":"45573904302146","L":"45573904334914"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-back.jpg?v=1792107639","v":{"S":"45573904400450","M":"45573904433218","L":"45573904465986"}}]}]},{"id":"hat","price":45,"sizes":["M","L"],"views":["vModel","vProduct"],"colors":[{"id":"pink","swatch":"#e0337a","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-product.jpg?v=1792102120","v":{"M":"45599904563266","L":"45599904596034"}},{"id":"black","swatch":"#1a1719","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-product.jpg?v=1792102120","v":{"M":"45599904628802","L":"45599904661570"}}]}]
+  gear: [{"id":"tee","fits":[{"id":"adult","price":30,"sizes":["S","M","L","XL"],"colors":[{"id":"ash","swatch":"#d8d8d4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-back.jpg?v=1792101157","woman":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-ash-woman.jpg?v=1792363408","v":{"S":"45599795675202","M":"45599795707970","L":"45599795740738","XL":"45599795773506"}},{"id":"green","swatch":"#7f9170","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-front.jpg?v=1792101157","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-back.jpg?v=1792101157","woman":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-green-woman.jpg?v=1792363408","v":{"S":"45599795806274","M":"45599795839042","L":"45599795871810","XL":"45599795904578"}}]},{"id":"kids","price":30,"sizes":["S","M","L"],"colors":[{"id":"cblue","swatch":"#7fa3e0","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-blue-back.jpg?v=1792101158","v":{"S":"45599797346370","M":"45599797379138","L":"45599797411906"}},{"id":"lpink","swatch":"#f3c4d2","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-front.jpg?v=1792101158","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/tee-kids-pink-back.jpg?v=1792101158","v":{"S":"45599797444674","M":"45599797477442","L":"45599797510210"}}]}]},{"id":"lycra","fits":[{"id":"adult","price":45,"sizes":["S","M","L","XL"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-pink-model-back.jpg?v=1792107639","v":{"S":"45572895244354","M":"45572895277122","L":"45572895309890","XL":"45572895342658"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-black-model-back.jpg?v=1792107639","v":{"S":"45572895408194","M":"45572895440962","L":"45572895473730","XL":"45572895506498"}}]},{"id":"kids","price":40,"sizes":["S","M","L"],"colors":[{"id":"pink","swatch":"#ff7fc4","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-pink-model-back.jpg?v=1792107639","v":{"S":"45573904269378","M":"45573904302146","L":"45573904334914"}},{"id":"black","swatch":"#1d1f24","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-front.jpg?v=1792107639","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/lycra-kids-black-model-back.jpg?v=1792107639","v":{"S":"45573904400450","M":"45573904433218","L":"45573904465986"}}]}]},{"id":"hat","price":45,"sizes":["M","L"],"views":["vModel","vProduct"],"colors":[{"id":"pink","swatch":"#e0337a","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-pink-product.jpg?v=1792102120","v":{"M":"45599904563266","L":"45599904596034"}},{"id":"black","swatch":"#1a1719","img":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-model.jpg?v=1792102120","back":"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/hat-black-product.jpg?v=1792102120","v":{"M":"45599904628802","L":"45599904661570"}}]}]
 
 };
 
@@ -711,7 +717,7 @@ en:{
   mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", pickSz:"Choose a size", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
-  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Also in kids' sizes", close:"Close", fAll:"All", mPricePh:"Price to be set",
+  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Also in kids' sizes", close:"Close", fAll:"All", vWoman:"On her", vMan:"On him", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
   t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Valid for 24 months from purchase", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
@@ -792,7 +798,7 @@ es:{
   mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", pickSz:"Elige una talla", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
-  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También en tallas de niño", close:"Cerrar", fAll:"Todo", mPricePh:"Precio por definir",
+  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También en tallas de niño", close:"Cerrar", fAll:"Todo", vWoman:"En ella", vMan:"En él", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
   t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Válida por 24 meses desde la compra", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
@@ -873,7 +879,7 @@ he:{
   mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", pickSz:"בחרו מידה", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
-  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם במידות ילדים", close:"סגירה", fAll:"הכל", mPricePh:"המחיר ייקבע",
+  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם במידות ילדים", close:"סגירה", fAll:"הכל", vWoman:"דוגמנית", vMan:"דוגמן", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
   t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "בתוקף 24 חודשים מיום הרכישה", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
@@ -1361,18 +1367,40 @@ function qaCard(G){
   var lo = Math.min.apply(null, prices), hi = Math.max.apply(null, prices);
   var el = document.createElement("div");
   el.className = "qcard";
-  el.innerHTML = '<div class="qimg"><img loading="lazy" alt=""></div><div class="qbody"><h3></h3><div class="qprice"></div>' +
+  el.innerHTML = '<div class="qimg"><div class="qslides"></div><div class="qpips"></div></div><div class="qbody"><h3></h3><div class="qprice"></div>' +
     '<div class="qdots" role="group"></div><button class="btn qadd" type="button"></button></div>';
-  var img = el.querySelector("img"), dots = el.querySelector(".qdots");
+  var slides = el.querySelector(".qslides"), pips = el.querySelector(".qpips"), dots = el.querySelector(".qdots"), shots = [];
   el.querySelector("h3").textContent = qaName(G, f0);
   el.querySelector(".qprice").textContent = lo === hi ? money(lo) : "\u2066" + money(lo) + "\u2013" + money(hi) + "\u2069";
   dots.setAttribute("aria-label", t("mColor"));
+  // Photos swipe sideways (on her, then on him, where both exist); the pips show which one is up.
+  function pip(){
+    var i = Math.round(slides.scrollLeft / (slides.clientWidth || 1));
+    if (shots[i]) st.side = shots[i][0];
+    [].forEach.call(pips.children, function(b, j){ b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+  }
   function show(){
     var c = qaColor(f0, st.color);
-    img.src = sized(c.img);
-    img.alt = qaName(G, f0) + ", " + t("c_" + c.id);
+    shots = c.woman ? [["woman", c.woman], ["front", c.img]] : [["front", c.img]];
+    slides.innerHTML = ""; pips.innerHTML = "";
+    shots.forEach(function(x, i){
+      var im = document.createElement("img");
+      im.loading = "lazy"; im.src = sized(x[1]);
+      im.alt = qaName(G, f0) + ", " + t("c_" + c.id) + (shots.length > 1 ? ", " + t(x[0] === "woman" ? "vWoman" : "vMan") : "");
+      slides.appendChild(im);
+      if (shots.length < 2) return;
+      var b = document.createElement("button");
+      b.type = "button"; b.innerHTML = "<i></i>";
+      b.setAttribute("aria-label", t(x[0] === "woman" ? "vWoman" : "vMan"));
+      b.addEventListener("click", function(e){ e.stopPropagation(); slides.scrollTo({left: i * slides.clientWidth, behavior: "smooth"}); });
+      pips.appendChild(b);
+    });
+    slides.scrollLeft = 0;
+    st.side = shots[0][0];
+    pip();
     [].forEach.call(dots.children, function(b){ b.setAttribute("aria-pressed", b.dataset.c === c.id ? "true" : "false"); });
   }
+  slides.addEventListener("scroll", pip, {passive: true});
   f0.colors.forEach(function(c){
     var b = document.createElement("button");
     b.type = "button"; b.dataset.c = c.id; b.setAttribute("aria-label", t("c_" + c.id));
@@ -1456,7 +1484,7 @@ function qaClose(){
 function qaOpen(G, fitId){
   var st = qaState[G.id], s = qaSheet(), panel = s.querySelector(".panel");
   var vl = G.views || ["vFront", "vBack"];
-  var size = "", q = 1, side = "front", warn = false;
+  var size = "", q = 1, side = st.side || "front", warn = false;
   st.fit = fitId || st.fit;
   s.dir = lang === "he" ? "rtl" : "ltr";
   function btns(list, act, cur, label){
@@ -1465,10 +1493,12 @@ function qaOpen(G, fitId){
   }
   function render(){
     var f = qaFit(G, st.fit), c = qaColor(f, st.color), name = qaName(G, f);
-    var src = sized(side === "back" && c.back ? c.back : c.img);
+    var sides = (c.woman ? [["woman", t("vWoman")], ["front", t("vMan")]] : [["front", t(vl[0])]]).concat(c.back ? [["back", t(vl[1])]] : []);
+    if (!sides.some(function(x){ return x[0] === side; })) side = sides[0][0];
+    var src = sized(side === "back" ? c.back : side === "woman" ? c.woman : c.img);
     var h = '<button type="button" class="x" data-act="close" aria-label="' + t("close") + '">×</button>' +
       '<div class="top"><button type="button" class="pic" data-act="flip"><img alt="" src="' + src + '"></button><div><h3></h3><div class="pr">' + money(f.price) + '</div>' +
-      (c.back ? '<div class="flip">' + btns([["front", t(vl[0])], ["back", t(vl[1])]], "side", side) + '</div>' : '') + '</div></div>';
+      (sides.length > 1 ? '<div class="flip">' + btns(sides, "side", side) + '</div>' : '') + '</div></div>';
     if (G.fits) h += '<div class="seg">' + btns(G.fits.map(function(x){ return [x.id, t(x.id === "kids" ? "fitKids" : "fitAdult")]; }), "fit", f.id) + '</div>';
     h += '<div class="lab">' + t("mColor") + '<b></b></div><div class="dots">' +
       btns(f.colors.map(function(x){ return [x.id, t("c_" + x.id), ' style="background:' + x.swatch + '">']; }), "color", c.id, true) + '</div>';
@@ -1489,7 +1519,10 @@ function qaOpen(G, fitId){
     if (!b) return;
     var act = b.dataset.act, v = b.dataset.v, f = qaFit(G, st.fit);
     if (act === "close") return qaClose();
-    if (act === "flip") side = side === "back" ? "front" : "back";
+    if (act === "flip") {
+      var sd = (qaColor(f, st.color).woman ? ["woman", "front"] : ["front"]).concat(qaColor(f, st.color).back ? ["back"] : []);
+      side = sd[(sd.indexOf(side) + 1) % sd.length];
+    }
     if (act === "side") side = v;
     if (act === "fit") { st.fit = v; if (qaFit(G, v).sizes.indexOf(size) < 0) size = ""; }
     if (act === "color") st.color = v;
