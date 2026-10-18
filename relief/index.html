@@ -278,10 +278,6 @@ footer li{margin-bottom:4px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
-.cartbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:55;display:none;align-items:center;gap:14px;background:var(--text);color:var(--bg);padding:8px 8px 8px 18px;border-radius:999px;box-shadow:var(--shadow);font-size:15px;white-space:nowrap}
-.cartbar.show{display:flex}
-.cartbar .btn{padding:10px 18px;margin:0}
-.cartbar.show~.toast{bottom:84px}
 
 /* type: headings, prices and labels in the site's display face */
 h1,h2,h3,.grp,.eyebrow,.tier .price,.fact b,.merch .price,summary,.tag,.ribbon{font-family:var(--f-head)}
@@ -438,7 +434,6 @@ footer{background:var(--sea)}
     <div class="opts" id="mOpts"></div>
   </div>
 </div>
-<div class="cartbar" id="cartbar"><span id="cartN"></span><a class="btn" href="/checkout" data-i18n="toCheckout">Checkout</a></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -537,7 +532,7 @@ en:{
   heroCtaShop:"Shop the collection", shopEyebrow:"Wear Venao", shopTitle:"Shokogi tees, lycras & surf hats",
   shopSub:"Our own surf gear from Playa Venao. Your support helps us come back stronger.",
   shopShip:"Shipped orders can take up to 90 days to arrive. You can also collect yours at the school in Playa Venao. Enter your address at checkout to see the shipping cost.",
-  g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gAdd:"Add to cart", added:"Added to cart", inCart:"In your cart: {n}", toCheckout:"Checkout", gItem:"{name}, {color}{size}",
+  g_tee:"Shokogi Playa Venao tee", g_lycra:"Shokogi surf lycra", g_tank:"Shokogi tank top", g_hat:"Shokogi surf hat", gBuy:"Buy", gAdd:"Add to cart", added:"Added to cart", inCart:"In your cart: {n}", toCheckout:"Checkout", viewCart:"View cart", gItem:"{name}, {color}{size}",
   c_white:"White", c_blue:"Blue", c_yellow:"Yellow", c_mustard:"Mustard", c_salmon:"Salmon",
   heroTag:"After the 7.7 earthquake · 9 October 2026",
   heroTitle:"Thank you for being part of our story.",
@@ -618,7 +613,7 @@ es:{
   heroCtaShop:"Ver la colección", shopEyebrow:"Viste Venao", shopTitle:"Camisetas, licras y sombreros de surf Shokogi",
   shopSub:"Nuestra ropa de surf de Playa Venao. Tu apoyo nos ayuda a volver más fuertes.",
   shopShip:"Los envíos pueden tardar hasta 90 días en llegar. También puedes recoger tu pedido en la escuela en Playa Venao. Ingresa tu dirección al pagar para ver el costo del envío.",
-  g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gAdd:"Añadir al carrito", added:"Añadido al carrito", inCart:"En tu carrito: {n}", toCheckout:"Pagar", gItem:"{name}, {color}{size}",
+  g_tee:"Camiseta Shokogi Playa Venao", g_lycra:"Licra de surf Shokogi", g_tank:"Camiseta sin mangas Shokogi", g_hat:"Sombrero de surf Shokogi", gBuy:"Comprar", gAdd:"Añadir al carrito", added:"Añadido al carrito", inCart:"En tu carrito: {n}", toCheckout:"Pagar", viewCart:"Ver carrito", gItem:"{name}, {color}{size}",
   c_white:"Blanca", c_blue:"Azul", c_yellow:"Amarilla", c_mustard:"Mostaza", c_salmon:"Salmón",
   heroTag:"Tras el terremoto de 7.7 · 9 de octubre de 2026",
   heroTitle:"Gracias por ser parte de nuestra historia.",
@@ -699,7 +694,7 @@ he:{
   heroCtaShop:"לקולקציה", shopEyebrow:"לובשים את ונאו", shopTitle:"חולצות, לייקרות וכובעי גלישה של שוקוגי",
   shopSub:"ציוד הגלישה שלנו מפלאיה ונאו. התמיכה שלכם עוזרת לנו לחזור חזקים יותר.",
   shopShip:"משלוח עשוי לקחת עד 90 יום להגיע. אפשר גם לאסוף בבית הספר בפלאיה ונאו. מזינים כתובת בקופה ורואים את מחיר המשלוח.",
-  g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gAdd:"הוספה לסל", added:"נוסף לסל", inCart:"בסל שלך: {n}", toCheckout:"לתשלום", gItem:"{name}, {color}{size}",
+  g_tee:"חולצת שוקוגי פלאיה ונאו", g_lycra:"לייקרת גלישה של שוקוגי", g_tank:"גופייה של שוקוגי", g_hat:"כובע גלישה של שוקוגי", gBuy:"לקנייה", gAdd:"הוספה לסל", added:"נוסף לסל", inCart:"בסל שלך: {n}", toCheckout:"לתשלום", viewCart:"לסל", gItem:"{name}, {color}{size}",
   c_white:"לבן", c_blue:"כחול", c_yellow:"צהוב", c_mustard:"חרדל", c_salmon:"סלמון",
   heroTag:"אחרי רעידת האדמה בעוצמה 7.7 · 9 באוקטובר 2026",
   heroTitle:"תודה שאתם חלק מהסיפור שלנו.",
@@ -820,12 +815,47 @@ function renderTiers(){
 // Inside the store: add to the Shopify cart and stay on the page, so people can
 // pick several items (two blue tees and a pink one) before checking out.
 var cartCount = 0;
+// The bar and the header badge live on <body> with their own inline styles:
+// the store's theme can clip or hide anything fixed inside the page content,
+// and its header hides Shopify's own cart count bubble.
+function cartBar(){
+  var bar = document.getElementById("rvCartBar");
+  if (bar) return bar;
+  bar = document.createElement("div");
+  bar.id = "rvCartBar";
+  bar.style.cssText = "position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;" +
+    "display:none;align-items:center;gap:8px;background:#1a1719;color:#fff;padding:7px 7px 7px 16px;border-radius:999px;" +
+    "box-shadow:0 8px 28px rgba(0,0,0,.28);font:600 15px/1.2 Helvetica,Arial,sans-serif;white-space:nowrap;max-width:calc(100vw - 20px)";
+  var a = "display:inline-block;padding:11px 14px;border-radius:999px;text-decoration:none;font:700 14px/1 Helvetica,Arial,sans-serif;letter-spacing:.02em;";
+  bar.innerHTML = '<span></span><a href="/cart" style="' + a + 'color:#fff;border:1px solid rgba(255,255,255,.35)"></a>' +
+    '<a href="/checkout" style="' + a + 'background:#f46e95;color:#1a1719"></a>';
+  document.body.appendChild(bar);
+  return bar;
+}
+function headerBadge(n){
+  var link = document.querySelector('header a[href="/cart"], .skch__cart, a.header__icon--cart');
+  if (!link) return;
+  var b = link.querySelector(".rv-cartn");
+  if (!b) {
+    b = document.createElement("span");
+    b.className = "rv-cartn";
+    b.style.cssText = "position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;" +
+      "background:#f46e95;color:#1a1719;font:700 11px/18px Helvetica,Arial,sans-serif;text-align:center;pointer-events:none";
+    if (getComputedStyle(link).position === "static") link.style.position = "relative";
+    link.appendChild(b);
+  }
+  b.textContent = n > 99 ? "99+" : n;
+  b.style.display = n > 0 ? "inline-block" : "none";
+}
 function showCart(n){
   cartCount = n;
-  var bar = document.getElementById("cartbar");
-  if (!bar) return;
-  document.getElementById("cartN").textContent = fmt(t("inCart"), {n: n});
-  bar.classList.toggle("show", n > 0);
+  var bar = cartBar(), parts = bar.children;
+  bar.dir = lang === "he" ? "rtl" : "ltr";
+  parts[0].textContent = fmt(t("inCart"), {n: n});
+  parts[1].textContent = t("viewCart");
+  parts[2].textContent = t("toCheckout");
+  bar.style.display = n > 0 ? "flex" : "none";
+  headerBadge(n);
 }
 function toCart(vid, qty){
   fetch("/cart/add.js", {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
@@ -1145,8 +1175,15 @@ function renderWall(){
 
 function toast(msg){
   var el = document.getElementById("toast");
+  if (CONFIG.checkout && el.parentNode !== document.body) {
+    document.body.appendChild(el);
+    el.style.cssText = "position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483001;" +
+      "background:#1a1719;color:#fff;padding:10px 16px;border-radius:10px;font:600 14px/1.3 Helvetica,Arial,sans-serif;transition:opacity .2s;pointer-events:none;opacity:0";
+  }
   el.textContent = msg; el.classList.add("show");
-  setTimeout(function(){ el.classList.remove("show"); }, 1600);
+  if (el.parentNode === document.body) el.style.opacity = "1";
+  clearTimeout(toast.t);
+  toast.t = setTimeout(function(){ el.classList.remove("show"); if (el.parentNode === document.body) el.style.opacity = "0"; }, 1800);
 }
 
 function renderContact(){
