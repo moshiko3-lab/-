@@ -24,7 +24,7 @@ def scope_selector(sel):
         return "#rv" + sel[len(":root"):] if sel.startswith(":root") else "#rv"
     if sel == "*":
         return "#rv *"
-    if sel.startswith("[dir="):
+    if sel.startswith("[dir=") or sel.startswith("[data-camp"):
         return "#rv" + sel
     return "#rv " + sel
 

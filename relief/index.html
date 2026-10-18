@@ -239,7 +239,45 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 #merchShip{display:none}
 [dir="rtl"] .eyebrow{letter-spacing:0!important}
 [dir="rtl"] .gcard .btn{letter-spacing:0}
-/* Card v2 (on when the page carries {"cardV2":true} in #rv-flags): labelled colour and size,
+
+/* Camp style (on when #rv-flags sets campStyle to true): the look of shokogi.com's Surf Camps page.
+   White page, #f7f6f3 bands, thin-bordered rounded cards, small pink kickers over centred titles,
+   pill buttons in spaced capitals, and the hero photo full width with the text under it. */
+[data-camp]{--sand:#f7f6f3;--line:#eceae3;--text:#191a1a;--text-2:#52514d;--text-3:#7c7b77;--pink-deep:#f46e95;--black:#141414}
+[data-camp] section{padding:48px 0}
+[data-camp] .eyebrow{display:block;text-align:center;font:700 11px/1.4 var(--f-body);letter-spacing:.3em;color:var(--pink)}
+[data-camp] h2{text-align:center;font-size:clamp(26px,3.4vw,34px);margin:8px auto 10px}
+[data-camp] section .wrap>h2+p{text-align:center;color:var(--text-3);max-width:620px;margin:0 auto 28px;font-size:15.5px}
+[data-camp] .btn{font:700 12.5px/1 var(--f-body);letter-spacing:.2em;border-radius:999px;padding:16px 30px;background:var(--black);color:#fff}
+[data-camp] .btn:hover{background:var(--pink);color:#fff}
+[data-camp] .btn.ghost{background:transparent;color:var(--black);border:1.5px solid var(--black)}
+[data-camp] .hero{background:var(--bg)!important;color:var(--text)}
+[data-camp] .hero::before{content:"";display:block;height:clamp(300px,52vh,600px);background:var(--hero-img,linear-gradient(135deg,#d7dcd6,#e7ddcd)) center/cover no-repeat}
+[data-camp] .hero .wrap{padding:30px 20px 34px;text-align:center}
+[data-camp] .heroText{margin:0 auto;max-width:680px}
+[data-camp] .tag{background:none;border:0;padding:0;color:var(--pink);font:700 12px/1.4 var(--f-body);letter-spacing:.22em;text-transform:uppercase}
+[data-camp] .hero h1{color:var(--text);font-size:clamp(32px,5vw,48px);max-width:none;margin:10px auto 14px}
+[data-camp] .hero p.lead{color:#4c4b47;opacity:1;font-size:15.5px;margin:0 auto 16px}
+[data-camp] .hero p.open{background:var(--sand);border:0;border-radius:999px;color:var(--text);font-size:14px;padding:9px 18px;margin:0 auto 22px}
+[data-camp] .hero .actions{justify-content:center}
+[data-camp] .hero .actions .btn:not(.ghost){background:var(--pink);color:#fff}
+[data-camp] .hero .actions .ghost{color:var(--black)}
+[data-camp] .waves{display:none}
+[data-camp] .gear.v2 .gcard{border:1px solid var(--line);border-radius:16px;box-shadow:none}
+[data-camp] .gcard .btn{font:700 12.5px/1 var(--f-body);letter-spacing:.2em;border-radius:999px}
+[data-camp] details{border-color:var(--line);border-radius:12px;padding:0 18px}
+[data-camp] summary{font:700 15px/1.4 var(--f-body);text-transform:none;letter-spacing:0;padding:16px 0}
+[data-camp] details p{margin:0 0 16px;font-size:14.5px}
+[data-camp] details{border-radius:12px!important;background:#fff}
+[data-camp] summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px}
+[data-camp] summary::-webkit-details-marker{display:none}
+[data-camp] summary::after{content:"+";flex:none;color:var(--pink);font:400 22px/1 var(--f-body)}
+[data-camp] details[open] summary::after{content:"\2212"}
+[data-camp] .share{justify-content:center;margin-top:22px}
+[data-camp] .btn.small{padding:13px 22px;font-size:11.5px}
+[dir="rtl"][data-camp] .btn,[dir="rtl"][data-camp] .tag{letter-spacing:.02em}
+
+/* Card v2 (on when #rv-flags sets cardV2 to true): labelled colour and size,
    quantity beside the button, one card per row on phones. */
 .gear.v2 .gcard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .gear.v2 .gcard .gimg{border-radius:0}
@@ -1285,6 +1323,7 @@ function renderContact(){
 }
 
 function init(){
+  if (pageFlag("campStyle")) (typeof ROOT !== "undefined" && ROOT ? ROOT : document.documentElement).setAttribute("data-camp", "");
   renderVideo();
   if (CONFIG.heroImage) document.getElementById("hero").style.setProperty("--hero-img", 'url("' + CONFIG.heroImage + '")');
 
