@@ -239,6 +239,38 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 #merchShip{display:none}
 [dir="rtl"] .eyebrow{letter-spacing:0!important}
 [dir="rtl"] .gcard .btn{letter-spacing:0}
+/* Card v2 (on when the page carries {"cardV2":true} in #rv-flags): labelled colour and size,
+   quantity beside the button, one card per row on phones. */
+.gear.v2 .gcard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.gear.v2 .gcard .gimg{border-radius:0}
+.gear.v2 .gcard .gbody{padding:16px 16px 18px;gap:0}
+.gear.v2 .gcard .ghead{flex-direction:row;align-items:baseline;justify-content:space-between;gap:12px}
+.gear.v2 .gcard h3{font-size:20px!important}
+.gear.v2 .gcard .price{font-size:20px;color:var(--text)}
+.gear.v2 .glab{display:flex;align-items:baseline;gap:8px;margin:16px 0 9px;font:500 12.5px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.gear.v2 .glab em{font-style:normal;text-transform:none;letter-spacing:0;font-size:15px;color:var(--text)}
+.gear.v2 .opts{min-height:0}
+.gear.v2 .dots{gap:12px}
+.gear.v2 .dots button{width:32px;height:32px;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
+.gear.v2 .dots button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--text)}
+.gear.v2 .dots .cname{display:none}
+.gear.v2 .gcard .sizes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.gear.v2 .gcard .sizes button{max-width:none;height:42px;border-radius:8px!important;font-size:15px}
+.gear.v2 .qrow{display:flex;gap:10px;align-items:stretch;margin-top:18px}
+.gear.v2 .gcard .qty{gap:0;border:1px solid var(--line);border-radius:999px;padding:0 4px;flex:none}
+.gear.v2 .gcard .qty span{display:none}
+.gear.v2 .gcard .qty button,.gear.v2 .gcard .qty input{border:0;height:46px;background:none}
+.gear.v2 .gcard .qty button{width:34px;font-size:20px}
+.gear.v2 .gcard .qty input{width:30px;font-size:16px}
+.gear.v2 .gcard .btn{flex:1;width:auto;margin:0;min-height:48px;padding:0 16px}
+@media (max-width:560px){
+  .gear.v2{grid-template-columns:1fr;gap:18px}
+  .gear.v2 .gcard .ghead,.gear.v2 .gcard:last-child:nth-child(odd) .ghead{flex-direction:row;align-items:baseline}
+  .gear.v2 .gcard h3{font-size:19px!important}.gear.v2 .gcard .price{font-size:19px}
+  .gear.v2 .gcard .gimg,.gear.v2 .gcard:last-child:nth-child(odd) .gimg{aspect-ratio:4/5}
+  .gear.v2 .gcard .sizes button,.gear.v2 .gcard:last-child:nth-child(odd) .sizes button{height:42px;font-size:15px;max-width:none}
+  .gear.v2 .gcard .btn{font-size:15px}}
+
 
 /* supporters wall */
 .wallStats{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0 0 22px}
@@ -589,7 +621,7 @@ en:{
   mEyebrow:"Long-sleeve surf lycra", mName:"The Shokogi lycra",
   mDesc:"Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Adult and kids' sizes. Every lycra sold helps the school through this season.",
   mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model",
-  mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
+  mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", pickSz:"Choose a size", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
   mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
@@ -670,7 +702,7 @@ es:{
   mEyebrow:"Licra de surf de manga larga", mName:"La licra Shokogi",
   mDesc:"Nuestra propia licra de surf de manga larga, con SHOKOGI · Playa Venao · Est. 2009 al frente y nuestro escudo en la espalda. Tallas de adulto y de niño. Cada licra vendida ayuda a la escuela en esta temporada.",
   mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta",
-  mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
+  mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", pickSz:"Elige una talla", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
   mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
@@ -751,7 +783,7 @@ he:{
   mEyebrow:"לייקרת גלישה עם שרוול ארוך", mName:"הלייקרה של שוקוגי",
   mDesc:"לייקרת הגלישה שלנו עם שרוול ארוך, עם הלוגו של שוקוגי מלפנים והסמל שלנו על הגב. במידות למבוגרים ולילדים. כל לייקרה שנמכרת עוזרת לבית הספר בתקופה הזאת.",
   mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן",
-  mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
+  mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", pickSz:"בחרו מידה", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
   mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
@@ -1036,9 +1068,17 @@ function renderQuake(){
 }
 
 var gearSel = {};
+// Page-level switches: <script type="application/json" id="rv-flags">{"cardV2":true}</script>
+function pageFlag(name){
+  var el = document.getElementById("rv-flags");
+  if (!el) return !!CONFIG[name];
+  try { return !!JSON.parse(el.textContent)[name]; } catch(e) { return !!CONFIG[name]; }
+}
+
 function renderGear(){
   var box = document.getElementById("gear");
   box.innerHTML = "";
+  box.classList.toggle("v2", pageFlag("cardV2"));
   // Every fit is its own card (adult tee, kids tee, ...), so kids' gear is in plain sight.
   var items = [];
   (CONFIG.gear || []).forEach(function(G){
@@ -1062,6 +1102,24 @@ function gearCard(g){
     '<div class="qty"><span></span><button type="button" data-d="-1">\u2212</button><input type="number" inputmode="numeric" min="1" step="1" value="1"><button type="button" data-d="1">+</button></div>' +
     '<button class="btn" type="button"></button></div>';
   var img = el.querySelector("img"), views = el.querySelector(".views"), dots = el.querySelector(".dots"), sizes = el.querySelector(".sizes");
+  var labC = null, labS = null;
+  if (pageFlag("cardV2")) {
+    var lab = function(text, before){
+      var d = document.createElement("div");
+      d.className = "glab";
+      d.innerHTML = "<span></span><em></em>";
+      d.firstChild.textContent = text;
+      before.parentNode.insertBefore(d, before);
+      return d;
+    };
+    labC = lab(t("mColor"), el.querySelector(".opts"));
+    if (g.sizes.length) labS = lab(t("mSize"), sizes);
+    var qrow = document.createElement("div"), qb = el.querySelector(".qty");
+    qrow.className = "qrow";
+    qb.parentNode.insertBefore(qrow, qb);
+    qrow.appendChild(qb);
+    qrow.appendChild(el.querySelector(".btn"));
+  }
   el.querySelector("h3").textContent = t("g_" + g.id);
   el.querySelector(".price").textContent = money(g.price);
   function col(){ return g.colors.filter(function(c){ return c.id === sel.color; })[0] || g.colors[0]; }
@@ -1076,6 +1134,8 @@ function gearCard(g){
     press(dots, function(b){ return b.dataset.c === c.id; });
     cn.textContent = t("c_" + c.id);
     press(sizes, function(b){ return b.textContent === sel.size; });
+    if (labC) labC.lastChild.textContent = t("c_" + c.id);
+    if (labS) labS.lastChild.textContent = sel.size || t("pickSz");
   }
   ["front","back"].forEach(function(v){
     var b = document.createElement("button");
