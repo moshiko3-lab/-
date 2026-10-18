@@ -220,6 +220,13 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
   border-radius:999px!important;font-size:12.5px;font-weight:600;transition:border-color .15s,background .15s}
 .gcard .sizes button:hover{border-color:var(--text-3)}
 .gcard .sizes button[aria-pressed="true"]{background:var(--text);border-color:var(--text);color:var(--bg)}
+.gcard .qty{display:flex;align-items:center;gap:6px}
+.gcard .qty[hidden]{display:none}
+.gcard .qty span{font-size:13px;color:var(--text-2);margin-inline-end:auto}
+.gcard .qty button{appearance:none;width:34px;height:34px;padding:0;border:1px solid var(--line);background:none;color:var(--text);font:600 18px/1 var(--f-body);border-radius:3px;cursor:pointer}
+.gcard .qty button:hover{border-color:var(--text-3)}
+.gcard .qty input{width:48px;height:34px;padding:0;text-align:center;border:1px solid var(--line);border-radius:3px;background:none;color:var(--text);font:600 15px/1 var(--f-body);-moz-appearance:textfield}
+.gcard .qty input::-webkit-inner-spin-button,.gcard .qty input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .gcard .btn{margin-top:auto;width:100%;background:var(--text);color:var(--bg);font-size:15px;letter-spacing:.14em;padding:12px 16px;border-radius:999px;box-shadow:none}
 .gcard .btn:hover{background:var(--pink-deep);color:#fff}
 @media (max-width:560px){.gear{grid-template-columns:1fr 1fr;gap:22px 12px}.gcard .gbody{padding-top:10px;gap:10px}
@@ -582,7 +589,7 @@ en:{
   mEyebrow:"Long-sleeve surf lycra", mName:"The Shokogi lycra",
   mDesc:"Our own long-sleeve surf lycra, with SHOKOGI · Playa Venao · Est. 2009 on the front and our badge on the back. Adult and kids' sizes. Every lycra sold helps the school through this season.",
   mColor:"Colour", c_pink:"Pink", c_black:"Black", vFront:"Front", vBack:"Back", vModel:"On a model",
-  mSize:"Size", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
+  mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
   mFit:"For", fitAdult:"Adults", fitKids:"Kids", mPricePh:"Price to be set",
@@ -663,7 +670,7 @@ es:{
   mEyebrow:"Licra de surf de manga larga", mName:"La licra Shokogi",
   mDesc:"Nuestra propia licra de surf de manga larga, con SHOKOGI · Playa Venao · Est. 2009 al frente y nuestro escudo en la espalda. Tallas de adulto y de niño. Cada licra vendida ayuda a la escuela en esta temporada.",
   mColor:"Color", c_pink:"Rosa", c_black:"Negra", vFront:"Frente", vBack:"Espalda", vModel:"Puesta",
-  mSize:"Talla", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
+  mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
   mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", mPricePh:"Precio por definir",
@@ -744,7 +751,7 @@ he:{
   mEyebrow:"לייקרת גלישה עם שרוול ארוך", mName:"הלייקרה של שוקוגי",
   mDesc:"לייקרת הגלישה שלנו עם שרוול ארוך, עם הלוגו של שוקוגי מלפנים והסמל שלנו על הגב. במידות למבוגרים ולילדים. כל לייקרה שנמכרת עוזרת לבית הספר בתקופה הזאת.",
   mColor:"צבע", c_pink:"ורוד", c_black:"שחור", vFront:"קדימה", vBack:"גב", vModel:"על דוגמן",
-  mSize:"מידה", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
+  mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
   mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", mPricePh:"המחיר ייקבע",
@@ -833,19 +840,29 @@ function cartBar(){
   return bar;
 }
 function headerBadge(n){
-  var link = document.querySelector('header a[href="/cart"], .skch__cart, a.header__icon--cart');
+  // The store header (.skch__cart) renders its count only on page load; keep it live.
+  var link = document.querySelector(".skch__cart") || document.querySelector('header a[href="/cart"], a.header__icon--cart');
   if (!link) return;
-  var b = link.querySelector(".rv-cartn");
+  var b = link.querySelector(".skch__badge");
   if (!b) {
     b = document.createElement("span");
-    b.className = "rv-cartn";
-    b.style.cssText = "position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;" +
-      "background:#f46e95;color:#1a1719;font:700 11px/18px Helvetica,Arial,sans-serif;text-align:center;pointer-events:none";
+    b.className = "skch__badge";
+    b.style.cssText = "position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#f46e95;" +
+      "color:#fff;font:600 10px/16px Figtree,Helvetica,Arial,sans-serif;text-align:center;pointer-events:none";
     if (getComputedStyle(link).position === "static") link.style.position = "relative";
     link.appendChild(b);
   }
   b.textContent = n > 99 ? "99+" : n;
-  b.style.display = n > 0 ? "inline-block" : "none";
+  b.style.display = n > 0 ? "" : "none";
+}
+// On this page the header shows the cart, not search.
+function noSearch(){
+  if (!CONFIG.checkout || document.getElementById("rvNoSearch")) return;
+  var st = document.createElement("style");
+  st.id = "rvNoSearch";
+  st.textContent = ".skch__search-btn,.skch__searchbar{display:none!important}";
+  document.head.appendChild(st);
+  document.body.classList.remove("skch-search-open");
 }
 function showCart(n){
   cartCount = n;
@@ -857,16 +874,17 @@ function showCart(n){
   bar.style.display = n > 0 ? "flex" : "none";
   headerBadge(n);
 }
-function toCart(vid, qty){
+function toCart(vid, qty, done){
   fetch("/cart/add.js", {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
     body: JSON.stringify({items: [{id: Number(vid), quantity: qty}]})})
     .then(function(r){ if (!r.ok) throw r; return fetch("/cart.js", {headers: {"Accept": "application/json"}}); })
     .then(function(r){ return r.json(); })
-    .then(function(c){ showCart(c.item_count); toast(t("added")); })
+    .then(function(c){ showCart(c.item_count); toast(t("added")); if (done) done(); })
     .catch(function(){ location.href = "/cart/" + vid + ":" + qty; });
 }
 function loadCart(){
   if (!CONFIG.checkout || !window.fetch) return;
+  noSearch();
   fetch("/cart.js", {headers: {"Accept": "application/json"}})
     .then(function(r){ return r.json(); }).then(function(c){ showCart(c.item_count); }).catch(function(){});
 }
@@ -1041,6 +1059,7 @@ function gearCard(g){
   el.className = "gcard";
   el.innerHTML = '<div class="gimg"><img loading="lazy" alt=""><div class="views"></div></div><div class="gbody"><div class="ghead"><h3></h3>' +
     '<div class="price"></div></div><div class="opts"><div class="dots" role="group"></div></div><div class="sizes" role="group"></div>' +
+    '<div class="qty"><span></span><button type="button" data-d="-1">\u2212</button><input type="number" inputmode="numeric" min="1" step="1" value="1"><button type="button" data-d="1">+</button></div>' +
     '<button class="btn" type="button"></button></div>';
   var img = el.querySelector("img"), views = el.querySelector(".views"), dots = el.querySelector(".dots"), sizes = el.querySelector(".sizes");
   el.querySelector("h3").textContent = t("g_" + g.id);
@@ -1091,13 +1110,24 @@ function gearCard(g){
   }
   el.addEventListener("pointerenter", warm);
   el.addEventListener("touchstart", warm, {passive: true});
+  // Quantity: any whole number from 1 up, no upper limit.
+  var qbox = el.querySelector(".qty"), qin = qbox.querySelector("input");
+  qbox.hidden = !CONFIG.checkout;
+  qbox.querySelector("span").textContent = t("qty");
+  qin.setAttribute("aria-label", t("qty"));
+  function qty(){ var n = parseInt(qin.value, 10); return n > 0 ? n : 1; }
+  [].forEach.call(qbox.querySelectorAll("button"), function(b){
+    b.setAttribute("aria-label", (b.dataset.d === "1" ? "+" : "\u2212") + " " + t("qty"));
+    b.addEventListener("click", function(){ qin.value = Math.max(1, qty() + Number(b.dataset.d)); });
+  });
+  qin.addEventListener("change", function(){ qin.value = qty(); });
   var buy = el.querySelector(".btn");
   buy.textContent = t(CONFIG.checkout ? "gAdd" : "gBuy");
   buy.addEventListener("click", function(){
     var c = col();
     if (g.sizes.length && !sel.size) { toast(t("mPickSize")); return; }
     var vid = c.v[g.sizes.length ? sel.size : ""];
-    if (CONFIG.checkout && vid) { toCart(vid, 1); return; }
+    if (CONFIG.checkout && vid) { toCart(vid, qty(), function(){ qin.value = 1; }); return; }
     pay("gear", fmt(t("gItem"), {name: t("g_" + g.id), color: t("c_" + c.id), size: sel.size ? ", " + sel.size : ""}), g.price);
   });
   update();
