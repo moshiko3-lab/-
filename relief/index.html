@@ -332,13 +332,15 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 
 /* Quick add (on when #rv-flags sets quickAdd to true): small cards with photo, name, price, colours
    and one button; size, kids or adults and quantity are chosen in a panel that slides up. */
-.gear.qa{grid-template-columns:repeat(auto-fit,minmax(200px,240px));justify-content:center;gap:22px 16px;max-width:1040px;margin-inline:auto}
+.gear.qa{display:flex;flex-wrap:wrap;justify-content:center;gap:22px 16px;
+  /* wider than the text column on big screens, so all five cards fit in one row */
+  --qw:min(1100px,calc(100vw - 32px));width:var(--qw);max-width:none;margin-inline:calc((100% - var(--qw)) / 2)}
+.gear.qa .qcard{flex:0 1 200px;min-width:160px}
 .qtabs{display:flex;gap:4px;margin:0 auto 22px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:999px;width:max-content;max-width:100%}
 .qtabs button{appearance:none;border:0;background:none;height:40px;padding:0 22px;border-radius:999px;font:600 15px/1 var(--f-body);color:var(--text-2);cursor:pointer}
 .qtabs button.kids{color:#d63f72}
 .qtabs button[aria-pressed="true"]{background:var(--text);color:#fff}
 .gear.qa .qkids{align-self:flex-start;appearance:none;border:0;cursor:pointer;background:#fdeaf0;color:#b0325f;font:600 12.5px/1.2 var(--f-body);padding:6px 11px;border-radius:999px}
-@media (max-width:860px){.gear.qa{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
 .gear.qa .qslides{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
@@ -357,7 +359,8 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.qa .qdots button[aria-pressed="true"] i{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
 .gear.qa .qadd{margin-top:auto;width:100%;min-height:44px;padding:0 10px;white-space:nowrap}
 @media (max-width:560px){
-  .gear.qa{grid-template-columns:1fr 1fr;gap:12px 10px}
+  .gear.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;width:auto;margin-inline:0}
+  .gear.qa .qcard{min-width:0}
   .gear.qa .qcard:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 5px)}
   .gear.qa .qbody{padding:10px 10px 12px;gap:6px}
   .gear.qa h3{font-size:15px!important}.gear.qa .qprice{font-size:15px}
@@ -1198,9 +1201,8 @@ function renderGear(){
     function solo(G, f){ return Object.assign({}, f, {id: G.id + (f.id === "kids" ? "Kids" : ""), views: G.views, fits: null}); }
     (CONFIG.gear || []).forEach(function(G){
       if (!G.fits) { if (qaTab !== "kids") box.appendChild(qaCard(G)); return; }
-      if (qaTab !== "all") { G.fits.forEach(function(f){ if (f.id === qaTab) box.appendChild(qaCard(solo(G, f))); }); return; }
-      // All: one card per product; the kids' sizes are a switch inside it.
-      box.appendChild(qaCard(G));
+      // All shows the adults' and the kids' version side by side; the other tabs only theirs.
+      G.fits.forEach(function(f){ if (qaTab === "all" || f.id === qaTab) box.appendChild(qaCard(solo(G, f))); });
     });
     return;
   }
