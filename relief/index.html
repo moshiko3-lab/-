@@ -305,7 +305,7 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
 .gear.v2 .fits button{appearance:none;border:0;background:none;height:38px;border-radius:999px;font:600 14.5px/1 var(--f-body);color:var(--text-2);cursor:pointer}
 .gear.v2 .fits button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .gear.v2 .fits button.kids[aria-pressed="false"]{color:var(--pink-deep)}
-.gear.v2 .kidsTag{position:absolute;top:12px;inset-inline-start:12px;z-index:2;appearance:none;border:0;cursor:pointer;
+.gear .kidsTag{position:absolute;top:12px;inset-inline-start:12px;z-index:2;appearance:none;border:0;cursor:pointer;
   background:var(--pink);color:#fff;font:700 12.5px/1 var(--f-body);letter-spacing:.06em;padding:9px 14px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .gear.v2{max-width:920px;margin-inline:auto}
 .gear.v2 .gcard .btn{white-space:nowrap;letter-spacing:.12em}
@@ -326,9 +326,30 @@ h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:8px 0 14px;letter-sp
   .gear.v2 .gcard .qty{justify-content:space-between}
   .gear.v2 .gcard .qty button,.gear.v2 .gcard .qty input{height:34px}
   .gear.v2 .gcard .btn{min-height:38px;font-size:11px;letter-spacing:.1em;padding:0 8px}
-  .gear.v2 .kidsTag{top:8px;inset-inline-start:8px;font-size:10.5px;padding:6px 9px;letter-spacing:.02em}
+  .gear .kidsTag{top:8px;inset-inline-start:8px;font-size:10.5px;padding:6px 9px;letter-spacing:.02em}
   .gear.v2 .gcard .views button{padding:3px 7px;font-size:10.5px}}
 
+
+/* Quick add (on when #rv-flags sets quickAdd to true): small cards with photo, name, price, colours
+   and one button; size, kids or adults and quantity are chosen in a panel that slides up. */
+.gear.qa{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px;max-width:920px;margin-inline:auto}
+.gear.qa .qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gear.qa .qimg{position:relative;aspect-ratio:1/1;background:#f3f0ee;cursor:pointer;overflow:hidden}
+.gear.qa .qimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 15%;display:block}
+.gear.qa .qbody{display:flex;flex-direction:column;gap:8px;padding:14px;flex:1}
+.gear.qa h3{margin:0;font-size:19px!important;line-height:1.1}
+.gear.qa .qprice{font:600 18px/1 var(--f-head)}
+.gear.qa .qdots{display:flex;gap:2px;margin:0 -5px 2px}
+.gear.qa .qdots button{appearance:none;border:0;background:none;padding:5px;cursor:pointer}
+.gear.qa .qdots i{display:block;width:22px;height:22px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
+.gear.qa .qdots button[aria-pressed="true"] i{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--text)}
+.gear.qa .qadd{margin-top:auto;width:100%;min-height:44px;padding:0 10px;white-space:nowrap}
+@media (max-width:560px){
+  .gear.qa{grid-template-columns:1fr 1fr;gap:12px 10px}
+  .gear.qa .qcard:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 5px)}
+  .gear.qa .qbody{padding:10px 10px 12px;gap:6px}
+  .gear.qa h3{font-size:15px!important}.gear.qa .qprice{font-size:15px}
+  .gear.qa .qadd{min-height:40px;font-size:11px;letter-spacing:.1em}}
 
 /* supporters wall */
 .wallStats{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0 0 22px}
@@ -682,7 +703,7 @@ en:{
   mSize:"Size", qty:"Quantity", mBuy:"Buy the lycra", mPickSize:"Choose a size first", pickSz:"Choose a size", mPh:"Lycra photo",
   mPickup:"Collect it at the school in Playa Venao.", mShip:"We ship it to you; shipping is quoted separately.", mBoth:"Collect it at the school in Playa Venao, or have it shipped: enter your address at checkout to see the shipping cost.",
   mItem:"the Shokogi lycra, {color}, size {size}", mItemKids:"the Shokogi kids' lycra, {color}, size {size}",
-  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Kids sizes too", mPricePh:"Price to be set",
+  mFit:"For", fitAdult:"Adults", fitKids:"Kids", kidsToo:"Kids sizes too", close:"Close", mPricePh:"Price to be set",
   gSurf:"Surf lessons", gFoil:"Foil sessions", gFoilSub:"Jet-ski tow-in foil with our coach on the Venao waves. For riders who can already get up on a foil.",
   t_foil1:"Foil session, 3 hours", t_foil2:"3 foil sessions", t_foil3:"5 foil sessions",
   b_foil1:["A 3-hour jet-ski tow-in foil session with our coach, whenever you come", "Valid for 24 months from purchase", "Board, foil, impact vest and helmet included", "Transferable: give it as a gift"],
@@ -763,7 +784,7 @@ es:{
   mSize:"Talla", qty:"Cantidad", mBuy:"Comprar la licra", mPickSize:"Elige una talla primero", pickSz:"Elige una talla", mPh:"Foto de la licra",
   mPickup:"Retírala en la escuela en Playa Venao.", mShip:"Te la enviamos; el envío se cotiza aparte.", mBoth:"Retírala en la escuela en Playa Venao o pide que te la enviemos: pon tu dirección al pagar y verás el costo del envío.",
   mItem:"la licra Shokogi, {color}, talla {size}", mItemKids:"la licra Shokogi para niños, {color}, talla {size}",
-  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También para niños", mPricePh:"Precio por definir",
+  mFit:"Para", fitAdult:"Adultos", fitKids:"Niños", kidsToo:"También para niños", close:"Cerrar", mPricePh:"Precio por definir",
   gSurf:"Clases de surf", gFoil:"Sesiones de foil", gFoilSub:"Foil remolcado en moto de agua con nuestro coach, en las olas de Venao. Para quienes ya se paran en el foil.",
   t_foil1:"Sesión de foil, 3 horas", t_foil2:"3 sesiones de foil", t_foil3:"5 sesiones de foil",
   b_foil1:["Una sesión de foil de 3 horas, remolcado en moto de agua con nuestro coach, cuando vengas", "Válida por 24 meses desde la compra", "Tabla, foil, chaleco de impacto y casco incluidos", "Transferible: puedes regalarla"],
@@ -844,7 +865,7 @@ he:{
   mSize:"מידה", qty:"כמות", mBuy:"לקניית הלייקרה", mPickSize:"בחרו מידה קודם", pickSz:"בחרו מידה", mPh:"תמונת הלייקרה",
   mPickup:"איסוף מבית הספר בפלאיה ונאו.", mShip:"משלוח עד אליכם; עלות המשלוח בנפרד.", mBoth:"איסוף מבית הספר בפלאיה ונאו, או משלוח עד אליכם: מזינים כתובת בקופה ורואים את מחיר המשלוח.",
   mItem:"הלייקרה של שוקוגי, {color}, מידה {size}", mItemKids:"לייקרת הילדים של שוקוגי, {color}, מידה {size}",
-  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם לילדים", mPricePh:"המחיר ייקבע",
+  mFit:"למי", fitAdult:"מבוגרים", fitKids:"ילדים", kidsToo:"יש גם לילדים", close:"סגירה", mPricePh:"המחיר ייקבע",
   gSurf:"שיעורי גלישה", gFoil:"סשנים של פויל", gFoilSub:"פויל בגרירת אופנוע ים עם המאמן שלנו, על הגלים של ונאו. למי שכבר עומד על פויל.",
   t_foil1:"סשן פויל, 3 שעות", t_foil2:"3 סשנים של פויל", t_foil3:"5 סשנים של פויל",
   b_foil1:["סשן פויל של 3 שעות בגרירת אופנוע ים עם המאמן שלנו, מתי שתגיעו", "בתוקף 24 חודשים מיום הרכישה", "גלשן, פויל, אפוד מגן וקסדה כלולים", "ניתן להעביר במתנה"],
@@ -1136,8 +1157,10 @@ function pageFlag(name){
 function renderGear(){
   var box = document.getElementById("gear");
   box.innerHTML = "";
-  var v2 = pageFlag("cardV2");
-  box.classList.toggle("v2", v2);
+  var v2 = pageFlag("cardV2"), qa = pageFlag("quickAdd");
+  box.classList.toggle("v2", v2 && !qa);
+  box.classList.toggle("qa", qa);
+  if (qa) { (CONFIG.gear || []).forEach(function(G){ box.appendChild(qaCard(G)); }); return; }
   // Card v2: one card per product, with an Adults / Kids switch inside it.
   if (v2) { (CONFIG.gear || []).forEach(function(G){ box.appendChild(G.fits ? fitCard(G) : gearCard(G)); }); return; }
   // Every fit is its own card (adult tee, kids tee, ...), so kids' gear is in plain sight.
@@ -1290,6 +1313,173 @@ function gearCard(g){
   return el;
 }
 
+// Quick add: the card only shows the product; the panel holds the choices.
+var qaState = {};
+function qaFits(G){ return G.fits || [G]; }
+function qaFit(G, id){ var fs = qaFits(G); return fs.filter(function(f){ return f.id === id; })[0] || fs[0]; }
+function qaName(G, f){ return t("g_" + G.id + (G.fits && f.id === "kids" ? "Kids" : "")); }
+function qaColor(f, id){ return f.colors.filter(function(c){ return c.id === id; })[0] || f.colors[0]; }
+
+function qaCard(G){
+  var st = qaState[G.id] || (qaState[G.id] = {fit: qaFits(G)[0].id, color: ""});
+  var f0 = qaFits(G)[0], prices = qaFits(G).map(function(f){ return f.price; });
+  var lo = Math.min.apply(null, prices), hi = Math.max.apply(null, prices);
+  var el = document.createElement("div");
+  el.className = "qcard";
+  el.innerHTML = '<div class="qimg"><img loading="lazy" alt=""></div><div class="qbody"><h3></h3><div class="qprice"></div>' +
+    '<div class="qdots" role="group"></div><button class="btn qadd" type="button"></button></div>';
+  var img = el.querySelector("img"), dots = el.querySelector(".qdots");
+  el.querySelector("h3").textContent = qaName(G, f0);
+  el.querySelector(".qprice").textContent = lo === hi ? money(lo) : "\u2066" + money(lo) + "\u2013" + money(hi) + "\u2069";
+  dots.setAttribute("aria-label", t("mColor"));
+  function show(){
+    var c = qaColor(f0, st.color);
+    img.src = sized(c.img);
+    img.alt = qaName(G, f0) + ", " + t("c_" + c.id);
+    [].forEach.call(dots.children, function(b){ b.setAttribute("aria-pressed", b.dataset.c === c.id ? "true" : "false"); });
+  }
+  f0.colors.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button"; b.dataset.c = c.id; b.setAttribute("aria-label", t("c_" + c.id));
+    b.innerHTML = "<i></i>"; b.firstChild.style.background = c.swatch;
+    b.addEventListener("click", function(){ st.fit = f0.id; st.color = c.id; show(); });
+    dots.appendChild(b);
+  });
+  if (G.fits && G.fits.some(function(f){ return f.id === "kids"; })) {
+    var kt = document.createElement("button");
+    kt.type = "button"; kt.className = "kidsTag"; kt.textContent = t("kidsToo");
+    kt.addEventListener("click", function(e){ e.stopPropagation(); qaOpen(G, "kids"); });
+    el.querySelector(".qimg").appendChild(kt);
+  }
+  el.querySelector(".qimg").addEventListener("click", function(){ qaOpen(G, f0.id); });
+  var add = el.querySelector(".qadd");
+  add.textContent = t("gAdd");
+  add.addEventListener("click", function(){ qaOpen(G, f0.id); });
+  show();
+  return el;
+}
+
+// The panel lives on <body> (the theme can trap fixed elements), so it carries its own styles.
+var QA_CSS = '#rvSheet{position:fixed;inset:0;z-index:2147483100;font:400 15px/1.4 Figtree,system-ui,-apple-system,sans-serif;color:#191a1a}' +
+  '#rvSheet[hidden]{display:none}#rvSheet *{box-sizing:border-box}' +
+  '#rvSheet button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+  '#rvSheet .bg{position:absolute;inset:0;background:rgba(20,20,20,.45);opacity:0;transition:opacity .2s}' +
+  '#rvSheet .panel{position:absolute;left:0;right:0;bottom:0;max-height:90vh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;' +
+  'padding:20px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease}' +
+  '#rvSheet.open .bg{opacity:1}#rvSheet.open .panel{transform:none}' +
+  '@media (min-width:700px){#rvSheet .panel{left:50%;right:auto;bottom:auto;top:50%;width:440px;border-radius:18px;padding:24px;' +
+  'transform:translate(-50%,-44%);opacity:0;transition:transform .2s,opacity .2s}#rvSheet.open .panel{transform:translate(-50%,-50%);opacity:1}}' +
+  '#rvSheet .x{position:absolute;top:12px;inset-inline-end:12px;width:36px;height:36px;border:0;background:#f4f2ee;border-radius:50%;font-size:22px;line-height:1}' +
+  '#rvSheet .top{display:flex;gap:14px;align-items:center;padding-inline-end:40px}' +
+  '#rvSheet .pic{position:relative;flex:none;width:96px;height:96px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#f3f0ee}' +
+  '#rvSheet .pic img{width:100%;height:100%;object-fit:cover;display:block}' +
+  '#rvSheet h3{margin:0 0 6px;font:600 21px/1.05 "Barlow Condensed","Oswald",sans-serif;text-transform:uppercase}' +
+  '#rvSheet .pr{font:600 20px/1 "Barlow Condensed","Oswald",sans-serif}' +
+  '#rvSheet .flip{display:inline-flex;margin-top:9px;background:#f4f2ee;border-radius:999px;padding:2px}' +
+  '#rvSheet .flip button{border:0;background:none;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:#7c7b77}' +
+  '#rvSheet .flip button[aria-pressed=true]{background:#191a1a;color:#fff}' +
+  '#rvSheet .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:#f4f2ee;border-radius:999px;margin-top:18px}' +
+  '#rvSheet .seg button{border:0;background:none;height:40px;border-radius:999px;font-weight:600;color:#52514d}' +
+  '#rvSheet .seg button[aria-pressed=true]{background:#fff;color:#191a1a;box-shadow:0 1px 3px rgba(0,0,0,.12)}' +
+  '#rvSheet .lab{margin:18px 0 9px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7c7b77}' +
+  '#rvSheet .lab b{margin-inline-start:6px;font-size:15px;letter-spacing:0;text-transform:none;color:#191a1a;font-weight:600}' +
+  '#rvSheet .dots{display:flex;gap:14px;padding-inline-start:4px}' +
+  '#rvSheet .dots button{width:34px;height:34px;border-radius:50%;border:0;box-shadow:0 0 0 2px #fff,0 0 0 3px #e3e0d9}' +
+  '#rvSheet .dots button[aria-pressed=true]{box-shadow:0 0 0 2px #fff,0 0 0 4px #191a1a}' +
+  '#rvSheet .sizes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;border-radius:12px}' +
+  '#rvSheet .sizes.warn{animation:rvShake .35s;outline:2px solid #f46e95;outline-offset:4px}' +
+  '@keyframes rvShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}' +
+  '#rvSheet .sizes button{height:48px;border:1px solid #e3e0d9;background:#fff;border-radius:10px;font-weight:600;font-size:16px}' +
+  '#rvSheet .sizes button[aria-pressed=true]{background:#191a1a;border-color:#191a1a;color:#fff}' +
+  '#rvSheet .row{display:flex;gap:10px;margin-top:22px}' +
+  '#rvSheet .qty{display:flex;align-items:center;border:1px solid #e3e0d9;border-radius:999px;padding:0 4px;flex:none}' +
+  '#rvSheet .qty button{width:38px;height:50px;border:0;background:none;font-size:20px}' +
+  '#rvSheet .qty span{min-width:22px;text-align:center;font-weight:600}' +
+  '#rvSheet .add{flex:1;height:52px;border:0;border-radius:999px;background:#191a1a;color:#fff;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}' +
+  '#rvSheet[dir=rtl] .add{letter-spacing:.02em;font-size:16px}#rvSheet .add:disabled{opacity:.6}';
+
+function qaSheet(){
+  var s = document.getElementById("rvSheet");
+  if (s) return s;
+  var css = document.createElement("style");
+  css.textContent = QA_CSS;
+  document.head.appendChild(css);
+  s = document.createElement("div");
+  s.id = "rvSheet"; s.hidden = true;
+  s.innerHTML = '<div class="bg" data-act="close"></div><div class="panel" role="dialog" aria-modal="true"></div>';
+  document.body.appendChild(s);
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !s.hidden) qaClose(); });
+  return s;
+}
+function qaClose(){
+  var s = document.getElementById("rvSheet");
+  if (!s || s.hidden) return;
+  s.classList.remove("open");
+  document.documentElement.style.overflow = "";
+  setTimeout(function(){ if (!s.classList.contains("open")) s.hidden = true; }, 260);
+}
+function qaOpen(G, fitId){
+  var st = qaState[G.id], s = qaSheet(), panel = s.querySelector(".panel");
+  var vl = G.views || ["vFront", "vBack"];
+  var size = "", q = 1, side = "front", warn = false;
+  st.fit = fitId || st.fit;
+  s.dir = lang === "he" ? "rtl" : "ltr";
+  function btns(list, act, cur, label){
+    return list.map(function(x){ return '<button type="button" data-act="' + act + '" data-v="' + x[0] + '" aria-pressed="' + (x[0] === cur) + '"' +
+      (label ? ' aria-label="' + x[1] + '"' + x[2] : '>' + x[1]) + '</button>'; }).join("");
+  }
+  function render(){
+    var f = qaFit(G, st.fit), c = qaColor(f, st.color), name = qaName(G, f);
+    var src = sized(side === "back" && c.back ? c.back : c.img);
+    var h = '<button type="button" class="x" data-act="close" aria-label="' + t("close") + '">×</button>' +
+      '<div class="top"><button type="button" class="pic" data-act="flip"><img alt="" src="' + src + '"></button><div><h3></h3><div class="pr">' + money(f.price) + '</div>' +
+      (c.back ? '<div class="flip">' + btns([["front", t(vl[0])], ["back", t(vl[1])]], "side", side) + '</div>' : '') + '</div></div>';
+    if (G.fits) h += '<div class="seg">' + btns(G.fits.map(function(x){ return [x.id, t(x.id === "kids" ? "fitKids" : "fitAdult")]; }), "fit", f.id) + '</div>';
+    h += '<div class="lab">' + t("mColor") + '<b></b></div><div class="dots">' +
+      btns(f.colors.map(function(x){ return [x.id, t("c_" + x.id), ' style="background:' + x.swatch + '">']; }), "color", c.id, true) + '</div>';
+    if (f.sizes.length) h += '<div class="lab">' + t("mSize") + '<b></b></div><div class="sizes' + (warn ? ' warn' : '') + '">' +
+      btns(f.sizes.map(function(x){ return [x, x]; }), "size", size) + '</div>';
+    h += '<div class="row"><div class="qty"><button type="button" data-act="q" data-v="-1" aria-label="− ' + t("qty") + '">−</button><span>' + q +
+      '</span><button type="button" data-act="q" data-v="1" aria-label="+ ' + t("qty") + '">+</button></div><button type="button" class="add" data-act="add">' + t("gAdd") + '</button></div>';
+    panel.innerHTML = h;
+    panel.setAttribute("aria-label", name);
+    panel.querySelector("h3").textContent = name;
+    panel.querySelector(".pic img").alt = name + ", " + t("c_" + c.id);
+    var labs = panel.querySelectorAll(".lab b");
+    labs[0].textContent = t("c_" + c.id);
+    if (labs[1]) labs[1].textContent = size || t("pickSz");
+  }
+  panel.onclick = function(e){
+    var b = e.target.closest("[data-act]");
+    if (!b) return;
+    var act = b.dataset.act, v = b.dataset.v, f = qaFit(G, st.fit);
+    if (act === "close") return qaClose();
+    if (act === "flip") side = side === "back" ? "front" : "back";
+    if (act === "side") side = v;
+    if (act === "fit") { st.fit = v; if (qaFit(G, v).sizes.indexOf(size) < 0) size = ""; }
+    if (act === "color") st.color = v;
+    if (act === "size") { size = v; warn = false; }
+    if (act === "q") q = Math.max(1, q + Number(v));
+    if (act === "add") {
+      var c = qaColor(f, st.color);
+      if (f.sizes.length && !size) { warn = true; render(); toast(t("mPickSize")); warn = false; return; }
+      var vid = c.v[f.sizes.length ? size : ""];
+      if (CONFIG.checkout && vid) { b.disabled = true; toCart(vid, q, qaClose); return; }
+      qaClose();
+      pay("gear", fmt(t("gItem"), {name: qaName(G, f), color: t("c_" + c.id), size: size ? ", " + size : ""}), f.price);
+      return;
+    }
+    render();
+  };
+  s.querySelector(".bg").onclick = qaClose;
+  render();
+  s.hidden = false;
+  document.documentElement.style.overflow = "hidden";
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ s.classList.add("open"); }); });
+  var first = panel.querySelector(".sizes button") || panel.querySelector(".add");
+  if (first) first.focus({preventScroll: true});
+}
+
 var wallAll = false;
 function supporters(){
   var el = document.getElementById("rv-supporters");
@@ -1363,7 +1553,7 @@ function toast(msg){
   var el = document.getElementById("toast");
   if (CONFIG.checkout && el.parentNode !== document.body) {
     document.body.appendChild(el);
-    el.style.cssText = "position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483001;" +
+    el.style.cssText = "position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483200;" +
       "background:#1a1719;color:#fff;padding:10px 16px;border-radius:10px;font:600 14px/1.3 Helvetica,Arial,sans-serif;transition:opacity .2s;pointer-events:none;opacity:0";
   }
   el.textContent = msg; el.classList.add("show");
