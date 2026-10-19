@@ -212,9 +212,15 @@ def main():
     os.environ.setdefault("GREENAPI_TOKEN", "t")
     os.environ.setdefault("GREENAPI_URL", "https://x")
     real_journal, real_state, real_personal = A.journal, Ap.state, W._personal
+    real_hold = W.hold.HOLD
     try:
         A.journal = lambda i, t, minutes=1440: []
         W._personal = lambda said, tom, book: []
+        # The hold short-circuits the whole audit, which is its job -- but
+        # these checks are on the machinery that starts up again the day it
+        # lifts, so they are run with the evening running. test_hold.py owns
+        # the other side: that a held evening reports nothing missing.
+        W.hold.HOLD = False
         at_1930 = dt.datetime.combine(day, dt.time(19, 30), tzinfo=W.PANAMA)
 
         Ap.state = lambda *a, **k: {"decision": "stop", "said": "עצור",
@@ -277,6 +283,7 @@ def main():
               repr(missing))
     finally:
         A.journal, Ap.state, W._personal = real_journal, real_state, real_personal
+        W.hold.HOLD = real_hold
 
     # --- the state has to be written down somewhere ---------------------
     # The ten-minute tick files nothing while it waits, so without this line

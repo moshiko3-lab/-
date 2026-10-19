@@ -47,6 +47,7 @@ sys.path.insert(0, HERE)
 import approval                                                 # noqa: E402
 import audit_reminders                                          # noqa: E402
 import forecast_message as F                                    # noqa: E402
+import hold                                                     # noqa: E402
 import send                                                     # noqa: E402
 import snapshot                                                 # noqa: E402
 import watch_sends                                              # noqa: E402
@@ -768,6 +769,18 @@ def main():
     p.set_defaults(run=personal)
 
     a = ap.parse_args()
+
+    # The hold is checked here, once, rather than in each of the five
+    # commands: a routine the owner cannot see the code of still cannot
+    # get a message out while it is on. A dry run or a print is let
+    # through -- it reaches nobody, and we still need to be able to look.
+    quiet = getattr(a, "dry_run", False) or getattr(a, "print", False)
+    why = "" if quiet else hold.held(a.what)
+    if why:
+        print("RESULT: %s held — %s" % (a.what, why))
+        print("held: %s" % why, file=sys.stderr)
+        return 0
+
     return a.run(a)
 
 

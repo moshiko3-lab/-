@@ -49,6 +49,7 @@ sys.path.insert(0, HERE)
 import approval                                                # noqa: E402
 import audit_reminders as A                                    # noqa: E402
 import daily_report                                            # noqa: E402
+import hold                                                    # noqa: E402
 import rota                                                    # noqa: E402
 import send                                                    # noqa: E402
 
@@ -96,6 +97,13 @@ def audit(now=None, tomorrow=None):
     if not (ident and token and os.environ.get("GREENAPI_URL")):
         raise SystemExit("error: GREENAPI_ID, GREENAPI_TOKEN and "
                          "GREENAPI_URL must be set. Never guess a token.")
+
+    # An evening the owner stopped has nothing missing from it. Without
+    # this the nets would file `staff_rota MISSING` every night of the
+    # hold and send it, which is the one thing the hold is for; and the
+    # mornings in between would read like a system falling over.
+    if hold.HOLD:
+        return []
 
     book = rota._book()
     groups = book.get("groups", {})
@@ -214,6 +222,12 @@ def main():
 
     if a.json:
         print(json.dumps(missing, ensure_ascii=False))
+    elif hold.HOLD:
+        # Never "everything went out" while the hold is on. That sentence,
+        # true of a quiet evening and of a stopped one alike, is what made
+        # 24/9 and 25/9 read as ordinary nights in the morning.
+        print("the evening is on hold since %s — nothing was due, nothing "
+              "is missing" % hold.SINCE)
     elif not missing:
         print("everything due by now went out")
     else:
@@ -233,6 +247,12 @@ def main():
     # look exactly alike in the morning, which is the confusion this whole
     # file exists to prevent.
     import report
+    if hold.HOLD:
+        report.result("safety net", "RESULT held since %s — the evening is "
+                                    "stopped at the owner's request"
+                      % hold.SINCE, echo=not a.json)
+        return 0
+
     state = approval.state(now=now)
     report.result("safety net", "RESULT missing=%d %s approval=%s" % (
         len(missing), ",".join(m["what"] for m in missing) or "all sent",
