@@ -1,0 +1,7 @@
+# scroll-craft workspace: keep source builds, drop heavy/generated artifacts
+builds/*/node_modules/
+builds/*/lab/
+builds/*/package.json
+builds/*/package-lock.json
+builds/*/*.cjs
+builds/*/gf.css

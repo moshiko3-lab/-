@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SHOKOGI · A day of surf in Playa Venao</title>
+<meta name="description" content="Surf lessons, camps and foil surfing in Playa Venao, Panama. Scroll through a day on the water, from dawn patrol to sunset.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230c1b33'/><circle cx='16' cy='13' r='6' fill='%23f46e95'/></svg>">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="scrollcraft.css">
+<style>
+:root{
+  --sc-canvas:#0c1b33; --sc-surface:#13273b;
+  --sc-ink:#f5efe6; --sc-ink-soft:#c3cdd4;
+  --sc-accent:#f46e95; --sc-accent-ink:#3a1020;
+  --sc-font-display:"Barlow Condensed", system-ui, sans-serif;
+  --sc-font-text:"Figtree", system-ui, -apple-system, sans-serif;
+  --day:0;            /* global day-cycle progress, written by the bespoke script */
+  --sand:#f4efe6; --ink-dk:#13242b; --ink-dk-soft:#5c6a6e;
+}
+html{background:#0c1b33}
+body{background:transparent}
+
+/* ====================== THE WORLD (fixed, the day-cycle) ====================== */
+.world{position:fixed; inset:0; z-index:-5; overflow:hidden; pointer-events:none}
+.sky{position:absolute; inset:0}
+.sky>i{position:absolute; inset:0; display:block}
+.sky .dawn   {background:linear-gradient(180deg,#0c1b33 0%,#16294a 42%,#3a3a63 70%,#7a5a6e 88%,#9a6f73 100%); opacity:1}
+.sky .morning{background:linear-gradient(180deg,#164a7e 0%,#2f78ad 48%,#8fc3dd 82%,#cfe8f2 100%); opacity:clamp(0, calc((var(--day) - 0.12)/0.12), 1)}
+.sky .midday {background:linear-gradient(180deg,#1f7fc0 0%,#49a3d6 45%,#a9dcef 82%,#e7f6fb 100%); opacity:clamp(0, calc((var(--day) - 0.34)/0.12), 1)}
+.sky .golden {background:linear-gradient(180deg,#2f5f86 0%,#7f9bb0 38%,#f0b566 74%,#ffd79a 100%); opacity:clamp(0, calc((var(--day) - 0.60)/0.12), 1)}
+.sky .sunset {background:linear-gradient(180deg,#241f44 0%,#6b3f6b 33%,#e3744f 64%,#f46e95 85%,#ffd39a 100%); opacity:clamp(0, calc((var(--day) - 0.80)/0.12), 1)}
+
+.sun{position:absolute; width:clamp(92px,13vw,186px); aspect-ratio:1; border-radius:50%;
+  left:calc(7% + var(--day)*80%);
+  top:calc(76% - 54% * sin(calc(var(--day) * 180deg)));
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 50% 50%,
+     color-mix(in srgb, #fff7ea, #ff8248 calc(var(--day)*62%)) 0%,
+     color-mix(in srgb, #ffe7bd, #ff6f6f calc(var(--day)*55%)) 42%,
+     rgba(255,210,160,0) 70%);
+  filter:drop-shadow(0 0 40px color-mix(in srgb, #ffe7bd, #ff7a7a calc(var(--day)*70%)));}
+.sun::after{content:""; position:absolute; inset:-120%; border-radius:50%;
+  background:radial-gradient(circle, color-mix(in srgb, rgba(255,240,210,.45), rgba(255,120,120,.5) calc(var(--day)*100%)) 0%, transparent 60%);}
+
+/* sea — a reflective darker band at the foot of the sky */
+.sea{position:absolute; left:0; right:0; bottom:0; height:34vh;
+  background:
+    linear-gradient(180deg, rgba(9,20,32,0) 0%, rgba(9,20,32,.35) 46%, rgba(6,15,26,.7) 100%),
+    linear-gradient(180deg, transparent 0%, color-mix(in srgb, transparent, #f46e95 calc(var(--day)*34%)) 100%);}
+.sea::before{content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(92deg, rgba(255,255,255,.05) 0 2px, transparent 2px 9px);
+  mix-blend-mode:screen; opacity:.5; mask:linear-gradient(180deg,transparent,#000 60%)}
+
+/* far headland + palms — the static silhouette plane at the horizon */
+.horizon{position:absolute; left:0; right:0; bottom:28vh; height:30vh; color:#0a1420}
+.horizon svg{position:absolute; bottom:0; width:100%; height:100%;
+  fill:color-mix(in srgb, #0a1420, #2a0e16 calc(var(--day)*55%))}
+
+/* ====================== page chrome ====================== */
+.bar{position:fixed; top:0; left:0; right:0; z-index:40; display:flex; align-items:center;
+  justify-content:space-between; gap:1rem; padding:1.1rem clamp(1rem,4vw,2.4rem);
+  color:#fff}
+.bar::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(180deg, rgba(6,14,24,.42), transparent); pointer-events:none}
+.brand{font-family:var(--sc-font-display); font-weight:700; font-size:1.5rem; letter-spacing:.34em; padding-left:.34em; color:#fff; text-decoration:none}
+.brand b{color:var(--sc-accent)}
+.bar .book{font-family:var(--sc-font-display); font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+  font-size:.86rem; color:#fff; text-decoration:none; padding:.55rem 1.1rem; border:1.5px solid rgba(255,255,255,.5); border-radius:999px;
+  transition:background .18s var(--sc-ease-out), color .18s var(--sc-ease-out), border-color .18s}
+@media (hover:hover){.bar .book:hover{background:#b8345f; border-color:#b8345f; color:#fff}}
+.bar .book:focus-visible{outline:2px solid var(--sc-accent); outline-offset:3px}
+
+/* ====================== shared type / buttons ====================== */
+.eyebrow{font-family:var(--sc-font-display); font-weight:600; text-transform:uppercase; letter-spacing:.3em; font-size:.74rem; color:var(--sc-accent)}
+.btn{display:inline-flex; align-items:center; gap:.55rem; font-family:var(--sc-font-display); font-weight:700;
+  text-transform:uppercase; letter-spacing:.11em; font-size:1rem; text-decoration:none;
+  padding:.95rem 1.9rem; border-radius:999px; background:#b8345f; color:#fff;
+  box-shadow:0 14px 34px -16px rgba(184,52,95,.9); transition:transform .18s var(--sc-ease-out), background .18s}
+@media (hover:hover){.btn:hover{background:#cb4a74; transform:translateY(-2px)}}
+.btn:focus-visible{outline:2px solid #fff; outline-offset:3px}
+.btn--ghost{background:transparent; border:1.5px solid rgba(255,255,255,.55); box-shadow:none; color:#fff}
+@media (hover:hover){.btn--ghost:hover{border-color:#fff; background:rgba(255,255,255,.08)}}
+
+/* ====================== 1 · HERO (dawn) ====================== */
+#hero [data-sc-stage]{min-height:100svh; display:grid; align-items:end}
+.hero__fg{position:absolute; left:0; right:0; bottom:0; height:40vh; color:#070f18; z-index:1; pointer-events:none}
+.hero__fg svg{position:absolute; bottom:0; width:100%; height:100%; fill:currentColor}
+.hero__copy{position:relative; z-index:3; padding:0 clamp(1.2rem,5vw,3.2rem) clamp(3.2rem,9vh,6rem); max-width:min(1180px,100%); margin-inline:auto; width:100%; color:#fff}
+.hero__copy .coord{font-family:var(--sc-font-display); font-weight:500; letter-spacing:.26em; text-transform:uppercase; font-size:.72rem; color:rgba(255,255,255,.7); margin-bottom:1.1rem}
+.hero__copy .coord b{color:#9fe6df; font-weight:600}
+.hero__copy h1{font-family:var(--sc-font-display); font-weight:800; line-height:.96; letter-spacing:-.01em;
+  font-size:clamp(2.7rem,7.4vw,6.4rem); max-width:16ch; text-wrap:balance; text-shadow:0 2px 24px rgba(4,12,22,.5)}
+.hero__copy h1 em{font-style:normal; color:var(--sc-accent)}
+.hero__copy p{margin:1.1rem 0 1.7rem; max-width:44ch; font-size:clamp(1rem,1.3vw,1.18rem); line-height:1.5; color:rgba(255,255,255,.88)}
+.hero__cta{display:flex; gap:.8rem; flex-wrap:wrap}
+
+/* ====================== 2 · REPORT (morning) ====================== */
+#report{padding:clamp(3rem,9vh,6rem) 0}
+.report__panel{max-width:1040px; margin-inline:auto; width:calc(100% - 2*clamp(1rem,5vw,2.4rem));
+  background:rgba(10,22,36,.52); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  border:1px solid rgba(255,255,255,.12); border-radius:var(--sc-r-lg);
+  box-shadow:0 30px 60px -36px rgba(4,12,22,.6); color:#fff;
+  display:grid; grid-template-columns:repeat(4,1fr)}
+.rep{padding:1.5rem clamp(1rem,2.4vw,1.8rem); border-left:1px solid rgba(255,255,255,.12)}
+.rep:first-child{border-left:0}
+.rep .k{font-family:var(--sc-font-display); letter-spacing:.2em; text-transform:uppercase; font-size:.66rem; color:#9fe6df; margin-bottom:.6rem}
+.rep .v{font-family:var(--sc-font-display); font-weight:700; line-height:1; font-size:clamp(1.5rem,2.6vw,2.2rem)}
+.rep .l{font-size:.8rem; color:rgba(255,255,255,.66); margin-top:.4rem; line-height:1.4}
+@media (max-width:720px){.report__panel{grid-template-columns:1fr 1fr} .rep:nth-child(3){border-left:0}}
+
+/* ====================== 3 · PROGRAMMES (midday, pan rail on a sand panel) ====================== */
+#programmes [data-sc-stage]{display:grid; align-items:center; padding-block:clamp(2.4rem,7vh,5rem)}
+.railpanel{background:var(--sand); color:var(--ink-dk); border-radius:28px;
+  margin-inline:clamp(.7rem,3vw,2rem); box-shadow:0 44px 80px -48px rgba(6,20,30,.55); overflow:hidden}
+.rail{display:flex; align-items:stretch; gap:clamp(1rem,2vw,1.4rem); padding:clamp(1.6rem,4vw,2.8rem)}
+.rail__lead{flex:0 0 auto; width:min(30rem,74vw); align-self:center; padding-right:clamp(1rem,2vw,2rem)}
+.rail__lead .eyebrow{color:#c9557c}
+.rail__lead h2{font-family:var(--sc-font-display); font-weight:700; line-height:.98; color:var(--ink-dk);
+  font-size:clamp(2.2rem,4.4vw,3.6rem); margin:.7rem 0 .9rem; text-wrap:balance}
+.rail__lead p{color:var(--ink-dk-soft); font-size:1rem; line-height:1.6; max-width:40ch}
+.prog{flex:0 0 auto; width:clamp(16.5rem,22vw,20rem); border-radius:20px; overflow:hidden;
+  position:relative; min-height:26rem; display:flex; align-items:flex-end; color:#fff; text-decoration:none;
+  box-shadow:0 18px 40px -26px rgba(6,20,30,.5)}
+.prog .ph{position:absolute; inset:0; z-index:0}
+.prog .ph::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,24,30,0) 34%, rgba(7,20,26,.9) 100%)}
+.prog .pc{position:relative; z-index:1; padding:1.5rem 1.4rem}
+.prog .chip{display:inline-block; font-family:var(--sc-font-display); font-weight:600; text-transform:uppercase; letter-spacing:.14em; font-size:.68rem; color:#0a2831; background:#7fe0d6; padding:.3rem .7rem; border-radius:999px; margin-bottom:.7rem}
+.prog h3{font-family:var(--sc-font-display); font-weight:700; font-size:1.5rem; line-height:1.03; margin-bottom:.5rem}
+.prog p{font-size:.9rem; line-height:1.5; color:rgba(255,255,255,.86); max-width:30ch}
+.prog .more{display:inline-block; margin-top:.8rem; font-family:var(--sc-font-display); font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:.78rem; color:#ffd7e3}
+.ph--surf{background:linear-gradient(150deg,#14506a,#0a2831)}
+.ph--foil{background:linear-gradient(150deg,#1f8a86,#0a2831)}
+.ph--trip{background:linear-gradient(150deg,#caa24a,#5a3c22)}
+.ph--kids{background:linear-gradient(150deg,#e07aa0,#7a2f4c)}
+.rail__end{flex:0 0 auto; width:min(24rem,70vw); align-self:center; padding:0 clamp(1rem,2vw,1.6rem)}
+.rail__end h3{font-family:var(--sc-font-display); font-weight:700; font-size:clamp(1.6rem,3vw,2.3rem); color:var(--ink-dk); line-height:1.02; margin-bottom:1rem; text-wrap:balance}
+@media (hover:hover){.prog:hover .more{color:#fff}}
+.prog:focus-visible{outline:3px solid var(--sc-accent); outline-offset:3px}
+
+/* ====================== 4 · VOICES (afternoon) ====================== */
+#voices [data-sc-stage]{display:grid; place-items:center; padding:clamp(2rem,6vh,4rem) clamp(1.2rem,5vw,3rem)}
+.voices__panel{max-width:900px; width:100%; background:rgba(12,22,34,.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12); border-radius:var(--sc-r-lg); padding:clamp(2rem,5vw,3.4rem); color:#fff;
+  box-shadow:0 40px 80px -46px rgba(4,12,22,.6)}
+.voices__panel .eyebrow{color:#ffd7e3}
+.voices__panel h2{font-family:var(--sc-font-display); font-weight:700; font-size:clamp(2rem,4.4vw,3.3rem); line-height:1; margin:.8rem 0 1.6rem}
+.quote{position:relative}
+.quote .stars{color:var(--sc-accent); letter-spacing:3px; font-size:.95rem; margin-bottom:.7rem}
+.quote p{font-family:var(--sc-font-display); font-weight:600; font-size:clamp(1.5rem,3.1vw,2.3rem); line-height:1.16; letter-spacing:-.005em; max-width:24ch}
+.quote .who{margin-top:1.1rem; font-family:var(--sc-font-display); font-weight:700; text-transform:uppercase; letter-spacing:.09em; font-size:.95rem}
+.quote .who span{color:rgba(255,255,255,.6)}
+.quotes{position:relative; min-height:clamp(9rem,22vh,13rem)}
+.quote--over{position:absolute; inset:0 0 auto 0}
+
+/* ====================== 5 · GLIDE (golden, reveal) ====================== */
+#glide{min-height:92svh; display:grid; place-items:center; text-align:center; padding:clamp(3rem,10vh,7rem) clamp(1.4rem,6vw,3rem)}
+.glide__in{max-width:880px; color:#1a1208}
+.glide__in .eyebrow{color:#b4472a}
+.glide__wrap{overflow:hidden; padding:.12em 0}
+.glide__in h2{font-family:var(--sc-font-display); font-weight:800; font-size:clamp(2.4rem,6.6vw,5.4rem); line-height:1; letter-spacing:-.01em; margin:.7rem 0 1rem; text-wrap:balance}
+.glide__in p{font-size:clamp(1.05rem,1.5vw,1.25rem); line-height:1.55; color:#4a3b28; max-width:52ch; margin-inline:auto}
+
+/* ====================== 6 · CLOSER (sunset, the peak) ====================== */
+#join{min-height:100svh; display:grid; place-items:center; text-align:center; position:relative; overflow:hidden}
+.close__glow{position:absolute; inset:0; z-index:1; pointer-events:none; opacity:0; transition:opacity .35s var(--sc-ease-out);
+  background:radial-gradient(280px circle at calc(var(--sc-mx,.5)*100%) calc(var(--sc-my,.5)*100%), rgba(255,224,180,.2), transparent 62%)}
+@media (hover:hover) and (pointer:fine){#join:hover .close__glow{opacity:1}}
+.close__in{position:relative; z-index:3; padding:0 clamp(1.4rem,6vw,3rem); color:#fff; max-width:980px}
+.close__in .eyebrow{color:#ffe0ae}
+.close__in h2{font-family:var(--sc-font-display); font-weight:800; font-size:clamp(2.7rem,7.2vw,6rem); line-height:.97; letter-spacing:-.01em; max-width:15ch; margin:.8rem auto 0; text-shadow:0 2px 28px rgba(40,10,20,.4)}
+.close__in p{margin:1.2rem auto 1.9rem; max-width:46ch; font-size:clamp(1.05rem,1.5vw,1.25rem); line-height:1.5; color:rgba(255,255,255,.9)}
+.foot{position:absolute; left:0; right:0; bottom:0; z-index:3; padding:1.4rem clamp(1.2rem,5vw,2.6rem);
+  display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; color:rgba(255,255,255,.8);
+  font-size:.82rem; font-family:var(--sc-font-display); letter-spacing:.06em; text-transform:uppercase}
+.foot a{color:rgba(255,255,255,.8); text-decoration:none}
+@media (hover:hover){.foot a:hover{color:#fff}}
+
+/* scrims that ride with the sky scenes */
+.scrim-lead{position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(130% 90% at 18% 92%, rgba(6,14,24,.6), transparent 60%)}
+.scrim-close{position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 60%, rgba(40,10,24,.42), transparent 62%)}
+
+/* reduced motion: keep the day and comprehension, drop the big travels handled by the engine */
+@media (prefers-reduced-motion: reduce){
+  .sea::before{animation:none}
+}
+</style>
+</head>
+<body id="top">
+
+<div class="world" aria-hidden="true">
+  <div class="sky"><i class="dawn"></i><i class="morning"></i><i class="midday"></i><i class="golden"></i><i class="sunset"></i></div>
+  <div class="sun"></div>
+  <div class="horizon">
+    <svg viewBox="0 0 1440 300" preserveAspectRatio="none"><path d="M0 300 L0 196 C 240 150 520 150 760 184 C 1010 220 1180 150 1440 120 L1440 300 Z"/></svg>
+  </div>
+  <div class="sea"></div>
+</div>
+
+<div class="sc-grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="brand" href="#top">SHOK<b>O</b>GI</a>
+  <a class="book" href="/collections/surf-school-and-courses">Book Now</a>
+</header>
+
+<main>
+
+  <!-- 1 · DAWN · HERO — pin + parallax foreground. Greet headline on the landing view. -->
+  <section id="hero" data-sc-act="pin" data-sc-span="2.3">
+    <div data-sc-stage>
+      <div class="scrim-lead" aria-hidden="true"></div>
+      <div class="hero__fg" data-sc-parallax="0.9" aria-hidden="true">
+        <svg viewBox="0 0 1440 360" preserveAspectRatio="none"><path d="M0 360 L0 250 C 260 196 300 150 360 150 C 300 190 330 240 420 250 C 760 250 980 300 1160 240 C 1280 200 1360 250 1440 232 L1440 360 Z"/></svg>
+      </div>
+      <div class="hero__copy sc-copy sc-copy--lead" data-sc-cue="0 1 0 0">
+        <div class="coord">7.42&deg;N 80.20&deg;W <b>&middot; Playa Venao, Panama</b></div>
+        <h1>World-class surf lessons, camps &amp; <em>foil surfing</em></h1>
+        <p>Lessons, camps, foil surfing, and more, all steps from the waves on Panama&rsquo;s Pacific coast. The day starts here.</p>
+        <div class="hero__cta">
+          <a class="btn" href="/collections/surf-school-and-courses">Book Now</a>
+          <a class="btn btn--ghost" href="#programmes">See the ways to surf</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · MORNING · REPORT — flow + in. A glass readout, grounded facts. -->
+  <section id="report">
+    <div class="report__panel" data-sc-in data-sc-stagger="70">
+      <div class="rep"><div class="k">Location</div><div class="v">Playa Venao</div><div class="l">Panama &middot; Pacific coast</div></div>
+      <div class="rep"><div class="k">Season</div><div class="v">All year</div><div class="l">Waves every season</div></div>
+      <div class="rep"><div class="k">Levels</div><div class="v">All levels</div><div class="l">First wave to advanced</div></div>
+      <div class="rep"><div class="k">Fleet</div><div class="v">100+ boards</div><div class="l">Every size on hand</div></div>
+    </div>
+  </section>
+
+  <!-- 3 · MIDDAY · PROGRAMMES — pan. The four ways to surf, on a sand panel. -->
+  <section id="programmes" data-sc-act="pan" data-sc-span="5.4">
+    <div data-sc-stage>
+      <div class="railpanel">
+        <div class="rail" data-sc-pan="0.04">
+          <div class="rail__lead">
+            <span class="eyebrow">What we offer</span>
+            <h2>Find your perfect surf experience</h2>
+            <p>Four ways into the water, whatever the day asks for. Pick your wave.</p>
+          </div>
+          <a class="prog" href="/collections/surf-school-and-courses"><span class="ph ph--surf" aria-hidden="true"></span><span class="pc"><span class="chip">Surf</span><h3>Surf lessons &amp; camps</h3><p>Learn to surf or level up with expert-led lessons and all-inclusive camps.</p><span class="more">Book now &rarr;</span></span></a>
+          <a class="prog" href="/collections/foil-surfing"><span class="ph ph--foil" aria-hidden="true"></span><span class="pc"><span class="chip">Foil</span><h3>Foil surfing</h3><p>Glide above the waves with certified instructors. Beginner-friendly.</p><span class="more">Fly now &rarr;</span></span></a>
+          <a class="prog" href="/pages/custom-trips"><span class="ph ph--trip" aria-hidden="true"></span><span class="pc"><span class="chip">Custom trips</span><h3>Custom surf trips</h3><p>Pick your stay and dates, lessons and boards included. Tailored to you.</p><span class="more">Book now &rarr;</span></span></a>
+          <a class="prog" href="/collections/kids-summer-camp-panama"><span class="ph ph--kids" aria-hidden="true"></span><span class="pc"><span class="chip">Kids</span><h3>Kids camp</h3><p>Safe, fun, skill-building camps for young groms and teens.</p><span class="more">Book now &rarr;</span></span></a>
+          <div class="rail__end">
+            <h3>Not sure which wave is yours?</h3>
+            <a class="btn" href="/pages/contact-us">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · AFTERNOON · VOICES — pin. Quotes cross over; the heading assembles. -->
+  <section id="voices" data-sc-act="pin" data-sc-span="3.2">
+    <div data-sc-stage>
+      <div class="voices__panel">
+        <span class="eyebrow">What surfers say</span>
+        <h2 class="sc-display" data-sc-cue="0.02 0.3" data-sc-kinetic="lines">Where friends become family</h2>
+        <div class="quotes">
+          <div class="quote">
+            <div class="stars" data-sc-cue="0.1 0.44" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p data-sc-cue="0.1 0.44">&ldquo;The best surf shop ever. The location is amazing, but the staff who work there are even more amazing.&rdquo;</p>
+            <div class="who" data-sc-cue="0.12 0.44">Charles <span>&middot; Canada</span></div>
+          </div>
+          <div class="quote quote--over">
+            <div class="stars" data-sc-cue="0.46 0.76" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p data-sc-cue="0.46 0.76">&ldquo;Our 4.5 year old joined the Christmas camp. Within four or five days he was surfing.&rdquo;</p>
+            <div class="who" data-sc-cue="0.48 0.76">Noa <span>&middot; USA</span></div>
+          </div>
+          <div class="quote quote--over">
+            <div class="stars" data-sc-cue="0.78" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p data-sc-cue="0.78">&ldquo;It was my first time surfing and I loved every second. The team welcomes you with open arms. It felt like coming home.&rdquo;</p>
+            <div class="who" data-sc-cue="0.8">Eline <span>&middot; Belgium</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · GOLDEN · GLIDE — reveal. The quiet held breath before the peak. -->
+  <section id="glide">
+    <div class="glide__in">
+      <span class="eyebrow">Golden hour</span>
+      <div class="glide__wrap" data-sc-reveal="up" data-sc-reveal-at="0.12 0.6">
+        <h2>Glide above the waves.</h2>
+      </div>
+      <p>The wind drops, the light turns gold, and the water goes glassy. This is the hour every surfer waits for, and it is the easiest time to fall in love with the ocean.</p>
+    </div>
+  </section>
+
+  <!-- 6 · SUNSET · CLOSER — the peak. A full-height resolve that holds as the last screen,
+       with a pointer spotlight. The day-cycle reaches full sunset here. -->
+  <section id="join" data-sc-spotlight>
+    <div class="scrim-close" aria-hidden="true"></div>
+    <div class="close__glow" aria-hidden="true"></div>
+    <div class="close__in" data-sc-in data-sc-stagger="80">
+      <span class="eyebrow">End your day here</span>
+      <h2 class="sc-display">Come surf with us in Playa Venao</h2>
+      <p>Lessons, camps, foil, and rentals, all steps from the waves. Join the Shokogi surf family.</p>
+      <a class="btn" href="/collections/surf-school-and-courses" data-sc-magnet="0.26">Book Now</a>
+    </div>
+    <footer class="foot">
+      <span>SHOKOGI &middot; Playa Venao, Panama</span>
+      <a href="/pages/contact-us">Contact</a>
+    </footer>
+  </section>
+
+</main>
+
+<script src="scrollcraft.js"></script>
+<script>
+/* Signature move: the page IS a day. Global scroll drives --day (0 dawn → 1 sunset). */
+(function(){
+  var de=document.documentElement, cur=0, tgt=0, raf=0;
+  function compute(){ var h=de.scrollHeight-innerHeight; tgt = h>0 ? Math.min(1,Math.max(0,(window.pageYOffset||0)/h)) : 0; }
+  function loop(){
+    cur += (tgt-cur)*0.12;
+    if(Math.abs(tgt-cur)<0.0004) cur=tgt;
+    de.style.setProperty('--day', cur.toFixed(4));
+    raf = (cur!==tgt) ? requestAnimationFrame(loop) : 0;
+  }
+  function kick(){ compute(); if(!raf) raf=requestAnimationFrame(loop); }
+  addEventListener('scroll', kick, {passive:true});
+  addEventListener('resize', kick);
+  compute(); cur=tgt; de.style.setProperty('--day', cur.toFixed(4));
+  kick();
+})();
+</script>
+<script>ScrollCraft.mount(document.body);</script>
+</body>
+</html>
