@@ -1,0 +1,136 @@
+{%- comment -%} SHOKOGI Home — "A Day in Playa Venao". The page moves from dawn to sunset as you scroll (day-cycle signature). Uses the store's real video + photos. {%- endcomment -%}
+{{ 'schome.css' | asset_url | stylesheet_tag }}
+{{ 'schome2.css' | asset_url | stylesheet_tag }}
+{%- assign hv = section.settings.hero_video -%}
+{%- assign fv = section.settings.foil_video -%}
+
+<div id="sc-world" aria-hidden="true">
+  <div class="sky"><i class="dawn"></i><i class="morning"></i><i class="midday"></i><i class="golden"></i><i class="sunset"></i></div>
+  <div class="sun"></div>
+  <div class="horizon"><svg viewBox="0 0 1440 300" preserveAspectRatio="none"><path d="M0 300 L0 196 C 240 150 520 150 760 184 C 1010 220 1180 150 1440 120 L1440 300 Z"/></svg></div>
+  <div class="sea"></div>
+</div>
+
+<div id="schome-sc">
+
+  <!-- 1 · DAWN · HERO (real video) -->
+  <section id="sc-hero">
+    {%- if hv != blank -%}
+    <div class="vid">
+      <video autoplay muted loop playsinline preload="auto"{% if hv.preview_image %} poster="{{ hv.preview_image | image_url: width: 1600 }}"{% endif %}>
+        {%- for s in hv.sources -%}{%- if s.format == 'mp4' -%}<source src="{{ s.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+      </video>
+    </div>
+    {%- endif -%}
+    <div class="tint" aria-hidden="true"></div>
+    <div class="fg" aria-hidden="true"><svg viewBox="0 0 1440 360" preserveAspectRatio="none"><path d="M0 360 L0 250 C 260 196 300 150 360 150 C 300 190 330 240 420 250 C 760 250 980 300 1160 240 C 1280 200 1360 250 1440 232 L1440 360 Z"/></svg></div>
+    <div class="copy">
+      <div class="coord">7.42&deg;N 80.20&deg;W <b>&middot; Playa Venao, Panama</b></div>
+      <h1>World-class surf lessons, camps &amp; <em>foil surfing</em></h1>
+      <p>Lessons, camps, foil surfing, and more, all steps from the waves on Panama&rsquo;s Pacific coast. The day starts here.</p>
+      <div class="cta">
+        <a class="btn" href="/collections/surf-school-and-courses">Book Now</a>
+        <a class="btn btn--ghost" href="#sc-prog">See the ways to surf</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · MORNING · REPORT -->
+  <section id="sc-report">
+    <div class="panel" data-sc-in data-sc-stagger="70">
+      <div class="rep"><div class="k">Location</div><div class="v">Playa Venao</div><div class="l">Panama &middot; Pacific coast</div></div>
+      <div class="rep"><div class="k">Season</div><div class="v">All year</div><div class="l">Waves every season</div></div>
+      <div class="rep"><div class="k">Levels</div><div class="v">All levels</div><div class="l">First wave to advanced</div></div>
+      <div class="rep"><div class="k">Fleet</div><div class="v">100+ boards</div><div class="l">Every size on hand</div></div>
+    </div>
+  </section>
+
+  <!-- 3 · MIDDAY · PROGRAMMES (pan, real photos) -->
+  <section id="sc-prog" data-sc-act="pan" data-sc-span="5.4">
+    <div data-sc-stage>
+      <div class="railpanel">
+        <div class="rail" data-sc-pan>
+          <div class="lead">
+            <span class="eyebrow">What we offer</span>
+            <h2>Find your perfect surf experience</h2>
+            <p>Four ways into the water, whatever the day asks for. Pick your wave.</p>
+          </div>
+          <a class="prog" href="/collections/surf-school-and-courses"><span class="ph" aria-hidden="true"{% if section.settings.pgm_surf %} style="background-image:url('{{ section.settings.pgm_surf | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Surf</span><h3>Surf lessons &amp; camps</h3><p>Learn to surf or level up with expert-led lessons and all-inclusive camps.</p><span class="more">Book now &rarr;</span></span></a>
+          <a class="prog" href="/collections/foil-surfing"><span class="ph" aria-hidden="true"{% if section.settings.pgm_foil %} style="background-image:url('{{ section.settings.pgm_foil | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Foil</span><h3>Foil surfing</h3><p>Glide above the waves with certified instructors. Beginner-friendly.</p><span class="more">Fly now &rarr;</span></span></a>
+          <a class="prog" href="/pages/custom-trips"><span class="ph" aria-hidden="true"{% if section.settings.pgm_trips %} style="background-image:url('{{ section.settings.pgm_trips | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Custom trips</span><h3>Custom surf trips</h3><p>Pick your stay and dates, lessons and boards included. Tailored to you.</p><span class="more">Book now &rarr;</span></span></a>
+          <a class="prog" href="/collections/kids-summer-camp-panama"><span class="ph" aria-hidden="true"{% if section.settings.pgm_kids %} style="background-image:url('{{ section.settings.pgm_kids | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Kids</span><h3>Kids camp</h3><p>Safe, fun, skill-building camps for young groms and teens.</p><span class="more">Book now &rarr;</span></span></a>
+          <div class="end">
+            <h3>Not sure which wave is yours?</h3>
+            <a class="btn" href="/pages/contact-us">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · AFTERNOON · VOICES -->
+  <section id="sc-voices">
+    <div class="wrap">
+      <span class="eyebrow">What surfers say</span>
+      <h2>Where friends become family</h2>
+      <div class="grid" data-sc-in data-sc-stagger="90">
+        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;The best surf shop ever. The location is amazing, but the staff who work there are even more amazing.&rdquo;</p><div class="who">Charles <span>&middot; Canada</span></div></div>
+        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;Our 4.5 year old joined the Christmas camp. Within four or five days he was surfing.&rdquo;</p><div class="who">Noa <span>&middot; USA</span></div></div>
+        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;My first time surfing and I loved every second. The team welcomes you with open arms. It felt like coming home.&rdquo;</p><div class="who">Eline <span>&middot; Belgium</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · GOLDEN · GLIDE (real foil video) -->
+  <section id="sc-glide">
+    {%- if fv != blank -%}
+    <div class="vid">
+      <video autoplay muted loop playsinline preload="metadata"{% if fv.preview_image %} poster="{{ fv.preview_image | image_url: width: 1600 }}"{% endif %}>
+        {%- for s in fv.sources -%}{%- if s.format == 'mp4' -%}<source src="{{ s.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+      </video>
+    </div>
+    {%- endif -%}
+    <div class="tint" aria-hidden="true"></div>
+    <div class="in" data-sc-in data-sc-stagger="90">
+      <span class="eyebrow">Golden hour</span>
+      <h2>Glide above the waves.</h2>
+      <p>Learn to foil with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
+      <a class="btn" href="/collections/foil-surfing">Fly Now</a>
+    </div>
+  </section>
+
+  <!-- 6 · SUNSET · CLOSER -->
+  <section id="sc-join" data-sc-spotlight>
+    <div class="scrim" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="in" data-sc-in data-sc-stagger="80">
+      <span class="eyebrow">End your day here</span>
+      <h2>Come surf with us in Playa Venao</h2>
+      <p>Lessons, camps, foil, and rentals, all steps from the waves. Join the Shokogi surf family.</p>
+      <a class="btn" href="/collections/surf-school-and-courses" data-sc-magnet="0.26">Book Now</a>
+    </div>
+  </section>
+</div>
+
+<script src="{{ 'schome.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Home Page",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero video (dawn)" },
+    { "type": "video", "id": "hero_video", "label": "Hero video" },
+    { "type": "header", "content": "Foil video (golden hour)" },
+    { "type": "video", "id": "foil_video", "label": "Foil video" },
+    { "type": "header", "content": "Programme photos" },
+    { "type": "image_picker", "id": "pgm_surf", "label": "Surf" },
+    { "type": "image_picker", "id": "pgm_foil", "label": "Foil" },
+    { "type": "image_picker", "id": "pgm_trips", "label": "Custom Trips" },
+    { "type": "image_picker", "id": "pgm_kids", "label": "Kids" },
+    { "type": "header", "content": "Rentals" },
+    { "type": "image_picker", "id": "rentals_image", "label": "Rentals image" }
+  ],
+  "presets": [ { "name": "Home Page" } ]
+}
+{% endschema %}

@@ -5,3 +5,4 @@ builds/*/package.json
 builds/*/package-lock.json
 builds/*/*.cjs
 builds/*/gf.css
+builds/*/hometest.html
