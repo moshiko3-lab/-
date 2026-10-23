@@ -1,9 +1,9 @@
-{%- comment -%} SHOKOGI home — rest of page: testimonials, foil, shop, rentals, journal, closer. Vars: foil_video, rentals_image. {%- endcomment -%}
+{%- comment -%} SHOKOGI home — rest: testimonials, foil (text then video), shop, rentals, journal, closer. Vars: foil_video, rentals_image. {%- endcomment -%}
 
 <!-- TESTIMONIALS -->
 <div class="sec tint"><div class="wrap">
   <div data-r><div class="eyebrow-wrap"><span class="kicker">testimonials</span></div>
-  <h2 style="text-align:center">Why Surfers Love Shokogi</h2></div>
+  <h2>Why Surfers Love Shokogi</h2></div>
   <div class="revs" data-rs>
     <div class="rev"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>This is without a doubt the best surf shop ever - the location itself is just AMAZING - but the staff who work there are even more amazing.</p><div class="who">Charles <span>&middot; Canada</span></div></div>
     <div class="rev"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>Our 4.5 years old participated in Shokogi&rsquo;s surf camp during Christmas break. Within 4-5 days he was SURFING!</p><div class="who">Noa <span>&middot; USA</span></div></div>
@@ -12,30 +12,28 @@
   </div>
 </div></div>
 
-<!-- FOIL VIDEO BANNER (cinematic overlay) -->
-<section class="sk2-foil">
-  <div class="m" data-par>
-    <video autoplay muted loop playsinline preload="metadata"{% if foil_video != blank and foil_video.preview_image %} poster="{{ foil_video.preview_image | image_url: width: 1600 }}"{% endif %}>
-      {%- if foil_video != blank and foil_video.sources.size > 0 -%}
-        {%- for src in foil_video.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
-      {%- else -%}
-        <source src="https://cdn.shopify.com/videos/c/vp/edff47b97c4446f880778bb32dd26bca/edff47b97c4446f880778bb32dd26bca.HD-720p-4.5Mbps-48918163.mp4" type="video/mp4">
-      {%- endif -%}
-    </video>
-  </div>
-  <div class="scrim" aria-hidden="true"></div>
-  <div class="in" data-rs>
-    <span class="kicker">Glide Above the Waves</span>
-    <h2>Foil Surf Lessons in Playa Venao</h2>
-    <p class="lead">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
-    <div><a href="/collections/foil-surfing" class="btn pink">Fly Now</a></div>
-  </div>
-</section>
+<!-- FOIL (text, then full-width video — as the original) -->
+<div class="sec"><div class="wrap" data-r>
+  <div class="eyebrow-wrap"><span class="kicker">Glide Above the Waves</span></div>
+  <h2>Foil Surf Lessons in Playa Venao</h2>
+  <p class="lead" style="margin-bottom:24px">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
+  <div style="text-align:center"><a href="/collections/foil-surfing" class="btn pink">Fly Now</a></div>
+</div></div>
+<div class="videofull">
+  <video autoplay muted loop playsinline preload="metadata"{% if foil_video != blank and foil_video.preview_image %} poster="{{ foil_video.preview_image | image_url: width: 1600 }}"{% endif %}>
+    {%- if foil_video != blank and foil_video.sources.size > 0 -%}
+      {%- for src in foil_video.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+    {%- else -%}
+      <source src="https://cdn.shopify.com/videos/c/vp/edff47b97c4446f880778bb32dd26bca/edff47b97c4446f880778bb32dd26bca.HD-720p-4.5Mbps-48918163.mp4" type="video/mp4">
+    {%- endif -%}
+  </video>
+  <div class="skwave" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div>
+</div>
 
 <!-- SHOP BRAND -->
 <div class="sec"><div class="wrap">
   <div data-r><div class="eyebrow-wrap"><span class="kicker">shop</span></div>
-  <h2 style="text-align:center">Gear Up with Shokogi</h2>
+  <h2>Gear Up with Shokogi</h2>
   <p class="lead">Represent Shokogi from all around the world and share the surf culture with family and friends. From stylish apparel to must-have surf gear &mdash; whether you need sun protection or new surf apparel, we&rsquo;ve got the essentials for every surfer.</p></div>
   <div class="pgrid" data-rs>
     {%- assign brandcol = collections['shokogi-brand'] -%}
@@ -50,7 +48,7 @@
     </a>
     {%- endfor -%}
   </div>
-  <div style="text-align:center;margin-top:34px" data-r><a href="/collections/shokogi-brand" class="btn pink">Shop Now</a></div>
+  <div style="text-align:center;margin-top:30px" data-r><a href="/collections/shokogi-brand" class="btn pink">Shop Now</a></div>
 </div></div>
 
 <!-- RENTALS -->
@@ -58,7 +56,7 @@
   <div class="band rev" data-r>
     {%- if rentals_image -%}<img src="{{ rentals_image | image_url: width: 1200 }}" alt="Surf Board Rentals in Playa Venao" loading="lazy">{%- endif -%}
     <div class="bt">
-      <span class="kicker">rentals</span>
+      <div class="kicker">rentals</div>
       <h2>Surf Board Rentals in Playa Venao</h2>
       <p>Traveling light or trying something new? Shokogi offers high-quality surfboard rentals, including shortboards, longboards, and our beginner-friendly Ocean Monkey soft-top boards. Grab a board, hit the waves, and experience Panama surf at your own pace.</p>
       <a href="/collections/surfboard-rental-panama" class="btn pink">Rent Today</a>
@@ -69,8 +67,8 @@
 <!-- JOURNAL -->
 <div class="sec"><div class="wrap">
   <div data-r><div class="eyebrow-wrap"><span class="kicker">surf journal</span></div>
-  <h2 style="text-align:center">Latest Articles</h2></div>
-  <div class="bgrid" data-rs>
+  <h2>Latest Articles</h2></div>
+  <div class="bgrid" style="margin-top:26px" data-rs>
     {%- assign blog = blogs['surf-blog'] -%}
     {%- for article in blog.articles limit: 4 -%}
     <a href="{{ article.url }}" class="icard">
@@ -79,7 +77,7 @@
     </a>
     {%- endfor -%}
   </div>
-  <div style="text-align:center;margin-top:34px" data-r><a href="/blogs/surf-blog" class="btn pink">Read the Blog</a></div>
+  <div style="text-align:center;margin-top:30px" data-r><a href="/blogs/surf-blog" class="btn pink">Read the Blog</a></div>
 </div></div>
 
 <!-- CLOSER (a touch of black) -->

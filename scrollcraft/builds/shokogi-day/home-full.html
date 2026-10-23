@@ -3,32 +3,30 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="sk.css">
 <link rel="stylesheet" href="skplus.css">
-<link rel="stylesheet" href="skplus2.css">
 <style>
   html,body{margin:0}
   /* media placeholders standing in for the real video/photos (CDN blocked locally) */
   .demo img.ph{background:linear-gradient(135deg,#6f8f93,#d6c9b4)}
   .demo img.ph.b{background:linear-gradient(135deg,#5f7b86,#cdbfa8)}
   .demo img.ph.c{background:linear-gradient(135deg,#86979a,#e0d5c2)}
-  .demo .sk2-hero .ph{background:linear-gradient(120deg,#20323a 0%,#3a5560 45%,#1a262c 100%)}
-  .demo .sk2-foil .ph{background:linear-gradient(120deg,#16303a 0%,#2d5a63 50%,#0e1c20 100%)}
+  .demo .herofull .vidph{background:linear-gradient(120deg,#20323a 0%,#3a5560 45%,#1a262c 100%);height:58vh;max-height:600px;min-height:330px;display:block;width:100%}
+  .demo .videofull .vidph{background:linear-gradient(120deg,#16303a 0%,#2d5a63 50%,#0e1c20 100%)}
 </style>
 </head>
 <body class="demo">
 <div class="skp sk2">
 
-  <!-- HERO -->
-  <section class="sk2-hero">
-    <div class="m" data-par><div class="ph" style="width:100%;height:100%"></div></div>
-    <div class="scrim" aria-hidden="true"></div>
-    <div class="in" data-rs>
-      <div class="htag">Playa Venao &middot; Panama</div>
-      <h1>World-Class Surf Lessons, Camps &amp; <em>Foil Surfing</em> in Playa Venao</h1>
-      <p>Lessons, Camps, Foil Surfing, and More &mdash; all steps from the waves in Playa Venao.</p>
-      <div><a href="#" class="btn pink">Book Now</a></div>
-    </div>
-    <div class="cue" aria-hidden="true"><i></i></div>
-  </section>
+  <!-- HERO (video, text below) -->
+  <div class="herofull">
+    <div class="vidph"></div>
+    <div class="skwave" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div>
+  </div>
+  <div class="herotext" data-r>
+    <div class="htag">Playa Venao &middot; Panama</div>
+    <h1>World-Class Surf Lessons, Camps &amp; Foil Surfing in Playa Venao</h1>
+    <p>Lessons, Camps, Foil Surfing, and More &mdash; all steps from the waves in Playa Venao.</p>
+    <a href="#" class="btn pink">Book Now</a>
+  </div>
 
   <!-- STATS -->
   <div class="sec"><div class="wrap">
@@ -41,33 +39,33 @@
   </div></div>
 
   <!-- INTRO -->
-  <div class="sec tint intro"><div class="wrap" data-r>
+  <div class="sec tint"><div class="wrap" data-r>
     <div class="eyebrow-wrap"><span class="kicker">surf school</span></div>
-    <h2 style="text-align:center">Your Panama Surf Adventure Awaits</h2>
-    <p class="lead">Whether you&rsquo;re catching your very first wave or leveling up your surf skills, our experienced instructors have you covered. Choose from personalized surf lessons, immersive surf camps, foil surfing adventures, and engaging kids&rsquo; summer camps. With perfect waves, quality surfboard rentals, and our own Ocean Monkey soft-top boards, Shokogi is your ultimate Panama surf destination. Come join our vibrant surf community and experience the magic of Playa Venao!</p>
+    <h2>Your Panama Surf Adventure Awaits</h2>
+    <p class="lead" style="margin-bottom:24px">Whether you&rsquo;re catching your very first wave or leveling up your surf skills, our experienced instructors have you covered. Choose from personalized surf lessons, immersive surf camps, foil surfing adventures, and engaging kids&rsquo; summer camps. With perfect waves, quality surfboard rentals, and our own Ocean Monkey soft-top boards, Shokogi is your ultimate Panama surf destination. Come join our vibrant surf community and experience the magic of Playa Venao!</p>
     <div style="text-align:center"><a href="#" class="btn pink">Join Us</a></div>
   </div></div>
 
   <!-- PROGRAMMES -->
   <div class="sec"><div class="wrap">
     <div data-r><div class="eyebrow-wrap"><span class="kicker">what we offer</span></div>
-    <h2 style="text-align:center">Find Your Perfect Surf Experience</h2></div>
-    <div class="pgm" data-rs>
+    <h2>Find Your Perfect Surf Experience</h2></div>
+    <div class="pgm" style="margin-top:26px" data-rs>
       <a href="#" class="icard"><img class="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
-        <div class="ib"><div class="k">Surf</div><h3>Surf Lessons &amp; Camps in Playa Venao</h3><p>Learn to surf or level up your skills with expert-led lessons and all-inclusive surf camps in Panama&rsquo;s top surf spot.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div></a>
+        <div class="ib"><div class="k">Surf</div><h3>Surf Lessons &amp; Camps in Playa Venao</h3><p>Learn to surf or level up your skills with expert-led lessons and all-inclusive surf camps in Panama&rsquo;s top surf spot.</p><span class="more">Book now &rarr;</span></div></a>
       <a href="#" class="icard"><img class="ph b" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
-        <div class="ib"><div class="k">Foil</div><h3>Foil Surfing in Playa Venao</h3><p>Discover the thrill of foil surfing in Panama. Book a private lesson and glide above the waves with our certified instructors.</p><span class="more">Fly now <span class="ar">&rarr;</span></span></div></a>
+        <div class="ib"><div class="k">Foil</div><h3>Foil Surfing in Playa Venao</h3><p>Discover the thrill of foil surfing in Panama. Book a private lesson and glide above the waves with our certified instructors.</p><span class="more">Fly now &rarr;</span></div></a>
       <a href="#" class="icard"><img class="ph c" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
-        <div class="ib"><div class="k">Custom Trips</div><h3>Custom Surf Trips in Playa Venao</h3><p>Choose your length of stay, pick your accommodations, and enjoy surf lessons and board rentals included. Perfectly tailored Panama surf packages for every traveler.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div></a>
+        <div class="ib"><div class="k">Custom Trips</div><h3>Custom Surf Trips in Playa Venao</h3><p>Choose your length of stay, pick your accommodations, and enjoy surf lessons and board rentals included. Perfectly tailored Panama surf packages for every traveler.</p><span class="more">Book now &rarr;</span></div></a>
       <a href="#" class="icard"><img class="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
-        <div class="ib"><div class="k">Kids</div><h3>Kids Camp in Playa Venao</h3><p>Safe, fun, and skill-building surf camps for kids. Ideal for young kids and teens, with lessons, games, and ocean education.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div></a>
+        <div class="ib"><div class="k">Kids</div><h3>Kids Camp in Playa Venao</h3><p>Safe, fun, and skill-building surf camps for kids. Ideal for young kids and teens, with lessons, games, and ocean education.</p><span class="more">Book now &rarr;</span></div></a>
     </div>
   </div></div>
 
   <!-- TESTIMONIALS -->
   <div class="sec tint"><div class="wrap">
     <div data-r><div class="eyebrow-wrap"><span class="kicker">testimonials</span></div>
-    <h2 style="text-align:center">Why Surfers Love Shokogi</h2></div>
+    <h2>Why Surfers Love Shokogi</h2></div>
     <div class="revs" data-rs>
       <div class="rev"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>This is without a doubt the best surf shop ever - the location itself is just AMAZING - but the staff who work there are even more amazing.</p><div class="who">Charles <span>&middot; Canada</span></div></div>
       <div class="rev"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>Our 4.5 years old participated in Shokogi&rsquo;s surf camp during Christmas break. Within 4-5 days he was SURFING!</p><div class="who">Noa <span>&middot; USA</span></div></div>
@@ -76,29 +74,26 @@
     </div>
   </div></div>
 
-  <!-- FOIL -->
-  <section class="sk2-foil">
-    <div class="m" data-par><div class="ph" style="width:100%;height:100%"></div></div>
-    <div class="scrim" aria-hidden="true"></div>
-    <div class="in" data-rs>
-      <span class="kicker">Glide Above the Waves</span>
-      <h2>Foil Surf Lessons in Playa Venao</h2>
-      <p class="lead">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
-      <div><a href="#" class="btn pink">Fly Now</a></div>
-    </div>
-  </section>
+  <!-- FOIL (text, then full-width video) -->
+  <div class="sec"><div class="wrap" data-r>
+    <div class="eyebrow-wrap"><span class="kicker">Glide Above the Waves</span></div>
+    <h2>Foil Surf Lessons in Playa Venao</h2>
+    <p class="lead" style="margin-bottom:24px">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
+    <div style="text-align:center"><a href="#" class="btn pink">Fly Now</a></div>
+  </div></div>
+  <div class="videofull"><div class="vidph"></div><div class="skwave" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div></div>
 
   <!-- SHOP -->
   <div class="sec"><div class="wrap">
     <div data-r><div class="eyebrow-wrap"><span class="kicker">shop</span></div>
-    <h2 style="text-align:center">Gear Up with Shokogi</h2>
+    <h2>Gear Up with Shokogi</h2>
     <p class="lead">Represent Shokogi from all around the world and share the surf culture with family and friends. From stylish apparel to must-have surf gear &mdash; whether you need sun protection or new surf apparel, we&rsquo;ve got the essentials for every surfer.</p></div>
     <div class="pgrid" data-rs>
       <a href="#" class="pcard"><img class="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="pcard-b"><h3>Shokogi Tee</h3><div class="pprice">$32</div><span class="pbtn">View</span></div></a>
       <a href="#" class="pcard"><img class="ph b" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="pcard-b"><h3>Surf Hoodie</h3><div class="pprice">$58</div><span class="pbtn">View</span></div></a>
       <a href="#" class="pcard"><img class="ph c" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="pcard-b"><h3>Sun Cap</h3><div class="pprice">$24</div><span class="pbtn">View</span></div></a>
     </div>
-    <div style="text-align:center;margin-top:34px" data-r><a href="#" class="btn pink">Shop Now</a></div>
+    <div style="text-align:center;margin-top:30px" data-r><a href="#" class="btn pink">Shop Now</a></div>
   </div></div>
 
   <!-- RENTALS -->
@@ -106,7 +101,7 @@
     <div class="band rev" data-r>
       <img class="ph c" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" style="height:420px">
       <div class="bt">
-        <span class="kicker">rentals</span>
+        <div class="kicker">rentals</div>
         <h2>Surf Board Rentals in Playa Venao</h2>
         <p>Traveling light or trying something new? Shokogi offers high-quality surfboard rentals, including shortboards, longboards, and our beginner-friendly Ocean Monkey soft-top boards. Grab a board, hit the waves, and experience Panama surf at your own pace.</p>
         <a href="#" class="btn pink">Rent Today</a>
@@ -117,14 +112,14 @@
   <!-- JOURNAL -->
   <div class="sec"><div class="wrap">
     <div data-r><div class="eyebrow-wrap"><span class="kicker">surf journal</span></div>
-    <h2 style="text-align:center">Latest Articles</h2></div>
-    <div class="bgrid" data-rs>
+    <h2>Latest Articles</h2></div>
+    <div class="bgrid" style="margin-top:26px" data-rs>
       <a href="#" class="icard"><img class="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="ib"><div class="k">Oct 12, 2026</div><h3>How to choose your first surfboard</h3></div></a>
       <a href="#" class="icard"><img class="ph b" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="ib"><div class="k">Sep 30, 2026</div><h3>Why Playa Venao is a year-round surf spot</h3></div></a>
       <a href="#" class="icard"><img class="ph c" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="ib"><div class="k">Sep 18, 2026</div><h3>Foil surfing: what to expect on day one</h3></div></a>
       <a href="#" class="icard"><img class="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><div class="ib"><div class="k">Sep 02, 2026</div><h3>Packing list for a week-long surf camp</h3></div></a>
     </div>
-    <div style="text-align:center;margin-top:34px" data-r><a href="#" class="btn pink">Read the Blog</a></div>
+    <div style="text-align:center;margin-top:30px" data-r><a href="#" class="btn pink">Read the Blog</a></div>
   </div></div>
 
   <!-- CLOSER -->

@@ -57,6 +57,17 @@
 .skp .band.rev img{order:2}
 .skp .band .bt h2{text-align:left;margin-bottom:14px}
 .skp .band .bt p{font-size:14.5px;color:#4c4b47;line-height:1.75;margin:0 0 20px}
+/* hero + video (original layout) */
+.skp .herofull{width:100vw;margin-left:calc(50% - 50vw);line-height:0}
+.skp .herofull img,.skp .herofull video,.skp .heroimg{display:block;width:100%;height:58vh;max-height:600px;min-height:330px;object-fit:cover}
+.skp .heroimg{background:linear-gradient(135deg,#d7dcd6,#e7ddcd);display:flex;align-items:center;justify-content:center;line-height:1.4}
+.skp .heroimg span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(25,26,26,.4)}
+.skp .herotext{max-width:940px;margin:0 auto;padding:36px 20px 8px;text-align:center}
+.skp .herotext .htag{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--pink);font-weight:700;margin:0 0 10px}
+.skp .herotext h1{font-size:34px;line-height:1.08;letter-spacing:.01em;text-transform:uppercase;font-weight:800;margin:0 auto 14px;max-width:660px}
+.skp .herotext p{font-size:15px;color:#4c4b47;max-width:660px;margin:0 auto 22px}
+.skp .videofull{width:100vw;margin-left:calc(50% - 50vw);line-height:0;background:#000}
+.skp .videofull video,.skp .videofull .vidph{display:block;width:100%;height:58vh;max-height:600px;object-fit:cover}
 /* fonts */
 .skp h1,.skp h2,.skp h3,.skp .pprice{font-family:var(--font-heading-family,"Barlow Condensed",sans-serif);font-weight:600}
 .skp .btn,.skp .bbtn,.skp .pbtn{font-family:var(--font-button-family,"Figtree",sans-serif)}
@@ -72,4 +83,6 @@
   .skp .band.rev img{order:0}
   .skp .band img{height:220px}
   .skp .band .bt h2{text-align:center}
+  .skp .herotext h1{font-size:27px}
+  .skp .herofull img,.skp .herofull video,.skp .heroimg{height:46vh;min-height:300px}
 }
