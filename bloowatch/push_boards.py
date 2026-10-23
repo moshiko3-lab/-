@@ -228,11 +228,16 @@ def main():
         print("\nwould send %d booking(s); %d skipped" % (len(books), len(skipped)))
         return 0
 
-    try:
-        url, secret = _env("BOARDS_URL"), _env("BOARDS_SECRET")
-    except BloowatchError as exc:
-        print("error: %s" % exc, file=sys.stderr)
-        return 1
+    # Not yet wired up is not a failure. A routine runs this on a schedule
+    # from the day it is created, and an error every hour until somebody
+    # fills in a setting is how real failures stop being read.
+    url = os.environ.get("BOARDS_URL")
+    secret = os.environ.get("BOARDS_SECRET")
+    if not (url and secret):
+        print("not configured: set BOARDS_URL and BOARDS_SECRET on the "
+              "environment to start sending. %d booking(s) were ready."
+              % len(books))
+        return 0
 
     sess, sent, failed = requests.Session(), 0, []
     for b in books:

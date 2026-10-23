@@ -329,6 +329,9 @@ def main():
     ap.add_argument("--models", action="store_true",
                     help="also list the store model by model")
     ap.add_argument("--out", help="write the JSON here instead of stdout")
+    ap.add_argument("--for-page", metavar="DIR",
+                    help="write snap_latest.json and snap_fleet.json here, "
+                         "the two documents the board-store page reads")
     a = ap.parse_args()
 
     try:
@@ -337,7 +340,22 @@ def main():
         print("error: %s" % exc, file=sys.stderr)
         return 1
 
-    if a.out:
+    if a.for_page:
+        # Two documents, not one: the hires change through the day and the
+        # fleet barely ever does, and separate documents are two writes
+        # that cannot tread on each other.
+        os.makedirs(a.for_page, exist_ok=True)
+        keep = ("date", "now", "hires", "stock", "out", "counts",
+                "unconfirmed", "unknownModels", "oversold")
+        pair = (("snap_latest.json", {k: data[k] for k in keep}),
+                ("snap_fleet.json", {"fleet": data["fleet"], "now": data["now"]}))
+        for name, doc in pair:
+            with open(os.path.join(a.for_page, name), "w", encoding="utf-8") as f:
+                json.dump(doc, f, ensure_ascii=False)
+        print("wrote %s and %s — %d hires, %d of %d boards out, %d overdue"
+              % (pair[0][0], pair[1][0], len(data["hires"]), data["out"],
+                 data["stock"], data["counts"].get("overdue", 0)))
+    elif a.out:
         with open(a.out, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=1)
         print("wrote %s — %d hires, %d boards out"
