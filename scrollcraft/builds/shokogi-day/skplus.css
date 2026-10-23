@@ -50,7 +50,7 @@
 .sk2 .pgm{gap:22px;margin-top:clamp(26px,4vh,40px)}
 .sk2 .pgm .icard{border-radius:18px;border-color:var(--line)}
 .sk2 .pgm .icard img{height:clamp(220px,26vw,280px);transition:transform .9s var(--eo)}
-.sk2 .pgm a.icard:hover img{transform:scale(1.05)}
+.sk2 .pgm a.icard:hover img{--sc:1.05}
 .sk2 .pgm a.icard:hover{box-shadow:0 20px 48px -22px rgba(20,20,20,.28);transform:translateY(-4px)}
 .sk2 .icard .ib{padding:22px 24px 24px}
 .sk2 .icard h3{font-size:clamp(16px,1.5vw,20px);letter-spacing:.03em;margin-bottom:9px}
@@ -58,3 +58,19 @@
 .sk2 .icard .more{margin-top:14px}
 .sk2 .icard .more .ar{display:inline-block;transition:transform .25s var(--eo)}
 .sk2 .pgm a.icard:hover .more .ar{transform:translateX(5px)}
+
+/* ---- more gentle scroll motion ---- */
+/* images ease from a soft zoom to rest as they enter (scale-only, via --sc so hover never conflicts) */
+.sk2 .pgm .icard img,.sk2 .pcard img,.sk2 .bgrid .icard img{transform:scale(var(--sc,1))}
+.sk2 [data-rs] img{--sc:1.06}
+.sk2 [data-rs].is-in img{--sc:1}
+/* a thin pink rule draws in under each centered section kicker */
+.sk2 .eyebrow-wrap .kicker{position:relative;display:inline-block;padding-bottom:10px}
+.sk2 .eyebrow-wrap .kicker:after{content:"";position:absolute;left:50%;bottom:0;width:26px;height:2px;background:var(--pink);transform:translateX(-50%) scaleX(0);transform-origin:center;transition:transform .7s var(--eo) .15s}
+.sk2 [data-r].is-in .eyebrow-wrap .kicker:after,.sk2 [data-rs].is-in .eyebrow-wrap .kicker:after{transform:translateX(-50%) scaleX(1)}
+/* hero/foil copy drifts and settles as it parallaxes */
+.sk2-hero .in,.sk2-foil .in{will-change:transform,opacity}
+@media(prefers-reduced-motion:reduce){
+  .sk2 [data-rs] img{--sc:1!important}
+  .sk2 .eyebrow-wrap .kicker:after{transform:translateX(-50%) scaleX(1);transition:none}
+}

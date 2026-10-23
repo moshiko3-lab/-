@@ -25,7 +25,7 @@
 .sk2 .pgrid{gap:20px;margin-top:clamp(24px,3.5vh,36px)}
 .sk2 .pcard{border-radius:18px}
 .sk2 .pcard img{height:260px;transition:transform .9s var(--eo)}
-.sk2 .pcard:hover img{transform:scale(1.04)}
+.sk2 .pcard:hover img{--sc:1.04}
 .sk2 .pcard:hover{box-shadow:0 20px 48px -22px rgba(20,20,20,.26);transform:translateY(-4px)}
 
 /* ---- RENTALS band ---- */
@@ -39,7 +39,7 @@
 .sk2 .bgrid{gap:20px;margin-top:clamp(24px,3.5vh,36px)}
 .sk2 .bgrid .icard{border-radius:16px}
 .sk2 .bgrid .icard img{height:180px;transition:transform .9s var(--eo)}
-.sk2 .bgrid a.icard:hover img{transform:scale(1.05)}
+.sk2 .bgrid a.icard:hover img{--sc:1.05}
 .sk2 .bgrid .icard h3{font-size:16px;line-height:1.3}
 .sk2 .bgrid .icard .ib{padding:18px 20px 22px}
 
