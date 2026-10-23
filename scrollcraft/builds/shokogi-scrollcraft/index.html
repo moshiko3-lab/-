@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SHOKOGI · Surf Playa Venao</title>
+<meta name="description" content="Surf lessons, camps, foil surfing and rentals in Playa Venao, Panama. All year, all levels, steps from the waves.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23f46e95'/></svg>">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="scrollcraft.css">
+<style>
+  :root{
+    --sc-canvas:#ffffff; --sc-surface:#f4f0ea;
+    --sc-ink:#17120f; --sc-ink-soft:#6a635c;
+    --sc-accent:#f46e95; --sc-accent-ink:#2a0f19;
+    --sc-shadow-color: 20 25% 22%;
+    --sc-font-display:"Barlow Condensed","Barlow",system-ui,sans-serif;
+    --sc-font-text:"Figtree",system-ui,-apple-system,sans-serif;
+  }
+  /* --- page-specific classes (the engine's own selectors are left alone) --- */
+  .site-bar{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;
+    padding:clamp(.9rem,2vw,1.4rem) var(--sc-gutter);mix-blend-mode:normal}
+  .site-bar .mark{font-family:var(--sc-font-display);font-weight:700;font-size:1.5rem;letter-spacing:.06em;color:var(--sc-ink);text-decoration:none}
+  .site-bar .mark .wash{position:relative}
+  .cta{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--sc-font-text);font-weight:700;
+    text-transform:uppercase;letter-spacing:.14em;font-size:.82rem;text-decoration:none;
+    padding:.85rem 1.7rem;border-radius:var(--sc-r-pill);background:var(--sc-accent);color:#fff;
+    box-shadow:0 14px 30px -14px hsl(338 82% 55% / .7);transition:transform .16s var(--sc-ease-out),box-shadow .16s var(--sc-ease-out)}
+  @media(hover:hover){.cta:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px hsl(338 82% 55% / .85)}}
+  .cta:active{transform:translateY(1px)}
+  .site-bar .cta{padding:.7rem 1.3rem;font-size:.74rem}
+  .place{display:inline-block;font-family:var(--sc-font-text);font-weight:600;text-transform:uppercase;
+    letter-spacing:.26em;font-size:.72rem;color:var(--sc-accent)}
+  h1 em,h2 em{font-style:normal;color:var(--sc-accent)}
+
+  /* ---------- Act 1 · hero scene (CSS world: pale dawn water, no sun) ------ */
+  .scene{position:absolute;inset:0;z-index:0;overflow:hidden}
+  .scene--hero .sky{position:absolute;inset:0;background:
+     radial-gradient(120% 90% at 78% 8%,#fbf4ec 0%,rgba(251,244,236,0) 55%),
+     linear-gradient(180deg,#eef4f4 0%,#f4f1ec 54%,#f7f3ed 100%)}
+  .scene--hero .sea{position:absolute;left:0;right:0;bottom:0;height:46%;
+     background:linear-gradient(180deg,rgba(150,186,186,0) 0%,rgba(150,186,186,.22) 36%,rgba(126,170,172,.42) 100%)}
+  .scene--hero .hz{position:absolute;left:0;right:0;top:54%;height:1px;background:rgba(23,18,15,.14)}
+  .scene--hero .glow{position:absolute;width:46vw;height:46vw;right:6%;top:-6%;border-radius:50%;
+     background:radial-gradient(circle,rgba(255,255,255,.7),rgba(255,255,255,0) 64%)}
+  /* the tide — foam at the foot of the hero copy, follows the pointer */
+  .tide{position:absolute;left:0;right:0;bottom:16%;height:120px;z-index:1;pointer-events:none}
+  .tide svg{position:absolute;inset:0;width:100%;height:100%}
+  .tide .foam{fill:#ffffff}
+  .tide .foam2{fill:rgba(255,255,255,.5)}
+
+  .hero-copy h1{font-family:var(--sc-font-display);font-weight:700;font-size:clamp(2.6rem,5.4vw,4.8rem);line-height:.94;
+     letter-spacing:-.01em;margin:.9rem 0 .9rem;color:var(--sc-ink);max-width:16ch}
+  .hero-copy p{color:var(--sc-ink-soft);font-size:var(--sc-t-lg);max-width:34rem;margin:0 0 1.6rem}
+
+  /* ---------- Act 2 · promise ---------------------------------------------- */
+  .act-promise .sc-wrap{max-width:var(--sc-maxw);margin-inline:auto;padding-inline:var(--sc-gutter)}
+  .act-promise h2{font-family:var(--sc-font-display);font-weight:700;font-size:var(--sc-t-3xl);line-height:.98;color:var(--sc-ink);max-width:16ch}
+  .act-promise .sc-stack p{color:var(--sc-ink-soft);font-size:var(--sc-t-lg);max-width:46ch;margin-top:.8rem}
+  .facts{list-style:none;margin:clamp(2.4rem,6vh,4rem) 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr)}
+  .facts li{padding:1.6rem 1.8rem 1.6rem 0;border-top:1px solid var(--sc-hairline-strong)}
+  .facts li+li{padding-left:1.8rem;border-left:1px solid var(--sc-hairline)}
+  .facts b{display:block;font-family:var(--sc-font-display);font-weight:700;font-size:clamp(2rem,4vw,3.1rem);line-height:1;color:var(--sc-ink)}
+  .facts span{display:block;margin-top:.5rem;color:var(--sc-ink-soft);font-size:.95rem}
+
+  /* ---------- Act 3 · ways (pan rail) -------------------------------------- */
+  .rail{display:flex;gap:clamp(1rem,2vw,1.6rem);align-items:stretch;padding-inline:var(--sc-gutter);will-change:transform}
+  .rail__lead{flex:0 0 auto;width:min(30rem,76vw);align-self:center;padding-right:2rem}
+  .rail__lead h2{font-family:var(--sc-font-display);font-weight:700;font-size:var(--sc-t-2xl);color:var(--sc-ink);line-height:1}
+  .rail__lead p{color:var(--sc-ink-soft);margin-top:.7rem}
+  .panel{flex:0 0 auto;width:clamp(17rem,24vw,21rem);border-radius:var(--sc-r-lg);overflow:hidden;
+     background:var(--sc-surface);box-shadow:var(--sc-e2);display:flex;flex-direction:column}
+  .panel .pic{height:17rem;position:relative;overflow:hidden}
+  .panel .pic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(23,18,15,0) 46%,rgba(23,18,15,.42))}
+  .panel.surf .pic{background:linear-gradient(150deg,#2e5b61,#8fb6b2)}
+  .panel.foil .pic{background:linear-gradient(150deg,#395e74,#a7c3cf)}
+  .panel.trips .pic{background:linear-gradient(150deg,#7d6a4f,#d9c7a6)}
+  .panel.kids .pic{background:linear-gradient(150deg,#9a5668,#e7b3bf)}
+  .panel .tag{position:absolute;left:1.1rem;bottom:1.1rem;z-index:1;color:#fff;font-family:var(--sc-font-text);
+     font-weight:700;text-transform:uppercase;letter-spacing:.2em;font-size:.66rem}
+  .panel .body{padding:1.3rem 1.4rem 1.5rem}
+  .panel h3{font-family:var(--sc-font-display);font-weight:700;font-size:1.5rem;line-height:1.02;color:var(--sc-ink);margin:0 0 .4rem}
+  .panel p{color:var(--sc-ink-soft);font-size:.92rem;margin:0}
+
+  /* ---------- Act 4 · voices (quiet) -------------------------------------- */
+  .act-voices .sc-wrap{max-width:66rem;margin-inline:auto;padding-inline:var(--sc-gutter)}
+  .act-voices h2{font-family:var(--sc-font-display);font-weight:700;font-size:var(--sc-t-2xl);color:var(--sc-ink);max-width:18ch;line-height:1}
+  .voices-grid{margin-top:clamp(2rem,5vh,3.4rem);display:grid;grid-template-columns:1.3fr 1fr;gap:clamp(1.4rem,3vw,2.6rem);align-items:start}
+  .voices-grid .col{display:grid;gap:clamp(1.4rem,3vw,2.4rem)}
+  blockquote{margin:0;border-top:1px solid var(--sc-hairline-strong);padding-top:1.3rem}
+  blockquote p{font-family:var(--sc-font-display);font-weight:600;font-size:clamp(1.3rem,2vw,1.9rem);line-height:1.16;color:var(--sc-ink);margin:0}
+  blockquote cite{display:block;margin-top:.9rem;font-style:normal;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;color:var(--sc-ink)}
+  blockquote cite span{color:var(--sc-ink-soft);font-weight:500;letter-spacing:0;text-transform:none}
+  .stars{color:var(--sc-accent);letter-spacing:3px;font-size:.9rem;margin-bottom:.7rem}
+
+  /* ---------- Act 5 · glide (PEAK, the wash) ------------------------------ */
+  .scene--glide .g-sky{position:absolute;inset:0;background:radial-gradient(120% 90% at 76% 10%,#fcf6ee,rgba(252,246,238,0) 56%),linear-gradient(180deg,#eef4f4,#f5f1ec)}
+  .scene--glide .g-hz{position:absolute;left:0;right:0;top:46%;height:1px;background:rgba(23,18,15,.1)}
+  /* SIGNATURE — the wash: a teal water sheet with a white foam crest rises up
+     the frame (behind the words) as you scroll into the peak. */
+  .g-wash{position:absolute;left:0;right:0;bottom:0;height:100vh;z-index:2;pointer-events:none;transform:translateY(100%)}
+  .g-wash .sheet{position:absolute;inset:0;background:linear-gradient(180deg,rgba(160,201,197,.55) 0%,rgba(128,180,177,.86) 26%,#86bbb6 56%,#6fa8a3 100%)}
+  .g-wash svg{position:absolute;left:0;right:0;top:0;width:100%;height:58px;transform:translateY(-99%)}
+  .g-wash .crest{fill:rgba(160,201,197,.55)}
+  .g-wash .crest2{fill:#ffffff;opacity:.9}
+  .glide-copy h2{font-family:var(--sc-font-display);font-weight:700;font-size:clamp(2.6rem,5.4vw,4.8rem);line-height:.94;letter-spacing:-.01em;color:var(--sc-ink);margin:.9rem 0 .9rem;max-width:13ch}
+  .glide-copy p{color:var(--sc-ink-soft);font-size:var(--sc-t-lg);max-width:34rem;margin:0 0 1.6rem}
+
+  /* ---------- Act 6 · join (a touch of black) ---------------------------- */
+  .act-join{--sc-ink:#ffffff;--sc-ink-soft:rgba(255,255,255,.72);color:#fff}
+  .close{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;padding:var(--sc-gutter)}
+  .close__inner{position:relative;z-index:3;max-width:40rem}
+  .act-join h2{font-size:clamp(2.2rem,4.4vw,3.8rem)!important;max-width:15ch;margin-inline:auto}
+  .close .glow{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .4s var(--sc-ease-out);
+     background:radial-gradient(360px circle at calc(var(--sc-mx,.5)*100%) calc(var(--sc-my,.5)*100%),rgba(244,110,149,.22),transparent 60%)}
+  @media(hover:hover){.close:hover .glow{opacity:1}}
+  .act-join h2{font-family:var(--sc-font-display);font-weight:700;font-size:var(--sc-t-3xl);line-height:.98;color:#fff;margin:0 auto .6rem}
+  .act-join .lead{color:rgba(255,255,255,.72);max-width:44ch;margin:0 auto 2rem;font-size:var(--sc-t-lg)}
+  .foot{position:absolute;left:0;right:0;bottom:1.4rem;z-index:3;text-align:center;color:rgba(255,255,255,.5);
+     font-family:var(--sc-font-text);font-weight:600;text-transform:uppercase;letter-spacing:.2em;font-size:.68rem}
+
+  @media(max-width:860px){
+    .facts{grid-template-columns:1fr}
+    .facts li{border-left:0!important;padding-left:0!important}
+    .voices-grid{grid-template-columns:1fr}
+  }
+  @media(max-width:700px){
+    .hero-copy h1,.glide-copy h2{font-size:var(--sc-t-2xl)}
+  }
+</style>
+</head>
+<body>
+
+<span data-sc-progress></span>
+<div class="sc-grain" aria-hidden="true"></div>
+
+<header class="site-bar">
+  <a class="mark" href="#top">SHOK<span class="wash">O</span>GI</a>
+  <a class="cta" href="#join">Book Now</a>
+</header>
+
+<main id="top">
+
+  <!-- 1 · ARRIVAL — pin + the tide (dimensional, calm) -->
+  <section class="act-hero" data-sc-act="pin" data-sc-span="2.3" data-sc-drift="#f6f3ee">
+    <div data-sc-stage>
+      <div class="scene scene--hero" aria-hidden="true">
+        <div class="sky" data-plane="0.03"></div>
+        <div class="glow" data-plane="0.06"></div>
+        <div class="hz"></div>
+        <div class="sea" data-plane="0.10"></div>
+        <div class="tide" data-plane="0.16">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path class="foam2" d="M0 70 C200 44 420 44 600 66 C820 90 1000 90 1200 64 L1200 120 L0 120 Z"/>
+            <path class="foam"  d="M0 84 C220 60 400 100 640 82 C880 64 1000 100 1200 80 L1200 120 L0 120 Z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sc-copy sc-copy--lead hero-copy" data-sc-cue="0 0.84 0">
+        <span class="place">Playa Venao · Panama</span>
+        <h1 class="sc-display" data-sc-kinetic="lines">Surf where the <em>day begins</em>.</h1>
+        <p class="sc-body">Lessons, camps, foil surfing and rentals, steps from the waves.</p>
+        <a class="cta" href="#join">Book Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · PROMISE — flow + reveal (quiet confidence, type on space) -->
+  <section class="sc-section act-promise" data-sc-act="flow" data-sc-drift="#f6f3ee">
+    <div class="sc-wrap">
+      <div class="sc-stack" data-sc-in data-sc-stagger="70">
+        <h2 class="sc-display">Perfect waves, every season.</h2>
+        <p class="sc-body">Whether it is your first wave or your thousandth, our instructors meet you where you are, in one of Panama's finest surf towns.</p>
+      </div>
+      <ul class="facts" data-sc-in data-sc-stagger="80">
+        <li><b>All year</b><span>Waves every season</span></li>
+        <li><b>All levels</b><span>First wave to advanced</span></li>
+        <li><b>100+ boards</b><span>Every size on hand</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 3 · WAYS — pan rail (easy curiosity) -->
+  <section class="act-ways" data-sc-act="pan" data-sc-span="3.6" data-sc-drift="#ffffff">
+    <div data-sc-stage>
+      <div class="rail" data-sc-pan="0.06">
+        <div class="rail__lead sc-stack">
+          <h2 class="sc-display">Find your wave.</h2>
+          <p class="sc-body">Four ways into the water. Pick one.</p>
+        </div>
+        <article class="panel surf"><div class="pic" data-sc-tilt="4"><span class="tag">Surf</span></div><div class="body"><h3>Surf lessons &amp; camps</h3><p>Learn to surf or level up with expert-led lessons and all-inclusive camps.</p></div></article>
+        <article class="panel foil"><div class="pic" data-sc-tilt="4"><span class="tag">Foil</span></div><div class="body"><h3>Foil surfing</h3><p>Glide above the waves with certified instructors. Beginner friendly.</p></div></article>
+        <article class="panel trips"><div class="pic" data-sc-tilt="4"><span class="tag">Custom trips</span></div><div class="body"><h3>Custom surf trips</h3><p>Pick your stay and dates. Lessons and boards included, tailored to you.</p></div></article>
+        <article class="panel kids"><div class="pic" data-sc-tilt="4"><span class="tag">Kids</span></div><div class="body"><h3>Kids camp</h3><p>Safe, fun, skill-building camps for young groms and teens.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · VOICES — flow (the held breath before the peak) -->
+  <section class="sc-section act-voices" data-sc-act="flow" data-sc-drift="#f6f3ee">
+    <div class="sc-wrap">
+      <h2 class="sc-display" data-sc-in>Where friends become family.</h2>
+      <div class="voices-grid" data-sc-in data-sc-stagger="110">
+        <blockquote>
+          <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p>The best surf shop ever. The location is amazing, but the staff who work there are even more amazing.</p>
+          <cite>Charles <span>&middot; Canada</span></cite>
+        </blockquote>
+        <div class="col">
+          <blockquote>
+            <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p>Our four-year-old joined the Christmas camp. Within five days he was surfing.</p>
+            <cite>Noa <span>&middot; USA</span></cite>
+          </blockquote>
+          <blockquote>
+            <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <p>My first time surfing and I loved every second. It felt like coming home.</p>
+            <cite>Eline <span>&middot; Belgium</span></cite>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · GLIDE — pin, the PEAK. The wash rises and lifts the words. -->
+  <section class="act-glide" data-sc-act="pin" data-sc-span="4" data-sc-drift="#eef5f4">
+    <div data-sc-stage>
+      <div class="scene scene--glide" aria-hidden="true">
+        <div class="g-sky"></div>
+        <div class="g-hz"></div>
+        <div class="g-sea"></div>
+        <div class="g-wash" id="gwash">
+          <svg viewBox="0 0 1200 70" preserveAspectRatio="none"><path class="crest2" d="M0 40 C240 10 420 10 600 36 C780 62 1000 62 1200 34 L1200 70 L0 70 Z"/><path class="crest" d="M0 52 C220 28 420 70 640 50 C860 30 1000 66 1200 48 L1200 70 L0 70 Z"/></svg>
+          <div class="sheet"></div>
+        </div>
+      </div>
+      <div class="sc-copy sc-copy--lead glide-copy" id="glideCopy" data-sc-cue="0.12 0.96 0">
+        <span class="place">Foil surfing</span>
+        <h2 class="sc-display" data-sc-kinetic="lines">Glide above <em>the waves</em>.</h2>
+        <p class="sc-body">Learn to foil with certified instructors in perfect conditions. Safe, fun, beginner friendly.</p>
+        <a class="cta" href="#join">Fly Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · JOIN — pin + pointer, a touch of black. Last element on the page. -->
+  <section id="join" class="act-join" data-sc-act="pin" data-sc-span="1.15" data-sc-drift="#141414">
+    <div data-sc-stage class="close" data-sc-spotlight>
+      <div class="glow" aria-hidden="true"></div>
+      <div class="close__inner">
+        <span class="place">Join the family</span>
+        <h2 class="sc-display" data-sc-cue="0.06" data-sc-kinetic="lines">Come surf with us in Playa Venao.</h2>
+        <p class="lead" data-sc-cue="0.08">Lessons, camps, foil and rentals, all steps from the waves.</p>
+        <a class="cta" href="#" data-sc-magnet="0.26" data-sc-cue="0.06" data-sc-rise="0">Book Now</a>
+      </div>
+      <footer class="foot">SHOKOGI · Playa Venao, Panama</footer>
+    </div>
+  </section>
+
+</main>
+
+<script src="scrollcraft.js"></script>
+<script>
+  ScrollCraft.mount(document.body);
+
+  /* ---- bespoke page motion, driven off scroll + pointer (engine untouched) ---- */
+  (function(){
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* hero + glide depth planes: small differential drift with scroll & pointer */
+    var planes = [].slice.call(document.querySelectorAll('[data-plane]'));
+    var mx = 0, my = 0;
+    if(!reduce){
+      addEventListener('pointermove', function(e){
+        mx = (e.clientX / innerWidth - .5);
+        my = (e.clientY / innerHeight - .5);
+        schedule();
+      }, {passive:true});
+    }
+
+    /* SIGNATURE — "the tide": the glide wash rises with the act's progress and
+       uncovers the headline, like a wave washing up the beach. */
+    var wash = document.getElementById('gwash');
+    var glideSec = document.querySelector('.act-glide');
+    var glideCopy = document.getElementById('glideCopy');
+
+    var raf = 0;
+    function schedule(){ if(!raf) raf = requestAnimationFrame(tick); }
+    function tick(){
+      raf = 0;
+      var vh = innerHeight;
+
+      planes.forEach(function(p){
+        var rate = parseFloat(p.getAttribute('data-plane')) || 0;
+        var r = p.getBoundingClientRect();
+        var centre = r.top + r.height/2 - vh/2;
+        var ty = -centre * rate;
+        var tx = reduce ? 0 : mx * rate * 90;
+        p.style.transform = 'translate3d(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px,0)';
+      });
+
+      if(wash && glideSec){
+        var g = glideSec.getBoundingClientRect();
+        /* progress of the pinned act: 0 as it enters, 1 near the end */
+        var prog = (-g.top) / (g.height - vh);
+        prog = Math.max(0, Math.min(1, prog));
+        /* the tide rises from fully below (100%) to resting at ~45% up the frame */
+        var p2 = Math.min(1, prog / 0.72);
+        var y = 100 - p2 * 55;              /* 100% -> 45% (covers lower ~55%) */
+        wash.style.transform = 'translateY(' + y.toFixed(1) + '%)';
+        /* the headline surfaces: a gentle bottom-up reveal as the tide arrives */
+        if(glideCopy){
+          var reveal = Math.max(0, Math.min(1, (p2 - 0.1) / 0.45));
+          glideCopy.style.clipPath = 'inset(0 0 ' + ((1 - reveal) * 38).toFixed(1) + '% 0)';
+        }
+      }
+    }
+    addEventListener('scroll', schedule, {passive:true});
+    addEventListener('resize', schedule);
+    tick();
+  })();
+</script>
+</body>
+</html>
