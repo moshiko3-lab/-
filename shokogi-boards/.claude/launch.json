@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prototype-copy",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-asafyizhaky-Downloads-shokogi-handoff/8ea1fda8-f513-442a-874b-252abd30daa4/scratchpad/proto/server.js"
+      ],
+      "port": 5051,
+      "url": "http://127.0.0.1:5051"
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    }
+  ]
+}

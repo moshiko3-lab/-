@@ -189,7 +189,7 @@ def sync(books, url, secret, session=None):
     a sync that ran first would close a rental a moment before resending
     it.
     """
-    return _post("/api/bloowatch/sync",
+    return _post("/api/bloowatch/reconcile",
                  {"active": [b["booking_id"] for b in books]},
                  url, secret, session)
 
