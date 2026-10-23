@@ -18,15 +18,19 @@ create extension if not exists pg_net;
 -- Replacing rather than adding: re-running this migration must not leave two timers calling the same endpoint.
 select cron.unschedule('bloowatch-sync') where exists (select 1 from cron.job where jobname = 'bloowatch-sync');
 
+-- `true` is missing_ok: without it current_setting raises on an unset setting, and a timer that raises every minute
+-- fills the job log with the same error for ever. Unset simply means not configured yet, so the call is skipped.
 select cron.schedule('bloowatch-sync', '* * * * *', $$
   select net.http_post(
-    url     := current_setting('app.base_url') || '/api/bloowatch/sync',
+    url     := current_setting('app.base_url', true) || '/api/bloowatch/sync',
     headers := jsonb_build_object(
                  'Content-Type',  'application/json',
-                 'Authorization', 'Bearer ' || current_setting('app.cron_secret')),
+                 'Authorization', 'Bearer ' || current_setting('app.cron_secret', true)),
     body    := '{}'::jsonb,
     timeout_milliseconds := 55000   -- under the minute, so a slow run cannot overlap the next one
-  );
+  )
+  where coalesce(current_setting('app.base_url', true), '') <> ''
+    and coalesce(current_setting('app.cron_secret', true), '') <> '';
 $$);
 
 -- What the sidebar shows: when it last ran, and what went wrong if anything. The Bloowatch login itself is not here

@@ -112,8 +112,12 @@ class Client {
   }
 }
 
-/** Every board hire Bloowatch still has open, as bookings this app can file. */
-export async function fetchBookings(creds: Credentials): Promise<{ bookings: Booking[]; skipped: number }> {
+/** Every board hire Bloowatch still has open, as bookings this app can file.
+ *
+ * `known` are the booking ids already filed. Their customer is already in the database, so their phone is not
+ * looked up: that lookup is one request per guest, and at a minute's cadence it was the whole cost of the run --
+ * fifty thousand requests a day to re-read numbers nothing had changed. */
+export async function fetchBookings(creds: Credentials, known = new Set<string>()): Promise<{ bookings: Booking[]; skipped: number }> {
   const client = new Client(creds);
   await client.signIn();
 
@@ -144,7 +148,7 @@ export async function fetchBookings(creds: Credentials): Promise<{ bookings: Boo
       bookings.push({
         bookingId: String(id), // the hire, never the order: one order can carry several boards
         name,
-        phone: await client.phoneOf(who.customer, phones),
+        phone: known.has(String(id)) ? "" : await client.phoneOf(who.customer, phones),
         startsAt, dueAt,
         unitName: String(info.name ?? ""),
         orderId: row.order_id as number,
@@ -160,20 +164,25 @@ export async function fetchBookings(creds: Credentials): Promise<{ bookings: Boo
 // One place where a booking becomes a rental, used by both the webhook and the timer.
 
 export async function applyBooking(db: SupabaseClient, booking: Booking) {
-  const { data: customer_id, error: customerError } = await db.rpc("upsert_customer", { p_name: booking.name, p_phone: booking.phone });
-  if (customerError) throw new Error(customerError.message);
-
   const times = { starts_at: new Date(booking.startsAt).toISOString(), due_at: new Date(booking.dueAt).toISOString() };
-  const { data: existing } = await db.from("rentals").select("id, ended_at").eq("bloowatch_booking_id", booking.bookingId).maybeSingle();
+  const { data: existing } = await db.from("rentals").select("id, ended_at, starts_at, due_at")
+    .eq("bloowatch_booking_id", booking.bookingId).maybeSingle();
+
   if (existing) {
     // A rental the desk already finished is left finished: the timer must never reopen one.
-    if (!existing.ended_at) await db.from("rentals").update({ customer_id, ...times }).eq("id", existing.id).throwOnError();
-    return { id: existing.id as string, created: false };
+    // The customer is not touched either -- it was matched when the rental was created, and re-matching it every
+    // minute on a name alone could walk it onto a different person who happens to share one.
+    const moved = existing.starts_at !== times.starts_at || existing.due_at !== times.due_at;
+    if (!existing.ended_at && moved) await db.from("rentals").update(times).eq("id", existing.id).throwOnError();
+    return { id: existing.id as string, created: false, updated: !existing.ended_at && moved };
   }
+
+  const { data: customer_id, error: customerError } = await db.rpc("upsert_customer", { p_name: booking.name, p_phone: booking.phone });
+  if (customerError) throw new Error(customerError.message);
   const { data: rental, error } = await db.from("rentals")
     .insert({ customer_id, ...times, source: "bloowatch", bloowatch_booking_id: booking.bookingId }).select("id").single();
   if (error) throw new Error(error.message);
-  return { id: rental.id as string, created: true };
+  return { id: rental.id as string, created: true, updated: false };
 }
 
 const CANCELLED_NOTE = "Cancelled in Bloowatch — board still out.";
@@ -186,7 +195,16 @@ export async function reconcile(db: SupabaseClient, activeIds: string[]) {
   if (error) throw new Error(error.message);
 
   const live = new Set(activeIds);
-  const gone = (ours ?? []).filter((r) => r.bloowatch_booking_id && !live.has(r.bloowatch_booking_id));
+  const open = (ours ?? []).filter((r) => r.bloowatch_booking_id);
+  const gone = open.filter((r) => !live.has(r.bloowatch_booking_id as string));
+
+  // A read that comes back thin must never empty the desk. Bloowatch throws on an HTTP error, so a short answer
+  // should be impossible -- but "should be impossible" is exactly the shape of the bug that deletes a day's
+  // rentals, and nothing downstream would say it had happened. Losing more than half the open ones at once is
+  // treated as a bad read, not as fifteen cancellations in the same minute.
+  if (open.length >= 4 && gone.length > open.length / 2) {
+    return { removed: 0, kept: [] as string[], refused: gone.length };
+  }
   // A board that is physically out is never removed, whatever Bloowatch says: the booking may be cancelled, the
   // board is still with the customer, and the desk has to get it back.
   const kept = gone.filter((r) => (r.rental_items ?? []).length > 0);
@@ -201,7 +219,7 @@ export async function reconcile(db: SupabaseClient, activeIds: string[]) {
   for (const r of kept.filter((r) => !(r.notes ?? "").includes(CANCELLED_NOTE))) {
     await db.from("rentals").update({ notes: [r.notes, CANCELLED_NOTE].filter(Boolean).join(" ") }).eq("id", r.id);
   }
-  return { removed: removable.length, kept: kept.map((r) => r.bloowatch_booking_id as string) };
+  return { removed: removable.length, kept: kept.map((r) => r.bloowatch_booking_id as string), refused: 0 };
 }
 
 /** The whole run: sign in, read, file, subtract, and leave a status the sidebar can show. */
@@ -212,14 +230,21 @@ export async function syncAndRecord(db: SupabaseClient) {
     const creds = row?.value as Credentials | undefined;
     if (!creds?.url || !creds?.email || !creds?.password) throw new Error("Bloowatch is not connected yet — add the login in Settings.");
 
-    const { bookings, skipped } = await fetchBookings(creds);
-    let created = 0;
-    for (const b of bookings) if ((await applyBooking(db, b)).created) created++;
-    const { removed, kept } = await reconcile(db, bookings.map((b) => b.bookingId));
+    // What is already filed, so the run does not re-read a phone number nothing changed.
+    const { data: filed } = await db.from("rentals").select("bloowatch_booking_id").eq("source", "bloowatch").not("bloowatch_booking_id", "is", null);
+    const known = new Set((filed ?? []).map((r) => r.bloowatch_booking_id as string));
+
+    const { bookings, skipped } = await fetchBookings(creds, known);
+    let created = 0, updated = 0;
+    for (const b of bookings) {
+      const r = await applyBooking(db, b);
+      if (r.created) created++; else if (r.updated) updated++;
+    }
+    const { removed, kept, refused } = await reconcile(db, bookings.map((b) => b.bookingId));
 
     const count = bookings.length;
-    await db.from("app_settings").upsert({ key: "bloowatch_status", value: { at, error: null, count, created, removed, kept, skipped } });
-    return { ok: true as const, count, created, removed, kept, skipped };
+    await db.from("app_settings").upsert({ key: "bloowatch_status", value: { at, error: refused ? `Refused to remove ${refused} rentals at once — Bloowatch returned far fewer bookings than expected.` : null, count, created, updated, removed, kept, skipped, refused } });
+    return { ok: true as const, count, created, updated, removed, kept, skipped, refused };
   } catch (e) {
     const error = (e as Error).message;
     await db.from("app_settings").upsert({ key: "bloowatch_status", value: { at, error } });
