@@ -20,14 +20,6 @@
 .sk2 .pgm a.icard:hover img,.sk2 .bgrid a.icard:hover img{--sc:1.05}
 .sk2 .pcard:hover img{--sc:1.04}
 
-/* ---- animated ocean waves where video meets the page ---- */
-.sk2 .herofull,.sk2 .videofull{position:relative}
-.sk2 .skwave{position:absolute;left:0;right:0;bottom:-1px;height:clamp(42px,6vw,66px);z-index:4;pointer-events:none;overflow:hidden;line-height:0}
-.sk2 .skwave i{position:absolute;left:0;right:0;bottom:0;height:100%;background:0 100%/1200px 100% repeat-x;transform-origin:bottom}
-.sk2 .skwave .w1{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 70' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 36 C200 10 400 10 600 36 C800 62 1000 62 1200 36 L1200 70 L0 70 Z'/%3E%3C/svg%3E");animation:skwave 21s linear infinite}
-.sk2 .skwave .w2{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 70' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 44 C240 20 360 60 600 44 C840 28 960 64 1200 44 L1200 70 L0 70 Z'/%3E%3C/svg%3E");opacity:.5;transform:scaleY(.8);animation:skwave 13s linear infinite reverse}
-@keyframes skwave{to{background-position-x:-1200px}}
-
 /* ---- CLOSER: one deliberate touch of black ---- */
 .sk2-closer{width:100vw;margin-left:calc(50% - 50vw);background:var(--black);color:#fff;padding:clamp(60px,11vh,116px) 0;text-align:center}
 .sk2-closer .kicker{color:var(--pink);display:block;margin-bottom:12px}
@@ -44,10 +36,15 @@
 .sk2 .tint.is-wash:after{animation:sandwash 1.8s var(--eo)}
 @keyframes sandwash{0%{opacity:0;background-position:120% 0}12%{opacity:1}100%{opacity:0;background-position:-120% 0}}
 
+/* ---- a small pink wave washes across the Shokogi logo now and then (home page) ---- */
+.header__heading-link{position:relative}
+.header__heading-link:after{content:"";position:absolute;inset:-4px;z-index:3;pointer-events:none;opacity:0;background-size:300% 100%;background-position:150% 0;background-image:linear-gradient(100deg,transparent 42%,rgba(244,110,149,.5) 50%,transparent 58%);animation:logowash 7s ease-in-out infinite}
+@keyframes logowash{0%,70%{opacity:0;background-position:150% 0}79%{opacity:1}100%{opacity:0;background-position:-150% 0}}
+
 @media(prefers-reduced-motion:reduce){
   .sk2 [data-r],.sk2 [data-rs]>*{opacity:1!important;transform:none!important;transition:none}
   .sk2 [data-rs] img{--sc:1!important}
   .sk2 .eyebrow-wrap .kicker:after{transform:translateX(-50%) scaleX(1);transition:none}
-  .sk2 .skwave i{animation:none}
   .sk2 .tint.is-wash:after{animation:none}
+  .header__heading-link:after{animation:none}
 }

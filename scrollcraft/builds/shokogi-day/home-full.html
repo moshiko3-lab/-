@@ -11,15 +11,23 @@
   .demo img.ph.c{background:linear-gradient(135deg,#86979a,#e0d5c2)}
   .demo .herofull .vidph{background:linear-gradient(120deg,#20323a 0%,#3a5560 45%,#1a262c 100%);height:58vh;max-height:600px;min-height:330px;display:block;width:100%}
   .demo .videofull .vidph{background:linear-gradient(120deg,#16303a 0%,#2d5a63 50%,#0e1c20 100%)}
+  /* mock theme header to preview the logo wash */
+  .demo-header{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:#fff;border-bottom:1px solid #eceae3;font-family:'Figtree',sans-serif}
+  .demo-header .header__heading-link{text-decoration:none}
+  .demo-header .h4{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:28px;letter-spacing:.04em;color:#191a1a}
+  .demo-header nav{display:flex;gap:22px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#191a1a}
 </style>
 </head>
 <body class="demo">
+<header class="demo-header">
+  <a href="#" class="header__heading-link"><span class="h4">SHOKOGI</span></a>
+  <nav><span>Surf</span><span>Foil</span><span>Shop</span><span>Blog</span></nav>
+</header>
 <div class="skp sk2">
 
   <!-- HERO (video, text below) -->
   <div class="herofull">
     <div class="vidph"></div>
-    <div class="skwave" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div>
   </div>
   <div class="herotext" data-r>
     <div class="htag">Playa Venao &middot; Panama</div>
@@ -81,7 +89,7 @@
     <p class="lead" style="margin-bottom:24px">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
     <div style="text-align:center"><a href="#" class="btn pink">Fly Now</a></div>
   </div></div>
-  <div class="videofull"><div class="vidph"></div><div class="skwave" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div></div>
+  <div class="videofull"><div class="vidph"></div></div>
 
   <!-- SHOP -->
   <div class="sec"><div class="wrap">
