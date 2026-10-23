@@ -1,7 +1,11 @@
-// POST /api/bloowatch/webhook (SPEC 7.12): a Bloowatch booking becomes a rental waiting for a board, or updates the
-// one it made before (matched on bloowatch_booking_id). Needs the shared secret, and the owner must have turned
+// POST /api/bloowatch/webhook (SPEC 7.12): one Bloowatch booking becomes a rental waiting for a board, or updates
+// the one it made before (matched on bloowatch_booking_id). Needs the shared secret, and the owner must have turned
 // Bloowatch on in Settings (off by default). Customers are matched like on the Rentals screen (phone digits, else name).
-import { parseBooking } from "@/lib/bloowatch";
+//
+// The filing itself is `applyBooking` in lib/bloowatch.ts, shared with the timer in ../sync, so there is one place
+// where a booking turns into a rental. This route is the push door: it is here for anything that wants to file a
+// single booking without waiting for the next minute's pull.
+import { applyBooking, parseBooking } from "@/lib/bloowatch";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
@@ -17,17 +21,11 @@ export async function POST(request: Request) {
   } catch (e) {
     return Response.json({ error: (e as Error).message }, { status: 400 });
   }
-  const { data: customer_id, error: customerError } = await db.rpc("upsert_customer", { p_name: booking.name, p_phone: booking.phone });
-  if (customerError) return Response.json({ error: customerError.message }, { status: 500 });
 
-  const times = { starts_at: new Date(booking.startsAt).toISOString(), due_at: new Date(booking.dueAt).toISOString() };
-  const { data: existing } = await db.from("rentals").select("id, ended_at").eq("bloowatch_booking_id", booking.bookingId).maybeSingle();
-  if (existing) {
-    if (!existing.ended_at) await db.from("rentals").update({ customer_id, ...times }).eq("id", existing.id).throwOnError();
-    return Response.json({ ok: true, rental_id: existing.id, created: false });
+  try {
+    const { id, created } = await applyBooking(db, booking);
+    return Response.json({ ok: true, rental_id: id, created }, { status: created ? 201 : 200 });
+  } catch (e) {
+    return Response.json({ error: (e as Error).message }, { status: 500 });
   }
-  const { data: rental, error } = await db.from("rentals")
-    .insert({ customer_id, ...times, source: "bloowatch", bloowatch_booking_id: booking.bookingId }).select("id").single();
-  if (error) return Response.json({ error: error.message }, { status: 500 });
-  return Response.json({ ok: true, rental_id: rental.id, created: true }, { status: 201 });
 }
