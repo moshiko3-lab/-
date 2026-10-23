@@ -1,129 +1,89 @@
-{%- comment -%} SHOKOGI Home — "A Day in Playa Venao". The page moves from dawn to sunset as you scroll (day-cycle signature). Uses the store's real video + photos. {%- endcomment -%}
-{{ 'schome.css' | asset_url | stylesheet_tag }}
-{{ 'schome2.css' | asset_url | stylesheet_tag }}
+{%- comment -%} SHOKOGI Home — the live home page content, elevated: clean white editorial, Shokogi pink accents, a touch of black. {%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+{{ 'skplus.css' | asset_url | stylesheet_tag }}
+{{ 'skplus2.css' | asset_url | stylesheet_tag }}
 {%- assign hv = section.settings.hero_video -%}
-{%- assign fv = section.settings.foil_video -%}
+<div class="skp sk2">
 
-<div id="sc-world" aria-hidden="true">
-  <div class="sky"><i class="dawn"></i><i class="morning"></i><i class="midday"></i><i class="golden"></i><i class="sunset"></i></div>
-  <div class="sun"></div>
-  <div class="horizon"><svg viewBox="0 0 1440 300" preserveAspectRatio="none"><path d="M0 300 L0 196 C 240 150 520 150 760 184 C 1010 220 1180 150 1440 120 L1440 300 Z"/></svg></div>
-  <div class="sea"></div>
-</div>
-
-<div id="schome-sc">
-
-  <!-- 1 · DAWN · HERO (real video) -->
-  <section id="sc-hero">
-    {%- if hv != blank -%}
-    <div class="vid">
-      <video autoplay muted loop playsinline preload="auto"{% if hv.preview_image %} poster="{{ hv.preview_image | image_url: width: 1600 }}"{% endif %}>
-        {%- for s in hv.sources -%}{%- if s.format == 'mp4' -%}<source src="{{ s.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+  <!-- HERO (real video, cinematic overlay) -->
+  <section class="sk2-hero">
+    <div class="m" data-par>
+      <video autoplay muted loop playsinline preload="auto"{% if hv != blank and hv.preview_image %} poster="{{ hv.preview_image | image_url: width: 1600 }}"{% endif %}>
+        {%- if hv != blank and hv.sources.size > 0 -%}
+          {%- for src in hv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+        {%- else -%}
+          <source src="https://cdn.shopify.com/videos/c/vp/793b1b1551b44fa780fee83e10adf241/793b1b1551b44fa780fee83e10adf241.HD-720p-4.5Mbps-22536222.mp4" type="video/mp4">
+        {%- endif -%}
       </video>
     </div>
-    {%- endif -%}
-    <div class="tint" aria-hidden="true"></div>
-    <div class="fg" aria-hidden="true"><svg viewBox="0 0 1440 360" preserveAspectRatio="none"><path d="M0 360 L0 250 C 260 196 300 150 360 150 C 300 190 330 240 420 250 C 760 250 980 300 1160 240 C 1280 200 1360 250 1440 232 L1440 360 Z"/></svg></div>
-    <div class="copy">
-      <div class="coord">7.42&deg;N 80.20&deg;W <b>&middot; Playa Venao, Panama</b></div>
-      <h1>World-class surf lessons, camps &amp; <em>foil surfing</em></h1>
-      <p>Lessons, camps, foil surfing, and more, all steps from the waves on Panama&rsquo;s Pacific coast. The day starts here.</p>
-      <div class="cta">
-        <a class="btn" href="/collections/surf-school-and-courses">Book Now</a>
-        <a class="btn btn--ghost" href="#sc-prog">See the ways to surf</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2 · MORNING · REPORT -->
-  <section id="sc-report">
-    <div class="panel" data-sc-in data-sc-stagger="70">
-      <div class="rep"><div class="k">Location</div><div class="v">Playa Venao</div><div class="l">Panama &middot; Pacific coast</div></div>
-      <div class="rep"><div class="k">Season</div><div class="v">All year</div><div class="l">Waves every season</div></div>
-      <div class="rep"><div class="k">Levels</div><div class="v">All levels</div><div class="l">First wave to advanced</div></div>
-      <div class="rep"><div class="k">Fleet</div><div class="v">100+ boards</div><div class="l">Every size on hand</div></div>
-    </div>
-  </section>
-
-  <!-- 3 · MIDDAY · PROGRAMMES (pan, real photos) -->
-  <section id="sc-prog" data-sc-act="pan" data-sc-span="5.4">
-    <div data-sc-stage>
-      <div class="railpanel">
-        <div class="rail" data-sc-pan>
-          <div class="lead">
-            <span class="eyebrow">What we offer</span>
-            <h2>Find your perfect surf experience</h2>
-            <p>Four ways into the water, whatever the day asks for. Pick your wave.</p>
-          </div>
-          <a class="prog" href="/collections/surf-school-and-courses"><span class="ph" aria-hidden="true"{% if section.settings.pgm_surf %} style="background-image:url('{{ section.settings.pgm_surf | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Surf</span><h3>Surf lessons &amp; camps</h3><p>Learn to surf or level up with expert-led lessons and all-inclusive camps.</p><span class="more">Book now &rarr;</span></span></a>
-          <a class="prog" href="/collections/foil-surfing"><span class="ph" aria-hidden="true"{% if section.settings.pgm_foil %} style="background-image:url('{{ section.settings.pgm_foil | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Foil</span><h3>Foil surfing</h3><p>Glide above the waves with certified instructors. Beginner-friendly.</p><span class="more">Fly now &rarr;</span></span></a>
-          <a class="prog" href="/pages/custom-trips"><span class="ph" aria-hidden="true"{% if section.settings.pgm_trips %} style="background-image:url('{{ section.settings.pgm_trips | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Custom trips</span><h3>Custom surf trips</h3><p>Pick your stay and dates, lessons and boards included. Tailored to you.</p><span class="more">Book now &rarr;</span></span></a>
-          <a class="prog" href="/collections/kids-summer-camp-panama"><span class="ph" aria-hidden="true"{% if section.settings.pgm_kids %} style="background-image:url('{{ section.settings.pgm_kids | image_url: width: 900 }}')"{% endif %}></span><span class="pc"><span class="chip">Kids</span><h3>Kids camp</h3><p>Safe, fun, skill-building camps for young groms and teens.</p><span class="more">Book now &rarr;</span></span></a>
-          <div class="end">
-            <h3>Not sure which wave is yours?</h3>
-            <a class="btn" href="/pages/contact-us">Talk to us</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4 · AFTERNOON · VOICES -->
-  <section id="sc-voices">
-    <div class="wrap">
-      <span class="eyebrow">What surfers say</span>
-      <h2>Where friends become family</h2>
-      <div class="grid" data-sc-in data-sc-stagger="90">
-        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;The best surf shop ever. The location is amazing, but the staff who work there are even more amazing.&rdquo;</p><div class="who">Charles <span>&middot; Canada</span></div></div>
-        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;Our 4.5 year old joined the Christmas camp. Within four or five days he was surfing.&rdquo;</p><div class="who">Noa <span>&middot; USA</span></div></div>
-        <div class="q"><div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>&ldquo;My first time surfing and I loved every second. The team welcomes you with open arms. It felt like coming home.&rdquo;</p><div class="who">Eline <span>&middot; Belgium</span></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5 · GOLDEN · GLIDE (real foil video) -->
-  <section id="sc-glide">
-    {%- if fv != blank -%}
-    <div class="vid">
-      <video autoplay muted loop playsinline preload="metadata"{% if fv.preview_image %} poster="{{ fv.preview_image | image_url: width: 1600 }}"{% endif %}>
-        {%- for s in fv.sources -%}{%- if s.format == 'mp4' -%}<source src="{{ s.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
-      </video>
-    </div>
-    {%- endif -%}
-    <div class="tint" aria-hidden="true"></div>
-    <div class="in" data-sc-in data-sc-stagger="90">
-      <span class="eyebrow">Golden hour</span>
-      <h2>Glide above the waves.</h2>
-      <p>Learn to foil with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
-      <a class="btn" href="/collections/foil-surfing">Fly Now</a>
-    </div>
-  </section>
-
-  <!-- 6 · SUNSET · CLOSER -->
-  <section id="sc-join" data-sc-spotlight>
     <div class="scrim" aria-hidden="true"></div>
-    <div class="glow" aria-hidden="true"></div>
-    <div class="in" data-sc-in data-sc-stagger="80">
-      <span class="eyebrow">End your day here</span>
-      <h2>Come surf with us in Playa Venao</h2>
-      <p>Lessons, camps, foil, and rentals, all steps from the waves. Join the Shokogi surf family.</p>
-      <a class="btn" href="/collections/surf-school-and-courses" data-sc-magnet="0.26">Book Now</a>
+    <div class="in" data-rs>
+      <div class="htag">Playa Venao &middot; Panama</div>
+      <h1>World-Class Surf Lessons, Camps &amp; <em>Foil Surfing</em> in Playa Venao</h1>
+      <p>Lessons, Camps, Foil Surfing, and More &mdash; all steps from the waves in Playa Venao.</p>
+      <div><a href="/collections/surf-school-and-courses" class="btn pink">Book Now</a></div>
     </div>
+    <div class="cue" aria-hidden="true"><i></i></div>
   </section>
+
+  <!-- STATS -->
+  <div class="sec"><div class="wrap">
+    <div class="stats" data-rs>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 20c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg><div class="v">Playa Venao</div><div class="l">Panama &middot; Pacific coast</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg><div class="v">All year</div><div class="l">Waves every season</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-5M10 20v-9M16 20v-13M20 20H3"/></svg><div class="v">All levels</div><div class="l">First wave to advanced</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c4 3 5 10 2 18-1 2-3 2-4 0C7 12 8 5 12 2z"/><path d="M12 7v9"/></svg><div class="v">100+ Boards</div><div class="l">Every size on hand</div></div>
+    </div>
+  </div></div>
+
+  <!-- INTRO -->
+  <div class="sec tint intro"><div class="wrap" data-r>
+    <div class="eyebrow-wrap"><span class="kicker">surf school</span></div>
+    <h2 style="text-align:center">Your Panama Surf Adventure Awaits</h2>
+    <p class="lead">Whether you&rsquo;re catching your very first wave or leveling up your surf skills, our experienced instructors have you covered. Choose from personalized surf lessons, immersive surf camps, foil surfing adventures, and engaging kids&rsquo; summer camps. With perfect waves, quality surfboard rentals, and our own Ocean Monkey soft-top boards, Shokogi is your ultimate Panama surf destination. Come join our vibrant surf community and experience the magic of Playa Venao!</p>
+    <div style="text-align:center"><a href="/collections/surf-school-and-courses" class="btn pink">Join Us</a></div>
+  </div></div>
+
+  <!-- PROGRAMMES -->
+  <div class="sec"><div class="wrap">
+    <div data-r><div class="eyebrow-wrap"><span class="kicker">what we offer</span></div>
+    <h2 style="text-align:center">Find Your Perfect Surf Experience</h2></div>
+    <div class="pgm" data-rs>
+      <a href="/collections/surf-school-and-courses" class="icard">
+        {%- if section.settings.pgm_surf -%}{{ section.settings.pgm_surf | image_url: width: 900 | image_tag: loading: 'lazy', widths: '400,600,900', alt: 'Surf Lessons & Camps in Playa Venao' }}{%- endif -%}
+        <div class="ib"><div class="k">Surf</div><h3>Surf Lessons &amp; Camps in Playa Venao</h3><p>Learn to surf or level up your skills with expert-led lessons and all-inclusive surf camps in Panama&rsquo;s top surf spot.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div>
+      </a>
+      <a href="/collections/foil-surfing" class="icard">
+        {%- if section.settings.pgm_foil -%}{{ section.settings.pgm_foil | image_url: width: 900 | image_tag: loading: 'lazy', widths: '400,600,900', alt: 'Foil Surfing in Playa Venao' }}{%- endif -%}
+        <div class="ib"><div class="k">Foil</div><h3>Foil Surfing in Playa Venao</h3><p>Discover the thrill of foil surfing in Panama. Book a private lesson and glide above the waves with our certified instructors.</p><span class="more">Fly now <span class="ar">&rarr;</span></span></div>
+      </a>
+      <a href="/pages/custom-trips" class="icard">
+        {%- if section.settings.pgm_trips -%}{{ section.settings.pgm_trips | image_url: width: 900 | image_tag: loading: 'lazy', widths: '400,600,900', alt: 'Custom Surf Trips in Playa Venao' }}{%- endif -%}
+        <div class="ib"><div class="k">Custom Trips</div><h3>Custom Surf Trips in Playa Venao</h3><p>Choose your length of stay, pick your accommodations, and enjoy surf lessons and board rentals included. Perfectly tailored Panama surf packages for every traveler.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div>
+      </a>
+      <a href="/collections/kids-summer-camp-panama" class="icard">
+        {%- if section.settings.pgm_kids -%}{{ section.settings.pgm_kids | image_url: width: 900 | image_tag: loading: 'lazy', widths: '400,600,900', alt: 'Kids Camp in Playa Venao' }}{%- endif -%}
+        <div class="ib"><div class="k">Kids</div><h3>Kids Camp in Playa Venao</h3><p>Safe, fun, and skill-building surf camps for kids. Ideal for young kids and teens, with lessons, games, and ocean education.</p><span class="more">Book now <span class="ar">&rarr;</span></span></div>
+      </a>
+    </div>
+  </div></div>
+
+  {%- render 'schome-rest', foil_video: section.settings.foil_video, rentals_image: section.settings.rentals_image -%}
+
 </div>
 
-<script src="{{ 'schome.js' | asset_url }}" defer></script>
+<script src="{{ 'skplus.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
   "name": "Home Page",
   "tag": "section",
   "settings": [
-    { "type": "header", "content": "Hero video (dawn)" },
+    { "type": "header", "content": "Hero video" },
     { "type": "video", "id": "hero_video", "label": "Hero video" },
-    { "type": "header", "content": "Foil video (golden hour)" },
+    { "type": "header", "content": "Foil video" },
     { "type": "video", "id": "foil_video", "label": "Foil video" },
-    { "type": "header", "content": "Programme photos" },
+    { "type": "header", "content": "Programme images" },
     { "type": "image_picker", "id": "pgm_surf", "label": "Surf" },
     { "type": "image_picker", "id": "pgm_foil", "label": "Foil" },
     { "type": "image_picker", "id": "pgm_trips", "label": "Custom Trips" },
