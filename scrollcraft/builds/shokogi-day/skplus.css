@@ -27,14 +27,13 @@
 .sk2-closer p{max-width:50ch;margin:0 auto 26px;color:rgba(255,255,255,.72)}
 .sk2-closer .btn.pink{box-shadow:0 16px 36px -16px rgba(244,110,149,.6)}
 
-/* ---- "clean sea sand": the warm sections get a fine sand grain, and a soft water sheen
-        washes across each one as you scroll to it, leaving it clean ---- */
+/* ---- "clean sea sand": the warm sections are sand — a visible warm grain, with a soft
+        sheet of water that keeps washing across them, leaving the sand clean ---- */
 .sk2 .tint{position:relative}
 .sk2 .tint > .wrap{position:relative;z-index:2}
-.sk2 .tint:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.05;background-size:170px 170px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23s)'/%3E%3C/svg%3E")}
-.sk2 .tint:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background-size:260% 100%;background-position:120% 0;background-image:linear-gradient(104deg,transparent 42%,rgba(255,255,255,.55) 50%,transparent 58%)}
-.sk2 .tint.is-wash:after{animation:sandwash 1.8s var(--eo)}
-@keyframes sandwash{0%{opacity:0;background-position:120% 0}12%{opacity:1}100%{opacity:0;background-position:-120% 0}}
+.sk2 .tint:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(rgba(150,128,96,.28) 0.7px,transparent 0.8px),radial-gradient(rgba(120,98,70,.18) 0.6px,transparent 0.7px);background-size:3.5px 3.5px,5px 5px;background-position:0 0,1px 2px}
+.sk2 .tint:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background-size:230% 100%;background-position:150% 0;background-image:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.7) 50%,transparent 62%);animation:sandwash 5.5s ease-in-out infinite}
+@keyframes sandwash{0%,46%{opacity:0;background-position:150% 0}55%{opacity:1}72%{opacity:1}100%{opacity:0;background-position:-150% 0}}
 
 /* ---- a small pink wave washes across the Shokogi logo now and then (home page) ---- */
 .header__heading-link{position:relative}
@@ -45,6 +44,6 @@
   .sk2 [data-r],.sk2 [data-rs]>*{opacity:1!important;transform:none!important;transition:none}
   .sk2 [data-rs] img{--sc:1!important}
   .sk2 .eyebrow-wrap .kicker:after{transform:translateX(-50%) scaleX(1);transition:none}
-  .sk2 .tint.is-wash:after{animation:none}
+  .sk2 .tint:after{animation:none;opacity:0}
   .header__heading-link:after{animation:none}
 }
