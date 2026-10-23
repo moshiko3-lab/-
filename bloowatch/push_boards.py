@@ -164,10 +164,9 @@ def bookings(date=None, days=1, session=None, base=None, sid=None):
     return out, skipped
 
 
-def send(book, url, secret, session=None):
+def _post(path, payload, url, secret, session=None):
     s = session or requests.Session()
-    r = s.post(url.rstrip("/") + "/api/bloowatch/webhook",
-               json=book, timeout=TIMEOUT,
+    r = s.post(url.rstrip("/") + path, json=payload, timeout=TIMEOUT,
                headers={"x-webhook-secret": secret,
                         "Content-Type": "application/json"})
     try:
@@ -175,6 +174,24 @@ def send(book, url, secret, session=None):
     except ValueError:
         body = {"error": (r.text or "")[:160]}
     return r.status_code, body
+
+
+def send(book, url, secret, session=None):
+    return _post("/api/bloowatch/webhook", book, url, secret, session)
+
+
+def sync(books, url, secret, session=None):
+    """Tell the desk app the full live set, so it can drop what has gone.
+
+    Bloowatch has no webhooks and no "changed since" filter, so a
+    cancellation cannot arrive as an event -- the only honest signal is
+    that a booking stopped appearing. Sent after the batch, never before:
+    a sync that ran first would close a rental a moment before resending
+    it.
+    """
+    return _post("/api/bloowatch/sync",
+                 {"active": [b["booking_id"] for b in books]},
+                 url, secret, session)
 
 
 def main():
@@ -234,9 +251,26 @@ def main():
         print("FAILED %s — HTTP %s %s" % (f["id"], f["code"], f["error"]),
               file=sys.stderr)
 
+    # Only once everything that should be there has been filed. A sync run
+    # after a partial batch would close the rentals that failed to send.
+    removed = "skipped"
+    if not failed:
+        code, body = sync(books, url, secret, session=sess)
+        if code == 200:
+            removed = str(body.get("removed", "?"))
+            for k in (body.get("kept") or []):
+                print("kept %s — cancelled in Bloowatch but a board is still "
+                      "out on it" % k, file=sys.stderr)
+        elif code == 404:
+            removed = "no endpoint"      # their side has not added it yet
+        else:
+            removed = "HTTP %s" % code
+            print("sync FAILED — HTTP %s %s"
+                  % (code, body.get("error", "")), file=sys.stderr)
+
     import report
-    report.result("boards push", "RESULT sent=%d failed=%d skipped=%d"
-                  % (sent, len(failed), len(skipped)), echo=True)
+    report.result("boards push", "RESULT sent=%d failed=%d skipped=%d removed=%s"
+                  % (sent, len(failed), len(skipped), removed), echo=True)
     return 1 if failed else 0
 
 
