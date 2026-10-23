@@ -109,12 +109,41 @@ def store(session, base, sid):
     return models
 
 
-def hires(session, base, sid, date):
-    """Every hire spanning one day, from Bloowatch, newest first.
+# How far back to keep asking. `date=D` answers with the hires spanning D
+# **and the ones that ended on D-1**, and then they are gone: a hire that
+# ended on the 22nd is in the answer for the 23rd and absent from the 24th.
+# Asked only about today, a board a fortnight late would have dropped out of
+# the one screen whose job is to notice it -- the longer it stayed missing,
+# the less likely anyone was to see it. So the window reaches back, and a
+# hire whose time is up stays in view until somebody says it came back.
+BACK_DAYS = 14
 
-    `date` is the only filter `/rents/` honours, and it means "active on",
-    which is what is wanted: a board taken on the 1st and due on the 30th is
-    out today and has to appear today.
+
+def window(session, base, sid, date, back=None):
+    """Every hire still open on `date`, including the ones already overdue.
+
+    One call per day back, deduplicated by hire id. Bloowatch never closes a
+    hire -- `status` is "booked" on all of them for ever -- so "still open"
+    means nothing here has said otherwise.
+    """
+    back = BACK_DAYS if back is None else back
+    day = dt.date.fromisoformat(date) if isinstance(date, str) else date
+    seen, out = set(), []
+    for i in range(max(1, back + 1)):
+        for row in hires(session, base, sid, (day - dt.timedelta(days=i)).isoformat()):
+            if row.get("id") in seen:
+                continue
+            seen.add(row.get("id"))
+            out.append(row)
+    return out
+
+
+def hires(session, base, sid, date):
+    """Every hire Bloowatch returns for one day, newest first.
+
+    `date` is the only filter `/rents/` honours. It is close to "active on",
+    but not exactly -- see BACK_DAYS. Callers wanting the true open set go
+    through `window()`.
     """
     rows, page = [], 1
     while page <= 20:
@@ -204,7 +233,10 @@ def board(date=None, now=None, session=None, base=None, sid=None):
     now = now or dt.datetime.now(PANAMA)
 
     models = store(session, base, sid)
-    rows = [shape(r) for r in hires(session, base, sid, date)]
+    # Everything the window returns is either still running or past its
+    # time with nobody having said it came back, so there is nothing to
+    # filter out here beyond the tipis.
+    rows = [shape(r) for r in window(session, base, sid, date)]
     rows = [h for h in rows if h["type"] == GEAR]
 
     out_per_model = collections.Counter()
