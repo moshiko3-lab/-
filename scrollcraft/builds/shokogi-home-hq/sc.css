@@ -1,0 +1,62 @@
+/* SHOKOGI — scroll-craft home, part 1: tokens, hero + tide, stats, intro.
+   White + Shokogi pink + a touch of black. Barlow Condensed + Figtree. */
+.scp{--ink:#17120f;--ink-soft:#655e57;--pink:#f46e95;--cream:#f4f0ea;--line:#e8e2d9;--black:#141414;
+  --disp:'Barlow Condensed','Barlow',system-ui,sans-serif;--body:'Figtree',system-ui,-apple-system,sans-serif;
+  --eo:cubic-bezier(.22,1,.32,1);--gut:clamp(1.25rem,5vw,4.5rem);
+  color:var(--ink);background:#fff;font-family:var(--body);line-height:1.62;-webkit-font-smoothing:antialiased}
+.scp *{box-sizing:border-box}
+.scp img,.scp video{display:block;max-width:100%}
+.scp .wrap{max-width:1080px;margin:0 auto;padding:0 var(--gut)}
+.scp .eyebrow{font-family:var(--body);font-weight:600;text-transform:uppercase;letter-spacing:.28em;font-size:.72rem;color:var(--pink)}
+.scp .btn{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--body);font-weight:700;text-transform:uppercase;
+  letter-spacing:.14em;font-size:.82rem;text-decoration:none;padding:1rem 2rem;border-radius:999px;background:var(--pink);color:#fff;
+  box-shadow:0 16px 34px -16px rgba(244,110,149,.75);transition:transform .18s var(--eo),box-shadow .18s var(--eo)}
+@media(hover:hover){.scp .btn:hover{transform:translateY(-2px);box-shadow:0 22px 44px -16px rgba(244,110,149,.9)}}
+.scp .btn:active{transform:translateY(1px)}
+.scp .btn--ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+@media(hover:hover){.scp .btn--ghost:hover{border-color:var(--pink);color:var(--pink);transform:translateY(-2px)}}
+.scp h1,.scp h2,.scp h3{font-family:var(--disp);font-weight:700;color:var(--ink);text-wrap:balance}
+.scp em{font-style:normal;color:var(--pink)}
+
+/* reveal + kinetic */
+.scp [data-sc-in]>*{opacity:0;transform:translateY(22px);transition:opacity .75s var(--eo),transform .75s var(--eo)}
+.scp [data-sc-in].is-in>*{opacity:1;transform:none}
+.scp [data-sc-kinetic]{overflow:hidden}
+.scp .k-w{display:inline-block;overflow:hidden;vertical-align:top}
+.scp .k-i{display:inline-block;transform:translateY(102%);transition:transform .8s var(--eo)}
+.scp [data-sc-kinetic].is-in .k-i{transform:none}
+@media(prefers-reduced-motion:reduce){
+  .scp [data-sc-in]>*{opacity:1;transform:none;transition:none}
+  .scp .k-i{transform:none;transition:none}
+}
+
+/* ---------- HERO: real video, tide foam, headline below (never on the video) ---------- */
+.scp .hero{position:relative;width:100vw;margin-left:calc(50% - 50vw)}
+.scp .hero .vid{position:relative;height:clamp(58vh,72vh,760px);overflow:hidden;background:#dfe6e4}
+.scp .hero .vid video{width:100%;height:100%;object-fit:cover}
+.scp .tide{position:absolute;left:0;right:0;bottom:-1px;height:clamp(46px,6vw,74px);z-index:2;pointer-events:none;overflow:hidden;line-height:0}
+.scp .tide i{position:absolute;left:0;right:0;bottom:0;height:100%;background:0 100%/1200px 100% repeat-x;transform-origin:bottom}
+.scp .tide .w1{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 74' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 40 C200 12 400 12 600 38 C800 64 1000 64 1200 38 L1200 74 L0 74 Z'/%3E%3C/svg%3E");animation:scwave 22s linear infinite}
+.scp .tide .w2{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 74' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 48 C240 24 360 64 600 48 C840 32 960 66 1200 46 L1200 74 L0 74 Z'/%3E%3C/svg%3E");opacity:.5;transform:scaleY(.82);animation:scwave 14s linear infinite reverse}
+@keyframes scwave{to{background-position-x:-1200px}}
+@media(prefers-reduced-motion:reduce){.scp .tide i{animation:none}}
+.scp .herotext{max-width:1080px;margin:0 auto;padding:clamp(2.4rem,6vh,4rem) var(--gut) 0}
+.scp .herotext .eyebrow{display:block;margin-bottom:1rem}
+.scp .herotext h1{font-size:clamp(2.5rem,5.6vw,5rem);line-height:.95;letter-spacing:-.01em;max-width:18ch;margin:0 0 1rem}
+.scp .herotext p{color:var(--ink-soft);font-size:clamp(1.05rem,1.4vw,1.3rem);max-width:46ch;margin:0 0 1.6rem}
+.scp .herotext .cta{display:flex;gap:.8rem;flex-wrap:wrap}
+
+/* ---------- STATS: open hairline strip ---------- */
+.scp .sec{padding:clamp(3.4rem,8vh,7rem) 0}
+.scp .sec--tight{padding:clamp(2rem,4.5vh,3.4rem) 0}
+.scp .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.scp .stat{padding:clamp(1.4rem,3vw,2.2rem) 1.2rem;border-left:1px solid var(--line)}
+.scp .stat:first-child{border-left:0}
+.scp .stat b{display:block;font-family:var(--disp);font-weight:700;font-size:clamp(1.8rem,3vw,2.8rem);line-height:1}
+.scp .stat span{display:block;margin-top:.4rem;color:var(--ink-soft);font-size:.9rem}
+
+/* ---------- INTRO ---------- */
+.scp .intro{text-align:center}
+.scp .intro .eyebrow{display:block;margin-bottom:.9rem}
+.scp .intro h2{font-size:clamp(2rem,4vw,3.4rem);line-height:1;max-width:18ch;margin:0 auto .9rem}
+.scp .intro p{color:var(--ink-soft);font-size:clamp(1rem,1.3vw,1.18rem);line-height:1.7;max-width:60ch;margin:0 auto 1.6rem}
