@@ -1,50 +1,412 @@
-{%- comment -%}
-  SHOKOGI — "The Setup": the full tow-in rig (ski, rope, board, pylon, arch)
-  converges onto the jet ski on scroll. Self-contained section on the two foil
-  pages. Loads sk.css + the foil polish layers (skplusfoil.css + skplusfoil2.css,
-  scoped to .skp — only ever loaded here) + the brand font weights, so the whole
-  foil page also gets the polish. Degrades to the assembled scene without JS.
-{%- endcomment -%}
+{%- comment -%} SHOKOGI foil: jet-ski assembly animation (owner-built in another session,
+  restyled to Shokogi: pink accent, Barlow Condensed + Figtree, compact. Also loads the
+  foil page polish (sk.css + skplusfoil.css) + brand fonts, since this is the only section
+  on the two foil pages that loads them. Images hosted on Shopify Files. {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
 {{ 'skplusfoil.css' | asset_url | stylesheet_tag }}
-{{ 'skplusfoil2.css' | asset_url | stylesheet_tag }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
-<div class="skp">
-  <div class="sec"><div class="wrap">
-    <div class="kicker" style="text-align:center">the setup</div>
-    <h2>Everything Comes Together</h2>
-    <p class="lead">Our full tow-in rig &mdash; ski, line, board, pylon and arch, dialed and ready for your session.</p>
-    <div class="setup" id="skf-setup">
-      <div class="stage">
-        <div class="pc ski"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-ski.webp?v=1792877437" width="1200" height="600" loading="lazy" alt="Sea-Doo GTX Limited 300 tow-in jet ski"></div>
-        <div class="pc rope"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-rope.webp?v=1792877437" width="1200" height="600" loading="lazy" alt="Armstrong tow rope and handle"></div>
-        <div class="pc arch"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-arch.webp?v=1792877437" width="1100" height="733" loading="lazy" alt="JAIN inflatable grab arch"></div>
-        <div class="pc pylon"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-pylon.webp?v=1792877437" width="950" height="950" loading="lazy" alt="BRP tow pylon"></div>
-        <div class="pc board"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-board.webp?v=1792877437" width="950" height="950" loading="lazy" alt="JETTECH tow board"></div>
+<section class="sk-jet" id="sk-jet-{{ section.id }}" style="--skj-accent: {{ section.settings.accent_color }};">
+  <div class="sk-jet__inner page-width">
+    {%- if section.settings.heading != blank or section.settings.text != blank -%}
+      <div class="sk-jet__head">
+        {%- if section.settings.heading != blank -%}<h2 class="sk-jet__title">{{ section.settings.heading }}</h2>{%- endif -%}
+        {%- if section.settings.text != blank -%}<p class="sk-jet__text">{{ section.settings.text }}</p>{%- endif -%}
       </div>
-      <div class="legend">
-        <span><b>Sea-Doo</b> GTX Limited 300</span>
-        <span><b>Armstrong</b> Tow Rope</span>
-        <span><b>JETTECH</b> Tow Board</span>
-        <span><b>BRP</b> Tow Pylon</span>
-        <span><b>JAIN</b> Grab Arch</span>
+    {%- endif -%}
+
+    <div class="sk-jet__vp" data-vp
+      data-wake="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"
+      data-gtx="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218"
+      data-default-model="{{ section.settings.default_model }}">
+      <div class="sk-jet__world" data-world>
+        <div class="sk-jet__craft" data-craft>
+          <div class="sk-jet__p" data-part="pylon"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-pylon.webp?v=1792879218" alt="" loading="lazy" width="1000" height="1144"></div>
+          <img class="sk-jet__hull" data-hull src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218" alt="{{ section.settings.heading | escape }}" loading="lazy" width="1774" height="887">
+          <img class="sk-jet__hull sk-jet__clip" data-clip src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218" alt="" loading="lazy" width="1774" height="887">
+          <div class="sk-jet__ov sk-jet__glow" data-glow></div>
+          <div class="sk-jet__ov sk-jet__shaft" data-shaft></div>
+          <div class="sk-jet__p" data-part="arch"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-floats.webp?v=1792879218" alt="" loading="lazy" width="129" height="955"></div>
+          <div class="sk-jet__p" data-part="board"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-sled.webp?v=1792879218" alt="" loading="lazy" width="539" height="1087"></div>
+          <svg class="sk-jet__rope" viewBox="0 0 3900 3400" aria-hidden="true">
+            <path data-rope1 d="" fill="none" stroke="#f2c21b" stroke-width="9" stroke-linecap="round"/>
+            <path data-rope2 d="" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 14" stroke-linecap="round"/>
+          </svg>
+          <div class="sk-jet__p" data-part="rope"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-rope.webp?v=1792879218" alt="" loading="lazy" width="1000" height="475"></div>
+          <canvas class="sk-jet__fx" data-fx></canvas>
+          <div class="sk-jet__lbl" data-lbl="pylon"><b>{{ section.settings.label_pylon }}</b>BRP</div>
+          <div class="sk-jet__lbl" data-lbl="rope"><b>{{ section.settings.label_rope }}</b>ARMSTRONG</div>
+          <div class="sk-jet__lbl" data-lbl="board"><b>{{ section.settings.label_sled }}</b>JETTECH</div>
+          <div class="sk-jet__lbl" data-lbl="arch"><b>{{ section.settings.label_floats }}</b>JAIN</div>
+        </div>
+      </div>
+
+      <div class="sk-jet__top">
+        <div class="sk-jet__seg" role="group" aria-label="Model">
+          <button type="button" data-model="wake">Wake Pro</button>
+          <button type="button" data-model="gtx">GTX Limited</button>
+        </div>
+        <button type="button" class="sk-jet__btn" data-replay>&#9654; {{ section.settings.btn_replay }}</button>
+      </div>
+
+      <div class="sk-jet__hud">
+        <ol class="sk-jet__steps" data-steps>
+          <li>{{ section.settings.chip_1 }}</li><li>{{ section.settings.chip_2 }}</li><li>{{ section.settings.chip_3 }}</li><li>{{ section.settings.chip_4 }}</li><li>{{ section.settings.chip_5 }}</li>
+        </ol>
+        <div class="sk-jet__row">
+          <p class="sk-jet__cap" data-cap aria-live="polite"></p>
+          <div class="sk-jet__run">
+            <span class="sk-jet__rpm">RPM <b data-rpm>0</b></span>
+            <button type="button" class="sk-jet__btn sk-jet__btn--gas" data-gas>{{ section.settings.btn_gas }} &#9650;</button>
+            <button type="button" class="sk-jet__btn" data-sound aria-pressed="false">{{ section.settings.btn_sound_on }}</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div></div>
-</div>
+    <script type="application/json" data-caps>{{ section.settings.cap_0 | append: '|' | append: section.settings.cap_1 | append: '|' | append: section.settings.cap_2 | append: '|' | append: section.settings.cap_3 | append: '|' | append: section.settings.cap_4 | append: '|' | append: section.settings.cap_5 | split: '|' | json }}</script>
+    <script type="application/json" data-sound-labels>{{ section.settings.btn_sound_on | append: '|' | append: section.settings.btn_sound_off | split: '|' | json }}</script>
+  </div>
+</section>
+
+<style>
+  .sk-jet{--font-heading-family:"Barlow Condensed",-apple-system,"Segoe UI",Arial,sans-serif;font-family:"Figtree",-apple-system,"Segoe UI",Arial,sans-serif;color:#191a1a;padding-block:clamp(26px,3.8vh,46px)}
+  .sk-jet__inner{max-width:1000px;margin:0 auto;padding:0 20px}
+  .sk-jet__title{font-size:clamp(26px,3vw,36px);font-weight:700;letter-spacing:-.005em;line-height:1.08}
+  .sk-jet__text{font-size:15.5px;line-height:1.6;color:#7c7b77;opacity:1}
+
+  
+  .sk-jet__head{display:grid;gap:.4rem;margin-bottom:1.2rem}
+  .sk-jet__title{margin:0;font-family:var(--font-heading-family,inherit);text-wrap:balance}
+  .sk-jet__text{margin:0;opacity:.75;max-width:60ch}
+  .sk-jet__vp{position:relative;height:clamp(360px,36vw,500px);overflow:hidden;background:#fff;border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.07);direction:ltr;isolation:isolate}
+  .sk-jet__world{position:absolute;left:0;top:0;width:3900px;height:3400px;transform-origin:0 0}
+  .sk-jet__craft{position:absolute;inset:0}
+  .sk-jet__world img{position:absolute;display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+  .sk-jet__hull{left:1500px;top:1200px;width:1774px;height:887px}
+  .sk-jet__p{position:absolute;left:0;top:0;transform-origin:50% 50%}
+  .sk-jet__p img{position:static!important;width:100%;height:auto}
+  .sk-jet__ov{position:absolute;pointer-events:none;opacity:0;transition:opacity .4s}
+  .sk-jet__glow{background:radial-gradient(closest-side,rgba(255,140,40,.75),rgba(255,120,30,.25) 60%,transparent);mix-blend-mode:screen}
+  .sk-jet__shaft{background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.75) 12px 16px);mix-blend-mode:screen;background-size:28px 100%}
+  .sk-jet__rope,.sk-jet__fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none;overflow:visible}
+  .sk-jet__lbl{position:absolute;font-size:28px;letter-spacing:.08em;white-space:nowrap;opacity:.7;color:#222}
+  .sk-jet__lbl b{display:block;font-family:var(--font-heading-family,inherit);font-size:48px;letter-spacing:0;opacity:1;color:#111}
+  .sk-jet__lbl::before{content:"";position:absolute;top:-16px;left:0;width:64px;height:4px;background:var(--skj-accent)}
+  .sk-jet__top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+  .sk-jet__seg{display:inline-flex;border:1px solid #111;border-radius:999px;overflow:hidden;background:#fff}
+  .sk-jet__seg button{font:inherit;font-size:13px;padding:6px 12px;border:0;background:transparent;color:#111;cursor:pointer}
+  .sk-jet__seg button[aria-pressed="true"]{background:#111;color:#fff}
+  .sk-jet__btn{font:inherit;font-size:13px;padding:7px 14px;border:1px solid #111;border-radius:999px;background:#fff;color:#111;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+  .sk-jet__btn--gas{background:var(--skj-accent);border-color:var(--skj-accent);color:#fff;min-width:96px}
+  .sk-jet__btn--gas.is-held{filter:brightness(.85)}
+  .sk-jet__btn:focus-visible,.sk-jet__seg button:focus-visible{outline:2px solid var(--skj-accent);outline-offset:2px}
+  .sk-jet__hud{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 12px;display:grid;gap:8px;background:linear-gradient(to top,#fff 60%,rgba(255,255,255,0))}
+  .sk-jet__steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+  .sk-jet__steps li{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid rgba(0,0,0,.15);color:rgba(0,0,0,.55);background:#fff;transition:all .25s}
+  .sk-jet__steps li.is-on{background:var(--skj-accent);border-color:var(--skj-accent);color:#fff}
+  .sk-jet__steps li.is-done{color:var(--skj-accent);border-color:var(--skj-accent)}
+  .sk-jet__row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .sk-jet__cap{margin:0;font-family:var(--font-heading-family,inherit);font-size:clamp(17px,2.2vw,24px);line-height:1.15;color:#111;min-height:1.15em}
+  .sk-jet__run{display:none;gap:8px;align-items:center;flex-wrap:wrap}
+  .sk-jet.is-running .sk-jet__run{display:flex}
+  .sk-jet__rpm{font-variant-numeric:tabular-nums;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.15);min-width:104px;text-align:center;color:#111}
+  .sk-jet__rpm b{font-size:15px}
+  @media (max-width:749px){
+    .sk-jet__vp{height:460px}
+    .sk-jet__lbl{font-size:34px}.sk-jet__lbl b{font-size:62px}
+  }
+</style>
+
 <script>
 (function(){
-  var el=document.getElementById('skf-setup');
-  if(!el) return;
-  el.classList.add('ready');
-  var done=false, play=function(){ if(done){return;} done=true; el.classList.add('go'); };
-  if(!('IntersectionObserver' in window)){ play(); return; }
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){ play(); io.disconnect(); } });},{threshold:0.35});
-  io.observe(el);
+  var root=document.getElementById('sk-jet-{{ section.id }}');
+  if(!root||root.dataset.ready) return; root.dataset.ready='1';
+  var $=function(s){return root.querySelector(s)}, $$=function(s){return Array.prototype.slice.call(root.querySelectorAll(s))};
+  var vp=$('[data-vp]'), world=$('[data-world]'), craft=$('[data-craft]');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var OX=1500, OY=1200;
+  function wx(x){return x+OX} function wy(y){return y+OY}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))} function lerp(a,b,t){return a+(b-a)*t}
+  function io(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+  function seg(t,a,b){return clamp((t-a)/(b-a),0,1)}
+  var CAPS=JSON.parse($('[data-caps]').textContent), SOUNDL=JSON.parse($('[data-sound-labels]').textContent);
+
+  var MODELS={
+    wake:{src:vp.dataset.wake,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
+    gtx:{src:vp.dataset.gtx,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670]}
+  };
+  var model=MODELS.wake;
+
+  // parts: aspect h/w, start [cx,cy,w,rot], final [cx,cy,w,rot], timing
+  var PARTS={
+    pylon:{ar:1144/1000, f:[338,382,190,0],     t:[.7,1.8], lift:140},
+    rope: {ar:475/1000,  f:[-1170,760,420,0],   t:[1.9,3.0], lift:60},
+    board:{ar:1087/539,  f:[-310,690,500,-90],  t:[3.7,5.1], lift:300, tilt:66, slope:-7},
+    arch: {ar:955/129,   f:[900,505,170,-91.8], t:[5.3,6.5], lift:80, stretch:1.36}
+  };
+  var START_L={pylon:[-560,250,440,0],rope:[-560,900,640,-4],board:[2060,290,300,6],arch:[2000,960,96,-90]};
+  var START_P={pylon:[300,-620,520,0],rope:[560,1300,860,-4],board:[1380,-640,330,6],arch:[1350,1250,110,-90]};
+  var LBL_L={pylon:[-560,560],rope:[-560,1120],board:[2060,640],arch:[2000,1080]};
+  var LBL_P={pylon:[300,-260],rope:[560,1550],board:[1380,-280],arch:[1350,1390]};
+  var LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
+  var el={}, lb={};
+  Object.keys(PARTS).forEach(function(k){ el[k]=$('[data-part="'+k+'"]'); lb[k]=$('[data-lbl="'+k+'"]'); });
+
+  var portrait=null;
+  function layout(){
+    var p=vp.clientWidth/vp.clientHeight<0.9;
+    if(p===portrait) return; portrait=p;
+    var S=p?START_P:START_L, L=p?LBL_P:LBL_L;
+    Object.keys(PARTS).forEach(function(k){
+      PARTS[k].s=S[k].slice();
+      el[k].style.width=S[k][2]+'px';
+      lb[k].style.left=(wx(L[k][0])-S[k][2]/2)+'px';
+      lb[k].style.top=wy(L[k][1])+'px';
+    });
+  }
+  function placePart(k,t){
+    var P=PARTS[k], e=io(seg(t,P.t[0],P.t[1])), w=P.s[2], h=w*P.ar;
+    var cx=lerp(P.s[0],P.f[0],e), cy=lerp(P.s[1],P.f[1],e)-Math.sin(Math.PI*e)*P.lift;
+    var sc=lerp(1,P.f[2]/w,e), rot=lerp(P.s[3],P.f[3],e);
+    var tilt=(P.tilt||0)*e, slope=(P.slope||0)*e, st=lerp(1,P.stretch||1,e);
+    el[k].style.transform='translate('+(wx(cx)-w/2)+'px,'+(wy(cy)-h/2)+'px)'+(tilt?' rotate('+slope+'deg) perspective(1800px) rotateX('+tilt+'deg)':'')+' rotate('+rot+'deg) scale('+sc+','+(sc*st)+')';
+    lb[k].style.opacity=1-seg(t,LBL_T[k][0],LBL_T[k][1]);
+  }
+
+  // overlays
+  var glow=$('[data-glow]'), shaft=$('[data-shaft]'), clip=$('[data-clip]'), hull=$('[data-hull]');
+  function placeOverlays(){
+    var E=model.engine, S=model.shaft;
+    glow.style.cssText+=';left:'+wx(E[0]-40)+'px;top:'+wy(E[1]-30)+'px;width:'+(E[2]-E[0]+80)+'px;height:'+(E[3]-E[1]+60)+'px';
+    shaft.style.cssText+=';left:'+wx(S[0])+'px;top:'+wy(S[1])+'px;width:'+(S[2]-S[0])+'px;height:'+(S[3]-S[1])+'px';
+    clip.style.clipPath='inset('+E[1]+'px '+(1774-E[2])+'px '+(887-E[3])+'px '+E[0]+'px)';
+  }
+
+  // camera
+  var CAMS_P={E:{x:-80,y:-1060,w:1940,h:2950},R1:{x:-520,y:-140,w:1180,h:1180},R2:{x:-1450,y:100,w:1750,h:1000},F:{x:-1450,y:-700,w:3400,h:2200},R4:{x:-60,y:60,w:1950,h:1000},F2:{x:-1450,y:200,w:3400,h:700},EN:{x:-1450,y:80,w:2250,h:1000}};
+  var CAMS_L={E:{x:-1000,y:-480,w:3400,h:1640},R1:{x:-760,y:40,w:1500,h:820},R2:{x:-1500,y:200,w:1950,h:800},F:{x:-1450,y:0,w:3750,h:1000},R4:{x:-60,y:200,w:2000,h:700},F2:{x:-1450,y:140,w:3400,h:780},EN:{x:-1450,y:280,w:2550,h:720}};
+  var CAMK=[[0,'E'],[.5,'E'],[1.3,'R1'],[1.9,'R1'],[2.5,'R2'],[3.5,'R2'],[4.3,'F'],[5.2,'F'],[6.2,'R4'],[6.7,'R4'],[7.6,'F2'],[7.8,'F2'],[8.7,'EN'],[9.4,'EN']];
+  var TEND=9.4;
+  function camAt(t){
+    var C=portrait?CAMS_P:CAMS_L;
+    for(var i=0;i<CAMK.length-1;i++){
+      var a=CAMK[i], b=CAMK[i+1];
+      if(t<=b[0]){ var e=io(seg(t,a[0],b[0])), A=C[a[1]], B=C[b[1]];
+        return {x:lerp(A.x,B.x,e),y:lerp(A.y,B.y,e),w:lerp(A.w,B.w,e),h:lerp(A.h,B.h,e)}; }
+    }
+    return C.EN;
+  }
+  function applyCam(c){
+    var W=vp.clientWidth, H=vp.clientHeight, topPad=46, botPad=Math.min(130,H*.27);
+    var ah=Math.max(120,H-topPad-botPad), s=Math.min(W/c.w, ah/c.h);
+    var tx=(W-c.w*s)/2-wx(c.x)*s, ty=topPad+(ah-c.h*s)/2-wy(c.y)*s;
+    world.style.transform='translate('+tx+'px,'+ty+'px) scale('+s+')';
+  }
+
+  // rope line
+  var rp=$('[data-rope1]'), rp2=$('[data-rope2]');
+  var d='M'+wx(338)+','+wy(282)+' Q'+wx(-330)+','+wy(540)+' '+wx(-1010)+','+wy(690);
+  rp.setAttribute('d',d); rp2.setAttribute('d',d);
+  var RL=rp.getTotalLength(); rp.style.strokeDasharray=RL;
+
+  // steps / captions
+  var chips=$$('[data-steps] li'), cap=$('[data-cap]'), STEPT=[.15,1.9,3.6,5.2,8.6], cur=-1;
+  function setStep(i){
+    if(i===cur) return; cur=i;
+    chips.forEach(function(li,j){ li.classList.toggle('is-on',j===i-1); li.classList.toggle('is-done',j<i-1); });
+    cap.textContent=CAPS[i]||'';
+  }
+
+  var tNow=0;
+  function render(t){
+    tNow=t; applyCam(camAt(t));
+    Object.keys(PARTS).forEach(function(k){ placePart(k,t); });
+    rp.style.strokeDashoffset=RL*(1-io(seg(t,2.8,3.5)));
+    rp2.style.opacity=seg(t,3.3,3.5);
+    var s=0; STEPT.forEach(function(v,i){ if(t>=v) s=i+1; }); setStep(s);
+    if(t>=8.65) startEngine(); else stopEngine();
+  }
+
+  // play
+  var playing=false, playStart=0, PLAY_MS=reduce?5000:12000;
+  function play(){ playing=true; playStart=performance.now(); requestAnimationFrame(tick); }
+  function tick(now){
+    if(!playing) return;
+    var k=clamp((now-playStart)/PLAY_MS,0,1); render(k*TEND);
+    if(k<1) requestAnimationFrame(tick); else playing=false;
+  }
+  $('[data-replay]').addEventListener('click',function(){ stopEngine(); play(); });
+
+  // model switch
+  var modelBtns=$$('[data-model]');
+  function setModel(name){
+    model=MODELS[name]||MODELS.wake; hull.src=model.src; clip.src=model.src; placeOverlays();
+    modelBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.model===name); });
+  }
+  modelBtns.forEach(function(b){ b.addEventListener('click',function(){ setModel(b.dataset.model); }); });
+
+  // engine + water
+  var cv=$('[data-fx]'), cx=cv.getContext('2d');
+  var RES=(window.innerWidth<750)?0.3:0.5; cv.width=3900*RES; cv.height=3400*RES;
+  var running=false, visible=true, throttle=0, target=0, drops=[], raf=0, t0=performance.now(), rpmShown=0, WATER=742;
+  var rpmEl=$('[data-rpm]');
+  function startEngine(){ if(running) return; running=true; root.classList.add('is-running'); shaft.style.opacity=1; kick(); if(audio&&soundOn) audio.on(); }
+  function stopEngine(){ if(!running) return; running=false; root.classList.remove('is-running'); glow.style.opacity=0; shaft.style.opacity=0; target=0; if(audio) audio.off(); }
+  function kick(){ if(!raf&&visible){ t0=performance.now(); raf=requestAnimationFrame(loop); } }
+  function loop(now){
+    raf=0; if(!visible) return;
+    var dt=Math.min(.05,(now-t0)/1000); t0=now;
+    throttle+=(target-throttle)*Math.min(1,dt*(target>throttle?3:1.6));
+    var T=now/1000;
+    if(running&&!reduce){
+      var a=.6+throttle*1.4, j=1.2+throttle*2.5;
+      craft.style.transform='translate('+(Math.random()-.5)*a+'px,'+(Math.random()-.5)*a+'px)';
+      clip.style.transform='translate('+(Math.random()-.5)*j+'px,'+(Math.random()-.5)*j+'px)';
+    } else { craft.style.transform=''; clip.style.transform=''; }
+    if(running){
+      glow.style.opacity=(.55+throttle*.4+Math.random()*.12).toFixed(2);
+      shaft.style.backgroundPositionX=((T*(300+throttle*1400))%28)+'px';
+      var rpm=1550+throttle*6100+(Math.random()-.5)*60; rpmShown+=(rpm-rpmShown)*.25; rpmEl.textContent=Math.round(rpmShown/10)*10;
+      var n=reduce?3:Math.round(10+throttle*26), nz=model.nozzle;
+      for(var i=0;i<n;i++){
+        var sp=760+throttle*1500+Math.random()*300, ang=Math.PI+(Math.random()-.5)*(.12+throttle*.08)-.03;
+        drops.push({x:nz[0]+Math.random()*6,y:nz[1]+(Math.random()-.5)*14,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp+(Math.random()-.4)*40,life:0,max:.7+Math.random()*.6,r:3+Math.random()*7,k:Math.random()});
+      }
+    }
+    cx.setTransform(RES,0,0,RES,0,0); cx.clearRect(0,0,3900,3400);
+    if(running||drops.length){
+      var wa=running?1:.6;
+      cx.beginPath(); cx.moveTo(wx(-1500),wy(WATER));
+      for(var x=-1500;x<=2400;x+=24){
+        var y=WATER+Math.sin(x*.012+T*2.2)*5+Math.sin(x*.031-T*3.1)*2.5+(x<60&&x>-900?Math.sin(x*.05+T*9)*(2+throttle*6)*(1-(60-x)/960):0);
+        cx.lineTo(wx(x),wy(y));
+      }
+      cx.strokeStyle='rgba(20,110,140,'+(.7*wa)+')'; cx.lineWidth=3; cx.stroke();
+      cx.lineTo(wx(2400),wy(1160)); cx.lineTo(wx(-1500),wy(1160)); cx.closePath();
+      var g=cx.createLinearGradient(0,wy(WATER),0,wy(900));
+      g.addColorStop(0,'rgba(23,143,170,'+(.22*wa)+')'); g.addColorStop(1,'rgba(23,143,170,0)');
+      cx.fillStyle=g; cx.fill();
+      if(running){
+        var nz2=model.nozzle, len=420+throttle*700, nx=nz2[0], ny=nz2[1];
+        var sg=cx.createLinearGradient(wx(nx),0,wx(nx-len),0);
+        sg.addColorStop(0,'rgba(190,235,250,.95)'); sg.addColorStop(.6,'rgba(90,180,215,.55)'); sg.addColorStop(1,'rgba(90,180,215,0)');
+        cx.fillStyle=sg; cx.beginPath();
+        cx.moveTo(wx(nx),wy(ny-11));
+        cx.quadraticCurveTo(wx(nx-len*.6),wy(ny-16-throttle*10),wx(nx-len),wy(ny+40+throttle*30));
+        cx.quadraticCurveTo(wx(nx-len*.55),wy(ny+22+throttle*14),wx(nx),wy(ny+11));
+        cx.fill(); cx.strokeStyle='rgba(30,120,160,.45)'; cx.lineWidth=2; cx.stroke();
+      }
+    }
+    for(var i2=drops.length-1;i2>=0;i2--){
+      var p=drops[i2]; p.life+=dt; p.vy+=900*dt; p.vx*=(1-dt*.8); p.x+=p.vx*dt; p.y+=p.vy*dt;
+      if(p.y>WATER+4){ p.y=WATER+4; p.vy*=-.18; p.vx*=.5; p.max=Math.min(p.max,p.life+.25); }
+      var al=1-p.life/p.max; if(al<=0){ drops.splice(i2,1); continue; }
+      cx.beginPath(); cx.arc(wx(p.x),wy(p.y),p.r*(1+p.life*1.6),0,6.283);
+      cx.fillStyle=p.k>.55?'rgba(255,255,255,'+(.85*al)+')':'rgba(110,195,225,'+(.6*al)+')'; cx.fill();
+      if(p.k>.55){ cx.strokeStyle='rgba(40,130,170,'+(.5*al)+')'; cx.lineWidth=1.5; cx.stroke(); }
+    }
+    if(running||drops.length) raf=requestAnimationFrame(loop);
+    else { craft.style.transform=''; cx.clearRect(0,0,3900,3400); }
+  }
+
+  // throttle
+  var gas=$('[data-gas]');
+  function down(e){ e.preventDefault(); target=1; gas.classList.add('is-held'); kick(); }
+  function up(){ target=0; gas.classList.remove('is-held'); }
+  gas.addEventListener('pointerdown',down);
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ gas.addEventListener(ev,up); });
+  gas.addEventListener('keydown',function(e){ if(e.key===' '||e.key==='Enter') down(e); });
+  gas.addEventListener('keyup',up);
+  gas.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+
+  // synthesized engine sound (starts only after a tap)
+  var audio=null, soundOn=false, sb=$('[data-sound]');
+  function makeAudio(){
+    var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null;
+    var ac=new AC(), master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
+    var lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=500; lp.Q.value=4;
+    var am=ac.createGain(); am.gain.value=.6; am.connect(lp); lp.connect(master);
+    var o1=ac.createOscillator(); o1.type='sawtooth'; var o2=ac.createOscillator(); o2.type='square';
+    var g2=ac.createGain(); g2.gain.value=.35; o1.connect(am); o2.connect(g2); g2.connect(am);
+    var lfo=ac.createOscillator(), lg=ac.createGain(); lg.gain.value=.35; lfo.connect(lg); lg.connect(am.gain);
+    var nb=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate), ch=nb.getChannelData(0);
+    for(var i=0;i<ch.length;i++) ch[i]=Math.random()*2-1;
+    var ns=ac.createBufferSource(); ns.buffer=nb; ns.loop=true;
+    var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=.8;
+    var ng=ac.createGain(); ng.gain.value=0; ns.connect(bp); bp.connect(ng); ng.connect(master);
+    [o1,o2,lfo,ns].forEach(function(n){ n.start(); });
+    var live=false;
+    setInterval(function(){
+      var f=36+throttle*115, t=ac.currentTime;
+      o1.frequency.setTargetAtTime(f,t,.05); o2.frequency.setTargetAtTime(f*.5,t,.05); lfo.frequency.setTargetAtTime(f*1.5,t,.05);
+      lp.frequency.setTargetAtTime(380+throttle*2200,t,.08); ng.gain.setTargetAtTime(live?(.12+throttle*.35):0,t,.1);
+    },50);
+    return { on:function(){ live=true; ac.resume(); master.gain.setTargetAtTime(.28,ac.currentTime,.25); },
+             off:function(){ live=false; master.gain.setTargetAtTime(0,ac.currentTime,.15); } };
+  }
+  sb.addEventListener('click',function(){
+    soundOn=!soundOn;
+    if(soundOn){ if(!audio) audio=makeAudio(); if(audio&&running) audio.on(); } else if(audio) audio.off();
+    sb.setAttribute('aria-pressed',soundOn); sb.textContent=soundOn?SOUNDL[1]:SOUNDL[0];
+  });
+
+  // init + autoplay when the section comes into view; pause the loop when it leaves
+  setModel(vp.dataset.defaultModel||'wake');
+  layout(); render(0);
+  window.addEventListener('resize',function(){ var was=portrait; layout(); if(was!==portrait||!playing) render(tNow); });
+  var played=false;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        visible=e.isIntersecting;
+        if(visible&&!played&&e.intersectionRatio>=.4){ played=true; play(); }
+        if(visible&&running) kick();
+        if(!visible&&audio) audio.off(); else if(visible&&audio&&soundOn&&running) audio.on();
+      });
+    },{threshold:[0,.4]}).observe(vp);
+  } else { play(); }
 })();
 </script>
+
 {% schema %}
-{ "name": "Foil Setup", "tag": "section", "settings": [], "presets": [ { "name": "Foil Setup" } ] }
+{
+  "name": "Jet ski assembly",
+  "tag": "div",
+  "class": "section-sk-jet",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Your Tow-In Rig, Assembled" },
+    { "type": "text", "id": "text", "label": "Text", "default": "Every piece locks into place &mdash; then the engine fires up." },
+    { "type": "color", "id": "accent_color", "label": "Accent color", "default": "#f46e95" },
+    { "type": "select", "id": "default_model", "label": "Default model", "default": "wake",
+      "options": [ { "value": "wake", "label": "Wake Pro" }, { "value": "gtx", "label": "GTX Limited" } ] },
+    { "type": "header", "content": "Part labels" },
+    { "type": "text", "id": "label_pylon", "label": "Pylon", "default": "Tow pylon" },
+    { "type": "text", "id": "label_rope", "label": "Rope", "default": "Tow rope" },
+    { "type": "text", "id": "label_sled", "label": "Board", "default": "Tow board" },
+    { "type": "text", "id": "label_floats", "label": "Arch", "default": "Grab arch" },
+    { "type": "header", "content": "Step chips" },
+    { "type": "text", "id": "chip_1", "label": "Step 1", "default": "Pylon" },
+    { "type": "text", "id": "chip_2", "label": "Step 2", "default": "Rope" },
+    { "type": "text", "id": "chip_3", "label": "Step 3", "default": "Board" },
+    { "type": "text", "id": "chip_4", "label": "Step 4", "default": "Arch" },
+    { "type": "text", "id": "chip_5", "label": "Step 5", "default": "Start" },
+    { "type": "header", "content": "Captions" },
+    { "type": "text", "id": "cap_0", "label": "Exploded view", "default": "Every part, laid out" },
+    { "type": "text", "id": "cap_1", "label": "Step 1", "default": "BRP tow pylon mounts on the rear deck" },
+    { "type": "text", "id": "cap_2", "label": "Step 2", "default": "Armstrong tow rope ties to the pylon" },
+    { "type": "text", "id": "cap_3", "label": "Step 3", "default": "JETTECH tow board, loaded on" },
+    { "type": "text", "id": "cap_4", "label": "Step 4", "default": "JAIN grab arch locks into place" },
+    { "type": "text", "id": "cap_5", "label": "Running", "default": "Engine running. Hold the throttle." },
+    { "type": "header", "content": "Buttons" },
+    { "type": "text", "id": "btn_replay", "label": "Replay", "default": "Replay" },
+    { "type": "text", "id": "btn_gas", "label": "Throttle", "default": "Throttle" },
+    { "type": "text", "id": "btn_sound_on", "label": "Sound on", "default": "Sound on" },
+    { "type": "text", "id": "btn_sound_off", "label": "Sound off", "default": "Sound off" },
+    { "type": "header", "content": "Spacing" },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 36 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 36 }
+  ],
+  "presets": [ { "name": "Jet ski assembly" } ]
+}
 {% endschema %}
