@@ -1,0 +1,85 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'Barlow Condensed';src:url('../shokogi-scrollcraft/fonts/BarlowCondensed-700.woff2') format('woff2');font-weight:700}
+body{margin:0;background:#dcebec}
+.scene{width:720px;height:360px;margin:30px auto;background:linear-gradient(180deg,#eef5f5 0%,#dcebec 60%,#c7dedf 100%);position:relative;overflow:hidden;border:1px solid #ccc}
+svg{position:absolute;inset:0}
+</style></head><body>
+<div class="scene">
+<svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg">
+  <!-- waterline -->
+  <g transform="translate(0,232)">
+    <path d="M-120 20 C-40 8,10 34,90 22 C170 10,220 36,300 22 C380 8,430 34,510 22 C590 10,640 36,840 22 L840 140 L-120 140 Z" fill="#bcd9da"/>
+    <path d="M-120 30 C-30 18,20 44,110 30 C200 16,250 44,340 30 C430 16,480 44,570 30 C660 16,710 44,840 30 L840 140 L-120 140 Z" fill="#a9ced0"/>
+    <path d="M-120 34 C-30 26,20 48,110 36 C200 24,250 50,340 36 C430 24,480 50,570 36 C660 24,710 50,840 36 L840 42 L-120 42 Z" fill="#fff" opacity=".5"/>
+  </g>
+
+  <!-- JET SKI (bow right), baseline ~ y250 -->
+  <g transform="translate(360,236)">
+    <g transform="translate(-300,-250)">
+    <!-- rooster-tail spray behind stern -->
+    <g fill="#ffffff" opacity=".9">
+      <circle cx="78" cy="238" r="9"/><circle cx="60" cy="226" r="7"/><circle cx="92" cy="226" r="7"/><circle cx="72" cy="214" r="6"/><circle cx="50" cy="240" r="6"/>
+    </g>
+
+    <!-- HULL (dark wedge) -->
+    <path d="M70 250
+             C58 248,52 236,58 226
+             L96 214
+             C150 208,360 206,470 212
+             C560 217,610 226,650 236
+             C690 246,700 252,690 258
+             C560 266,180 266,110 260
+             C92 258,78 256,70 250 Z" fill="#16201e"/>
+
+    <!-- HOOD / front deck (teal) -->
+    <path d="M300 214
+             C360 210,430 210,500 214
+             C560 217,610 226,650 236
+             C620 224,560 218,500 216
+             L380 216
+             C345 217,318 212,300 214 Z" fill="#32494d"/>
+
+    <!-- rear deck top highlight -->
+    <path d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z" fill="#3c565a"/>
+
+    <!-- SEAT (saddle) -->
+    <path d="M150 216
+             C160 200,200 196,240 196
+             L292 196
+             C306 196,312 202,312 214
+             C300 208,270 206,240 207
+             L190 209
+             C172 210,160 213,150 216 Z" fill="#0d1312"/>
+
+    <!-- RIDER silhouette (leaning forward) -->
+    <g fill="#0d1312">
+      <!-- lower leg / knee to footwell -->
+      <path d="M232 206 C236 222,230 236,214 244 L206 238 C220 230,224 218,222 206 Z"/>
+      <!-- torso leaning forward -->
+      <path d="M236 204 C238 184,250 170,268 162 C278 158,286 160,288 168 C290 178,282 190,272 198 C262 206,250 208,236 204 Z"/>
+      <!-- arm to handlebar -->
+      <path d="M276 172 C292 172,312 180,322 190 L316 198 C306 190,290 184,274 184 Z"/>
+    </g>
+    <!-- head + helmet -->
+    <circle cx="292" cy="156" r="13" fill="#0d1312"/>
+    <path d="M280 154 a12 12 0 0 1 24 0 Z" fill="#f46e95"/>
+
+    <!-- CONSOLE + HANDLEBAR -->
+    <path d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z" fill="#1b2726"/>
+    <g stroke="#0d1312" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
+
+    <!-- PINK accent chine stripe -->
+    <path d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z" fill="#f46e95"/>
+
+    <!-- rear exhaust / grab handle -->
+    <rect x="64" y="222" width="20" height="7" rx="3" fill="#0d1312"/>
+
+    <!-- badge -->
+    <text x="180" y="236" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="20" letter-spacing="1.5" fill="#eaf3f3">GTX 300</text>
+    </g>
+  </g>
+</svg>
+</div>
+</body></html>
