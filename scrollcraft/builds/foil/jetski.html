@@ -12,11 +12,18 @@ body{margin:0;background:#fff;font-family:'Figtree',sans-serif;color:#191a1a}
 .wrap{max-width:1000px;margin:0 auto;padding:60px 20px}
 .kicker{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#f46e95;font-weight:700;text-align:center}
 h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:-.01em;text-align:center;margin:10px 0 6px}
-.sub{text-align:center;color:#7c7b77;max-width:580px;margin:0 auto 40px;font-size:16px;line-height:1.6}
+.sub{text-align:center;color:#7c7b77;max-width:600px;margin:0 auto 40px;font-size:16px;line-height:1.6}
 .fleet{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 .ski{border:1px solid #eceae3;border-radius:20px;overflow:hidden;background:#fff}
 .scene{position:relative;aspect-ratio:480/236;background:linear-gradient(180deg,#eef5f5 0%,#dcebec 58%,#c7dedf 100%)}
 .scene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* per-ski theming */
+.gtx{--hull:#18150f;--deck:#27272b;--rdeck:#343438;--seat:#cbb68d;--accent:#c7a24e;--console:#1b1b1e;--txt:#c7a24e}
+.wake{--hull:#3cc3b2;--deck:#7d8587;--rdeck:#8a9191;--seat:#9aa1a1;--accent:#e8822a;--console:#2b3131;--txt:#123b35}
+.hull{fill:var(--hull)}.deck{fill:var(--deck)}.rdeck{fill:var(--rdeck)}.seat{fill:var(--seat)}
+.accent{fill:var(--accent)}.consolep{fill:var(--console)}.rider{fill:#0d1312}.helmet{fill:#f46e95}
+.wordmark{fill:var(--txt)}.grab{fill:#0d1312}
+.hbar{stroke:#0d1312}
 .skibody{transform-box:fill-box;transform-origin:center;animation:bob 4s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-.7deg)}50%{transform:translateY(-5px) rotate(.7deg)}}
 .wave{animation:drift 7s linear infinite}
@@ -45,9 +52,9 @@ h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:
   <p class="sub">Every tow-in session runs behind professional, supercharged Sea-Doo watercraft — the power and control that put you on more waves.</p>
 
   <div class="fleet">
-    <!-- ============ GTX 300 ============ -->
+    <!-- ============ GTX LIMITED 300 ============ -->
     <div class="ski">
-      <div class="scene">
+      <div class="scene gtx">
         <svg viewBox="0 0 480 236" xmlns="http://www.w3.org/2000/svg">
           <g transform="translate(0,150)">
             <path class="wave w2" d="M-120 20 C-40 8,10 34,90 22 C170 10,220 36,300 22 C380 8,430 34,510 22 C590 10,640 36,840 22 L840 120 L-120 120 Z" fill="#bcd9da"/>
@@ -58,28 +65,28 @@ h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:
           <g class="speed" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"><line x1="20" y1="120" x2="60" y2="120"/><line x1="10" y1="138" x2="54" y2="138"/><line x1="24" y1="154" x2="62" y2="154"/></g>
           <g class="skibody"><g transform="translate(-7,-14) scale(0.67)">
             <g class="spray" fill="#fff"><circle cx="78" cy="238" r="9"/><circle cx="58" cy="226" r="7"/><circle cx="94" cy="226" r="7"/><circle cx="72" cy="212" r="6"/><circle cx="48" cy="240" r="6"/></g>
-            <path d="M70 250 C58 248,52 236,58 226 L96 214 C150 208,360 206,470 212 C560 217,610 226,650 236 C690 246,700 252,690 258 C560 266,180 266,110 260 C92 258,78 256,70 250 Z" fill="#16201e"/>
-            <path d="M300 214 C360 210,430 210,500 214 C560 217,610 226,650 236 C620 224,560 218,500 216 L380 216 C345 217,318 212,300 214 Z" fill="#32494d"/>
-            <path d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z" fill="#3c565a"/>
-            <path d="M150 216 C160 200,200 196,240 196 L292 196 C306 196,312 202,312 214 C300 208,270 206,240 207 L190 209 C172 210,160 213,150 216 Z" fill="#0d1312"/>
-            <g fill="#0d1312">
+            <path class="hull" d="M70 250 C58 248,52 236,58 226 L96 214 C150 208,360 206,470 212 C560 217,610 226,650 236 C690 246,700 252,690 258 C560 266,180 266,110 260 C92 258,78 256,70 250 Z"/>
+            <path class="deck" d="M300 214 C360 210,430 210,500 214 C560 217,610 226,650 236 C620 224,560 218,500 216 L380 216 C345 217,318 212,300 214 Z"/>
+            <path class="rdeck" d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z"/>
+            <path class="seat" d="M150 216 C160 200,200 196,240 196 L292 196 C306 196,312 202,312 214 C300 208,270 206,240 207 L190 209 C172 210,160 213,150 216 Z"/>
+            <g class="rider">
               <path d="M232 206 C236 222,230 236,214 244 L206 238 C220 230,224 218,222 206 Z"/>
               <path d="M236 204 C238 184,250 170,268 162 C278 158,286 160,288 168 C290 178,282 190,272 198 C262 206,250 208,236 204 Z"/>
               <path d="M276 172 C292 172,312 180,322 190 L316 198 C306 190,290 184,274 184 Z"/>
             </g>
-            <circle cx="292" cy="156" r="13" fill="#0d1312"/>
-            <path d="M280 154 a12 12 0 0 1 24 0 Z" fill="#f46e95"/>
-            <path d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z" fill="#1b2726"/>
-            <g stroke="#0d1312" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
-            <path d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z" fill="#f46e95"/>
-            <rect x="64" y="222" width="20" height="7" rx="3" fill="#0d1312"/>
-            <text x="150" y="236" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="20" letter-spacing="1.5" fill="#eaf3f3">GTX 300</text>
+            <circle class="rider" cx="292" cy="156" r="13"/>
+            <path class="helmet" d="M280 154 a12 12 0 0 1 24 0 Z"/>
+            <path class="consolep" d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z"/>
+            <g class="hbar" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
+            <path class="accent" d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z"/>
+            <rect class="grab" x="64" y="222" width="20" height="7" rx="3"/>
+            <text class="wordmark" x="150" y="238" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="21" letter-spacing="1.5">SEA&#183;DOO</text>
           </g></g>
         </svg>
       </div>
       <div class="meta">
         <div class="brand">Sea-Doo</div>
-        <h3>GTX 300 Supercharged</h3>
+        <h3>GTX Limited 300</h3>
         <p>Our flagship tow sled — supercharged power and a planted, three-up hull that holds a rock-steady line while you ride.</p>
         <div class="chips"><span class="chip hp">300 HP</span><span class="chip">Supercharged Rotax</span><span class="chip">3-up stability</span></div>
       </div>
@@ -87,7 +94,7 @@ h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:
 
     <!-- ============ WAKE PRO ============ -->
     <div class="ski">
-      <div class="scene">
+      <div class="scene wake">
         <svg viewBox="0 0 480 236" xmlns="http://www.w3.org/2000/svg">
           <g transform="translate(0,150)">
             <path class="wave w2" d="M-120 20 C-40 8,10 34,90 22 C170 10,220 36,300 22 C380 8,430 34,510 22 C590 10,640 36,840 22 L840 120 L-120 120 Z" fill="#bcd9da"/>
@@ -98,24 +105,24 @@ h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;letter-spacing:
           <g class="speed" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"><line x1="20" y1="120" x2="60" y2="120"/><line x1="10" y1="138" x2="54" y2="138"/><line x1="24" y1="154" x2="62" y2="154"/></g>
           <g class="skibody"><g transform="translate(-7,-14) scale(0.67)">
             <g class="spray" fill="#fff"><circle cx="78" cy="238" r="9"/><circle cx="58" cy="226" r="7"/><circle cx="94" cy="226" r="7"/><circle cx="72" cy="212" r="6"/><circle cx="48" cy="240" r="6"/></g>
-            <!-- tow pylon (Wake Pro signature) -->
-            <g><rect x="150" y="120" width="10" height="92" rx="5" fill="#1b2726"/><circle cx="155" cy="122" r="9" fill="#0d1312"/><circle cx="155" cy="122" r="3.6" fill="#f46e95"/><path d="M160 138 C186 142,202 158,202 182" stroke="#f46e95" stroke-width="4" fill="none" stroke-linecap="round"/></g>
-            <path d="M70 250 C58 248,52 236,58 226 L96 214 C150 208,360 206,470 212 C560 217,610 226,650 236 C690 246,700 252,690 258 C560 266,180 266,110 260 C92 258,78 256,70 250 Z" fill="#16201e"/>
-            <path d="M300 214 C360 210,430 210,500 214 C560 217,610 226,650 236 C620 224,560 218,500 216 L380 216 C345 217,318 212,300 214 Z" fill="#32494d"/>
-            <path d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z" fill="#3c565a"/>
-            <path d="M150 216 C160 200,200 196,240 196 L292 196 C306 196,312 202,312 214 C300 208,270 206,240 207 L190 209 C172 210,160 213,150 216 Z" fill="#0d1312"/>
-            <g fill="#0d1312">
+            <!-- orange tow pylon (Wake Pro) -->
+            <g><rect x="150" y="120" width="10" height="92" rx="5" fill="#e8822a"/><circle cx="155" cy="122" r="9" fill="#0d1312"/><circle cx="155" cy="122" r="3.6" fill="#e8822a"/><path d="M160 138 C186 142,202 158,202 182" stroke="#e8822a" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+            <path class="hull" d="M70 250 C58 248,52 236,58 226 L96 214 C150 208,360 206,470 212 C560 217,610 226,650 236 C690 246,700 252,690 258 C560 266,180 266,110 260 C92 258,78 256,70 250 Z"/>
+            <path class="deck" d="M300 214 C360 210,430 210,500 214 C560 217,610 226,650 236 C620 224,560 218,500 216 L380 216 C345 217,318 212,300 214 Z"/>
+            <path class="rdeck" d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z"/>
+            <path class="seat" d="M150 216 C160 200,200 196,240 196 L292 196 C306 196,312 202,312 214 C300 208,270 206,240 207 L190 209 C172 210,160 213,150 216 Z"/>
+            <g class="rider">
               <path d="M232 206 C236 222,230 236,214 244 L206 238 C220 230,224 218,222 206 Z"/>
               <path d="M236 204 C238 184,250 170,268 162 C278 158,286 160,288 168 C290 178,282 190,272 198 C262 206,250 208,236 204 Z"/>
               <path d="M276 172 C292 172,312 180,322 190 L316 198 C306 190,290 184,274 184 Z"/>
             </g>
-            <circle cx="292" cy="156" r="13" fill="#0d1312"/>
-            <path d="M280 154 a12 12 0 0 1 24 0 Z" fill="#f46e95"/>
-            <path d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z" fill="#1b2726"/>
-            <g stroke="#0d1312" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
-            <path d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z" fill="#f46e95"/>
-            <rect x="64" y="222" width="20" height="7" rx="3" fill="#0d1312"/>
-            <text x="186" y="236" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="20" letter-spacing="1.5" fill="#eaf3f3">WAKE PRO</text>
+            <circle class="rider" cx="292" cy="156" r="13"/>
+            <path class="helmet" d="M280 154 a12 12 0 0 1 24 0 Z"/>
+            <path class="consolep" d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z"/>
+            <g class="hbar" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
+            <path class="accent" d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z"/>
+            <rect class="grab" x="64" y="222" width="20" height="7" rx="3"/>
+            <text class="wordmark" x="186" y="238" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="21" letter-spacing="1.5">SEA&#183;DOO</text>
           </g></g>
         </svg>
       </div>
