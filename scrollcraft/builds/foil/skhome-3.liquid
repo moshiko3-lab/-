@@ -1,0 +1,72 @@
+  <!-- FOIL VIDEO BANNER -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">Glide Above the Waves</div>
+    <h2>Foil Surf Lessons in Playa Venao</h2>
+    <p class="lead" style="margin-bottom:24px">Learn to foil surf with expert instructors in perfect conditions. Safe, fun, and beginner-friendly.</p>
+    <div style="text-align:center"><a href="/collections/foil-surfing" class="btn pink">Fly Now</a></div>
+  </div></div>
+  {%- assign fv = section.settings.foil_video -%}
+  <div class="videofull"><video autoplay muted loop playsinline preload="metadata"{% if fv != blank and fv.preview_image %} poster="{{ fv.preview_image | image_url: width: 1600 }}"{% endif %}>
+    {%- if fv != blank and fv.sources.size > 0 -%}
+      {%- for src in fv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+    {%- else -%}
+      <source src="https://cdn.shopify.com/videos/c/vp/edff47b97c4446f880778bb32dd26bca/edff47b97c4446f880778bb32dd26bca.HD-720p-4.5Mbps-48918163.mp4" type="video/mp4">
+    {%- endif -%}
+  </video></div>
+
+  <!-- SHOP BRAND -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">shop</div>
+    <h2>Gear Up with Shokogi</h2>
+    <p class="lead">Represent Shokogi from all around the world and share the surf culture with family and friends. From stylish apparel to must-have surf gear &mdash; whether you need sun protection or new surf apparel, we&rsquo;ve got the essentials for every surfer.</p>
+    <div class="pgrid">
+      {%- assign brandcol = collections['shokogi-brand'] -%}
+      {%- for product in brandcol.products limit: 8 -%}
+      <a href="{{ product.url }}" class="pcard">
+        {%- if product.featured_image -%}{{ product.featured_image | image_url: width: 600 | image_tag: loading: 'lazy', widths: '300,450,600', alt: product.title }}{%- endif -%}
+        <div class="pcard-b">
+          <h3>{{ product.title }}</h3>
+          <div class="pprice">{{ product.price | money_without_trailing_zeros }}</div>
+          <span class="pbtn">View</span>
+        </div>
+      </a>
+      {%- endfor -%}
+    </div>
+    <div style="text-align:center;margin-top:30px"><a href="/collections/shokogi-brand" class="btn pink">Shop Now</a></div>
+  </div></div>
+
+  <!-- RENTALS -->
+  <div class="sec tint"><div class="wrap">
+    <div class="band rev">
+      {%- if section.settings.rentals_image -%}<img src="{{ section.settings.rentals_image | image_url: width: 1200 }}" alt="Surf Board Rentals in Playa Venao" loading="lazy">{%- endif -%}
+      <div class="bt">
+        <div class="kicker">rentals</div>
+        <h2>Surf Board Rentals in Playa Venao</h2>
+        <p>Traveling light or trying something new? Shokogi offers high-quality surfboard rentals, including shortboards, longboards, and our beginner-friendly Ocean Monkey soft-top boards. Grab a board, hit the waves, and experience Panama surf at your own pace.</p>
+        <a href="/collections/surfboard-rental-panama" class="btn pink">Rent Today</a>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- JOURNAL -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">surf journal</div>
+    <h2>Latest Articles</h2>
+    <div class="bgrid" style="margin-top:26px">
+      {%- assign blog = blogs['surf-blog'] -%}
+      {%- for article in blog.articles limit: 4 -%}
+      <a href="{{ article.url }}" class="icard">
+        {%- if article.image -%}{{ article.image | image_url: width: 700 | image_tag: loading: 'lazy', widths: '300,500,700', alt: article.title }}{%- endif -%}
+        <div class="ib"><div class="k">{{ article.published_at | date: '%b %d, %Y' }}</div><h3>{{ article.title }}</h3></div>
+      </a>
+      {%- endfor -%}
+    </div>
+    <div style="text-align:center;margin-top:30px"><a href="/blogs/surf-blog" class="btn pink">Read the Blog</a></div>
+  </div></div>
+
+  <!-- CLOSER -->
+  <div class="sec tint"><div class="wrap closer">
+    <h2>Come surf with us in Playa Venao</h2>
+    <p>Lessons, camps, foil, and rentals &mdash; all steps from the waves. Join the Shokogi surf family.</p>
+    <a href="/collections/surf-school-and-courses" class="btn pink">Book Now</a>
+  </div></div>

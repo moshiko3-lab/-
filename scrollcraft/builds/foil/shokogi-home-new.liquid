@@ -1,0 +1,28 @@
+{%- comment -%} SHOKOGI Home — faithful copy of the live home page content, in the Surf Camp design. {%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+<div class="skp">
+  {% render 'skhome-1', section: section %}
+  {% render 'skhome-2', section: section %}
+  {% render 'skhome-3', section: section %}
+</div>
+
+{% schema %}
+{
+  "name": "Home Page",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero video" },
+    { "type": "video", "id": "hero_video", "label": "Hero video" },
+    { "type": "header", "content": "Foil video" },
+    { "type": "video", "id": "foil_video", "label": "Foil video" },
+    { "type": "header", "content": "Programme images" },
+    { "type": "image_picker", "id": "pgm_surf", "label": "Surf" },
+    { "type": "image_picker", "id": "pgm_foil", "label": "Foil" },
+    { "type": "image_picker", "id": "pgm_trips", "label": "Custom Trips" },
+    { "type": "image_picker", "id": "pgm_kids", "label": "Kids" },
+    { "type": "header", "content": "Rentals" },
+    { "type": "image_picker", "id": "rentals_image", "label": "Rentals image" }
+  ],
+  "presets": [ { "name": "Home Page" } ]
+}
+{% endschema %}

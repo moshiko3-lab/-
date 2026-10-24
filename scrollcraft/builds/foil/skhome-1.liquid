@@ -1,0 +1,34 @@
+  <!-- HERO (video) -->
+  {%- assign hv = section.settings.hero_video -%}
+  <div class="herofull"><video autoplay muted loop playsinline preload="auto"{% if hv != blank and hv.preview_image %} poster="{{ hv.preview_image | image_url: width: 1600 }}"{% endif %}>
+    {%- if hv != blank and hv.sources.size > 0 -%}
+      {%- for src in hv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+    {%- else -%}
+      <source src="https://cdn.shopify.com/videos/c/vp/793b1b1551b44fa780fee83e10adf241/793b1b1551b44fa780fee83e10adf241.HD-720p-4.5Mbps-22536222.mp4" type="video/mp4">
+    {%- endif -%}
+  </video></div>
+  <div class="herotext">
+    <div class="htag">Playa Venao &middot; Panama</div>
+    <h1>World-Class Surf Lessons, Camps &amp; Foil Surfing in Playa Venao</h1>
+    <p>Lessons, Camps, Foil Surfing, and More &mdash; all steps from the waves in Playa Venao.</p>
+    <a href="/collections/surf-school-and-courses" class="btn pink">Book Now</a>
+  </div>
+
+  <!-- STATS -->
+  <div class="sec"><div class="wrap">
+    <div class="stats">
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 20c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg><div class="v">Playa Venao</div><div class="l">Panama &middot; Pacific coast</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg><div class="v">All year</div><div class="l">Waves every season</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-5M10 20v-9M16 20v-13M20 20H3"/></svg><div class="v">All levels</div><div class="l">First wave to advanced</div></div>
+      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c4 3 5 10 2 18-1 2-3 2-4 0C7 12 8 5 12 2z"/><path d="M12 7v9"/></svg><div class="v">100+ Boards</div><div class="l">Every size on hand</div></div>
+    </div>
+  </div></div>
+
+  <!-- INTRO -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">surf school</div>
+    <h2>Your Panama Surf Adventure Awaits</h2>
+    <p class="lead" style="margin-bottom:24px">Whether you&rsquo;re catching your very first wave or leveling up your surf skills, our experienced instructors have you covered. Choose from personalized surf lessons, immersive surf camps, foil surfing adventures, and engaging kids&rsquo; summer camps. With perfect waves, quality surfboard rentals, and our own Ocean Monkey soft-top boards, Shokogi is your ultimate Panama surf destination. Come join our vibrant surf community and experience the magic of Playa Venao!</p>
+    <div style="text-align:center"><a href="/collections/surf-school-and-courses" class="btn pink">Join Us</a></div>
+  </div></div>
+
