@@ -1,123 +1,101 @@
 /* SHOKOGI — foil pages polish + COMPACT layer. Loaded ONLY on the two foil
-   pages (via the fleet section) and scoped to .skp, so nothing else on the
-   site is affected. Goal: tighten the vertical rhythm so the page scrolls
-   less and reads more clearly, keep the premium type, improve mobile density,
-   and make the fleet skis glide over water. */
+   pages (via the fleet section) and scoped to .skp. Goal: make the whole page
+   markedly shorter — tight section rhythm, shorter hero and videos, denser
+   type and cards — while keeping it clean and premium, plus the fleet effect. */
 .skp{text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale}
 
-/* ---- rhythm: tighter sections (base .sec is 44px; we clamp a touch under) ---- */
+/* ---- rhythm: much tighter sections (base .sec is 44px) ---- */
 .skp .wrap{max-width:1000px}
-.skp .sec{padding:clamp(30px,4.2vh,46px) 0}
+.skp .sec{padding:clamp(20px,2.8vh,32px) 0}
 
-/* ---- hero: shorter frame, confident headline ---- */
-.skp .herofull img,.skp .herofull video,.skp .heroimg{height:54vh;max-height:560px;min-height:320px}
-.skp .herotext{max-width:860px;padding:clamp(22px,3.4vh,36px) 20px 4px}
-.skp .herotext .htag{font-size:12px;letter-spacing:.22em;margin:0 0 10px}
-.skp .herotext h1{font-size:clamp(32px,4.6vw,52px);font-weight:700;letter-spacing:-.005em;line-height:1.04;max-width:18ch;margin:0 auto 14px}
-.skp .herotext p{font-size:16px;line-height:1.6;max-width:640px;margin:0 auto 22px}
+/* ---- hero: shorter frame ---- */
+.skp .herofull img,.skp .herofull video,.skp .heroimg{height:46vh;max-height:460px;min-height:280px}
+.skp .herotext{max-width:860px;padding:clamp(14px,2.2vh,24px) 20px 2px}
+.skp .herotext .htag{font-size:12px;letter-spacing:.22em;margin:0 0 8px}
+.skp .herotext h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-.005em;line-height:1.04;max-width:18ch;margin:0 auto 10px}
+.skp .herotext p{font-size:15px;line-height:1.55;max-width:620px;margin:0 auto 16px}
 
 /* ---- headings + leads ---- */
-.skp h2{font-size:clamp(26px,3vw,36px);font-weight:700;letter-spacing:-.005em;line-height:1.06;margin:8px 0 10px}
-.skp .kicker{font-size:12px;letter-spacing:.22em}
-.skp .lead{font-size:15.5px;line-height:1.6;max-width:660px;margin-bottom:24px}
+.skp h2{font-size:clamp(23px,2.6vw,31px);font-weight:700;letter-spacing:-.005em;line-height:1.05;margin:4px 0 8px}
+.skp .kicker{font-size:11.5px;letter-spacing:.22em}
+.skp .lead{font-size:14.5px;line-height:1.55;max-width:640px;margin:0 auto 16px}
 
-/* ---- quick facts: auto-fit (10 facts fill cleanly), tighter cells ---- */
-.skp .facts{border-radius:16px;grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
-.skp .fact{padding:14px 18px}
-.skp .fact b{font-size:10.5px;letter-spacing:.14em;margin-bottom:3px}
-.skp .fact span{font-size:13.5px;color:#3f3e3a}
+/* ---- quick facts: auto-fit, compact cells; kill the inline margin-top ---- */
+.skp .facts{border-radius:14px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:14px!important}
+.skp .fact{padding:11px 15px}
+.skp .fact b{font-size:10px;letter-spacing:.14em;margin-bottom:2px}
+.skp .fact span{font-size:13px;color:#3f3e3a;line-height:1.4}
 
-/* ---- story / prose: tighter leading (this content is long) ---- */
-.skp .story{font-size:15px;line-height:1.68;max-width:720px}
-.skp .story p{margin:0 0 12px}
-.skp .story h3{font-size:15px;letter-spacing:.06em;margin:20px 0 7px}
-.skp .wideimg{height:clamp(200px,32vw,340px);border-radius:16px;margin:16px 0 20px}
+/* ---- story / prose: tighter leading (content is long) ---- */
+.skp .story{font-size:14.5px;line-height:1.58;max-width:720px}
+.skp .story p{margin:0 0 9px}
+.skp .story h3{font-size:14.5px;letter-spacing:.06em;margin:15px 0 6px}
+.skp .wideimg{height:clamp(160px,26vw,280px);border-radius:14px;margin:12px 0 16px}
 
 /* ---- image + text band ---- */
-.skp .band{gap:clamp(26px,4vw,44px)}
-.skp .band img{border-radius:16px}
-.skp .band .bt h2{margin-bottom:12px}
-.skp .band .bt p{font-size:15px;line-height:1.66;margin:0 0 16px}
+.skp .band{gap:clamp(22px,3.4vw,38px)}
+.skp .band img{border-radius:14px}
+.skp .band .bt h2{margin-bottom:10px}
+.skp .band .bt p{font-size:14.5px;line-height:1.58;margin:0 0 12px}
 
 /* ---- steps ---- */
-.skp .steps{gap:16px;margin-top:22px}
-.skp .step{border-radius:16px;padding:24px 22px}
-.skp .step .n{width:36px;height:36px;font-size:16px;margin-bottom:12px}
-.skp .step h3{font-size:14px;margin-bottom:8px}
-.skp .step p{font-size:13px;line-height:1.6}
+.skp .steps{gap:14px;margin-top:16px!important}
+.skp .step{border-radius:14px;padding:18px 18px}
+.skp .step .n{width:32px;height:32px;font-size:15px;margin-bottom:9px}
+.skp .step h3{font-size:13.5px;margin-bottom:6px}
+.skp .step p{font-size:12.5px;line-height:1.52}
 
 /* ---- package cards ---- */
-.skp .cards{gap:16px}
-.skp .ccard{border-radius:16px;padding:28px 24px}
-.skp .price{font-size:32px}
-.skp .foot-note{margin-top:18px}
+.skp .cards{gap:14px}
+.skp .ccard{border-radius:14px;padding:22px 20px}
+.skp .ccard ul{margin:14px 0 16px}
+.skp .ccard li{padding:6px 0 6px 22px}
+.skp .price{font-size:28px;margin:4px 0 0}
+.skp .foot-note{margin-top:14px;font-size:13px}
 
 /* ---- retreat page: included cards / schedule / notes ---- */
-.skp .cards4{margin-top:20px}
-.skp .sched{margin-top:20px}
-.skp .srow{padding:16px 0}
-.skp .notebox{border-radius:16px;padding:20px 26px;margin-top:18px}
+.skp .cards4{margin-top:14px!important}
+.skp .sched{margin-top:14px}
+.skp .srow{padding:13px 0}
+.skp .notebox{border-radius:14px;padding:16px 22px;margin-top:14px}
 
 /* ---- who-is-this-for image cards ---- */
-.skp .icard img{height:200px}
-.skp .icard .ib{padding:16px 18px 18px}
+.skp .icols{margin-top:16px!important}
+.skp .icard img{height:168px}
+.skp .icard .ib{padding:14px 16px 16px}
+.skp .icard p{line-height:1.5}
 
-/* ---- FAQ: tighter ---- */
-.skp details{border-radius:12px;padding:0 20px;margin-bottom:9px}
-.skp summary{font-size:14.5px;padding:15px 28px 15px 0}
-.skp details .ans{font-size:13.5px;line-height:1.66;padding-bottom:16px}
+/* ---- FAQ: tight ---- */
+.skp .faq{margin-top:14px!important}
+.skp details{border-radius:11px;padding:0 18px;margin-bottom:7px}
+.skp summary{font-size:14px;padding:12px 28px 12px 0}
+.skp details .ans{font-size:13px;line-height:1.58;padding-bottom:13px}
 
-/* ---- full-width videos: cap height so the two bands don't dominate ---- */
-.skp .videofull video{max-height:440px}
+/* ---- full-width videos: shorter so they don't dominate ---- */
+.skp .videofull video{max-height:320px}
 
-/* ---- buttons: keep Shokogi pink, calm shadow ---- */
-.skp .btn{font-size:12px;letter-spacing:.16em;padding:15px 34px}
+/* ---- contact form: tighter ---- */
+.skp .skform{gap:10px}
+.skp .skform textarea{min-height:110px}
+
+/* ---- buttons: keep Shokogi pink ---- */
+.skp .btn{font-size:12px;letter-spacing:.16em;padding:13px 32px}
 .skp .btn.pink{box-shadow:0 8px 22px -12px rgba(244,110,149,.5);transition:transform .18s cubic-bezier(.22,1,.32,1),box-shadow .18s cubic-bezier(.22,1,.32,1),background .18s cubic-bezier(.22,1,.32,1)}
 @media(hover:hover){.skp .btn.pink:hover{background:#f05a86;transform:translateY(-1px);box-shadow:0 12px 26px -13px rgba(244,110,149,.55)}}
-.skp .closer p{font-size:15.5px;max-width:540px}
+.skp .closer p{font-size:15px;max-width:540px;margin:2px auto 16px}
 
-/* ---- mobile: denser, less scrolling ---- */
+/* ---- mobile: densest, least scrolling ---- */
 @media(max-width:760px){
-  .skp .sec{padding:clamp(26px,4vh,38px) 0}
-  .skp .herofull img,.skp .herofull video,.skp .heroimg{height:42vh;min-height:280px}
-  .skp .herotext{padding:22px 18px 2px}
-  .skp .herotext h1{font-size:clamp(26px,7.4vw,36px)}
-  .skp .herotext p{font-size:15px}
-  .skp .videofull video{max-height:300px}
-  .skp .wideimg{height:180px}
-  .skp .story{line-height:1.64}
-  .skp .price{font-size:28px}
+  .skp .sec{padding:clamp(16px,2.6vh,26px) 0}
+  .skp .herofull img,.skp .herofull video,.skp .heroimg{height:38vh;min-height:240px}
+  .skp .herotext{padding:16px 18px 0}
+  .skp .herotext h1{font-size:clamp(25px,7vw,34px)}
+  .skp .herotext p{font-size:14.5px}
+  .skp .videofull video{max-height:220px}
+  .skp .wideimg{height:150px}
+  .skp .story{line-height:1.56}
+  .skp .price{font-size:26px}
 }
 /* keep quick-facts two-up even on the smallest screens (not 1 tall column) */
 @media(max-width:460px){ .skp .facts{grid-template-columns:repeat(2,1fr)} }
 
-/* ================= THE FLEET — real Sea-Doo images, gliding over water ================= */
-.skp .fleet{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,22px);margin-top:clamp(1.6rem,3.2vh,2.4rem)}
-.skp .fcard{border:1px solid var(--line,#eceae3);border-radius:18px;overflow:hidden;background:#fff}
-.skp .fscene{position:relative;aspect-ratio:1200/680;background:#fff;overflow:hidden}
-/* soft water strip along the bottom */
-.skp .fscene:before{content:"";position:absolute;left:0;right:0;bottom:0;height:20%;pointer-events:none;
-  background:linear-gradient(180deg,rgba(173,214,217,0) 0%,rgba(173,214,217,.22) 65%,rgba(140,197,201,.4) 100%)}
-/* animated wake line skimming across the waterline */
-.skp .fscene:after{content:"";position:absolute;left:-20%;right:-20%;bottom:8%;height:4px;border-radius:50%;pointer-events:none;z-index:1;
-  background:radial-gradient(60% 100% at 50% 50%,rgba(255,255,255,.95),rgba(173,214,217,0) 72%);
-  animation:skfwake 3.6s ease-in-out infinite}
-@keyframes skfwake{0%,100%{transform:translateX(-5%) scaleX(.95);opacity:.4}50%{transform:translateX(5%) scaleX(1.05);opacity:.8}}
-/* the ski: gentle glide (bob + micro-tilt) with a soft shadow toward the water */
-.skp .fscene img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center 34%;z-index:2;
-  animation:skfglide 4.6s ease-in-out infinite;
-  filter:drop-shadow(0 15px 13px rgba(20,40,42,.14));will-change:transform}
-@keyframes skfglide{0%,100%{transform:translateY(0) rotate(-.45deg)}50%{transform:translateY(-8px) rotate(.45deg)}}
-@media(prefers-reduced-motion:reduce){
-  .skp .fscene img{animation:none;transform:none}
-  .skp .fscene:after{animation:none;opacity:.5}
-}
-.skp .fmeta{padding:clamp(16px,2vw,22px) clamp(18px,2.2vw,24px) 24px}
-.skp .fmeta .fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700;margin:0 0 4px}
-.skp .fmeta h3{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0 0 7px;text-align:left}
-.skp .fmeta p{font-size:13.5px;color:#52514d;line-height:1.58;margin:0 0 14px}
-.skp .fchips{display:flex;flex-wrap:wrap;gap:8px}
-.skp .fchip{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1d130f;background:#f7f0ea;border:1px solid var(--line,#eceae3);border-radius:999px;padding:6px 12px}
-.skp .fchip.hp{background:#f46e95;color:#fff;border-color:#f46e95}
-/* fleet stacks to one column on phones (declared last so it wins the cascade) */
-@media(max-width:760px){ .skp .fleet{grid-template-columns:1fr;gap:16px} }

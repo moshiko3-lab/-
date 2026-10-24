@@ -1,0 +1,31 @@
+/* SHOKOGI foil — fleet (part 2 of the foil polish layer, loaded with skplusfoil.css). */
+/* ================= THE FLEET — real Sea-Doo images, gliding over water ================= */
+.skp .fleet{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,20px);margin-top:clamp(1.2rem,2.4vh,1.8rem)}
+.skp .fcard{border:1px solid var(--line,#eceae3);border-radius:18px;overflow:hidden;background:#fff}
+.skp .fscene{position:relative;aspect-ratio:1200/640;background:#fff;overflow:hidden}
+/* soft water strip along the bottom */
+.skp .fscene:before{content:"";position:absolute;left:0;right:0;bottom:0;height:20%;pointer-events:none;
+  background:linear-gradient(180deg,rgba(173,214,217,0) 0%,rgba(173,214,217,.22) 65%,rgba(140,197,201,.4) 100%)}
+/* animated wake line skimming across the waterline */
+.skp .fscene:after{content:"";position:absolute;left:-20%;right:-20%;bottom:8%;height:4px;border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(60% 100% at 50% 50%,rgba(255,255,255,.95),rgba(173,214,217,0) 72%);
+  animation:skfwake 3.6s ease-in-out infinite}
+@keyframes skfwake{0%,100%{transform:translateX(-5%) scaleX(.95);opacity:.4}50%{transform:translateX(5%) scaleX(1.05);opacity:.8}}
+/* the ski: gentle glide (bob + micro-tilt) with a soft shadow toward the water */
+.skp .fscene img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center 34%;z-index:2;
+  animation:skfglide 4.6s ease-in-out infinite;
+  filter:drop-shadow(0 15px 13px rgba(20,40,42,.14));will-change:transform}
+@keyframes skfglide{0%,100%{transform:translateY(0) rotate(-.45deg)}50%{transform:translateY(-8px) rotate(.45deg)}}
+@media(prefers-reduced-motion:reduce){
+  .skp .fscene img{animation:none;transform:none}
+  .skp .fscene:after{animation:none;opacity:.5}
+}
+.skp .fmeta{padding:clamp(14px,1.8vw,20px) clamp(16px,2vw,22px) 20px}
+.skp .fmeta .fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700;margin:0 0 3px}
+.skp .fmeta h3{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px;text-align:left}
+.skp .fmeta p{font-size:13px;color:#52514d;line-height:1.5;margin:0 0 12px}
+.skp .fchips{display:flex;flex-wrap:wrap;gap:7px}
+.skp .fchip{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1d130f;background:#f7f0ea;border:1px solid var(--line,#eceae3);border-radius:999px;padding:5px 11px}
+.skp .fchip.hp{background:#f46e95;color:#fff;border-color:#f46e95}
+/* fleet stacks to one column on phones (declared last so it wins the cascade) */
+@media(max-width:760px){ .skp .fleet{grid-template-columns:1fr;gap:14px} }
