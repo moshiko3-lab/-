@@ -1,101 +1,99 @@
-/* SHOKOGI — foil pages polish + COMPACT layer. Loaded ONLY on the two foil
-   pages (via the fleet section) and scoped to .skp. Goal: make the whole page
-   markedly shorter — tight section rhythm, shorter hero and videos, denser
-   type and cards — while keeping it clean and premium, plus the fleet effect. */
+/* SHOKOGI — foil pages polish layer (page part). Loaded ONLY on the two foil
+   pages via the fleet section, scoped to .skp. Goal: smart, elegant, premium —
+   clear hierarchy with real breathing room, kept reasonably short (NOT dense,
+   not a long scroll). The fleet + gear live in skplusfoil2.css. */
 .skp{text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale}
 
-/* ---- rhythm: much tighter sections (base .sec is 44px) ---- */
+/* ---- rhythm: calm, even sections ---- */
 .skp .wrap{max-width:1000px}
-.skp .sec{padding:clamp(20px,2.8vh,32px) 0}
+.skp .sec{padding:clamp(30px,4vh,50px) 0}
 
-/* ---- hero: shorter frame ---- */
-.skp .herofull img,.skp .herofull video,.skp .heroimg{height:46vh;max-height:460px;min-height:280px}
-.skp .herotext{max-width:860px;padding:clamp(14px,2.2vh,24px) 20px 2px}
-.skp .herotext .htag{font-size:12px;letter-spacing:.22em;margin:0 0 8px}
-.skp .herotext h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-.005em;line-height:1.04;max-width:18ch;margin:0 auto 10px}
-.skp .herotext p{font-size:15px;line-height:1.55;max-width:620px;margin:0 auto 16px}
+/* ---- hero ---- */
+.skp .herofull img,.skp .herofull video,.skp .heroimg{height:54vh;max-height:540px;min-height:320px}
+.skp .herotext{max-width:860px;padding:clamp(24px,3.4vh,40px) 20px 6px}
+.skp .herotext .htag{font-size:12px;letter-spacing:.22em;margin:0 0 12px}
+.skp .herotext h1{font-size:clamp(30px,4.4vw,50px);font-weight:700;letter-spacing:-.005em;line-height:1.05;max-width:18ch;margin:0 auto 16px}
+.skp .herotext p{font-size:16px;line-height:1.65;max-width:640px;margin:0 auto 22px}
 
 /* ---- headings + leads ---- */
-.skp h2{font-size:clamp(23px,2.6vw,31px);font-weight:700;letter-spacing:-.005em;line-height:1.05;margin:4px 0 8px}
-.skp .kicker{font-size:11.5px;letter-spacing:.22em}
-.skp .lead{font-size:14.5px;line-height:1.55;max-width:640px;margin:0 auto 16px}
+.skp h2{font-size:clamp(26px,3vw,36px);font-weight:700;letter-spacing:-.005em;line-height:1.08;margin:6px 0 12px}
+.skp .kicker{font-size:12px;letter-spacing:.24em}
+.skp .lead{font-size:15.5px;line-height:1.65;max-width:660px;margin:0 auto 26px}
 
-/* ---- quick facts: auto-fit, compact cells; kill the inline margin-top ---- */
-.skp .facts{border-radius:14px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:14px!important}
-.skp .fact{padding:11px 15px}
-.skp .fact b{font-size:10px;letter-spacing:.14em;margin-bottom:2px}
-.skp .fact span{font-size:13px;color:#3f3e3a;line-height:1.4}
+/* ---- quick facts: auto-fit, comfortable cells ---- */
+.skp .facts{border-radius:16px;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));margin-top:18px!important}
+.skp .fact{padding:16px 18px}
+.skp .fact b{font-size:10.5px;letter-spacing:.14em;margin-bottom:4px}
+.skp .fact span{font-size:13.5px;color:#3f3e3a;line-height:1.5}
 
-/* ---- story / prose: tighter leading (content is long) ---- */
-.skp .story{font-size:14.5px;line-height:1.58;max-width:720px}
-.skp .story p{margin:0 0 9px}
-.skp .story h3{font-size:14.5px;letter-spacing:.06em;margin:15px 0 6px}
-.skp .wideimg{height:clamp(160px,26vw,280px);border-radius:14px;margin:12px 0 16px}
+/* ---- story / prose: easy, readable leading ---- */
+.skp .story{font-size:15px;line-height:1.75;max-width:720px}
+.skp .story p{margin:0 0 14px}
+.skp .story h3{font-size:15px;letter-spacing:.06em;margin:22px 0 8px}
+.skp .wideimg{height:clamp(220px,32vw,380px);border-radius:16px;margin:18px 0 24px}
 
 /* ---- image + text band ---- */
-.skp .band{gap:clamp(22px,3.4vw,38px)}
-.skp .band img{border-radius:14px}
-.skp .band .bt h2{margin-bottom:10px}
-.skp .band .bt p{font-size:14.5px;line-height:1.58;margin:0 0 12px}
+.skp .band{gap:clamp(28px,4vw,48px)}
+.skp .band img{border-radius:16px}
+.skp .band .bt h2{margin-bottom:14px}
+.skp .band .bt p{font-size:15px;line-height:1.72;margin:0 0 18px}
 
 /* ---- steps ---- */
-.skp .steps{gap:14px;margin-top:16px!important}
-.skp .step{border-radius:14px;padding:18px 18px}
-.skp .step .n{width:32px;height:32px;font-size:15px;margin-bottom:9px}
-.skp .step h3{font-size:13.5px;margin-bottom:6px}
-.skp .step p{font-size:12.5px;line-height:1.52}
+.skp .steps{gap:18px;margin-top:26px!important}
+.skp .step{border-radius:16px;padding:26px 24px}
+.skp .step .n{width:38px;height:38px;font-size:16px;margin-bottom:14px}
+.skp .step h3{font-size:14px;margin-bottom:9px}
+.skp .step p{font-size:13px;line-height:1.68}
 
 /* ---- package cards ---- */
-.skp .cards{gap:14px}
-.skp .ccard{border-radius:14px;padding:22px 20px}
-.skp .ccard ul{margin:14px 0 16px}
-.skp .ccard li{padding:6px 0 6px 22px}
-.skp .price{font-size:28px;margin:4px 0 0}
-.skp .foot-note{margin-top:14px;font-size:13px}
+.skp .cards{gap:18px}
+.skp .ccard{border-radius:16px;padding:28px 26px}
+.skp .ccard ul{margin:16px 0 20px}
+.skp .ccard li{padding:8px 0 8px 22px}
+.skp .price{font-size:31px;margin:6px 0 0}
+.skp .foot-note{margin-top:20px}
 
 /* ---- retreat page: included cards / schedule / notes ---- */
-.skp .cards4{margin-top:14px!important}
-.skp .sched{margin-top:14px}
-.skp .srow{padding:13px 0}
-.skp .notebox{border-radius:14px;padding:16px 22px;margin-top:14px}
+.skp .cards4{margin-top:22px!important}
+.skp .sched{margin-top:22px}
+.skp .srow{padding:18px 0}
+.skp .notebox{border-radius:16px;padding:22px 26px;margin-top:20px}
 
 /* ---- who-is-this-for image cards ---- */
-.skp .icols{margin-top:16px!important}
-.skp .icard img{height:168px}
-.skp .icard .ib{padding:14px 16px 16px}
-.skp .icard p{line-height:1.5}
+.skp .icols{margin-top:22px!important}
+.skp .icard img{height:190px}
+.skp .icard .ib{padding:18px 20px 20px}
+.skp .icard p{line-height:1.6}
 
-/* ---- FAQ: tight ---- */
-.skp .faq{margin-top:14px!important}
-.skp details{border-radius:11px;padding:0 18px;margin-bottom:7px}
-.skp summary{font-size:14px;padding:12px 28px 12px 0}
-.skp details .ans{font-size:13px;line-height:1.58;padding-bottom:13px}
+/* ---- FAQ ---- */
+.skp .faq{margin-top:18px!important}
+.skp details{border-radius:12px;padding:0 20px;margin-bottom:10px}
+.skp summary{font-size:14.5px;padding:16px 28px 16px 0}
+.skp details .ans{font-size:13.5px;line-height:1.7;padding-bottom:18px}
 
-/* ---- full-width videos: shorter so they don't dominate ---- */
-.skp .videofull video{max-height:320px}
+/* ---- full-width videos: present but not dominant ---- */
+.skp .videofull video{max-height:420px}
 
-/* ---- contact form: tighter ---- */
-.skp .skform{gap:10px}
-.skp .skform textarea{min-height:110px}
+/* ---- contact form ---- */
+.skp .skform{gap:12px}
+.skp .skform textarea{min-height:130px}
 
 /* ---- buttons: keep Shokogi pink ---- */
-.skp .btn{font-size:12px;letter-spacing:.16em;padding:13px 32px}
+.skp .btn{font-size:12px;letter-spacing:.16em;padding:15px 36px}
 .skp .btn.pink{box-shadow:0 8px 22px -12px rgba(244,110,149,.5);transition:transform .18s cubic-bezier(.22,1,.32,1),box-shadow .18s cubic-bezier(.22,1,.32,1),background .18s cubic-bezier(.22,1,.32,1)}
 @media(hover:hover){.skp .btn.pink:hover{background:#f05a86;transform:translateY(-1px);box-shadow:0 12px 26px -13px rgba(244,110,149,.55)}}
-.skp .closer p{font-size:15px;max-width:540px;margin:2px auto 16px}
+.skp .closer p{font-size:15.5px;max-width:540px;margin:4px auto 22px}
 
-/* ---- mobile: densest, least scrolling ---- */
+/* ---- mobile: tidy and clear, still airy enough ---- */
 @media(max-width:760px){
-  .skp .sec{padding:clamp(16px,2.6vh,26px) 0}
-  .skp .herofull img,.skp .herofull video,.skp .heroimg{height:38vh;min-height:240px}
-  .skp .herotext{padding:16px 18px 0}
-  .skp .herotext h1{font-size:clamp(25px,7vw,34px)}
-  .skp .herotext p{font-size:14.5px}
-  .skp .videofull video{max-height:220px}
-  .skp .wideimg{height:150px}
-  .skp .story{line-height:1.56}
-  .skp .price{font-size:26px}
+  .skp .sec{padding:clamp(26px,3.6vh,38px) 0}
+  .skp .herofull img,.skp .herofull video,.skp .heroimg{height:44vh;min-height:300px}
+  .skp .herotext{padding:22px 18px 4px}
+  .skp .herotext h1{font-size:clamp(27px,7.4vw,38px)}
+  .skp .herotext p{font-size:15px}
+  .skp .videofull video{max-height:280px}
+  .skp .wideimg{height:190px}
+  .skp .price{font-size:28px}
 }
-/* keep quick-facts two-up even on the smallest screens (not 1 tall column) */
+/* keep quick-facts two-up even on the smallest screens */
 @media(max-width:460px){ .skp .facts{grid-template-columns:repeat(2,1fr)} }
-
