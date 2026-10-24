@@ -1,0 +1,94 @@
+/* SHOKOGI — foil pages polish layer. Loaded ONLY on the two foil pages and
+   scoped to .skp.skfoil, so nothing else on the site is affected. It refines the
+   shared Surf-Camp design toward a more premium, editorial feel: real-weight
+   headings (no faux-bold), larger confident type, more breathing room. */
+.skp.skfoil{text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale}
+
+/* ---- rhythm: more air between sections ---- */
+.skp.skfoil .wrap{max-width:1000px}
+.skp.skfoil .sec{padding:clamp(52px,7.5vh,88px) 0}
+
+/* ---- hero: taller frame, bigger confident headline ---- */
+.skp.skfoil .herofull img,.skp.skfoil .herofull video,.skp.skfoil .heroimg{height:64vh;max-height:680px;min-height:360px}
+.skp.skfoil .herotext{max-width:880px;padding:clamp(34px,5vh,52px) 20px 8px}
+.skp.skfoil .herotext .htag{font-size:12px;letter-spacing:.24em;margin:0 0 14px}
+.skp.skfoil .herotext h1{font-size:clamp(38px,5.4vw,62px);font-weight:700;letter-spacing:-.01em;line-height:1.02;max-width:16ch;margin:0 auto 18px}
+.skp.skfoil .herotext p{font-size:17px;line-height:1.72;max-width:660px;margin:0 auto 26px}
+
+/* ---- headings + leads ---- */
+.skp.skfoil h2{font-size:clamp(28px,3.4vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:10px 0 12px}
+.skp.skfoil .kicker{font-size:12px;letter-spacing:.24em}
+.skp.skfoil .lead{font-size:16px;line-height:1.7;max-width:680px;margin-bottom:34px}
+
+/* ---- quick facts strip: auto-fit so odd counts fill cleanly (no empty cells) ---- */
+.skp.skfoil .facts{border-radius:18px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.skp.skfoil .fact{padding:20px 22px}
+.skp.skfoil .fact b{font-size:11px;letter-spacing:.16em;margin-bottom:5px}
+.skp.skfoil .fact span{font-size:14.5px;color:#34332f}
+
+/* ---- story / prose ---- */
+.skp.skfoil .story{font-size:16px;line-height:1.9;max-width:760px}
+.skp.skfoil .story h3{font-size:16px;letter-spacing:.06em;margin:28px 0 9px}
+.skp.skfoil .wideimg{height:clamp(240px,42vw,440px);border-radius:18px;margin:22px 0 28px}
+
+/* ---- image + text band ---- */
+.skp.skfoil .band{gap:clamp(28px,5vw,56px)}
+.skp.skfoil .band img{border-radius:18px}
+.skp.skfoil .band .bt h2{margin-bottom:16px}
+.skp.skfoil .band .bt p{font-size:15.5px;line-height:1.8;margin:0 0 22px}
+
+/* ---- steps ---- */
+.skp.skfoil .steps{gap:18px;margin-top:30px}
+.skp.skfoil .step{border-radius:18px;padding:30px 26px}
+.skp.skfoil .step .n{width:40px;height:40px;font-size:17px;margin-bottom:16px}
+.skp.skfoil .step h3{font-size:14.5px;margin-bottom:10px}
+.skp.skfoil .step p{font-size:13.5px;line-height:1.7}
+
+/* ---- package cards ---- */
+.skp.skfoil .cards{gap:18px}
+.skp.skfoil .ccard{border-radius:18px;padding:32px 28px}
+.skp.skfoil .ccard.feat2{box-shadow:0 18px 44px -22px rgba(244,110,149,.3)}
+.skp.skfoil .dur{font-size:12px;letter-spacing:.2em}
+.skp.skfoil .price{font-size:34px;letter-spacing:-.01em}
+.skp.skfoil .ccard li{font-size:13.5px;padding:9px 0 9px 24px}
+.skp.skfoil .cards4{gap:18px}
+.skp.skfoil .notebox{border-radius:18px;padding:26px 30px}
+.skp.skfoil .notebox h3{font-size:15.5px}
+.skp.skfoil .notebox p{font-size:14.5px}
+
+/* ---- schedule ---- */
+.skp.skfoil .srow{padding:22px 0;gap:26px}
+.skp.skfoil .srow .st{font-size:21px}
+.skp.skfoil .srow h3{font-size:15px}
+.skp.skfoil .srow p{font-size:14px}
+
+/* ---- who-is-this-for image cards ---- */
+.skp.skfoil .icard{border-radius:18px}
+.skp.skfoil .icard img{height:210px}
+.skp.skfoil .icard h3{font-size:14px}
+.skp.skfoil .icard p{font-size:13.5px;line-height:1.65}
+
+/* ---- FAQ ---- */
+.skp.skfoil .faq{max-width:800px}
+.skp.skfoil details{border-radius:14px;padding:2px 22px;margin-bottom:11px}
+.skp.skfoil summary{font-size:15.5px;padding:18px 30px 18px 0}
+.skp.skfoil summary:after{top:16px;font-size:22px}
+.skp.skfoil details .ans{font-size:14px;line-height:1.75;padding-bottom:20px}
+
+/* ---- lists ---- */
+.skp.skfoil .xlist li,.skp.skfoil .bullets li{font-size:15px;line-height:1.6}
+
+/* ---- buttons: a touch larger, calm shadow (keeps Shokogi pink) ---- */
+.skp.skfoil .btn{font-size:12.5px;letter-spacing:.16em;padding:17px 38px}
+.skp.skfoil .btn.pink{box-shadow:0 10px 26px -13px rgba(244,110,149,.55);transition:transform .18s cubic-bezier(.22,1,.32,1),box-shadow .18s cubic-bezier(.22,1,.32,1),background .18s cubic-bezier(.22,1,.32,1)}
+@media(hover:hover){.skp.skfoil .btn.pink:hover{background:#f05a86;transform:translateY(-1px);box-shadow:0 14px 30px -14px rgba(244,110,149,.6)}}
+.skp.skfoil .bbtn{font-size:11.5px;letter-spacing:.16em;padding:15px}
+.skp.skfoil .closer p{font-size:16px;max-width:560px}
+
+/* ---- mobile ---- */
+@media(max-width:760px){
+  .skp.skfoil .herotext h1{font-size:clamp(30px,8vw,40px)}
+  .skp.skfoil .herotext p{font-size:15.5px}
+  .skp.skfoil .sec{padding:clamp(40px,7vh,60px) 0}
+  .skp.skfoil .price{font-size:30px}
+}

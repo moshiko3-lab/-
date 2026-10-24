@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foil Surfing — lab</title>
+<style>
+/* Figtree (body) — real weights, both modes */
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-500.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-600.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-700.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{--font-body-family:'Figtree',-apple-system,'Segoe UI',Arial,sans-serif;--font-heading-family:'Barlow Condensed',sans-serif;--font-button-family:'Figtree',sans-serif}
+html,body{margin:0;background:#fff}
+/* fake sticky header so full-bleed is tested */
+.hdr{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:13px 22px}
+.hdr .lg{font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:.04em;color:#191a1a}
+.hdr nav{display:flex;gap:16px;font-family:'Figtree';font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#191a1a}
+.vph{width:100%;height:360px;background:linear-gradient(195deg,#9fcfd6,#2f6a71)}
+</style>
+<link rel="stylesheet" href="sk.css">
+</head>
+<body>
+<div class="hdr"><span class="lg">SHOKOGI</span><nav><span>Surf</span><span>Foil</span><span>Shop</span><span>Blog</span></nav></div>
+
+<div class="skp" id="root">
+  <!-- HERO -->
+  <div class="herofull"><div class="heroimg"><span>foil hero image</span></div></div>
+  <div class="herotext">
+    <div class="htag">Feel the Glide. Fly Above the Waves.</div>
+    <h1>Foil Surfing in Playa Venao, Panama</h1>
+    <p>Progress your foiling in world-class conditions with expert tow-in support and premium equipment. Already tried foiling? Playa Venao offers three perfect locations for progression&mdash;uncrowded breaks, consistent swells, and year-round warm water.</p>
+    <a href="#" class="btn pink">Book Your Session</a>
+  </div>
+
+  <!-- QUICK FACTS -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">the essentials</div>
+    <h2>Quick Facts: Foil Surfing at Shokogi</h2>
+    <div class="facts" style="margin-top:22px">
+      <div class="fact"><b>Experience Required</b><span>Have gotten up on a foil (1-2+ lessons)</span></div>
+      <div class="fact"><b>Session Format</b><span>Expert jetski tow-in support</span></div>
+      <div class="fact"><b>Session Length</b><span>2-hour or 3-hour sessions</span></div>
+      <div class="fact"><b>Best Season</b><span>Year-round (consistent swells)</span></div>
+      <div class="fact"><b>Water Temperature</b><span>78-82&deg;F (26-28&deg;C) &mdash; warm!</span></div>
+      <div class="fact"><b>Locations</b><span>3 premium foil spots (conditions-based)</span></div>
+      <div class="fact"><b>Equipment</b><span>High-performance foil boards, safety gear</span></div>
+      <div class="fact"><b>Age Minimum</b><span>14 years old (with foil experience)</span></div>
+      <div class="fact"><b>What's Included</b><span>Tow-in support, coaching, equipment</span></div>
+      <div class="fact"><b>Format</b><span>Private or small groups (max 3)</span></div>
+    </div>
+    <div style="text-align:center;margin-top:26px"><a href="#" class="btn pink">Book Your First Session</a></div>
+  </div></div>
+
+  <!-- WHAT IS FOIL -->
+  <div class="sec tint"><div class="wrap">
+    <div class="band rev">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='11'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23bfe0e6'/%3E%3Cstop offset='1' stop-color='%233d7f86'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='16' height='11' fill='url(%23g)'/%3E%3C/svg%3E" alt="What is Foil Surfing">
+      <div class="bt">
+        <h2>What is Foil Surfing?</h2>
+        <p>You've tried foiling at home. Now experience it in paradise.<br/><br/>Playa Venao offers what most foil spots can't: three distinct locations within 5 minutes, each offering different conditions and progression opportunities. Our protected bay provides consistent, clean swells perfect for building confidence and duration.<br/><br/>At Shokogi, we provide what serious foilers need to progress: expert jetski tow-in support that lets you maximize water time, high-performance equipment dialed for these conditions, and local knowledge of where to foil based on swell, wind, and tide.</p>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- WHY -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">the advantage</div>
+    <h2>Why Playa Venao for Foil Surfing?</h2>
+    <img class="wideimg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='7'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a9d2d8'/%3E%3Cstop offset='1' stop-color='%23356a71'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='16' height='7' fill='url(%23g)'/%3E%3C/svg%3E" alt="Why Playa Venao">
+    <div class="story"><p>Most foil spots lock you into one break with variable conditions. Playa Venao offers multiple locations within minutes&mdash;we choose the best spot daily based on swell, wind, and your ability.</p><p><strong>Expert Tow-In Support:</strong> Our jetski assistance eliminates exhausting paddle-outs and positioning guesswork. You maximize attempts and water time. Most visiting foilers are shocked at how much more riding they get compared to self-paddling.</p><p><strong>World-Class Conditions:</strong> Year-round 78-82&deg;F water (no thick wetsuits), consistent Pacific swells (never flat), and uncrowded lineups (often entire sections to yourself).</p></div>
+  </div></div>
+
+  <!-- VIDEO -->
+  <div class="videofull"><div class="vph"></div></div>
+
+  <!-- STEPS -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">step by step</div>
+    <h2>Your Progression Path</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>First Session</h3><p>Your first session focuses on adapting to new equipment and conditions. We'll assess your current ability, dial in board/foil setup for your style, and get you comfortable with our tow-in system.</p></div>
+      <div class="step"><div class="n">2</div><h3>Building Consistency</h3><p>Subsequent sessions focus on specific goals: longer rides, pumping efficiency, wave selection, or speed control. With expert tow-in support, you maximize attempts&mdash;no exhausting paddle-outs or missed waves.</p></div>
+      <div class="step"><div class="n">3</div><h3>Push Limits</h3><p>Ready to push your riding? Longer sessions let you work on advanced techniques: connecting multiple swells, riding tiny bumps, speed pumping, and positioning for bigger conditions.</p></div>
+    </div>
+  </div></div>
+
+  <!-- PACKAGES -->
+  <div class="sec" id="foil-book"><div class="wrap">
+    <div class="kicker" style="text-align:center">foil packages</div>
+    <h2>Choose Your Foil Package</h2>
+    <p class="lead">All packages include premium foil equipment, safety gear (helmet, impact vest), expert instruction, and access to Playa Venao's best foil zones.</p>
+    <div class="cards">
+      <div class="ccard"><div class="dur">3 Hours Tow-In</div><div class="price">$290<small>single session</small></div><ul><li>3-hour extended tow-in session</li><li>Premium foil board, foil &amp; safety gear</li><li>Expert jetski tow-in + real-time coaching</li><li>Multi-location access by conditions</li></ul><a href="#" class="bbtn">Book Session</a></div>
+      <div class="ccard feat2"><div class="ptag">Most Popular</div><div class="dur">3 Session Package</div><div class="price">$780<small>9 hours total</small></div><ul><li>Three 3-hour tow-in sessions</li><li>Premium equipment &amp; all safety gear</li><li>Multi-location progression</li><li>Flexible scheduling across your stay</li></ul><a href="#" class="bbtn">Book 3 Sessions</a></div>
+      <div class="ccard"><div class="dur">5 Session Package</div><div class="price">$1,150<small>10 hours total</small></div><ul><li>Five 2-hour tow-in sessions</li><li>Premium equipment &amp; all safety gear</li><li>Comprehensive progression tracking</li><li>Session notes &amp; practice plan</li></ul><a href="#" class="bbtn">Book 5 Sessions</a></div>
+    </div>
+  </div></div>
+
+  <!-- FAQ -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">Learn more about foil surfing with Shokogi</div>
+    <h2>FAQ</h2>
+    <div class="faq" style="margin-top:22px">
+      <details open><summary>What level of foiling experience do I need?</summary><div class="ans">You should have gotten up on a foil before, even if just for a few rides during 1-2 lessons. We focus on progression and technique&mdash;not teaching people to foil for the first time.</div></details>
+      <details><summary>I've only foiled once or twice&mdash;is that enough experience?</summary><div class="ans">Yes! If you've gotten up and ridden a foil, you have the foundation we need. Our tow-in support and expert coaching will help you build from there.</div></details>
+      <details><summary>Do you teach complete beginners?</summary><div class="ans">Not currently. We're focusing on progression for riders who've already tried foiling. This allows us to maximize safety and provide the best experience for visiting foilers.</div></details>
+      <details><summary>What makes your tow-in support different?</summary><div class="ans">Our instructors are experienced watermen and skilled foilers themselves&mdash;not just boat drivers. The tow-in eliminates exhausting paddle-outs and missed waves, so you spend maximum time actually riding.</div></details>
+    </div>
+  </div></div>
+
+  <!-- WHO -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">is it for you?</div>
+    <h2>Who Is This For?</h2>
+    <div class="icols" style="margin-top:24px;grid-template-columns:repeat(4,1fr)">
+      <div class="icard"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10'%3E%3Crect width='16' height='10' fill='%2371a7ae'/%3E%3C/svg%3E" alt=""><div class="ib"><h3>You've Tried Foiling</h3><p>&#10003; Taken 1-2+ foil lessons<br/>&#10003; Gotten up and ridden<br/>&#10003; Want to progress<br/>&#10003; Ready for expert guidance</p></div></div>
+      <div class="icard"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10'%3E%3Crect width='16' height='10' fill='%237fb0b6'/%3E%3C/svg%3E" alt=""><div class="ib"><h3>Visiting Playa Venao</h3><p>&#10003; Week-long surf trip<br/>&#10003; Variety beyond surfing<br/>&#10003; Want uncrowded conditions<br/>&#10003; Seeking adventure</p></div></div>
+      <div class="icard"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10'%3E%3Crect width='16' height='10' fill='%235e949b'/%3E%3C/svg%3E" alt=""><div class="ib"><h3>Serious About Progression</h3><p>&#10003; Want expert tow-in support<br/>&#10003; Ready to invest in technique<br/>&#10003; Looking for multiple sessions<br/>&#10003; Goal-oriented rider</p></div></div>
+      <div class="icard"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10'%3E%3Crect width='16' height='10' fill='%2387bcc2'/%3E%3C/svg%3E" alt=""><div class="ib"><h3>Equipment Matters</h3><p>&#10003; Want to try premium gear<br/>&#10003; Don't want to travel with foil<br/>&#10003; Need local setup knowledge<br/>&#10003; Value safety and quality</p></div></div>
+    </div>
+  </div></div>
+
+  <!-- CLOSER -->
+  <div class="sec tint"><div class="wrap closer">
+    <h2>Ready to fly above the waves?</h2>
+    <p>Progress your foiling in Playa Venao with expert tow-in support and premium equipment.</p>
+    <a href="#" class="btn pink">Book Your Session</a>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  var after = /after/.test(location.search);
+  var barlow = after
+    ? [['500',5],['600',6],['700',7]]
+    : [['500',5]]; // "before" = theme reality: only weight 500 is loaded → 600/700 faux-bold
+  var css = barlow.map(function(w){
+    return "@font-face{font-family:'Barlow Condensed';src:url('../shokogi-scrollcraft/fonts/BarlowCondensed-"+w[0]+".woff2') format('woff2');font-weight:"+w[0]+";font-display:swap}";
+  }).join('');
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  if(after){
+    document.getElementById('root').classList.add('skfoil');
+    var l = document.createElement('link'); l.rel='stylesheet'; l.href='skplusfoil.css'; document.head.appendChild(l);
+  }
+})();
+</script>
+</body>
+</html>
