@@ -1,0 +1,26 @@
+{%- comment -%} One animated Sea-Doo jet ski. Params: pylon (bool), badge_x, aria. Colours come from the parent .fscene.gtx / .fscene.wake via CSS vars. {%- endcomment -%}
+<svg viewBox="0 0 480 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ aria }}">
+  <g transform="translate(0,150)">
+    <path class="wave w2" d="M-120 20 C-40 8,10 34,90 22 C170 10,220 36,300 22 C380 8,430 34,510 22 C590 10,640 36,840 22 L840 120 L-120 120 Z" fill="#bcd9da"/>
+    <path class="wave" d="M-120 30 C-30 18,20 44,110 30 C200 16,250 44,340 30 C430 16,480 44,570 30 C660 16,710 44,840 30 L840 120 L-120 120 Z" fill="#a9ced0"/>
+    <path class="wave" d="M-120 34 C-30 26,20 48,110 36 C200 24,250 50,340 36 C430 24,480 50,570 36 C660 24,710 50,840 36 L840 40 L-120 40 Z" fill="#fff" opacity=".5"/>
+  </g>
+  <ellipse cx="240" cy="166" rx="170" ry="9" fill="#1b3b3d" opacity=".16"/>
+  <g class="speed" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"><line x1="20" y1="120" x2="60" y2="120"/><line x1="10" y1="138" x2="54" y2="138"/><line x1="24" y1="154" x2="62" y2="154"/></g>
+  <g class="skibody"><g transform="translate(-7,-14) scale(0.67)">
+    <g class="spray" fill="#fff"><circle cx="78" cy="238" r="9"/><circle cx="58" cy="226" r="7"/><circle cx="94" cy="226" r="7"/><circle cx="72" cy="212" r="6"/><circle cx="48" cy="240" r="6"/></g>
+    {%- if pylon -%}<g><rect x="150" y="120" width="10" height="92" rx="5" fill="#e8822a"/><circle cx="155" cy="122" r="9" fill="#0d1312"/><circle cx="155" cy="122" r="3.6" fill="#e8822a"/><path d="M160 138 C186 142,202 158,202 182" stroke="#e8822a" stroke-width="4" fill="none" stroke-linecap="round"/></g>{%- endif -%}
+    <path class="hull" d="M70 250 C58 248,52 236,58 226 L96 214 C150 208,360 206,470 212 C560 217,610 226,650 236 C690 246,700 252,690 258 C560 266,180 266,110 260 C92 258,78 256,70 250 Z"/>
+    <path class="deck" d="M300 214 C360 210,430 210,500 214 C560 217,610 226,650 236 C620 224,560 218,500 216 L380 216 C345 217,318 212,300 214 Z"/>
+    <path class="rdeck" d="M96 214 C150 208,280 207,360 209 L360 214 C280 212,150 213,100 220 C92 217,92 215,96 214 Z"/>
+    <path class="seat" d="M150 216 C160 200,200 196,240 196 L292 196 C306 196,312 202,312 214 C300 208,270 206,240 207 L190 209 C172 210,160 213,150 216 Z"/>
+    <g class="rider"><path d="M232 206 C236 222,230 236,214 244 L206 238 C220 230,224 218,222 206 Z"/><path d="M236 204 C238 184,250 170,268 162 C278 158,286 160,288 168 C290 178,282 190,272 198 C262 206,250 208,236 204 Z"/><path d="M276 172 C292 172,312 180,322 190 L316 198 C306 190,290 184,274 184 Z"/></g>
+    <circle class="rider" cx="292" cy="156" r="13"/>
+    <path class="helmet" d="M280 154 a12 12 0 0 1 24 0 Z"/>
+    <path class="consolep" d="M312 196 C326 196,336 204,340 216 L316 216 C312 206,312 200,312 196 Z"/>
+    <g class="hbar" stroke-width="6" stroke-linecap="round"><line x1="326" y1="206" x2="340" y2="182"/><line x1="334" y1="182" x2="356" y2="182"/></g>
+    <path class="accent" d="M96 232 C200 224,420 222,560 230 C470 224,220 226,112 236 C100 235,96 233,96 232 Z"/>
+    <rect class="grab" x="64" y="222" width="20" height="7" rx="3"/>
+    <text class="wordmark" x="{{ badge_x }}" y="238" font-family="'Barlow Condensed',sans-serif" font-weight="700" font-size="21" letter-spacing="1.5">SEA&#183;DOO</text>
+  </g></g>
+</svg>

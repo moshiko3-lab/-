@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "skfoilretreat": {
+      "type": "shokogi-foil-retreat",
+      "settings": {
+        "hero_video": "shopify://files/videos/DJI_0022.mov",
+        "why_video": "shopify://files/videos/DJI_0021.mov",
+        "bring_image": "shopify://shop_images/IMG_0141.jpg",
+        "who_image": "shopify://shop_images/IMG_0132.jpg"
+      }
+    },
+    "skfleet": { "type": "shokogi-foil-fleet", "settings": {} }
+  },
+  "order": ["skfoilretreat", "skfleet"]
+}

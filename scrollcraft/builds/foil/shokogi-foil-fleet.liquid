@@ -1,0 +1,41 @@
+{%- comment -%}
+  SHOKOGI — "The Fleet": animated Sea-Doo jet skis (GTX Limited 300 + Wake Pro).
+  Self-contained section added to the two foil pages. Loads sk.css + the foil
+  polish layer (skplusfoil.css, scoped to .skp — only ever loaded here) + the
+  real brand font weights, so the whole foil page also gets the polish.
+{%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+{{ 'skplusfoil.css' | asset_url | stylesheet_tag }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<div class="skp">
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">the fleet</div>
+    <h2>Our Jet Ski Tow-In Fleet</h2>
+    <p class="lead">Every tow-in session runs behind professional, supercharged Sea-Doo watercraft &mdash; the power and control that put you on more waves.</p>
+    <div class="fleet">
+      <div class="fcard">
+        <div class="fscene gtx">{% render 'foil-ski', pylon: false, badge_x: 150, aria: 'Sea-Doo GTX Limited 300 jet ski' %}</div>
+        <div class="fmeta">
+          <div class="fbrand">Sea-Doo</div>
+          <h3>GTX Limited 300</h3>
+          <p>Our flagship tow sled &mdash; supercharged power and a planted, three-up hull that holds a rock-steady line while you ride.</p>
+          <div class="fchips"><span class="fchip hp">300 HP</span><span class="fchip">Supercharged Rotax</span><span class="fchip">3-up stability</span></div>
+        </div>
+      </div>
+      <div class="fcard">
+        <div class="fscene wake">{% render 'foil-ski', pylon: true, badge_x: 186, aria: 'Sea-Doo Wake Pro jet ski with tow pylon' %}</div>
+        <div class="fmeta">
+          <div class="fbrand">Sea-Doo</div>
+          <h3>Wake Pro</h3>
+          <p>Built for tow sports &mdash; a retractable ski pylon and a strong, smooth pull make it the ideal partner for foil tow-ins.</p>
+          <div class="fchips"><span class="fchip hp">230 HP</span><span class="fchip">Supercharged</span><span class="fchip">Retractable ski pylon</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div>
+{% schema %}
+{ "name": "Foil Fleet", "tag": "section", "settings": [], "presets": [ { "name": "Foil Fleet" } ] }
+{% endschema %}

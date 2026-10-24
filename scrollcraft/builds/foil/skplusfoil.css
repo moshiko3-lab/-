@@ -1,94 +1,127 @@
 /* SHOKOGI — foil pages polish layer. Loaded ONLY on the two foil pages and
-   scoped to .skp.skfoil, so nothing else on the site is affected. It refines the
+   scoped to .skp, so nothing else on the site is affected. It refines the
    shared Surf-Camp design toward a more premium, editorial feel: real-weight
    headings (no faux-bold), larger confident type, more breathing room. */
-.skp.skfoil{text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale}
+.skp{text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale}
 
 /* ---- rhythm: more air between sections ---- */
-.skp.skfoil .wrap{max-width:1000px}
-.skp.skfoil .sec{padding:clamp(52px,7.5vh,88px) 0}
+.skp .wrap{max-width:1000px}
+.skp .sec{padding:clamp(52px,7.5vh,88px) 0}
 
 /* ---- hero: taller frame, bigger confident headline ---- */
-.skp.skfoil .herofull img,.skp.skfoil .herofull video,.skp.skfoil .heroimg{height:64vh;max-height:680px;min-height:360px}
-.skp.skfoil .herotext{max-width:880px;padding:clamp(34px,5vh,52px) 20px 8px}
-.skp.skfoil .herotext .htag{font-size:12px;letter-spacing:.24em;margin:0 0 14px}
-.skp.skfoil .herotext h1{font-size:clamp(38px,5.4vw,62px);font-weight:700;letter-spacing:-.01em;line-height:1.02;max-width:16ch;margin:0 auto 18px}
-.skp.skfoil .herotext p{font-size:17px;line-height:1.72;max-width:660px;margin:0 auto 26px}
+.skp .herofull img,.skp .herofull video,.skp .heroimg{height:64vh;max-height:680px;min-height:360px}
+.skp .herotext{max-width:880px;padding:clamp(34px,5vh,52px) 20px 8px}
+.skp .herotext .htag{font-size:12px;letter-spacing:.24em;margin:0 0 14px}
+.skp .herotext h1{font-size:clamp(38px,5.4vw,62px);font-weight:700;letter-spacing:-.01em;line-height:1.02;max-width:16ch;margin:0 auto 18px}
+.skp .herotext p{font-size:17px;line-height:1.72;max-width:660px;margin:0 auto 26px}
 
 /* ---- headings + leads ---- */
-.skp.skfoil h2{font-size:clamp(28px,3.4vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:10px 0 12px}
-.skp.skfoil .kicker{font-size:12px;letter-spacing:.24em}
-.skp.skfoil .lead{font-size:16px;line-height:1.7;max-width:680px;margin-bottom:34px}
+.skp h2{font-size:clamp(28px,3.4vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1.04;margin:10px 0 12px}
+.skp .kicker{font-size:12px;letter-spacing:.24em}
+.skp .lead{font-size:16px;line-height:1.7;max-width:680px;margin-bottom:34px}
 
 /* ---- quick facts strip: auto-fit so odd counts fill cleanly (no empty cells) ---- */
-.skp.skfoil .facts{border-radius:18px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-.skp.skfoil .fact{padding:20px 22px}
-.skp.skfoil .fact b{font-size:11px;letter-spacing:.16em;margin-bottom:5px}
-.skp.skfoil .fact span{font-size:14.5px;color:#34332f}
+.skp .facts{border-radius:18px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.skp .fact{padding:20px 22px}
+.skp .fact b{font-size:11px;letter-spacing:.16em;margin-bottom:5px}
+.skp .fact span{font-size:14.5px;color:#34332f}
 
 /* ---- story / prose ---- */
-.skp.skfoil .story{font-size:16px;line-height:1.9;max-width:760px}
-.skp.skfoil .story h3{font-size:16px;letter-spacing:.06em;margin:28px 0 9px}
-.skp.skfoil .wideimg{height:clamp(240px,42vw,440px);border-radius:18px;margin:22px 0 28px}
+.skp .story{font-size:16px;line-height:1.9;max-width:760px}
+.skp .story h3{font-size:16px;letter-spacing:.06em;margin:28px 0 9px}
+.skp .wideimg{height:clamp(240px,42vw,440px);border-radius:18px;margin:22px 0 28px}
 
 /* ---- image + text band ---- */
-.skp.skfoil .band{gap:clamp(28px,5vw,56px)}
-.skp.skfoil .band img{border-radius:18px}
-.skp.skfoil .band .bt h2{margin-bottom:16px}
-.skp.skfoil .band .bt p{font-size:15.5px;line-height:1.8;margin:0 0 22px}
+.skp .band{gap:clamp(28px,5vw,56px)}
+.skp .band img{border-radius:18px}
+.skp .band .bt h2{margin-bottom:16px}
+.skp .band .bt p{font-size:15.5px;line-height:1.8;margin:0 0 22px}
 
 /* ---- steps ---- */
-.skp.skfoil .steps{gap:18px;margin-top:30px}
-.skp.skfoil .step{border-radius:18px;padding:30px 26px}
-.skp.skfoil .step .n{width:40px;height:40px;font-size:17px;margin-bottom:16px}
-.skp.skfoil .step h3{font-size:14.5px;margin-bottom:10px}
-.skp.skfoil .step p{font-size:13.5px;line-height:1.7}
+.skp .steps{gap:18px;margin-top:30px}
+.skp .step{border-radius:18px;padding:30px 26px}
+.skp .step .n{width:40px;height:40px;font-size:17px;margin-bottom:16px}
+.skp .step h3{font-size:14.5px;margin-bottom:10px}
+.skp .step p{font-size:13.5px;line-height:1.7}
 
 /* ---- package cards ---- */
-.skp.skfoil .cards{gap:18px}
-.skp.skfoil .ccard{border-radius:18px;padding:32px 28px}
-.skp.skfoil .ccard.feat2{box-shadow:0 18px 44px -22px rgba(244,110,149,.3)}
-.skp.skfoil .dur{font-size:12px;letter-spacing:.2em}
-.skp.skfoil .price{font-size:34px;letter-spacing:-.01em}
-.skp.skfoil .ccard li{font-size:13.5px;padding:9px 0 9px 24px}
-.skp.skfoil .cards4{gap:18px}
-.skp.skfoil .notebox{border-radius:18px;padding:26px 30px}
-.skp.skfoil .notebox h3{font-size:15.5px}
-.skp.skfoil .notebox p{font-size:14.5px}
+.skp .cards{gap:18px}
+.skp .ccard{border-radius:18px;padding:32px 28px}
+.skp .ccard.feat2{box-shadow:0 18px 44px -22px rgba(244,110,149,.3)}
+.skp .dur{font-size:12px;letter-spacing:.2em}
+.skp .price{font-size:34px;letter-spacing:-.01em}
+.skp .ccard li{font-size:13.5px;padding:9px 0 9px 24px}
+.skp .cards4{gap:18px}
+.skp .notebox{border-radius:18px;padding:26px 30px}
+.skp .notebox h3{font-size:15.5px}
+.skp .notebox p{font-size:14.5px}
 
 /* ---- schedule ---- */
-.skp.skfoil .srow{padding:22px 0;gap:26px}
-.skp.skfoil .srow .st{font-size:21px}
-.skp.skfoil .srow h3{font-size:15px}
-.skp.skfoil .srow p{font-size:14px}
+.skp .srow{padding:22px 0;gap:26px}
+.skp .srow .st{font-size:21px}
+.skp .srow h3{font-size:15px}
+.skp .srow p{font-size:14px}
 
 /* ---- who-is-this-for image cards ---- */
-.skp.skfoil .icard{border-radius:18px}
-.skp.skfoil .icard img{height:210px}
-.skp.skfoil .icard h3{font-size:14px}
-.skp.skfoil .icard p{font-size:13.5px;line-height:1.65}
+.skp .icard{border-radius:18px}
+.skp .icard img{height:210px}
+.skp .icard h3{font-size:14px}
+.skp .icard p{font-size:13.5px;line-height:1.65}
 
 /* ---- FAQ ---- */
-.skp.skfoil .faq{max-width:800px}
-.skp.skfoil details{border-radius:14px;padding:2px 22px;margin-bottom:11px}
-.skp.skfoil summary{font-size:15.5px;padding:18px 30px 18px 0}
-.skp.skfoil summary:after{top:16px;font-size:22px}
-.skp.skfoil details .ans{font-size:14px;line-height:1.75;padding-bottom:20px}
+.skp .faq{max-width:800px}
+.skp details{border-radius:14px;padding:2px 22px;margin-bottom:11px}
+.skp summary{font-size:15.5px;padding:18px 30px 18px 0}
+.skp summary:after{top:16px;font-size:22px}
+.skp details .ans{font-size:14px;line-height:1.75;padding-bottom:20px}
 
 /* ---- lists ---- */
-.skp.skfoil .xlist li,.skp.skfoil .bullets li{font-size:15px;line-height:1.6}
+.skp .xlist li,.skp .bullets li{font-size:15px;line-height:1.6}
 
 /* ---- buttons: a touch larger, calm shadow (keeps Shokogi pink) ---- */
-.skp.skfoil .btn{font-size:12.5px;letter-spacing:.16em;padding:17px 38px}
-.skp.skfoil .btn.pink{box-shadow:0 10px 26px -13px rgba(244,110,149,.55);transition:transform .18s cubic-bezier(.22,1,.32,1),box-shadow .18s cubic-bezier(.22,1,.32,1),background .18s cubic-bezier(.22,1,.32,1)}
-@media(hover:hover){.skp.skfoil .btn.pink:hover{background:#f05a86;transform:translateY(-1px);box-shadow:0 14px 30px -14px rgba(244,110,149,.6)}}
-.skp.skfoil .bbtn{font-size:11.5px;letter-spacing:.16em;padding:15px}
-.skp.skfoil .closer p{font-size:16px;max-width:560px}
+.skp .btn{font-size:12.5px;letter-spacing:.16em;padding:17px 38px}
+.skp .btn.pink{box-shadow:0 10px 26px -13px rgba(244,110,149,.55);transition:transform .18s cubic-bezier(.22,1,.32,1),box-shadow .18s cubic-bezier(.22,1,.32,1),background .18s cubic-bezier(.22,1,.32,1)}
+@media(hover:hover){.skp .btn.pink:hover{background:#f05a86;transform:translateY(-1px);box-shadow:0 14px 30px -14px rgba(244,110,149,.6)}}
+.skp .bbtn{font-size:11.5px;letter-spacing:.16em;padding:15px}
+.skp .closer p{font-size:16px;max-width:560px}
 
 /* ---- mobile ---- */
 @media(max-width:760px){
-  .skp.skfoil .herotext h1{font-size:clamp(30px,8vw,40px)}
-  .skp.skfoil .herotext p{font-size:15.5px}
-  .skp.skfoil .sec{padding:clamp(40px,7vh,60px) 0}
-  .skp.skfoil .price{font-size:30px}
+  .skp .herotext h1{font-size:clamp(30px,8vw,40px)}
+  .skp .herotext p{font-size:15.5px}
+  .skp .sec{padding:clamp(40px,7vh,60px) 0}
+  .skp .price{font-size:30px}
 }
+
+/* ================= THE FLEET — animated Sea-Doo jet skis ================= */
+.skp .fleet{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,24px);margin-top:clamp(2rem,4vh,3rem)}
+.skp .fcard{border:1px solid var(--line,#eceae3);border-radius:18px;overflow:hidden;background:#fff}
+.skp .fscene{position:relative;aspect-ratio:480/236;background:linear-gradient(180deg,#eef5f5 0%,#dcebec 58%,#c7dedf 100%)}
+.skp .fscene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.skp .fscene.gtx{--hull:#18150f;--deck:#27272b;--rdeck:#343438;--seat:#cbb68d;--accent:#c7a24e;--console:#1b1b1e;--txt:#c7a24e}
+.skp .fscene.wake{--hull:#3cc3b2;--deck:#7d8587;--rdeck:#8a9191;--seat:#9aa1a1;--accent:#e8822a;--console:#2b3131;--txt:#123b35}
+.skp .fscene .hull{fill:var(--hull)}.skp .fscene .deck{fill:var(--deck)}.skp .fscene .rdeck{fill:var(--rdeck)}
+.skp .fscene .seat{fill:var(--seat)}.skp .fscene .accent{fill:var(--accent)}.skp .fscene .consolep{fill:var(--console)}
+.skp .fscene .rider{fill:#0d1312}.skp .fscene .helmet{fill:#f46e95}.skp .fscene .wordmark{fill:var(--txt)}
+.skp .fscene .grab{fill:#0d1312}.skp .fscene .hbar{stroke:#0d1312}
+.skp .fscene .skibody{transform-box:fill-box;transform-origin:center;animation:skfbob 4s ease-in-out infinite}
+@keyframes skfbob{0%,100%{transform:translateY(0) rotate(-.7deg)}50%{transform:translateY(-5px) rotate(.7deg)}}
+.skp .fscene .wave{animation:skfdrift 7s linear infinite}
+.skp .fscene .wave.w2{animation-duration:4.6s;animation-direction:reverse;opacity:.6}
+@keyframes skfdrift{to{transform:translateX(-120px)}}
+.skp .fscene .spray circle{transform-box:fill-box;transform-origin:center;animation:skfspray 1.9s ease-out infinite}
+.skp .fscene .spray circle:nth-child(2){animation-delay:.35s}.skp .fscene .spray circle:nth-child(3){animation-delay:.7s}
+.skp .fscene .spray circle:nth-child(4){animation-delay:1.05s}.skp .fscene .spray circle:nth-child(5){animation-delay:1.4s}
+@keyframes skfspray{0%{transform:translate(0,0) scale(.3);opacity:0}25%{opacity:.9}100%{transform:translate(-24px,-18px) scale(1.1);opacity:0}}
+.skp .fscene .speed line{animation:skfstreak 1.5s linear infinite}
+.skp .fscene .speed line:nth-child(2){animation-delay:.5s}.skp .fscene .speed line:nth-child(3){animation-delay:1s}
+@keyframes skfstreak{0%{opacity:0;transform:translateX(14px)}30%{opacity:.5}100%{opacity:0;transform:translateX(-22px)}}
+@media(prefers-reduced-motion:reduce){.skp .fscene .skibody,.skp .fscene .wave,.skp .fscene .spray circle,.skp .fscene .speed line{animation:none}}
+.skp .fmeta{padding:clamp(18px,2.2vw,24px) clamp(20px,2.4vw,26px) 26px}
+.skp .fmeta .fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700;margin:0 0 4px}
+.skp .fmeta h3{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 8px;text-align:left}
+.skp .fmeta p{font-size:14px;color:#52514d;line-height:1.62;margin:0 0 16px}
+.skp .fchips{display:flex;flex-wrap:wrap;gap:8px}
+.skp .fchip{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1d130f;background:#f7f0ea;border:1px solid var(--line,#eceae3);border-radius:999px;padding:6px 12px}
+.skp .fchip.hp{background:#f46e95;color:#fff;border-color:#f46e95}
+@media(max-width:760px){.skp .fleet{grid-template-columns:1fr;gap:18px}}
