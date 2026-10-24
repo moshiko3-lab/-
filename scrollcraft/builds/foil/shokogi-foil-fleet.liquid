@@ -1,9 +1,9 @@
 {%- comment -%}
-  SHOKOGI — "The Fleet": the two real Sea-Doo jet skis (GTX Limited 300 + Wake
-  Pro), shown as illustrations with a gentle float. Self-contained section added
-  to the two foil pages. Loads sk.css + the foil polish layer (skplusfoil.css,
-  scoped to .skp — only ever loaded here) + the real brand font weights, so the
-  whole foil page also gets the polish.
+  SHOKOGI — "The Setup": the full tow-in rig (ski, rope, board, pylon, arch)
+  converges onto the jet ski on scroll. Self-contained section on the two foil
+  pages. Loads sk.css + the foil polish layers (skplusfoil.css + skplusfoil2.css,
+  scoped to .skp — only ever loaded here) + the brand font weights, so the whole
+  foil page also gets the polish. Degrades to the assembled scene without JS.
 {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
 {{ 'skplusfoil.css' | asset_url | stylesheet_tag }}
@@ -13,73 +13,38 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
 <div class="skp">
   <div class="sec"><div class="wrap">
-    <div class="kicker" style="text-align:center">the fleet</div>
-    <h2>Our Jet Ski Tow-In Fleet</h2>
-    <p class="lead">Every tow-in session runs behind professional, supercharged Sea-Doo watercraft &mdash; the power and control that put you on more waves.</p>
-    <div class="fleet">
-      <div class="fcard">
-        <div class="fscene"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-gtx-300.jpg?v=1792868186" width="1200" height="600" loading="lazy" alt="Sea-Doo GTX Limited 300 jet ski"></div>
-        <div class="fmeta">
-          <div class="fbrand">Sea-Doo</div>
-          <h3>GTX Limited 300</h3>
-          <p>Our flagship tow sled &mdash; supercharged power and a planted, three-up hull that holds a rock-steady line while you ride.</p>
-          <div class="fchips"><span class="fchip hp">300 HP</span><span class="fchip">Supercharged Rotax</span><span class="fchip">3-up stability</span></div>
-        </div>
+    <div class="kicker" style="text-align:center">the setup</div>
+    <h2>Everything Comes Together</h2>
+    <p class="lead">Our full tow-in rig &mdash; ski, line, board, pylon and arch, dialed and ready for your session.</p>
+    <div class="setup" id="skf-setup">
+      <div class="stage">
+        <div class="pc ski"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-ski.webp?v=1792877437" width="1200" height="600" loading="lazy" alt="Sea-Doo GTX Limited 300 tow-in jet ski"></div>
+        <div class="pc rope"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-rope.webp?v=1792877437" width="1200" height="600" loading="lazy" alt="Armstrong tow rope and handle"></div>
+        <div class="pc arch"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-arch.webp?v=1792877437" width="1100" height="733" loading="lazy" alt="JAIN inflatable grab arch"></div>
+        <div class="pc pylon"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-pylon.webp?v=1792877437" width="950" height="950" loading="lazy" alt="BRP tow pylon"></div>
+        <div class="pc board"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-board.webp?v=1792877437" width="950" height="950" loading="lazy" alt="JETTECH tow board"></div>
       </div>
-      <div class="fcard">
-        <div class="fscene"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-wake-pro.jpg?v=1792868186" width="1200" height="600" loading="lazy" alt="Sea-Doo Wake Pro jet ski with tow pylon"></div>
-        <div class="fmeta">
-          <div class="fbrand">Sea-Doo</div>
-          <h3>Wake Pro</h3>
-          <p>Built for tow sports &mdash; a retractable ski pylon and a strong, smooth pull make it the ideal partner for foil tow-ins.</p>
-          <div class="fchips"><span class="fchip hp">230 HP</span><span class="fchip">Supercharged</span><span class="fchip">Retractable ski pylon</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="geardiv">
-      <div class="kicker" style="text-align:center">tow gear</div>
-      <h2>Our Tow Gear</h2>
-      <div class="geargrid">
-        <div class="fcard">
-          <div class="gscene2"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/armstrong-tow-rope.jpg?v=1792872510" width="1600" height="800" loading="lazy" alt="Armstrong tow rope and handle for tow-in foil surfing"></div>
-          <div class="fmeta">
-            <div class="fbrand">Armstrong</div>
-            <h3>Tow Rope &amp; Handle</h3>
-            <p>The tow line we run on every session &mdash; a strong braided rope with a padded, textured grip handle, plus a storage strap to keep it coiled and ready between tow-ins.</p>
-            <div class="fchips"><span class="fchip">Braided tow line</span><span class="fchip">Padded grip handle</span><span class="fchip">Storage strap</span></div>
-          </div>
-        </div>
-        <div class="fcard">
-          <div class="gscene2"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/jettech-tow-board.jpg?v=1792873921" width="1100" height="1100" loading="lazy" alt="JETTECH tow board for jet ski tow-in foil surfing"></div>
-          <div class="fmeta">
-            <div class="fbrand">JETTECH</div>
-            <h3>Tow Board</h3>
-            <p>Our tow board for the ride out &mdash; a grippy EVA deck with grab handles all around and bungee lacing to stow gear, plus secure foot straps for the tow behind the ski.</p>
-            <div class="fchips"><span class="fchip">Grippy EVA deck</span><span class="fchip">Grab handles</span><span class="fchip">Bungee gear lacing</span></div>
-          </div>
-        </div>
-        <div class="fcard">
-          <div class="gscene2"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/brp-tow-pylon.jpg?v=1792874643" width="1100" height="1100" loading="lazy" alt="BRP tow pylon for jet ski tow-in foil surfing"></div>
-          <div class="fmeta">
-            <div class="fbrand">BRP</div>
-            <h3>Tow Pylon</h3>
-            <p>Raises the tow point so the line pulls high and clean above the water &mdash; height-adjustable with a swivel base for a steadier, more direct pull on every tow-in.</p>
-            <div class="fchips"><span class="fchip">Raised tow point</span><span class="fchip">Height-adjustable</span><span class="fchip">Swivel base</span></div>
-          </div>
-        </div>
-        <div class="fcard">
-          <div class="gscene2"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/jain-inflatable-arch.jpg?v=1792875293" width="1400" height="933" loading="lazy" alt="JAIN inflatable grab arch for tow-in foil surfing"></div>
-          <div class="fmeta">
-            <div class="fbrand">JAIN</div>
-            <h3>Inflatable Grab Arch</h3>
-            <p>Our inflatable grab arch for steadying up in the water &mdash; soft and buoyant, lined with handle openings to hold onto, with tie-in eyelets and a pack-down design that rolls up small between sessions.</p>
-            <div class="fchips"><span class="fchip">Inflatable</span><span class="fchip">Grab handles</span><span class="fchip">Packs down small</span></div>
-          </div>
-        </div>
+      <div class="legend">
+        <span><b>Sea-Doo</b> GTX Limited 300</span>
+        <span><b>Armstrong</b> Tow Rope</span>
+        <span><b>JETTECH</b> Tow Board</span>
+        <span><b>BRP</b> Tow Pylon</span>
+        <span><b>JAIN</b> Grab Arch</span>
       </div>
     </div>
   </div></div>
 </div>
+<script>
+(function(){
+  var el=document.getElementById('skf-setup');
+  if(!el) return;
+  el.classList.add('ready');
+  var done=false, play=function(){ if(done){return;} done=true; el.classList.add('go'); };
+  if(!('IntersectionObserver' in window)){ play(); return; }
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){ play(); io.disconnect(); } });},{threshold:0.35});
+  io.observe(el);
+})();
+</script>
 {% schema %}
-{ "name": "Foil Fleet", "tag": "section", "settings": [], "presets": [ { "name": "Foil Fleet" } ] }
+{ "name": "Foil Setup", "tag": "section", "settings": [], "presets": [ { "name": "Foil Setup" } ] }
 {% endschema %}

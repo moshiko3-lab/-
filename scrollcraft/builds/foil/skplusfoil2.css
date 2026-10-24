@@ -1,43 +1,60 @@
-/* SHOKOGI foil — fleet (part 2 of the foil polish layer, loaded with skplusfoil.css). */
-/* ================= THE FLEET — real Sea-Doo images, gliding over water ================= */
-.skp .fleet{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,20px);margin-top:clamp(1.2rem,2.4vh,1.8rem)}
-.skp .fcard{border:1px solid var(--line,#eceae3);border-radius:18px;overflow:hidden;background:#fff}
-.skp .fscene{position:relative;aspect-ratio:1200/640;background:#fff;overflow:hidden}
-/* soft water strip along the bottom */
-.skp .fscene:before{content:"";position:absolute;left:0;right:0;bottom:0;height:20%;pointer-events:none;
-  background:linear-gradient(180deg,rgba(173,214,217,0) 0%,rgba(173,214,217,.22) 65%,rgba(140,197,201,.4) 100%)}
-/* animated wake line skimming across the waterline */
-.skp .fscene:after{content:"";position:absolute;left:-20%;right:-20%;bottom:8%;height:4px;border-radius:50%;pointer-events:none;z-index:1;
-  background:radial-gradient(60% 100% at 50% 50%,rgba(255,255,255,.95),rgba(173,214,217,0) 72%);
-  animation:skfwake 3.6s ease-in-out infinite}
-@keyframes skfwake{0%,100%{transform:translateX(-5%) scaleX(.95);opacity:.4}50%{transform:translateX(5%) scaleX(1.05);opacity:.8}}
-/* the ski: gentle glide (bob + micro-tilt) with a soft shadow toward the water */
-.skp .fscene img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center 34%;z-index:2;
-  animation:skfglide 4.6s ease-in-out infinite;
-  filter:drop-shadow(0 15px 13px rgba(20,40,42,.14));will-change:transform}
-@keyframes skfglide{0%,100%{transform:translateY(0) rotate(-.45deg)}50%{transform:translateY(-8px) rotate(.45deg)}}
-@media(prefers-reduced-motion:reduce){
-  .skp .fscene img{animation:none;transform:none}
-  .skp .fscene:after{animation:none;opacity:.5}
-}
-.skp .fmeta{padding:clamp(14px,1.8vw,20px) clamp(16px,2vw,22px) 20px}
-.skp .fmeta .fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700;margin:0 0 3px}
-.skp .fmeta h3{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px;text-align:left}
-.skp .fmeta p{font-size:13px;color:#52514d;line-height:1.5;margin:0 0 12px}
-.skp .fchips{display:flex;flex-wrap:wrap;gap:7px}
-.skp .fchip{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1d130f;background:#f7f0ea;border:1px solid var(--line,#eceae3);border-radius:999px;padding:5px 11px}
-.skp .fchip.hp{background:#f46e95;color:#fff;border-color:#f46e95}
-/* fleet stacks to one column on phones (declared last so it wins the cascade) */
-@media(max-width:760px){ .skp .fleet{grid-template-columns:1fr;gap:14px} }
+/* SHOKOGI foil — "The Setup": the full tow-in rig converges onto the jet ski.
+   Loaded with skplusfoil.css on the two foil pages via this section. Scroll-
+   triggered (JS adds .ready then .go). Degrades gracefully: without JS the
+   scene shows fully assembled; prefers-reduced-motion shows it static too. */
+.skp .setup{margin-top:clamp(1rem,2.2vh,1.8rem)}
+.skp .stage{position:relative;width:100%;aspect-ratio:1040/600;margin:0 auto;overflow:hidden;
+  background:radial-gradient(58% 58% at 50% 45%,#ffffff 0%,#fbfaf9 52%,#f3f1ee 100%)}
+/* soft pink floor glow under the rig */
+.skp .stage:before{content:"";position:absolute;left:50%;top:63%;transform:translate(-50%,-50%);
+  width:58%;height:14%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(244,110,149,.13),rgba(244,110,149,0) 70%)}
 
-/* ---- tow gear: our actual gear, 2-up on clean white scenes, gentle bob ---- */
-.skp .geardiv{margin-top:clamp(1.6rem,3.2vh,2.6rem)}
-.skp .geargrid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(14px,2vw,20px);margin-top:clamp(.8rem,1.8vh,1.3rem)}
-.skp .gscene2{position:relative;aspect-ratio:4/3;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:clamp(10px,1.6vw,18px)}
-.skp .gscene2 img{width:100%;height:100%;object-fit:contain;animation:skfbob 5.2s ease-in-out infinite;filter:drop-shadow(0 12px 14px rgba(20,40,42,.1));will-change:transform}
-.skp .geargrid .fcard:nth-child(2) .gscene2 img{animation-delay:-1.7s}
-.skp .geargrid .fcard:nth-child(3) .gscene2 img{animation-delay:-3.4s}
-.skp .geargrid .fcard:nth-child(4) .gscene2 img{animation-delay:-5.1s}
-@keyframes skfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@media(prefers-reduced-motion:reduce){ .skp .gscene2 img{animation:none} }
-@media(max-width:760px){ .skp .geargrid{grid-template-columns:1fr;gap:14px} }
+.skp .pc{position:absolute;transform:translate(-50%,-50%);transform-origin:center;will-change:transform,opacity}
+.skp .pc img{width:100%;height:auto;display:block;filter:drop-shadow(0 16px 18px rgba(20,30,34,.16))}
+/* resting positions (also the no-JS / reduced-motion assembled layout) */
+.skp .pc.ski  {left:50%;top:50%;width:54%}
+.skp .pc.rope {left:24%;top:23%;width:30%}
+.skp .pc.arch {left:80.5%;top:24%;width:12.5%}
+.skp .pc.pylon{left:25%;top:77%;width:13.5%}
+.skp .pc.board{left:75%;top:78%;width:21%}
+
+/* JS hides the pieces first, then plays them in */
+.skp .setup.ready .pc{opacity:0}
+@keyframes skf-fly{from{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.55) rotate(var(--rot))}
+  55%{opacity:1}
+  to{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1) rotate(0)}}
+@keyframes skf-ski{from{opacity:0;transform:translate(-50%,-50%) scale(.82)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.skp .setup.go .pc.ski  {animation:skf-ski 1.1s cubic-bezier(.22,1,.32,1) .1s both}
+.skp .setup.go .pc.rope {--dx:-170px;--dy:-140px;--rot:-9deg;animation:skf-fly 1.2s cubic-bezier(.2,1.05,.3,1) .55s both}
+.skp .setup.go .pc.arch {--dx:175px;--dy:-130px;--rot:8deg;animation:skf-fly 1.2s cubic-bezier(.2,1.05,.3,1) .85s both}
+.skp .setup.go .pc.pylon{--dx:-155px;--dy:155px;--rot:-6deg;animation:skf-fly 1.2s cubic-bezier(.2,1.05,.3,1) 1.15s both}
+.skp .setup.go .pc.board{--dx:185px;--dy:155px;--rot:9deg;animation:skf-fly 1.2s cubic-bezier(.2,1.05,.3,1) 1.45s both}
+
+/* legend of brands + names */
+.skp .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:9px 22px;margin:clamp(12px,2vh,22px) auto 0;max-width:780px}
+.skp .legend span{font-size:12.5px;color:#6a6964;white-space:nowrap}
+.skp .legend b{color:#f46e95;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px;margin-right:5px}
+.skp .setup.ready .legend{opacity:0}
+.skp .setup.go .legend{opacity:1;transition:opacity .7s ease 1.05s}
+
+.skp .setup .scta{text-align:center;margin-top:clamp(16px,2.2vh,26px)}
+
+@media(prefers-reduced-motion:reduce){
+  .skp .setup.ready .pc{opacity:1}
+  .skp .setup.go .pc{animation:none}
+  .skp .setup.ready .legend,.skp .setup.go .legend{opacity:1;transition:none}
+}
+
+/* ---- mobile: taller stage, bigger pieces, legend wraps ---- */
+@media(max-width:760px){
+  .skp .stage{aspect-ratio:1/1.04}
+  .skp .pc.ski  {left:50%;top:47%;width:80%}
+  .skp .pc.rope {left:28%;top:15%;width:46%}
+  .skp .pc.arch {left:82%;top:17%;width:19%}
+  .skp .pc.pylon{left:21%;top:83%;width:22%}
+  .skp .pc.board{left:75%;top:81%;width:34%}
+  .skp .legend{gap:7px 16px}
+  .skp .legend span{font-size:11.5px}
+}

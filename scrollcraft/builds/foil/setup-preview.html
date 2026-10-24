@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:'Barlow Condensed';src:url('../shokogi-scrollcraft/fonts/BarlowCondensed-600.woff2') format('woff2');font-weight:600}
+@font-face{font-family:'Barlow Condensed';src:url('../shokogi-scrollcraft/fonts/BarlowCondensed-700.woff2') format('woff2');font-weight:700}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-400.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-600.woff2') format('woff2');font-weight:600}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-700.woff2') format('woff2');font-weight:700}
+:root{--font-body-family:'Figtree',sans-serif;--font-heading-family:'Barlow Condensed',sans-serif}
+body{margin:0;background:#fff}
+</style>
+<link rel="stylesheet" href="sk.css">
+<link rel="stylesheet" href="skplusfoil.css">
+<link rel="stylesheet" href="skplusfoil2.css">
+</head><body>
+<div class="skp">
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">the setup</div>
+    <h2>Everything Comes Together</h2>
+    <p class="lead">Our full tow-in rig &mdash; ski, line, board, pylon and arch, dialed and ready for your session.</p>
+    <div class="setup" id="skf-setup">
+      <div class="stage">
+        <div class="pc ski"><img src="ski.webp" width="1200" height="600" alt="Sea-Doo"></div>
+        <div class="pc rope"><img src="rope.webp" width="1200" height="600" alt="Armstrong"></div>
+        <div class="pc arch"><img src="arch.webp" width="1100" height="733" alt="JAIN"></div>
+        <div class="pc pylon"><img src="pylon.webp" width="950" height="950" alt="BRP"></div>
+        <div class="pc board"><img src="board.webp" width="950" height="950" alt="JETTECH"></div>
+      </div>
+      <div class="legend">
+        <span><b>Sea-Doo</b> GTX Limited 300</span>
+        <span><b>Armstrong</b> Tow Rope</span>
+        <span><b>JETTECH</b> Tow Board</span>
+        <span><b>BRP</b> Tow Pylon</span>
+        <span><b>JAIN</b> Grab Arch</span>
+      </div>
+    </div>
+  </div></div>
+</div>
+<script>
+(function(){
+  var el=document.getElementById('skf-setup'); if(!el) return;
+  el.classList.add('ready');
+  var done=false, play=function(){ if(done){return;} done=true; el.classList.add('go'); };
+  if(!('IntersectionObserver' in window)){ play(); return; }
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){ play(); io.disconnect(); } });},{threshold:0.35});
+  io.observe(el);
+  window.__replay=function(){ el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); };
+})();
+</script>
+</body></html>
