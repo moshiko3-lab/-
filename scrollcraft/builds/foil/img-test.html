@@ -1,0 +1,55 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'Barlow Condensed';src:url('../shokogi-scrollcraft/fonts/BarlowCondensed-700.woff2') format('woff2');font-weight:700}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-400.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-600.woff2') format('woff2');font-weight:600}
+@font-face{font-family:'Figtree';src:url('../shokogi-scrollcraft/fonts/Figtree-700.woff2') format('woff2');font-weight:700}
+body{margin:0;background:#fff;font-family:'Figtree',sans-serif;color:#191a1a}
+.wrap{max-width:1000px;margin:0 auto;padding:50px 20px}
+h2{font-family:'Barlow Condensed';font-weight:700;font-size:40px;text-align:center;margin:0 0 6px}
+.sub{text-align:center;color:#7c7b77;margin:0 0 10px}
+.lbl{text-align:center;font-weight:700;color:#f46e95;font-size:12px;letter-spacing:.2em;text-transform:uppercase;margin:34px 0 10px}
+.fleet{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.fcard{border:1px solid #eceae3;border-radius:18px;overflow:hidden;background:#fff}
+.fmeta{padding:20px 22px 24px}
+.fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700}
+.fmeta h3{font-family:'Barlow Condensed';font-weight:700;font-size:24px;margin:4px 0 8px}
+.fmeta p{font-size:14px;color:#52514d;line-height:1.6;margin:0 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1d130f;background:#f7f0ea;border:1px solid #eceae3;border-radius:999px;padding:6px 12px}
+.chip.hp{background:#f46e95;color:#fff;border-color:#f46e95}
+
+/* Option A: image over water, white dropped via multiply */
+.sceneA{position:relative;aspect-ratio:1200/600;background:linear-gradient(180deg,#eef5f5 0%,#dcebec 60%,#c7dedf 100%);overflow:hidden}
+.sceneA .water{position:absolute;left:0;right:0;bottom:0;height:34%;background:
+  radial-gradient(120% 60% at 50% 120%, rgba(255,255,255,.5), transparent 60%),
+  linear-gradient(180deg, rgba(168,206,208,.0), rgba(150,195,197,.6))}
+.sceneA img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* Option B: clean light card, soft shadow, float */
+.sceneB{position:relative;aspect-ratio:1200/600;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sceneB img{width:100%;height:100%;object-fit:contain;animation:float 4s ease-in-out infinite;filter:drop-shadow(0 18px 18px rgba(20,30,30,.12))}
+</style></head><body>
+<div class="wrap">
+<h2>Our Jet Ski Tow-In Fleet</h2>
+<p class="sub">two presentation options</p>
+
+<div class="lbl">Option A — illustration over animated water (white dropped)</div>
+<div class="fleet">
+  <div class="fcard"><div class="sceneA"><div class="water"></div><img src="gtx.png" alt=""></div>
+    <div class="fmeta"><div class="fbrand">Sea-Doo</div><h3>GTX Limited 300</h3><p>Our flagship tow sled — supercharged power and a planted, three-up hull.</p><div class="chips"><span class="chip hp">300 HP</span><span class="chip">Supercharged Rotax</span></div></div></div>
+  <div class="fcard"><div class="sceneA"><div class="water"></div><img src="wakepro.png" alt=""></div>
+    <div class="fmeta"><div class="fbrand">Sea-Doo</div><h3>Wake Pro</h3><p>Built for tow sports — retractable ski pylon, strong smooth pull.</p><div class="chips"><span class="chip hp">230 HP</span><span class="chip">Supercharged</span></div></div></div>
+</div>
+
+<div class="lbl">Option B — illustration on a clean card, gentle float + soft shadow</div>
+<div class="fleet">
+  <div class="fcard"><div class="sceneB"><img src="gtx.png" alt=""></div>
+    <div class="fmeta"><div class="fbrand">Sea-Doo</div><h3>GTX Limited 300</h3><p>Our flagship tow sled — supercharged power and a planted, three-up hull.</p><div class="chips"><span class="chip hp">300 HP</span><span class="chip">Supercharged Rotax</span></div></div></div>
+  <div class="fcard"><div class="sceneB"><img src="wakepro.png" alt=""></div>
+    <div class="fmeta"><div class="fbrand">Sea-Doo</div><h3>Wake Pro</h3><p>Built for tow sports — retractable ski pylon, strong smooth pull.</p><div class="chips"><span class="chip hp">230 HP</span><span class="chip">Supercharged</span></div></div></div>
+</div>
+</div>
+</body></html>

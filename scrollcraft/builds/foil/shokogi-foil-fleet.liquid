@@ -1,8 +1,9 @@
 {%- comment -%}
-  SHOKOGI — "The Fleet": animated Sea-Doo jet skis (GTX Limited 300 + Wake Pro).
-  Self-contained section added to the two foil pages. Loads sk.css + the foil
-  polish layer (skplusfoil.css, scoped to .skp — only ever loaded here) + the
-  real brand font weights, so the whole foil page also gets the polish.
+  SHOKOGI — "The Fleet": the two real Sea-Doo jet skis (GTX Limited 300 + Wake
+  Pro), shown as illustrations with a gentle float. Self-contained section added
+  to the two foil pages. Loads sk.css + the foil polish layer (skplusfoil.css,
+  scoped to .skp — only ever loaded here) + the real brand font weights, so the
+  whole foil page also gets the polish.
 {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
 {{ 'skplusfoil.css' | asset_url | stylesheet_tag }}
@@ -16,7 +17,7 @@
     <p class="lead">Every tow-in session runs behind professional, supercharged Sea-Doo watercraft &mdash; the power and control that put you on more waves.</p>
     <div class="fleet">
       <div class="fcard">
-        <div class="fscene gtx">{% render 'foil-ski', pylon: false, badge_x: 150, aria: 'Sea-Doo GTX Limited 300 jet ski' %}</div>
+        <div class="fscene"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-gtx-300.jpg?v=1792868186" width="1200" height="600" loading="lazy" alt="Sea-Doo GTX Limited 300 jet ski"></div>
         <div class="fmeta">
           <div class="fbrand">Sea-Doo</div>
           <h3>GTX Limited 300</h3>
@@ -25,7 +26,7 @@
         </div>
       </div>
       <div class="fcard">
-        <div class="fscene wake">{% render 'foil-ski', pylon: true, badge_x: 186, aria: 'Sea-Doo Wake Pro jet ski with tow pylon' %}</div>
+        <div class="fscene"><img src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/shokogi-foil-wake-pro.jpg?v=1792868186" width="1200" height="600" loading="lazy" alt="Sea-Doo Wake Pro jet ski with tow pylon"></div>
         <div class="fmeta">
           <div class="fbrand">Sea-Doo</div>
           <h3>Wake Pro</h3>

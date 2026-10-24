@@ -93,30 +93,13 @@
   .skp .price{font-size:30px}
 }
 
-/* ================= THE FLEET — animated Sea-Doo jet skis ================= */
+/* ================= THE FLEET — real Sea-Doo illustrations, gentle float ================= */
 .skp .fleet{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,24px);margin-top:clamp(2rem,4vh,3rem)}
 .skp .fcard{border:1px solid var(--line,#eceae3);border-radius:18px;overflow:hidden;background:#fff}
-.skp .fscene{position:relative;aspect-ratio:480/236;background:linear-gradient(180deg,#eef5f5 0%,#dcebec 58%,#c7dedf 100%)}
-.skp .fscene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.skp .fscene.gtx{--hull:#18150f;--deck:#27272b;--rdeck:#343438;--seat:#cbb68d;--accent:#c7a24e;--console:#1b1b1e;--txt:#c7a24e}
-.skp .fscene.wake{--hull:#3cc3b2;--deck:#7d8587;--rdeck:#8a9191;--seat:#9aa1a1;--accent:#e8822a;--console:#2b3131;--txt:#123b35}
-.skp .fscene .hull{fill:var(--hull)}.skp .fscene .deck{fill:var(--deck)}.skp .fscene .rdeck{fill:var(--rdeck)}
-.skp .fscene .seat{fill:var(--seat)}.skp .fscene .accent{fill:var(--accent)}.skp .fscene .consolep{fill:var(--console)}
-.skp .fscene .rider{fill:#0d1312}.skp .fscene .helmet{fill:#f46e95}.skp .fscene .wordmark{fill:var(--txt)}
-.skp .fscene .grab{fill:#0d1312}.skp .fscene .hbar{stroke:#0d1312}
-.skp .fscene .skibody{transform-box:fill-box;transform-origin:center;animation:skfbob 4s ease-in-out infinite}
-@keyframes skfbob{0%,100%{transform:translateY(0) rotate(-.7deg)}50%{transform:translateY(-5px) rotate(.7deg)}}
-.skp .fscene .wave{animation:skfdrift 7s linear infinite}
-.skp .fscene .wave.w2{animation-duration:4.6s;animation-direction:reverse;opacity:.6}
-@keyframes skfdrift{to{transform:translateX(-120px)}}
-.skp .fscene .spray circle{transform-box:fill-box;transform-origin:center;animation:skfspray 1.9s ease-out infinite}
-.skp .fscene .spray circle:nth-child(2){animation-delay:.35s}.skp .fscene .spray circle:nth-child(3){animation-delay:.7s}
-.skp .fscene .spray circle:nth-child(4){animation-delay:1.05s}.skp .fscene .spray circle:nth-child(5){animation-delay:1.4s}
-@keyframes skfspray{0%{transform:translate(0,0) scale(.3);opacity:0}25%{opacity:.9}100%{transform:translate(-24px,-18px) scale(1.1);opacity:0}}
-.skp .fscene .speed line{animation:skfstreak 1.5s linear infinite}
-.skp .fscene .speed line:nth-child(2){animation-delay:.5s}.skp .fscene .speed line:nth-child(3){animation-delay:1s}
-@keyframes skfstreak{0%{opacity:0;transform:translateX(14px)}30%{opacity:.5}100%{opacity:0;transform:translateX(-22px)}}
-@media(prefers-reduced-motion:reduce){.skp .fscene .skibody,.skp .fscene .wave,.skp .fscene .spray circle,.skp .fscene .speed line{animation:none}}
+.skp .fscene{position:relative;aspect-ratio:1200/600;background:#fff;overflow:hidden}
+.skp .fscene img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation:skffloat 4.2s ease-in-out infinite;filter:drop-shadow(0 14px 16px rgba(20,30,30,.1));will-change:transform}
+@keyframes skffloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media(prefers-reduced-motion:reduce){.skp .fscene img{animation:none}}
 .skp .fmeta{padding:clamp(18px,2.2vw,24px) clamp(20px,2.4vw,26px) 26px}
 .skp .fmeta .fbrand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#f46e95;font-weight:700;margin:0 0 4px}
 .skp .fmeta h3{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 8px;text-align:left}
