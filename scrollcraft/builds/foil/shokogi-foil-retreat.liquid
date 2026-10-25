@@ -201,23 +201,27 @@
 </div>
 
 <script>
-/* Play each clip only while it is on screen; pause (and release the decoder)
-   when it scrolls away. iOS allows only a few simultaneous video decoders, so
-   four always-on autoplay loops + the assembly below would exhaust memory and
-   crash the tab at the bottom of the page. preload="none" keeps them from
-   buffering until they are actually needed. */
+/* iOS allows only a few simultaneous video decoders, and a paused video still
+   holds its decode buffer, so four 720p clips played and paused on the way down
+   stacked with the scroll-assembly below would exhaust memory and reload the
+   tab at the bottom. Each clip is fully virtualized: loaded + played only while
+   on screen, and DETACHED (sources removed, buffer released, poster shown) when
+   it scrolls away. By the time you reach the assembly all four hold ~no memory. */
 (function(){
   var vids=[].slice.call(document.querySelectorAll('.skp video.skvid'));
   if(!vids.length) return;
+  vids.forEach(function(v){ v._srcHTML=v.innerHTML; });            // snapshot <source> markup
   var play=function(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} };
-  if(!('IntersectionObserver' in window)){ vids.forEach(play); return; }
+  var attach=function(v){ if(!v.querySelector('source') && v._srcHTML){ v.innerHTML=v._srcHTML; try{v.load();}catch(e){} } };
+  var detach=function(v){ try{v.pause();}catch(e){} if(v.querySelector('source')){ v.innerHTML=''; try{v.load();}catch(e){} } };
+  if(!('IntersectionObserver' in window)){ vids.forEach(function(v){ attach(v); play(v); }); return; }
   var io=new IntersectionObserver(function(ents){
     ents.forEach(function(e){
       var v=e.target;
-      if(e.isIntersecting){ play(v); }
-      else if(!v.paused){ v.pause(); }
+      if(e.isIntersecting){ attach(v); play(v); }
+      else { detach(v); }
     });
-  }, {rootMargin:'150px 0px', threshold:0.15});
+  }, {rootMargin:'200px 0px', threshold:0.1});
   vids.forEach(function(v){ io.observe(v); });
 })();
 </script>
