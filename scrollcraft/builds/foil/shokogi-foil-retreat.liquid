@@ -204,27 +204,23 @@
 </div>
 
 <script>
-/* iOS allows only a few simultaneous video decoders, and a paused video still
-   holds its decode buffer, so four 720p clips played and paused on the way down
-   stacked with the scroll-assembly below would exhaust memory and reload the
-   tab at the bottom. Each clip is fully virtualized: loaded + played only while
-   on screen, and DETACHED (sources removed, buffer released, poster shown) when
-   it scrolls away. By the time you reach the assembly all four hold ~no memory. */
+/* Each clip loads the first time it scrolls into view (preload="none") and then
+   just plays while visible / pauses when off-screen - the decoded buffer is kept,
+   NOT thrown away. Fully detaching + reloading them on every pass made scrolling
+   back UP re-decode all four at once -> a memory burst that reloaded the tab.
+   With the assembly now lightweight (zoom), keeping the buffers is affordable. */
 (function(){
   var vids=[].slice.call(document.querySelectorAll('.skp video.skvid'));
   if(!vids.length) return;
-  vids.forEach(function(v){ v._srcHTML=v.innerHTML; });            // snapshot <source> markup
   var play=function(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} };
-  var attach=function(v){ if(!v.querySelector('source') && v._srcHTML){ v.innerHTML=v._srcHTML; try{v.load();}catch(e){} } };
-  var detach=function(v){ try{v.pause();}catch(e){} if(v.querySelector('source')){ v.innerHTML=''; try{v.load();}catch(e){} } };
-  if(!('IntersectionObserver' in window)){ vids.forEach(function(v){ attach(v); play(v); }); return; }
+  if(!('IntersectionObserver' in window)){ vids.forEach(play); return; }
   var io=new IntersectionObserver(function(ents){
     ents.forEach(function(e){
       var v=e.target;
-      if(e.isIntersecting){ attach(v); play(v); }
-      else { detach(v); }
+      if(e.isIntersecting){ play(v); }
+      else if(!v.paused){ v.pause(); }
     });
-  }, {rootMargin:'200px 0px', threshold:0.1});
+  }, {rootMargin:'300px 0px', threshold:0.1});
   vids.forEach(function(v){ io.observe(v); });
 })();
 </script>
