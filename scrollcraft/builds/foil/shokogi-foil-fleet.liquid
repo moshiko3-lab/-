@@ -14,7 +14,7 @@
 <div class="skp"><div class="sec"><div class="wrap" style="text-align:center">
   <div class="kicker">03 &middot; The Jet Ski</div>
   <h2>Your Tow Platform</h2>
-  <p class="lead">Our Sea-Doo tow ski, with its Rotax engine and stern water-jet &mdash; the power behind every wave. Switch between our two models, hold the throttle to rev it, and turn the engine sound on.</p>
+  <p class="lead">The craft that powers every wave &mdash; our two Sea-Doo jet skis and our own boat, The&nbsp;Bee. Switch between them, hold the throttle to rev the engine, and turn the sound on.</p>
 </div></div></div>
 
 <div id="skrig-host-{{ section.id }}"></div>
@@ -85,6 +85,7 @@ p{margin:0}
       <div class="seg" role="group" aria-label="Choose model">
         <button type="button" id="m-wake" aria-pressed="true">Wake Pro</button>
         <button type="button" id="m-gtx" aria-pressed="false">GTX Limited</button>
+        <button type="button" id="m-bee" aria-pressed="false">The Bee</button>
       </div>
     </div>
 
@@ -132,7 +133,7 @@ p{margin:0}
   var sr=host.attachShadow({mode:'open'});
   sr.appendChild(tpl.content.cloneNode(true));
 
-const IMG={gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"};
+const IMG={gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218",bee:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-boat-thebee.png?v=1792908529"};
 const MOBILE=matchMedia('(max-width:760px)').matches||/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
 const IW=MOBILE?820:1280;
 const WIDE=u=>(!u||u.slice(0,5)==='data:')?u:u+(u.indexOf('?')>-1?'&':'?')+'width='+IW;
@@ -144,8 +145,9 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 const MODELS={
-  wake:{src:'wake',nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
-  gtx:{src:'gtx',nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670]}
+  wake:{src:'wake',jet:true,dir:-1,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
+  gtx:{src:'gtx',jet:true,dir:-1,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670]},
+  bee:{src:'bee',jet:false,dir:1,nozzle:[1690,672],engine:[1560,275,1730,560],shaft:[1700,650,1730,680]}
 };
 let model=MODELS.wake;
 
@@ -185,12 +187,13 @@ function setModel(name){
   model=MODELS[name];
   sr.getElementById('hull').src=WIDE(IMG[model.src]);
   sr.getElementById('engineClip').src=WIDE(IMG[model.src]);
-  sr.getElementById('m-wake').setAttribute('aria-pressed',name==='wake');
-  sr.getElementById('m-gtx').setAttribute('aria-pressed',name==='gtx');
+  ['wake','gtx','bee'].forEach(m=>sr.getElementById('m-'+m).setAttribute('aria-pressed',name===m));
+  if(!model.jet){ glow.style.opacity=0; shaft.style.opacity=0; }
   placeOverlays();
 }
 sr.getElementById('m-wake').onclick=()=>setModel('wake');
 sr.getElementById('m-gtx').onclick=()=>setModel('gtx');
+sr.getElementById('m-bee').onclick=()=>setModel('bee');
 
 // engine + water
 const cv=sr.getElementById('fx'), cx=cv.getContext('2d');
@@ -202,7 +205,7 @@ const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
 const rpmEl=sr.getElementById('rpm');
 function startEngine(){
   if(running||offscreen) return; running=true;
-  shaft.style.opacity=1;
+  if(model.jet) shaft.style.opacity=1;
   if(!raf) raf=requestAnimationFrame(loop);
   if(audio) audio.on();
 }
@@ -224,20 +227,22 @@ function loop(now){
     clip.style.transform=`translate(${(Math.random()-.5)*j}px,${(Math.random()-.5)*j}px)`;
   } else { craft.style.transform=''; clip.style.transform=''; }
   if(running){
-    glow.style.opacity=(.55+throttle*.4+Math.random()*.12).toFixed(2);
-    shaft.style.backgroundPositionX=((T*(300+throttle*1400))%28)+'px';
+    if(model.jet){
+      glow.style.opacity=(.55+throttle*.4+Math.random()*.12).toFixed(2);
+      shaft.style.backgroundPositionX=((T*(300+throttle*1400))%28)+'px';
+    }
     const rpm=Math.round(1550+throttle*6100+(Math.random()-.5)*60);
     rpmShown+=(rpm-rpmShown)*.25; rpmEl.textContent=Math.round(rpmShown/10)*10;
   }
   if(MOBILE){ if(running) raf=requestAnimationFrame(loop); else { raf=0; craft.style.transform=''; } return; }
-  // emit water
+  // emit water (direction depends on the craft: jet ski washes left, the boat's prop washes right)
   if(running){
     const n=reduce?3:Math.round(10+throttle*26);
-    const [nx,ny]=model.nozzle;
+    const [nx,ny]=model.nozzle, dir=model.dir, base=dir<0?Math.PI:0;
     for(let i=0;i<n;i++){
       const sp=760+throttle*1500+Math.random()*300;
-      const ang=Math.PI+(Math.random()-.5)*(.12+throttle*.08)-.03;
-      parts.push({x:nx+Math.random()*6,y:ny+(Math.random()-.5)*14,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp+(Math.random()-.4)*40,life:0,max:.7+Math.random()*.6,r:3+Math.random()*7,k:Math.random()});
+      const ang=base+(Math.random()-.5)*(.12+throttle*.08);
+      parts.push({x:nx+Math.random()*6*dir,y:ny+(Math.random()-.5)*14,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp+(Math.random()-.4)*40,life:0,max:.7+Math.random()*.6,r:3+Math.random()*7,k:Math.random()});
     }
   }
   // draw
@@ -250,7 +255,7 @@ function loop(now){
     cx.beginPath();
     cx.moveTo(wx(-1500),wy(WATER));
     for(let x=-1500;x<=2400;x+=24){
-      const y=WATER+Math.sin(x*.012+T*2.2)*5+Math.sin(x*.031-T*3.1)*2.5+(x<60&&x>-900?Math.sin(x*.05+T*9)*(2+throttle*6)*(1-(60-x)/960):0);
+      const y=WATER+Math.sin(x*.012+T*2.2)*5+Math.sin(x*.031-T*3.1)*2.5+(Math.abs(x-model.nozzle[0])<900?Math.sin(x*.05+T*9)*(2+throttle*6)*(1-Math.abs(x-model.nozzle[0])/900):0);
       cx.lineTo(wx(x),wy(y));
     }
     cx.strokeStyle=`rgba(20,110,140,${.7*wa})`; cx.lineWidth=3; cx.stroke();
@@ -259,8 +264,8 @@ function loop(now){
     g.addColorStop(0,`rgba(23,143,170,${.22*wa})`); g.addColorStop(1,'rgba(23,143,170,0)');
     cx.fillStyle=g; cx.fill();
     cx.restore();
-    // core stream
-    if(running){
+    // core stream (jet ski water-jet only)
+    if(running && model.jet){
       const [nx,ny]=model.nozzle, len=420+throttle*700;
       const sg=cx.createLinearGradient(wx(nx),0,wx(nx-len),0);
       sg.addColorStop(0,'rgba(190,235,250,.95)'); sg.addColorStop(.6,'rgba(90,180,215,.55)'); sg.addColorStop(1,'rgba(90,180,215,0)');
