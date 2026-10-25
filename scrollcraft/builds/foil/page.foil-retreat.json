@@ -3,8 +3,7 @@
     "skfoilretreat": {
       "type": "shokogi-foil-retreat",
       "settings": {
-        "hero_video": "shopify://files/videos/DJI_0022.mov",
-        "why_video": "shopify://files/videos/DJI_0021.mov"
+        "hero_video": "shopify://files/videos/DJI_0022.mov"
       }
     },
     "skfleet": { "type": "shokogi-foil-fleet", "settings": {} },

@@ -63,10 +63,12 @@
   <div class="sec tint"><div class="wrap">
     <div class="kicker" style="text-align:center">02 &middot; Why Playa Venao</div>
     <h2>Why Playa Venao for Foil Tow-In Training?</h2>
-    {%- assign wv = section.settings.why_video -%}
-    <video class="wideimg skvid" muted loop playsinline preload="none" style="height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover">
-      {%- if wv != blank and wv.sources.size > 0 -%}{%- for src in wv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
-    </video>
+    {%- assign wimg = section.settings.why_image -%}
+    {%- if wimg != blank -%}
+    <img class="wideimg" src="{{ wimg | image_url: width: 1600 }}" srcset="{{ wimg | image_url: width: 800 }} 800w, {{ wimg | image_url: width: 1200 }} 1200w, {{ wimg | image_url: width: 1600 }} 1600w" sizes="(max-width:760px) 100vw, 900px" width="{{ wimg.width }}" height="{{ wimg.height }}" alt="{{ wimg.alt | default: 'Foil tow-in at Playa Venao, Panama' | escape }}" loading="lazy" style="height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover">
+    {%- else -%}
+    <img class="wideimg" src="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/IMG_1796.jpg?width=1600" srcset="https://cdn.shopify.com/s/files/1/0116/5364/4354/files/IMG_1796.jpg?width=800 800w, https://cdn.shopify.com/s/files/1/0116/5364/4354/files/IMG_1796.jpg?width=1200 1200w, https://cdn.shopify.com/s/files/1/0116/5364/4354/files/IMG_1796.jpg?width=1600 1600w" sizes="(max-width:760px) 100vw, 900px" width="1440" height="812" alt="Playa Venao, Panama" loading="lazy" style="height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover">
+    {%- endif -%}
     <div class="story">
       <h3>Multiple Locations, Not One Break</h3>
       <p>Most foil retreats lock you into one break with variable conditions. Playa Venao offers multiple tow-in locations within minutes &mdash; we choose the best spot daily based on swell, wind, and your ability. This flexibility means you&rsquo;re never stuck with poor conditions.</p>
@@ -122,7 +124,7 @@
     { "type": "video", "id": "clip_1", "label": "Action clip 1 (vertical)" },
     { "type": "video", "id": "clip_2", "label": "Action clip 2 (vertical)" },
     { "type": "header", "content": "Why Playa Venao" },
-    { "type": "video", "id": "why_video", "label": "Why Playa Venao video" }
+    { "type": "image_picker", "id": "why_image", "label": "Why Playa Venao image (optional — defaults to the Playa Venao photo)" }
   ],
   "presets": [ { "name": "Foil Retreat — Part 1" } ]
 }
