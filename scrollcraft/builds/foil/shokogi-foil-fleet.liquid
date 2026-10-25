@@ -126,6 +126,22 @@ p{margin:0}
 .outro{padding-block:clamp(40px,7vw,80px)}
 .outro p{color:var(--muted);max-width:62ch}
 .outro h2{font-size:clamp(30px,4.6vw,52px);margin-bottom:12px}
+.gearcards{padding-block:clamp(26px,5vw,52px) clamp(6px,2vw,16px)}
+.gc-head{display:grid;gap:8px;margin-bottom:clamp(16px,3vw,26px);border-bottom:1px solid var(--rule);padding-bottom:12px}
+.gc-head h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,4.4vw,46px);line-height:1.05;margin:0}
+.gc-head p{color:var(--muted);max-width:62ch;margin:0}
+.gc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:clamp(10px,1.6vw,18px)}
+.gcard{border:1px solid var(--rule);background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.gplate{position:relative;aspect-ratio:5/3;background:#fff;border-bottom:1px solid var(--rule)}
+.gplate::before,.gplate::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--ink);z-index:1}
+.gplate::before{top:7px;right:7px;border-left:0;border-bottom:0}
+.gplate::after{bottom:7px;left:7px;border-right:0;border-top:0}
+.gplate img{position:absolute;inset:0;margin:auto;max-width:calc(100% - 30px);max-height:calc(100% - 30px);object-fit:contain}
+.gtext{padding:12px 14px 14px;display:grid;gap:4px}
+.gbrand{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--teal);text-transform:uppercase}
+.gtext h3{font-family:var(--f-display);font-weight:400;font-size:clamp(18px,2.3vw,23px);line-height:1.1;margin:0}
+.gtext p{font-size:13px;line-height:1.45;color:var(--muted);margin:0}
+
 
 @media (max-width:760px){
   .part{grid-template-columns:1fr}
@@ -141,6 +157,7 @@ p{margin:0}
 </style>
 <div class="page" dir="ltr" lang="en">
 
+<section class="gearcards wrap"><div class="gc-head"><span class="mono">Our gear</span><h2>The tow-in rig, part by part</h2><p>Everything we run for jet-ski tow-in foiling in Playa Venao &mdash; then scroll down to watch it assemble.</p></div><div class="gc-grid"><article class="gcard"><div class="gplate"><img data-img="pylon" alt="Tow pylon" loading="lazy"></div><div class="gtext"><span class="gbrand">BRP</span><h3>Tow pylon</h3><p>Two grab handles, a telescopic tube and a footed base &mdash; the rope&rsquo;s anchor point on the rear deck.</p></div></article><article class="gcard"><div class="gplate"><img data-img="rope" alt="Tow rope and handle" loading="lazy"></div><div class="gtext"><span class="gbrand">ARMSTRONG</span><h3>Tow rope &amp; handle</h3><p>A mesh-grip handle and a coiled braided rope; ties to the pylon and trails behind the ski.</p></div></article><article class="gcard"><div class="gplate"><img data-img="board" alt="Inflatable sled" loading="lazy"></div><div class="gtext"><span class="gbrand">JETTECH</span><h3>Inflatable sled</h3><p>Side grab handles, a bungee net and D-rings; rides behind the ski on the stern.</p></div></article><article class="gcard"><div class="gplate"><img data-img="arch" alt="Inflatable floats" loading="lazy"></div><div class="gtext"><span class="gbrand">JAIN</span><h3>Floats</h3><p>An inflatable tube with handles and D-rings that hugs the hull sides.</p></div></article><article class="gcard"><div class="gplate"><img data-img="wake" alt="Sea-Doo jet ski" loading="lazy"></div><div class="gtext"><span class="gbrand">Sea-Doo &middot; Rotax</span><h3>The jet-ski</h3><p>The tow platform &mdash; Wake Pro or GTX Limited &mdash; with the Rotax engine and stern water-jet.</p></div></article></div></section>
 <section id="assembly" aria-label="Assembly animation">
   <div class="viewport" id="vp">
     <div class="world" id="world">
