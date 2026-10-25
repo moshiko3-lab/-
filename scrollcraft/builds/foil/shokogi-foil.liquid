@@ -1,9 +1,8 @@
 {%- comment -%} SHOKOGI Foil Surfing — PART 1 (before the equipment animation): hero, what is foil, foil in action, why Playa Venao, the essentials. Surf Camp design. The equipment animation (shokogi-foil-fleet, "04 · Our Equipment") renders next, then PART 2. {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
 <style>
-/* Foil in Action: one inline clip, not a full-bleed black block */
-.skp .fclip{width:100%;max-width:900px;aspect-ratio:16/9;max-height:520px;object-fit:cover;border-radius:16px;background:#000;display:block;margin:22px auto 0}
-@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}
+.skp .wvid{width:100%;height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover;border-radius:16px;background:#000;display:block;margin:18px 0 24px}
+@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}.skp .wvid{max-height:320px}}
 /* Compact the (global) footer on the foil pages so the bottom isn't one huge black block */
 .footer__content-top{padding-top:38px!important;padding-bottom:28px!important}
 .footer-block{margin-bottom:22px!important}
@@ -40,20 +39,14 @@
     </div>
   </div></div>
 
-  <!-- FOIL IN ACTION (video) -->
-  {%- assign fv = section.settings.video -%}
-  <div class="sec tint"><div class="wrap" style="text-align:center">
-    <div class="kicker">Foil in Action</div>
-    <video class="fclip skvid" muted loop playsinline preload="none"{% if fv != blank and fv.preview_image %} poster="{{ fv.preview_image | image_url: width: 1600 }}"{% endif %}>
-      {%- if fv != blank and fv.sources.size > 0 -%}{%- for src in fv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
-    </video>
-  </div></div>
-
   <!-- 02 · WHY PLAYA VENAO -->
-  <div class="sec"><div class="wrap">
+  <div class="sec tint"><div class="wrap">
     <div class="kicker" style="text-align:center">02 &middot; Why Playa Venao</div>
     <h2>Why Playa Venao for Foil Surfing?</h2>
-    {%- if section.settings.foil_why -%}<img class="wideimg" src="{{ section.settings.foil_why | image_url: width: 1800 }}" alt="Why Playa Venao for Foil Surfing" loading="lazy">{%- endif -%}
+    {%- assign wv = section.settings.video -%}
+    <video class="wvid skvid" muted loop playsinline preload="none"{% if wv != blank and wv.preview_image %} poster="{{ wv.preview_image | image_url: width: 1600 }}"{% endif %}>
+      {%- if wv != blank and wv.sources.size > 0 -%}{%- for src in wv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
+    </video>
     <div class="story">
       <h3>Multiple Locations, Not One Break</h3>
       <p>Most foil spots lock you into one break with variable conditions. We pick the best of three nearby locations daily based on swell, wind, and your ability &mdash; so you&rsquo;re never stuck with poor conditions.</p>
@@ -65,7 +58,7 @@
   </div></div>
 
   <!-- 03 · THE ESSENTIALS -->
-  <div class="sec tint"><div class="wrap">
+  <div class="sec"><div class="wrap">
     <div class="kicker" style="text-align:center">03 &middot; The Essentials</div>
     <h2>Quick Facts</h2>
     <div class="facts" style="margin-top:22px">
@@ -107,8 +100,7 @@
     { "type": "image_picker", "id": "hero_image", "label": "Hero image" },
     { "type": "header", "content": "Sections" },
     { "type": "image_picker", "id": "foil_what", "label": "What is Foil image" },
-    { "type": "image_picker", "id": "foil_why", "label": "Why Playa Venao image" },
-    { "type": "video", "id": "video", "label": "Foil in Action video" }
+    { "type": "video", "id": "video", "label": "Why Playa Venao video" }
   ],
   "presets": [ { "name": "Foil Surfing — Part 1" } ]
 }
