@@ -211,7 +211,7 @@ function startEngine(){
   if(running||offscreen) return; running=true;
   if(model.jet) shaft.style.opacity=1;
   if(!raf) raf=requestAnimationFrame(loop);
-  if(soundOn){ ensureAudio(); if(audio) audio.on(); }
+  if(soundOn && audio){ audio.on(); }
 }
 function stopEngine(){
   if(!running) return; running=false;
@@ -301,7 +301,7 @@ function loop(now){
 
 // throttle button
 const gas=sr.getElementById('gas');
-const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(!running)startEngine();if(soundOn){ensureAudio();if(audio)audio.on();}if(!raf)raf=requestAnimationFrame(loop);};
+const down=e=>{e.preventDefault();target=1;gas.classList.add('held');silentUnlock();if(!running)startEngine();if(soundOn){ensureAudio();if(audio)audio.on();}if(!raf)raf=requestAnimationFrame(loop);};
 const up=()=>{target=0;gas.classList.remove('held');};
 gas.addEventListener('pointerdown',down);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>gas.addEventListener(ev,up));
@@ -345,9 +345,10 @@ function makeAudio(){
     requestAnimationFrame(tick);
   })();
   return {
-    on(){live=true;ac.resume();master.gain.setTargetAtTime(.28,ac.currentTime,.25);},
+    on(){live=true;try{ac.resume();}catch(e){}master.gain.setTargetAtTime(.28,ac.currentTime,.25);},
     off(){live=false;master.gain.setTargetAtTime(0,ac.currentTime,.15);},
-    stop(){live=false;master.gain.setTargetAtTime(0,ac.currentTime,.1);}
+    stop(){live=false;master.gain.setTargetAtTime(0,ac.currentTime,.1);},
+    resume(){try{if(ac.state!=='running')ac.resume();}catch(e){}}
   };
 }
 const sb=sr.getElementById('sound');
@@ -356,14 +357,24 @@ sb.setAttribute('aria-pressed','true'); sb.textContent='Sound off';
 function ensureAudio(){ if(!audio){ const a=makeAudio(); if(a){ const _on=a.on; a.on=()=>{ if(soundOn) _on(); }; audio=a; } } return audio; }
 sb.onclick=()=>{
   soundOn=!soundOn;
-  if(soundOn){ ensureAudio(); if(audio&&running) audio.on(); }
+  if(soundOn){ silentUnlock(); ensureAudio(); if(audio) audio.resume(); if(audio&&running) audio.on(); }
   else if(audio) audio.off();
   sb.setAttribute('aria-pressed',soundOn);
   sb.textContent=soundOn?'Sound off':'Sound on';
 };
-// browsers block audio until a user gesture, so start it on the first interaction while visible
-function kickSound(){ if(soundOn&&running&&!offscreen){ ensureAudio(); if(audio) audio.on(); } }
-['pointerdown','touchend','keydown','scroll'].forEach(ev=>addEventListener(ev,kickSound,{passive:true}));
+// browsers block audio until a user gesture; iOS also needs a media element playing so the
+// synth isn't silenced. On the first real tap: create+resume the context, kick a tiny silent
+// clip, then start the engine if on screen. Also resume when returning to the tab.
+var _silent=null;
+function silentUnlock(){
+  try{
+    if(!_silent){ _silent=document.createElement('audio'); _silent.setAttribute('playsinline',''); _silent.loop=true; _silent.preload='auto'; _silent.src='data:audio/wav;base64,UklGRvQHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA=='; }
+    var p=_silent.play(); if(p&&p.catch) p.catch(function(){});
+  }catch(e){}
+}
+function kickSound(){ silentUnlock(); ensureAudio(); if(audio){ audio.resume(); if(soundOn&&running&&!offscreen) audio.on(); } }
+['pointerdown','touchstart','touchend','click','keydown'].forEach(ev=>addEventListener(ev,kickSound,{passive:true}));
+document.addEventListener('visibilitychange',function(){ if(!document.hidden&&audio){ audio.resume(); if(soundOn&&running&&!offscreen) audio.on(); } });
 
 // init + visibility: idle the engine while the ski is on screen, stop it off screen
 sizeViewport();
