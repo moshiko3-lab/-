@@ -81,7 +81,7 @@ p{margin:0}
 .hulls .plate{aspect-ratio:2/1.15}
 
 
-#assembly{position:relative;height:760svh}
+#assembly{position:relative;height:440svh}
 .static #assembly{height:auto}
 .static .viewport{position:relative}
 .viewport{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
@@ -139,82 +139,6 @@ p{margin:0}
 
 </style>
 <div class="page" dir="ltr" lang="en">
-
-<header class="hero wrap">
-  <div class="hero-top">
-    <span class="mono">Assembly sheet · 6 drawings · 4 accessories · 2 models</span>
-    <span class="mono">Sea-Doo · ROTAX</span>
-  </div>
-  <h1>Jet&#8209;ski, <em>part by part</em></h1>
-  <p class="hero-lede">Each piece is shown on its own. As you scroll, the parts fly into place on the hull, the engine fires, and the jet starts throwing water.</p>
-  <div class="hero-img">
-    <img data-img="wake" alt="Cutaway of the Sea-Doo Wake Pro with ROTAX engine" width="1774" height="887">
-  </div>
-  <div class="cta">
-    <button type="button" class="btn play" id="play-hero">▶ Watch it assemble</button>
-    <div class="cue"><i></i><span class="mono">or scroll down</span></div>
-  </div>
-</header>
-
-<section class="parts wrap" aria-labelledby="parts-h">
-  <div class="sec-head">
-    <span class="mono">Parts list</span>
-    <h2 id="parts-h">Four accessories, one body</h2>
-    <p>Listed in the order they assemble in the animation.</p>
-  </div>
-
-  <article class="part">
-    <div class="plate"><span class="tag mono">Step 1</span><img data-img="pylon" alt="BRP tow pylon" loading="lazy"></div>
-    <div class="ptext">
-      <span class="brand">BRP</span>
-      <h3>Tow pylon</h3>
-      <p>A post with two grip handles, a telescopic tube and a legged base. The rope's anchor point.</p>
-      <dl class="spec"><dt>Location</dt><dd>On the rear deck, behind the seat</dd></dl>
-    </div>
-  </article>
-
-  <article class="part">
-    <div class="plate"><span class="tag mono">Step 2</span><img data-img="rope" alt="Armstrong tow rope &amp; handle" loading="lazy"></div>
-    <div class="ptext">
-      <span class="brand">ARMSTRONG</span>
-      <h3>Tow rope &amp; handle</h3>
-      <p>A triangular mesh-grip handle and a coiled yellow-white braided line with a velcro strap.</p>
-      <dl class="spec"><dt>Location</dt><dd>Ties to the top of the pylon and trails behind</dd></dl>
-    </div>
-  </article>
-
-  <article class="part">
-    <div class="plate"><span class="tag mono">Step 3</span><img data-img="board" alt="JETTECH inflatable sled, front and back" loading="lazy"></div>
-    <div class="ptext">
-      <span class="brand">JETTECH</span>
-      <h3>Inflatable sled</h3>
-      <p>Grab handles along the sides, a blue bungee net, D-rings and two end loops. Shown front and back.</p>
-      <dl class="spec"><dt>Location</dt><dd>Behind the ski, resting on the stern</dd></dl>
-    </div>
-  </article>
-
-  <article class="part">
-    <div class="plate"><span class="tag mono">Step 4</span><img data-img="arch" alt="JAIN inflatable floats, two views" loading="lazy"></div>
-    <div class="ptext">
-      <span class="brand">JAIN</span>
-      <h3>Inflatable floats</h3>
-      <p>An inflatable tube with handles and D-rings that hugs the hull sides. Shown side and front.</p>
-      <dl class="spec"><dt>Location</dt><dd>Along the hull sides</dd></dl>
-    </div>
-  </article>
-
-  <article class="part" style="grid-template-columns:1fr">
-    <div class="ptext">
-      <span class="brand">SEA-DOO · ROTAX</span>
-      <h3>The body: two models</h3>
-      <p>The cutaway shows the engine, driveshaft and the pump that feeds the jet at the stern. Choose which model to build.</p>
-    </div>
-    <div class="hulls">
-      <div class="plate"><span class="tag mono">Wake Pro</span><img data-img="wake" alt="Sea-Doo Wake Pro" loading="lazy"></div>
-      <div class="plate"><span class="tag mono">GTX Limited</span><img data-img="gtx" alt="Sea-Doo GTX Limited" loading="lazy"></div>
-    </div>
-  </article>
-</section>
 
 <section id="assembly" aria-label="Assembly animation">
   <div class="viewport" id="vp">
@@ -463,11 +387,11 @@ function checkMode(){
   const canScroll=se.scrollHeight-innerHeight>innerHeight*2 && innerHeight<1800;
   if(canScroll||mode==='static') return;
   mode='static'; sr.querySelector('.page').classList.add('static');
-  sr.querySelector('.hero').after(sec);
+  var _hero=sr.querySelector('.hero'); if(_hero)_hero.after(sec);
   sizeStatic(); portrait=null; layout(); render(0);
   setTimeout(play,600);
 }
-sr.getElementById('play-hero').onclick=()=>play();
+var _ph=sr.getElementById('play-hero'); if(_ph)_ph.onclick=()=>play();
 sr.getElementById('play-stage').onclick=()=>play();
 
 
