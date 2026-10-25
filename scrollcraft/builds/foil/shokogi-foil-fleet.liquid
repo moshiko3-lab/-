@@ -91,9 +91,9 @@ p{margin:0}
 .p{position:absolute;left:0;top:0;transform-origin:50% 50%}
 .lbl{transition:none}
 .p img{position:static;width:100%;height:auto}
-.lbl{position:absolute;font-family:var(--f-mono);font-size:26px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;direction:rtl}
+.lbl{position:absolute;font-family:var(--f-mono);font-size:26px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;direction:ltr}
 .lbl b{display:block;font-family:var(--f-display);font-weight:400;font-size:44px;letter-spacing:0}
-.lbl::before{content:"";position:absolute;top:-16px;right:0;width:60px;height:3px;background:var(--orange)}
+.lbl::before{content:"";position:absolute;top:-16px;left:0;width:60px;height:3px;background:var(--orange)}
 #hull{left:1500px;top:1200px;width:1774px;height:887px}
 #engineClip{left:1500px;top:1200px;width:1774px;height:887px}
 .ov{position:absolute;pointer-events:none;opacity:0;transition:opacity .4s}
@@ -102,13 +102,13 @@ p{margin:0}
 #rope-line{position:absolute;left:0;top:0;width:3900px;height:3400px;overflow:visible;pointer-events:none}
 #fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none}
 
-.hud{position:absolute;inset:auto 0 0 0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));direction:rtl;display:grid;gap:10px;background:linear-gradient(to top,var(--paper) 55%,rgba(245,247,246,0))}
+.hud{position:absolute;inset:auto 0 0 0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));direction:ltr;display:grid;gap:10px;background:linear-gradient(to top,var(--paper) 55%,rgba(245,247,246,0))}
 .steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
 .steps li{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;padding:4px 9px;border:1px solid var(--rule);background:#fff;color:var(--muted);transition:all .25s}
 .steps li.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .steps li.done{color:var(--teal);border-color:var(--teal)}
 .caption{font-family:var(--f-display);font-size:clamp(20px,3.2vw,34px);line-height:1.1;min-height:1.1em}
-.topbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:center;gap:10px;direction:rtl;flex-wrap:wrap}
+.topbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:center;gap:10px;direction:ltr;flex-wrap:wrap}
 .seg{display:inline-flex;border:1px solid var(--ink);background:#fff}
 .seg button{font:500 13px var(--f-mono);letter-spacing:.04em;padding:7px 12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
@@ -138,76 +138,76 @@ p{margin:0}
 }
 
 </style>
-<div class="page" dir="rtl" lang="he">
+<div class="page" dir="ltr" lang="en">
 
 <header class="hero wrap">
   <div class="hero-top">
-    <span class="mono">גיליון הרכבה · 6 שרטוטים · 4 אביזרים · 2 דגמים</span>
+    <span class="mono">Assembly sheet · 6 drawings · 4 accessories · 2 models</span>
     <span class="mono">Sea-Doo · ROTAX</span>
   </div>
-  <h1>אופנוע ים, <em>חלק אחר חלק</em></h1>
-  <p class="hero-lede">כל אביזר מוצג בנפרד. בהמשך הגלילה החלקים עפים למקומם על הגוף, המנוע מותנע, והג׳ט מתחיל לירות מים.</p>
+  <h1>Jet&#8209;ski, <em>part by part</em></h1>
+  <p class="hero-lede">Each piece is shown on its own. As you scroll, the parts fly into place on the hull, the engine fires, and the jet starts throwing water.</p>
   <div class="hero-img">
-    <img data-img="wake" alt="שרטוט חתך של Sea-Doo Wake Pro עם מנוע ROTAX" width="1774" height="887">
+    <img data-img="wake" alt="Cutaway of the Sea-Doo Wake Pro with ROTAX engine" width="1774" height="887">
   </div>
   <div class="cta">
-    <button type="button" class="btn play" id="play-hero">▶ צפו בהרכבה</button>
-    <div class="cue"><i></i><span class="mono">או גללו למטה</span></div>
+    <button type="button" class="btn play" id="play-hero">▶ Watch it assemble</button>
+    <div class="cue"><i></i><span class="mono">or scroll down</span></div>
   </div>
 </header>
 
 <section class="parts wrap" aria-labelledby="parts-h">
   <div class="sec-head">
-    <span class="mono">רשימת חלקים</span>
-    <h2 id="parts-h">ארבעה אביזרים וגוף אחד</h2>
-    <p>החלקים מסודרים לפי סדר ההרכבה באנימציה.</p>
+    <span class="mono">Parts list</span>
+    <h2 id="parts-h">Four accessories, one body</h2>
+    <p>Listed in the order they assemble in the animation.</p>
   </div>
 
   <article class="part">
-    <div class="plate"><span class="tag mono">שלב 1</span><img data-img="pylon" alt="עמוד גרירה BRP" loading="lazy"></div>
+    <div class="plate"><span class="tag mono">Step 1</span><img data-img="pylon" alt="BRP tow pylon" loading="lazy"></div>
     <div class="ptext">
       <span class="brand">BRP</span>
-      <h3>עמוד גרירה</h3>
-      <p>עמוד עם שתי ידיות אחיזה, צינור טלסקופי ובסיס עם רגליים. נקודת העיגון של החבל.</p>
-      <dl class="spec"><dt>מיקום</dt><dd>על הסיפון האחורי, מאחורי המושב</dd></dl>
+      <h3>Tow pylon</h3>
+      <p>A post with two grip handles, a telescopic tube and a legged base. The rope's anchor point.</p>
+      <dl class="spec"><dt>Location</dt><dd>On the rear deck, behind the seat</dd></dl>
     </div>
   </article>
 
   <article class="part">
-    <div class="plate"><span class="tag mono">שלב 2</span><img data-img="rope" alt="ידית וחבל גרירה Armstrong" loading="lazy"></div>
+    <div class="plate"><span class="tag mono">Step 2</span><img data-img="rope" alt="Armstrong tow rope &amp; handle" loading="lazy"></div>
     <div class="ptext">
       <span class="brand">ARMSTRONG</span>
-      <h3>ידית וחבל גרירה</h3>
-      <p>ידית משולשת עם אחיזה מרושתת, וחבל קלוע צהוב-לבן מגולגל עם רצועת סקוטש.</p>
-      <dl class="spec"><dt>מיקום</dt><dd>נקשר לראש עמוד הגרירה ונגרר מאחור</dd></dl>
+      <h3>Tow rope &amp; handle</h3>
+      <p>A triangular mesh-grip handle and a coiled yellow-white braided line with a velcro strap.</p>
+      <dl class="spec"><dt>Location</dt><dd>Ties to the top of the pylon and trails behind</dd></dl>
     </div>
   </article>
 
   <article class="part">
-    <div class="plate"><span class="tag mono">שלב 3</span><img data-img="board" alt="סלד מתנפח Jettech, מבט קדמי ואחורי" loading="lazy"></div>
+    <div class="plate"><span class="tag mono">Step 3</span><img data-img="board" alt="JETTECH inflatable sled, front and back" loading="lazy"></div>
     <div class="ptext">
       <span class="brand">JETTECH</span>
-      <h3>סלד מתנפח</h3>
-      <p>סלד עם ידיות אחיזה לאורך הדפנות, רשת באנג׳י כחולה, טבעות D ושתי לולאות בקצה. מוצג מלפנים ומאחור.</p>
-      <dl class="spec"><dt>מיקום</dt><dd>מאחורי האופנוע, נשען על הירכתיים</dd></dl>
+      <h3>Inflatable sled</h3>
+      <p>Grab handles along the sides, a blue bungee net, D-rings and two end loops. Shown front and back.</p>
+      <dl class="spec"><dt>Location</dt><dd>Behind the ski, resting on the stern</dd></dl>
     </div>
   </article>
 
   <article class="part">
-    <div class="plate"><span class="tag mono">שלב 4</span><img data-img="arch" alt="בידונים מתנפחים JAIN בשני מבטים" loading="lazy"></div>
+    <div class="plate"><span class="tag mono">Step 4</span><img data-img="arch" alt="JAIN inflatable floats, two views" loading="lazy"></div>
     <div class="ptext">
       <span class="brand">JAIN</span>
-      <h3>בידונים מתנפחים</h3>
-      <p>צינור מתנפח עם ידיות וטבעות D שנצמד לדפנות האופנוע. מוצג במבט צד ובמבט חזית.</p>
-      <dl class="spec"><dt>מיקום</dt><dd>לאורך דפנות הגוף</dd></dl>
+      <h3>Inflatable floats</h3>
+      <p>An inflatable tube with handles and D-rings that hugs the hull sides. Shown side and front.</p>
+      <dl class="spec"><dt>Location</dt><dd>Along the hull sides</dd></dl>
     </div>
   </article>
 
   <article class="part" style="grid-template-columns:1fr">
     <div class="ptext">
       <span class="brand">SEA-DOO · ROTAX</span>
-      <h3>הגוף: שני דגמים</h3>
-      <p>בחתך רואים את המנוע, ציר ההנעה והמשאבה שיוצאת לג׳ט בירכתיים. אפשר לבחור באיזה דגם להרכיב.</p>
+      <h3>The body: two models</h3>
+      <p>The cutaway shows the engine, driveshaft and the pump that feeds the jet at the stern. Choose which model to build.</p>
     </div>
     <div class="hulls">
       <div class="plate"><span class="tag mono">Wake Pro</span><img data-img="wake" alt="Sea-Doo Wake Pro" loading="lazy"></div>
@@ -216,7 +216,7 @@ p{margin:0}
   </article>
 </section>
 
-<section id="assembly" aria-label="אנימציית הרכבה">
+<section id="assembly" aria-label="Assembly animation">
   <div class="viewport" id="vp">
     <div class="world" id="world">
       <div class="craft" id="craft">
@@ -233,38 +233,38 @@ p{margin:0}
         </svg>
         <div class="p" id="p-rope"><img data-img="rope" alt=""></div>
         <canvas id="fx"></canvas>
-        <div class="lbl" id="l-pylon"><b>עמוד גרירה</b>BRP</div>
-        <div class="lbl" id="l-rope"><b>ידית וחבל</b>ARMSTRONG</div>
-        <div class="lbl" id="l-board"><b>סלד מתנפח</b>JETTECH</div>
-        <div class="lbl" id="l-arch"><b>בידונים</b>JAIN</div>
+        <div class="lbl" id="l-pylon"><b>Tow pylon</b>BRP</div>
+        <div class="lbl" id="l-rope"><b>Rope</b>ARMSTRONG</div>
+        <div class="lbl" id="l-board"><b>Sled</b>JETTECH</div>
+        <div class="lbl" id="l-arch"><b>Floats</b>JAIN</div>
       </div>
     </div>
 
     <div class="topbar">
-      <div class="seg" role="group" aria-label="בחירת דגם">
+      <div class="seg" role="group" aria-label="Choose model">
         <button type="button" id="m-wake" aria-pressed="true">Wake Pro</button>
         <button type="button" id="m-gtx" aria-pressed="false">GTX Limited</button>
       </div>
-      <div class="controls"><button type="button" class="btn" id="play-stage">▶ נגן מההתחלה</button><span class="mono" id="stepnum">מבט מפורק</span></div>
+      <div class="controls"><button type="button" class="btn" id="play-stage">▶ Play from start</button><span class="mono" id="stepnum">Exploded view</span></div>
     </div>
 
     <div class="hud">
       <ol class="steps" id="steps">
-        <li>עמוד</li><li>חבל</li><li>סלד</li><li>בידונים</li><li>התנעה</li>
+        <li>Pylon</li><li>Rope</li><li>Sled</li><li>Floats</li><li>Ignition</li>
       </ol>
-      <div class="caption" id="caption">כל החלקים מפורקים. גללו כדי להרכיב.</div>
+      <div class="caption" id="caption">All parts exploded. Scroll to assemble.</div>
       <div class="controls run-ui">
-        <div class="rpm" aria-live="off">סל״ד <b id="rpm">0</b></div>
-        <button type="button" class="btn gas" id="gas" aria-label="גז, החזיקו לחוץ">גז ▲</button>
-        <button type="button" class="btn" id="sound" aria-pressed="false">הפעלת קול</button>
+        <div class="rpm" aria-live="off">RPM <b id="rpm">0</b></div>
+        <button type="button" class="btn gas" id="gas" aria-label="Throttle, hold down">Throttle ▲</button>
+        <button type="button" class="btn" id="sound" aria-pressed="false">Sound on</button>
       </div>
     </div>
   </div>
 </section>
 
 <section class="outro wrap">
-  <h2>מורכב ומותנע</h2>
-  <p>גללו למעלה כדי לפרק שוב. החזיקו את כפתור הגז כדי להגביר את סל״ד ואת זרם המים. האנימציה היא המחשה גרפית: מיקומי החיבור אינם הוראות התקנה, ומד הסל״ד אינו נתון יצרן.</p>
+  <h2>Assembled and running</h2>
+  <p>Scroll back up to take it apart. Hold the throttle to raise the RPM and the water jet. This animation is a graphic illustration — the mounting positions aren't install instructions, and the RPM readout isn't manufacturer data.</p>
 </section>
 
 </div>
@@ -298,16 +298,16 @@ let model=MODELS.wake;
 
 // parts: natural aspect (h/w), start [cx,cy,w,rot], final [cx,cy,w,rot], timing [t0,t1]
 const PARTS={
-  pylon:{ar:1144/1000, s:[-560,250,440,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
-  rope: {ar:475/1000,  s:[-560,900,640,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
-  board:{ar:1087/539,  s:[2060,290,300,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
-  arch: {ar:955/129,   s:[2000,960,96,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
+  pylon:{ar:1144/1000, s:[-450,250,440,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
+  rope: {ar:475/1000,  s:[-330,860,620,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
+  board:{ar:1087/539,  s:[2060,280,300,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
+  arch: {ar:955/129,   s:[2330,650,96,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
 };
-const LBL_L={pylon:[-560,560],rope:[-560,1120],board:[2060,640],arch:[2000,1080]};
+const LBL_L={pylon:[-450,560],rope:[-330,1020],board:[2060,560],arch:[2330,1010]};
 const LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
 // portrait screens: parts float above / below the hull instead of beside it
-const START_P={pylon:[300,-620,520,0],board:[1380,-640,330,6],rope:[560,1300,860,-4],arch:[1350,1250,110,-90]};
-const LBL_P={pylon:[300,-260],board:[1380,-280],rope:[560,1550],arch:[1350,1390]};
+const START_P={pylon:[330,-430,470,0],board:[1330,-450,300,6],rope:[520,1120,760,-4],arch:[1330,1040,104,-90]};
+const LBL_P={pylon:[330,-90],board:[1330,-90],rope:[520,1350],arch:[1330,1300]};
 const START_L={}; for(const k in PARTS) START_L[k]=PARTS[k].s.slice();
 let portrait=null;
 function layout(){
@@ -370,15 +370,10 @@ const CAMS_L={
 };
 const CAMK=[[0,'E'],[.5,'E'],[1.3,'R1'],[1.9,'R1'],[2.5,'R2'],[3.5,'R2'],[4.3,'F'],[5.2,'F'],[6.2,'R4'],[6.7,'R4'],[7.6,'F2'],[7.8,'F2'],[8.7,'EN'],[9.4,'EN']];
 const TEND=9.4;
+const CAM_FIX_L={x:-740,y:-150,w:3260,h:1200};
+const CAM_FIX_P={x:-470,y:-560,w:2720,h:2020};
 const CAMS=()=>portrait?CAMS_P:CAMS_L;
-function camAt(t){
-  for(let i=0;i<CAMK.length-1;i++){
-    const [t0,a]=CAMK[i],[t1,b]=CAMK[i+1];
-    if(t<=t1){ const C=CAMS(), e=io(seg(t,t0,t1)), A=C[a], B=C[b];
-      return {x:lerp(A.x,B.x,e),y:lerp(A.y,B.y,e),w:lerp(A.w,B.w,e),h:lerp(A.h,B.h,e)}; }
-  }
-  return CAMS().EN;
-}
+function camAt(t){ return portrait?CAM_FIX_P:CAM_FIX_L; }
 function applyCam(cam){
   const W=vp.clientWidth, H=vp.clientHeight;
   const topPad=56, botPad=Math.min(190,H*.26);
@@ -400,14 +395,14 @@ rp.style.strokeDasharray=RL;
 // HUD
 const stepsEl=[...sr.querySelectorAll('#steps li')];
 const caption=sr.getElementById('caption'), stepnum=sr.getElementById('stepnum');
-const CAPS=['החלקים מפורקים. גללו או לחצו ▶ נגן.','עמוד הגרירה נכנס לסיפון האחורי','החבל נקשר לראש העמוד','הסלד נצמד מאחור, על הירכתיים','הבידונים נצמדים לדפנות','מותנע. החזיקו גז.'];
+const CAPS=['All parts exploded. Scroll, or press ▶ Play.','The tow pylon drops onto the rear deck','The rope ties to the top of the pylon','The sled locks on at the stern','The floats hug the hull sides','Running. Hold the throttle.'];
 const STEPT=[.15,1.9,3.6,5.2,8.6];
 let curStep=-1;
 function setStep(i){
   if(i===curStep) return; curStep=i;
   stepsEl.forEach((li,j)=>{li.classList.toggle('on',j===i-1);li.classList.toggle('done',j<i-1);});
   caption.textContent=CAPS[i]||'';
-  stepnum.textContent=i===0?'מבט מפורק':`שלב ${i} מתוך 5`;
+  stepnum.textContent=i===0?'Exploded view':`Step ${i} of 5`;
 }
 
 // scroll-driven timeline (smoothed)
@@ -639,7 +634,7 @@ sb.onclick=()=>{
     if(audio&&running) audio.on();
   } else if(audio) audio.off();
   sb.setAttribute('aria-pressed',soundOn);
-  sb.textContent=soundOn?'כיבוי קול':'הפעלת קול';
+  sb.textContent=soundOn?'Sound off':'Sound on';
 };
 layout(); readScroll(); render(tCur);
 setTimeout(checkMode,700);
