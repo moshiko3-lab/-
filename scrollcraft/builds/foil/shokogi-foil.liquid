@@ -1,0 +1,115 @@
+{%- comment -%} SHOKOGI Foil Surfing — PART 1 (before the equipment animation): hero, what is foil, foil in action, why Playa Venao, the essentials. Surf Camp design. The equipment animation (shokogi-foil-fleet, "04 · Our Equipment") renders next, then PART 2. {%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+<style>
+/* Foil in Action: one inline clip, not a full-bleed black block */
+.skp .fclip{width:100%;max-width:900px;aspect-ratio:16/9;max-height:520px;object-fit:cover;border-radius:16px;background:#000;display:block;margin:22px auto 0}
+@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}
+/* Compact the (global) footer on the foil pages so the bottom isn't one huge black block */
+.footer__content-top{padding-top:38px!important;padding-bottom:28px!important}
+.footer-block{margin-bottom:22px!important}
+.footer__content-middle > .container{padding-top:18px!important;padding-bottom:20px!important}
+@media screen and (max-width:749px){
+  .footer__content-top{padding-top:30px!important;padding-bottom:18px!important}
+  .footer-block{margin-bottom:20px!important}
+  .footer-block--logo{margin-bottom:26px!important}
+  .footer__content-middle > .container{padding-top:18px!important;padding-bottom:22px!important}
+}
+</style>
+<div class="skp">
+  <!-- HERO -->
+  {%- if section.settings.hero_image -%}
+    <div class="herofull">{{ section.settings.hero_image | image_url: width: 2600 | image_tag: loading: 'eager', sizes: '100vw', widths: '800,1200,1600,2000,2600', alt: 'Foil Surfing in Playa Venao, Panama' }}</div>
+  {%- endif -%}
+  <div class="herotext">
+    <div class="htag">Feel the Glide &middot; Fly Above the Waves</div>
+    <h1>Foil Surfing in Playa Venao</h1>
+    <p>Progress your foiling in world-class conditions with expert jet ski tow-in support and premium equipment &mdash; uncrowded breaks, consistent Pacific swells, and year-round warm water.</p>
+    <a href="#foil-book" class="btn pink">Book Your Session</a>
+  </div>
+
+  <!-- 01 · WHAT IS FOIL SURFING -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">01 &middot; Foil Surfing</div>
+    <h2>What is Foil Surfing?</h2>
+    <div class="band rev" style="margin-top:24px">
+      {%- if section.settings.foil_what -%}<img src="{{ section.settings.foil_what | image_url: width: 1200 }}" alt="Foil surfing at Playa Venao" loading="lazy">{%- endif -%}
+      <div class="bt">
+        <p>You&rsquo;ve tried foiling at home &mdash; now experience it in paradise. Playa Venao gives you three distinct tow-in locations within five minutes, each with different conditions, plus a protected bay with clean, consistent swells to build confidence and duration.</p>
+        <p>We provide what serious foilers need to progress: expert jet ski tow-in that maximises your water time, high-performance equipment dialed for these conditions, and local knowledge of exactly where to foil each day. Our instructors are experienced watermen and skilled foilers themselves.</p>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- FOIL IN ACTION (video) -->
+  {%- assign fv = section.settings.video -%}
+  <div class="sec tint"><div class="wrap" style="text-align:center">
+    <div class="kicker">Foil in Action</div>
+    <video class="fclip skvid" muted loop playsinline preload="none"{% if fv != blank and fv.preview_image %} poster="{{ fv.preview_image | image_url: width: 1600 }}"{% endif %}>
+      {%- if fv != blank and fv.sources.size > 0 -%}{%- for src in fv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
+    </video>
+  </div></div>
+
+  <!-- 02 · WHY PLAYA VENAO -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">02 &middot; Why Playa Venao</div>
+    <h2>Why Playa Venao for Foil Surfing?</h2>
+    {%- if section.settings.foil_why -%}<img class="wideimg" src="{{ section.settings.foil_why | image_url: width: 1800 }}" alt="Why Playa Venao for Foil Surfing" loading="lazy">{%- endif -%}
+    <div class="story">
+      <h3>Multiple Locations, Not One Break</h3>
+      <p>Most foil spots lock you into one break with variable conditions. We pick the best of three nearby locations daily based on swell, wind, and your ability &mdash; so you&rsquo;re never stuck with poor conditions.</p>
+      <h3>Expert Tow-In Support</h3>
+      <p>Our jet ski support eliminates exhausting paddle-outs and positioning guesswork, so you maximise attempts and water time. Our drivers are experienced foilers who coach technique in real time &mdash; most visiting foilers double or triple their wave count.</p>
+      <h3>World-Class Conditions</h3>
+      <p>Year-round 78&ndash;82&deg;F water (no thick wetsuits), consistent Pacific swells (never flat), and uncrowded lineups &mdash; often entire sections to yourself. We run foil sessions 12 months a year.</p>
+    </div>
+  </div></div>
+
+  <!-- 03 · THE ESSENTIALS -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">03 &middot; The Essentials</div>
+    <h2>Quick Facts</h2>
+    <div class="facts" style="margin-top:22px">
+      <div class="fact"><b>Experience</b><span>Have gotten up on a foil (1&ndash;2+ lessons)</span></div>
+      <div class="fact"><b>Format</b><span>Expert jet ski tow-in support</span></div>
+      <div class="fact"><b>Session Length</b><span>2-hour or 3-hour sessions</span></div>
+      <div class="fact"><b>Best Season</b><span>Year-round &mdash; consistent swells</span></div>
+      <div class="fact"><b>Water</b><span>78&ndash;82&deg;F (26&ndash;28&deg;C) &mdash; warm</span></div>
+      <div class="fact"><b>Included</b><span>Tow-in, coaching &amp; equipment</span></div>
+    </div>
+    <div style="text-align:center;margin-top:26px"><a href="#foil-book" class="btn pink">Book Your First Session</a></div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  if(window.__skVidFoil)return; window.__skVidFoil=1;
+  var vids=[].slice.call(document.querySelectorAll('.skp video.skvid'));
+  if(!vids.length) return;
+  var play=function(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} };
+  if(!('IntersectionObserver' in window)){ vids.forEach(play); return; }
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(e){
+      var v=e.target;
+      if(e.isIntersecting){ play(v); }
+      else if(!v.paused){ v.pause(); }
+    });
+  }, {rootMargin:'300px 0px', threshold:0.1});
+  vids.forEach(function(v){ io.observe(v); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Foil Surfing — Part 1",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image" },
+    { "type": "header", "content": "Sections" },
+    { "type": "image_picker", "id": "foil_what", "label": "What is Foil image" },
+    { "type": "image_picker", "id": "foil_why", "label": "Why Playa Venao image" },
+    { "type": "video", "id": "video", "label": "Foil in Action video" }
+  ],
+  "presets": [ { "name": "Foil Surfing — Part 1" } ]
+}
+{% endschema %}

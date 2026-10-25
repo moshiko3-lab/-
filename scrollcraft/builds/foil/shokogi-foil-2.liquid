@@ -1,0 +1,99 @@
+{%- comment -%} SHOKOGI Foil Surfing — PART 2 (after the equipment animation): progression path, packages, who it's for, FAQ, closer. Surf Camp design. {%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+<style>.skp .who4{grid-template-columns:repeat(2,1fr);max-width:720px;margin:24px auto 0}@media(max-width:760px){.skp .who4{grid-template-columns:1fr 1fr}}</style>
+<div class="skp">
+  <!-- 05 · PROGRESSION PATH -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">05 &middot; Your Progression Path</div>
+    <h2>From First Glide to Flying</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>First Session</h3><p>We assess your ability, dial in your board and foil, and get you comfortable with our tow-in system. The clean, consistent energy here lets you focus on technique from the very first ride.</p></div>
+      <div class="step"><div class="n">2</div><h3>Building Consistency</h3><p>We target specific goals &mdash; longer rides, pumping, wave selection, speed control &mdash; moving between spots by conditions. Optional video review sharpens technique. Most foilers book 2&ndash;3 sessions.</p></div>
+      <div class="step"><div class="n">3</div><h3>Push Your Limits</h3><p>Longer sessions to connect swells, ride tiny bumps and pump for speed, with local knowledge unlocking spots you&rsquo;d never find alone. Riders often call these the best sessions of their lives.</p></div>
+    </div>
+  </div></div>
+
+  <!-- 06 · PACKAGES -->
+  <div class="sec tint" id="foil-book"><div class="wrap">
+    <div class="kicker" style="text-align:center">06 &middot; Foil Packages</div>
+    <h2>Choose Your Foil Package</h2>
+    <p class="lead">Every package includes premium foil equipment, safety gear (helmet, impact vest), expert tow-in instruction, and access to Playa Venao&rsquo;s best foil zones.</p>
+    <div class="cards">
+      {%- assign p = all_products['3-hours-free-session'] -%}
+      {%- if p != empty and p.title != blank -%}
+      <div class="ccard">
+        <div class="dur">3 Hours Tow-In</div>
+        <div class="price">{{ p.price | money_without_trailing_zeros }}<small>single session</small></div>
+        <ul><li>3-hour extended tow-in session</li><li>Premium foil board, foil &amp; safety gear</li><li>Expert jet ski tow-in + real-time coaching</li><li>Multi-location access by conditions</li></ul>
+        <a href="{{ p.url }}" class="bbtn">Book Session</a>
+      </div>
+      {%- endif -%}
+      {%- assign p = all_products['3-session-foil-package'] -%}
+      {%- if p != empty and p.title != blank -%}
+      <div class="ccard feat2">
+        <div class="ptag">Most Popular</div>
+        <div class="dur">3 Session Package</div>
+        <div class="price">{{ p.price | money_without_trailing_zeros }}<small>9 hours total</small></div>
+        <ul><li>Three 3-hour tow-in sessions</li><li>Premium equipment &amp; all safety gear</li><li>Multi-location progression</li><li>Flexible scheduling across your stay</li></ul>
+        <a href="{{ p.url }}" class="bbtn">Book 3 Sessions</a>
+      </div>
+      {%- endif -%}
+      {%- assign p = all_products['5-session-foil-package'] -%}
+      {%- if p != empty and p.title != blank -%}
+      <div class="ccard">
+        <div class="dur">5 Session Package</div>
+        <div class="price">{{ p.price | money_without_trailing_zeros }}<small>10 hours total</small></div>
+        <ul><li>Five 2-hour tow-in sessions</li><li>Premium equipment &amp; all safety gear</li><li>Comprehensive progression tracking</li><li>Session notes &amp; practice plan</li></ul>
+        <a href="{{ p.url }}" class="bbtn">Book 5 Sessions</a>
+      </div>
+      {%- endif -%}
+    </div>
+  </div></div>
+
+  <!-- 07 · WHO IT'S FOR -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">07 &middot; Who It&rsquo;s For</div>
+    <h2>Who Is This For?</h2>
+    <div class="icols who4">
+      <div class="icard">{%- if section.settings.who_1 -%}{{ section.settings.who_1 | image_url: width: 700 | image_tag: loading: 'lazy', widths: '300,500,700', alt: "You've tried foiling" }}{%- endif -%}<div class="ib"><h3>You&rsquo;ve Tried Foiling</h3><p>&#10003; Taken 1&ndash;2+ foil lessons<br/>&#10003; Gotten up and ridden<br/>&#10003; Want to progress in better conditions</p></div></div>
+      <div class="icard">{%- if section.settings.who_2 -%}{{ section.settings.who_2 | image_url: width: 700 | image_tag: loading: 'lazy', widths: '300,500,700', alt: 'Visiting Playa Venao' }}{%- endif -%}<div class="ib"><h3>Visiting Playa Venao</h3><p>&#10003; On a surf trip to Venao<br/>&#10003; Want variety beyond surfing<br/>&#10003; Seeking uncrowded conditions</p></div></div>
+      <div class="icard">{%- if section.settings.who_3 -%}{{ section.settings.who_3 | image_url: width: 700 | image_tag: loading: 'lazy', widths: '300,500,700', alt: 'Serious about progression' }}{%- endif -%}<div class="ib"><h3>Serious About Progression</h3><p>&#10003; Want expert tow-in support<br/>&#10003; Ready to invest in technique<br/>&#10003; Goal-oriented over multiple sessions</p></div></div>
+      <div class="icard">{%- if section.settings.who_4 -%}{{ section.settings.who_4 | image_url: width: 700 | image_tag: loading: 'lazy', widths: '300,500,700', alt: 'Equipment matters' }}{%- endif -%}<div class="ib"><h3>Equipment Matters</h3><p>&#10003; Want to ride premium gear<br/>&#10003; Don&rsquo;t want to travel with a foil<br/>&#10003; Value local setup knowledge</p></div></div>
+    </div>
+  </div></div>
+
+  <!-- 08 · FAQ -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">08 &middot; FAQ</div>
+    <h2>Good to Know</h2>
+    <div class="faq" style="margin-top:22px">
+      <details open><summary>What level of foiling do I need?</summary><div class="ans">You should have gotten up on a foil before, even if just for a few rides during 1&ndash;2 lessons. We focus on progression and technique &mdash; not first-time instruction. If you&rsquo;ve ridden a foil (even briefly), you&rsquo;re ready.</div></details>
+      <details><summary>Do you teach complete beginners?</summary><div class="ans">Not currently &mdash; we focus on riders who&rsquo;ve already tried foiling, which lets us maximise safety and the experience. If you haven&rsquo;t foiled yet, take 1&ndash;2 intro lessons near home, then come progress here in world-class conditions.</div></details>
+      <details><summary>What makes your tow-in support different?</summary><div class="ans">Our drivers are experienced watermen and skilled foilers &mdash; not just boat drivers. They coach technique in real time and position you perfectly for conditions, so you spend maximum time riding. Most foilers double or triple their wave count versus paddling.</div></details>
+      <details><summary>What equipment do you provide?</summary><div class="ans">High-performance foil boards and foils dialed for these conditions, plus all safety gear (helmet, impact vest), matched to your size, ability and goals. Experienced riders are welcome to bring their own setup &mdash; we still provide tow-in, local knowledge and safety gear.</div></details>
+      <details><summary>When is the best time to visit?</summary><div class="ans">Year-round. Playa Venao gets consistent Pacific swells every season with warm water (78&ndash;82&deg;F). Dry season (December&ndash;April) offers the most predictable conditions; wet season can bring larger swells. We run sessions 12 months a year.</div></details>
+    </div>
+  </div></div>
+
+  <!-- CLOSER -->
+  <div class="sec"><div class="wrap closer">
+    <h2>Ready to Fly Above the Waves?</h2>
+    <p>Progress your foiling in Playa Venao with expert tow-in support and premium equipment.</p>
+    <a href="#foil-book" class="btn pink">Book Your Session</a>
+  </div></div>
+</div>
+
+{% schema %}
+{
+  "name": "Foil Surfing — Part 2",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Who Is This For (4 images)" },
+    { "type": "image_picker", "id": "who_1", "label": "You've Tried Foiling" },
+    { "type": "image_picker", "id": "who_2", "label": "Visiting Playa Venao" },
+    { "type": "image_picker", "id": "who_3", "label": "Serious About Progression" },
+    { "type": "image_picker", "id": "who_4", "label": "Equipment Matters" }
+  ],
+  "presets": [ { "name": "Foil Surfing — Part 2" } ]
+}
+{% endschema %}
