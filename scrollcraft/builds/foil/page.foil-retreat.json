@@ -3,13 +3,18 @@
     "skfoilretreat": {
       "type": "shokogi-foil-retreat",
       "settings": {
-        "hero_video": "shopify://files/videos/DJI_0022.mov",
+        "hero_video": "shopify://files/videos/DJI_0022.mov"
+      }
+    },
+    "skfleet": { "type": "shokogi-foil-fleet", "settings": {} },
+    "skfoilretreat2": {
+      "type": "shokogi-foil-retreat-2",
+      "settings": {
         "why_video": "shopify://files/videos/DJI_0021.mov",
         "bring_image": "shopify://shop_images/IMG_0141.jpg",
         "who_image": "shopify://shop_images/IMG_0132.jpg"
       }
-    },
-    "skfleet": { "type": "shokogi-foil-fleet", "settings": {} }
+    }
   },
-  "order": ["skfoilretreat", "skfleet"]
+  "order": ["skfoilretreat", "skfleet", "skfoilretreat2"]
 }
