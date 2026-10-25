@@ -3,7 +3,16 @@
 <style>.skp .vclips{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}.skp .vclips video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:16px;background:#000;display:block}@media(max-width:600px){.skp .vclips{gap:10px}}
 /* On phones, let the browser drop the render memory of off-screen content blocks
    as you scroll past them, so a long page doesn't accumulate to an iOS reload. */
-@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}</style>
+@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}
+/* Daily schedule: compact pink timeline (smaller + tighter than the default list) */
+.skp .sched{max-width:560px;margin:clamp(18px,3vw,24px) auto 0;position:relative;padding-left:26px}
+.skp .sched::before{content:"";position:absolute;left:5px;top:9px;bottom:9px;width:2px;background:var(--line)}
+.skp .sched .srow{display:block;grid-template-columns:none;gap:0;padding:0 0 15px;border-top:0;position:relative}
+.skp .sched .srow:last-child{padding-bottom:0}
+.skp .sched .srow::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--pink);border:2.5px solid var(--bg)}
+.skp .sched .srow .st{font-size:14px;letter-spacing:.03em;line-height:1.1;margin-bottom:1px}
+.skp .sched .srow h3{font-size:12px;margin:0 0 2px}
+.skp .sched .srow p{font-size:12.5px;line-height:1.5}</style>
 <div class="skp">
   <!-- HERO (video) -->
   {%- assign hv = section.settings.hero_video -%}
