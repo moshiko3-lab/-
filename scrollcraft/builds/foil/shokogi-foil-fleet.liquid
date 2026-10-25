@@ -377,6 +377,7 @@ function step(){
   sraf = tCur!==tTarget ? requestAnimationFrame(step) : 0;
 }
 addEventListener('scroll',readScroll,{passive:true});
+if('IntersectionObserver' in window){ new IntersectionObserver(function(es){ offscreen=!es[0].isIntersecting; if(offscreen){ stopEngine(); if(raf){cancelAnimationFrame(raf); raf=0;} } },{rootMargin:'0px'}).observe(vp); }
 addEventListener('resize',()=>{ if(mode==='static') sizeStatic(); layout(); render(tCur); });
 // some viewers grow the frame to the page's full height, so the page never scrolls itself.
 // there the stage becomes a normal block and the sequence plays on its own.
@@ -413,13 +414,13 @@ sr.getElementById('m-gtx').onclick=()=>setModel('gtx');
 // engine + water
 const cv=sr.getElementById('fx'), cx=cv.getContext('2d');
 const RES=MOBILE?0.3:0.5; if(!MOBILE){ cv.width=3900*RES; cv.height=3400*RES; }
-let running=false, throttle=0, target=0, parts=[], raf=0, t0=performance.now(), rpmShown=0;
+let running=false, throttle=0, target=0, parts=[], raf=0, t0=performance.now(), rpmShown=0, offscreen=false;
 const craft=sr.getElementById('craft'), clip=sr.getElementById('engineClip');
 const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
   if(MOBILE){ glow.style.mixBlendMode='normal'; shaft.style.mixBlendMode='normal'; }
 const rpmEl=sr.getElementById('rpm');
 function startEngine(){
-  if(running) return; running=true; vp.classList.add('running');
+  if(running||offscreen) return; running=true; vp.classList.add('running');
   shaft.style.opacity=1;
   if(!raf) raf=requestAnimationFrame(loop);
   if(audio) audio.on();
