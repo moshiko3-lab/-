@@ -12,7 +12,26 @@
 .skp .sched .srow::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--pink);border:2.5px solid var(--bg)}
 .skp .sched .srow .st{font-size:14px;letter-spacing:.03em;line-height:1.1;margin-bottom:1px}
 .skp .sched .srow h3{font-size:12px;margin:0 0 2px}
-.skp .sched .srow p{font-size:12.5px;line-height:1.5}</style>
+.skp .sched .srow p{font-size:12.5px;line-height:1.5}
+/* What to bring & gear rental: structured cards */
+.skp .band .bt .blead{font-size:14.5px;color:#4c4b47;line-height:1.75;margin:10px 0 0}
+.skp .brgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px;align-items:stretch}
+.skp .brcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px}
+.skp .brcard .dur{margin-bottom:16px}
+.skp .brlist{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.skp .brlist li{display:grid;grid-template-columns:20px 1fr;gap:12px;align-items:start}
+.skp .brlist .bi{width:20px;height:20px;border-radius:50%;background:#f3f1ec;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px}
+.skp .brlist b{display:block;font-size:14px;color:var(--ink);letter-spacing:.02em}
+.skp .brlist em{display:block;font-size:12.5px;color:var(--muted);font-style:normal;line-height:1.5;margin-top:1px}
+.skp .brcard.rent{border:1.5px solid var(--pink);box-shadow:0 10px 34px rgba(244,110,149,.14);display:flex;flex-direction:column}
+.skp .brcard.rent .dur{color:var(--pink)}
+.skp .rprice{font-family:var(--font-heading-family,"Barlow Condensed",sans-serif);font-size:44px;font-weight:600;line-height:1;color:var(--ink);display:flex;align-items:baseline;gap:9px;margin:2px 0 2px}
+.skp .rprice small{font-family:var(--font-body-family,"Figtree",sans-serif);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.skp .rdesc{font-size:13.5px;color:#52514d;line-height:1.6;margin:8px 0 16px}
+.skp .rinc{list-style:none;padding:16px 0 0;margin:auto 0 0;border-top:1px solid var(--line);display:grid;gap:10px}
+.skp .rinc li{position:relative;padding-left:24px;font-size:13px;color:#4a4945;line-height:1.5}
+.skp .rinc li:before{content:"";position:absolute;left:3px;top:6px;width:8px;height:4px;border-left:1.8px solid var(--pink);border-bottom:1.8px solid var(--pink);transform:rotate(-45deg)}
+@media(max-width:760px){.skp .band .bt .blead{text-align:center}.skp .brgrid{grid-template-columns:1fr;gap:14px}}</style>
 <div class="skp">
   <!-- HERO (video) -->
   {%- assign hv = section.settings.hero_video -%}
@@ -95,18 +114,29 @@
       <div class="bt">
         <div class="kicker">what to bring</div>
         <h2>What to Bring &amp; Gear Rental</h2>
-        <p style="font-weight:700;color:var(--ink);margin:0 0 6px">Not included:</p>
-        <ul class="xlist" style="margin:0;max-width:none">
-          <li>Foil equipment (board, foil, helmet, impact vest) &mdash; bring your own or rent</li>
-          <li>Lunch &mdash; restaurants within walking distance</li>
-          <li>Travel insurance &mdash; highly recommended</li>
-          <li>Flights to Panama City</li>
-        </ul>
+        <p class="blead">Your sessions, stay, breakfast and dinner, filming, and jet&nbsp;ski support are all covered. Here&rsquo;s the short list to arrange yourself &mdash; and the complete foil setup you can rent on site.</p>
       </div>
     </div>
-    <div class="notebox">
-      <h3>Foil Gear Rental Available</h3>
-      <p><strong>Complete foil setup: $100 per day.</strong> Includes a foil board. We carry high-performance equipment suitable for tow-in wave riding. Reserve your gear when booking.</p>
+    <div class="brgrid">
+      <div class="brcard">
+        <div class="dur">Not included &mdash; plan ahead</div>
+        <ul class="brlist">
+          <li><span class="bi">&times;</span><div><b>Foil equipment</b><em>Board, foil, helmet &amp; impact vest &mdash; bring your own or rent</em></div></li>
+          <li><span class="bi">&times;</span><div><b>Lunch</b><em>Restaurants within walking distance</em></div></li>
+          <li><span class="bi">&times;</span><div><b>Travel insurance</b><em>Highly recommended</em></div></li>
+          <li><span class="bi">&times;</span><div><b>Flights</b><em>To Panama City</em></div></li>
+        </ul>
+      </div>
+      <div class="brcard rent">
+        <div class="dur">Foil gear rental</div>
+        <div class="rprice">$100<small>per day</small></div>
+        <p class="rdesc">A complete foil setup with a foil board included &mdash; ready for tow-in wave riding.</p>
+        <ul class="rinc">
+          <li>High-performance tow-in equipment</li>
+          <li>Suitable for wave riding</li>
+          <li>Reserve your gear when booking</li>
+        </ul>
+      </div>
     </div>
   </div></div>
 
