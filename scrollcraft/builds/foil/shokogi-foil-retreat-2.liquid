@@ -31,7 +31,16 @@
 .skp .rinc{list-style:none;padding:16px 0 0;margin:auto 0 0;border-top:1px solid var(--line);display:grid;gap:10px}
 .skp .rinc li{position:relative;padding-left:24px;font-size:13px;color:#4a4945;line-height:1.5}
 .skp .rinc li:before{content:"";position:absolute;left:3px;top:6px;width:8px;height:4px;border-left:1.8px solid var(--pink);border-bottom:1.8px solid var(--pink);transform:rotate(-45deg)}
-@media(max-width:760px){.skp .band .bt .blead{text-align:center}.skp .brgrid{grid-template-columns:1fr;gap:14px}}</style>
+@media(max-width:760px){.skp .band .bt .blead{text-align:center}.skp .brgrid{grid-template-columns:1fr;gap:14px}}
+/* Who should attend: requirements card + approval steps */
+.skp .reqcard{max-width:640px;margin:28px auto 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 30px}
+.skp .reqcard .dur{margin-bottom:16px;text-align:center}
+.skp .reqlist{list-style:none;padding:0;margin:0;display:grid;gap:13px}
+.skp .reqlist li{position:relative;padding-left:30px;font-size:14.5px;color:#4c4b47;line-height:1.55}
+.skp .reqlist li:before{content:"";position:absolute;left:4px;top:7px;width:11px;height:6px;border-left:2.2px solid var(--pink);border-bottom:2.2px solid var(--pink);transform:rotate(-45deg)}
+.skp .applyhead{text-align:center;margin:40px 0 0}
+.skp .apply-cta{text-align:center;margin-top:24px}
+@media(max-width:760px){.skp .reqcard{padding:22px 20px}}</style>
 <div class="skp">
   <!-- GEAR & WHAT TO BRING -->
   <div class="sec"><div class="wrap">
@@ -104,20 +113,41 @@
       <div class="bt">
         <div class="kicker">07 &middot; Who It&rsquo;s For</div>
         <h2>Who Should Attend This Foil Tow-In Retreat?</h2>
-        <p style="font-weight:700;color:var(--ink);margin:0 0 6px">This retreat is for you if:</p>
-        <ul class="bullets" style="margin:0;max-width:none">
-          <li>You can confidently fly a hydrofoil behind jet ski, boat, or wing</li>
-          <li>You&rsquo;re comfortable with tow-in basics (getting up, maintaining flight, releasing rope)</li>
-          <li>You want to transition from flat water to wave riding</li>
-          <li>You can handle intermediate waves (chest-high and above)</li>
-          <li>You want video analysis to accelerate progression</li>
-        </ul>
+        <p class="blead">This retreat is built for experienced foilers moving into wave riding. It&rsquo;s a fit if you recognize yourself below &mdash; and every rider is approved in advance so the group rides at one level.</p>
       </div>
     </div>
-    <div class="notebox">
-      <h3>Approval Required</h3>
-      <p>Before booking, submit foil riding videos showing your current ability. Email: <a href="mailto:shokogipanama@gmail.com">shokogipanama@gmail.com</a>. This ensures all participants have similar skill levels for the best group experience.</p>
+    <div class="reqcard">
+      <div class="dur">You&rsquo;re ready if</div>
+      <ul class="reqlist">
+        <li>You can confidently fly a hydrofoil behind jet ski, boat, or wing</li>
+        <li>You&rsquo;re comfortable with tow-in basics &mdash; getting up, maintaining flight, releasing rope</li>
+        <li>You want to transition from flat water to wave riding</li>
+        <li>You can handle intermediate waves (chest-high and above)</li>
+        <li>You want video analysis to accelerate progression</li>
+      </ul>
     </div>
+    <div class="applyhead">
+      <div class="kicker">how to apply</div>
+      <h2>Approval Before You Book</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Send Your Videos</h3>
+        <p>Email your foil riding clips to <a href="mailto:shokogipanama@gmail.com">shokogipanama@gmail.com</a> showing your current ability.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>We Review</h3>
+        <p>We confirm you&rsquo;re at the right level, so every participant rides similar conditions.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Book Your Spot</h3>
+        <p>Just 4 places per retreat. Once you&rsquo;re approved, reserve your place in Playa Venao.</p>
+      </div>
+    </div>
+    <div class="apply-cta"><a href="mailto:shokogipanama@gmail.com?subject=Foil%20Retreat%20Panama%20Application" class="btn pink">Email Your Videos</a></div>
   </div></div>
 
   <!-- PRICING & BOOKING -->
