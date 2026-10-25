@@ -416,11 +416,12 @@ const RES=MOBILE?0.3:0.5; if(!MOBILE){ cv.width=3900*RES; cv.height=3400*RES; }
 let running=false, throttle=0, target=0, parts=[], raf=0, t0=performance.now(), rpmShown=0;
 const craft=sr.getElementById('craft'), clip=sr.getElementById('engineClip');
 const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
+  if(MOBILE){ glow.style.mixBlendMode='normal'; shaft.style.mixBlendMode='normal'; }
 const rpmEl=sr.getElementById('rpm');
 function startEngine(){
   if(running) return; running=true; vp.classList.add('running');
-  shaft.style.opacity=1; glow.style.opacity=0.6;
-  if(!MOBILE && !raf) raf=requestAnimationFrame(loop);
+  shaft.style.opacity=1;
+  if(!raf) raf=requestAnimationFrame(loop);
   if(audio) audio.on();
 }
 function stopEngine(){
@@ -446,6 +447,7 @@ function loop(now){
     const rpm=Math.round(1550+throttle*6100+(Math.random()-.5)*60);
     rpmShown+=(rpm-rpmShown)*.25; rpmEl.textContent=Math.round(rpmShown/10)*10;
   }
+  if(MOBILE){ if(running) raf=requestAnimationFrame(loop); else { raf=0; craft.style.transform=''; } return; }
   // emit water
   if(running){
     const n=reduce?3:Math.round(10+throttle*26);
@@ -509,7 +511,7 @@ function loop(now){
 
 // throttle button
 const gas=sr.getElementById('gas');
-const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(!MOBILE&&!raf)raf=requestAnimationFrame(loop);};
+const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(audio)audio.on();if(!raf)raf=requestAnimationFrame(loop);};
 const up=()=>{target=0;gas.classList.remove('held');};
 gas.addEventListener('pointerdown',down);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>gas.addEventListener(ev,up));
