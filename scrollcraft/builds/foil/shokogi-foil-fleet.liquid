@@ -204,7 +204,10 @@ p{margin:0}
   sr.appendChild(tpl.content.cloneNode(true));
 
 const IMG={arch:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-arch.webp?v=1792881173",board:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-board.webp?v=1792881173",gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",pylon:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-pylon.webp?v=1792879218",rope:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-rope.webp?v=1792879218",sidetube:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-floats.webp?v=1792879218",sled:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-sled.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"};
-for(const im of sr.querySelectorAll('img[data-img]')) im.src=IMG[im.dataset.img];
+const MOBILE=matchMedia('(max-width:760px)').matches||/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+const IW=MOBILE?820:1280;
+const WIDE=u=>(!u||u.slice(0,5)==='data:')?u:u+(u.indexOf('?')>-1?'&':'?')+'width='+IW;
+for(const im of sr.querySelectorAll('img[data-img]')) im.src=WIDE(IMG[im.dataset.img]);
 (function(){
 const OX=1500, OY=1200;               // image coords -> world coords
 const wx=x=>x+OX, wy=y=>y+OY;
@@ -398,8 +401,8 @@ sr.getElementById('play-stage').onclick=()=>play();
 // model switch
 function setModel(name){
   model=MODELS[name];
-  sr.getElementById('hull').src=IMG[model.src];
-  sr.getElementById('engineClip').src=IMG[model.src];
+  sr.getElementById('hull').src=WIDE(IMG[model.src]);
+  sr.getElementById('engineClip').src=WIDE(IMG[model.src]);
   sr.getElementById('m-wake').setAttribute('aria-pressed',name==='wake');
   sr.getElementById('m-gtx').setAttribute('aria-pressed',name==='gtx');
   placeOverlays();
@@ -409,15 +412,15 @@ sr.getElementById('m-gtx').onclick=()=>setModel('gtx');
 
 // engine + water
 const cv=sr.getElementById('fx'), cx=cv.getContext('2d');
-const RES=(matchMedia('(max-width:760px)').matches||/iPhone|iPad|Android/.test(navigator.userAgent))?0.3:0.5; cv.width=3900*RES; cv.height=3400*RES;
+const RES=MOBILE?0.3:0.5; if(!MOBILE){ cv.width=3900*RES; cv.height=3400*RES; }
 let running=false, throttle=0, target=0, parts=[], raf=0, t0=performance.now(), rpmShown=0;
 const craft=sr.getElementById('craft'), clip=sr.getElementById('engineClip');
 const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
 const rpmEl=sr.getElementById('rpm');
 function startEngine(){
   if(running) return; running=true; vp.classList.add('running');
-  shaft.style.opacity=1;
-  if(!raf) raf=requestAnimationFrame(loop);
+  shaft.style.opacity=1; glow.style.opacity=0.6;
+  if(!MOBILE && !raf) raf=requestAnimationFrame(loop);
   if(audio) audio.on();
 }
 function stopEngine(){
@@ -506,7 +509,7 @@ function loop(now){
 
 // throttle button
 const gas=sr.getElementById('gas');
-const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(!raf)raf=requestAnimationFrame(loop);};
+const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(!MOBILE&&!raf)raf=requestAnimationFrame(loop);};
 const up=()=>{target=0;gas.classList.remove('held');};
 gas.addEventListener('pointerdown',down);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>gas.addEventListener(ev,up));
