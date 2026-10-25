@@ -1,18 +1,6 @@
-{%- comment -%} SHOKOGI Foil Retreat Panama — PART 2 (after the equipment + jet-ski animation): gear & what to bring, schedule, why, who, pricing, FAQ. Same Surf Camp design. {%- endcomment -%}
+{%- comment -%} SHOKOGI Foil Retreat Panama — PART 2 (after the equipment animation): what's included, what to bring & rental, who it's for, FAQ, closer. Surf Camp design. {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
-<style>.skp .vclips{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}.skp .vclips video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:16px;background:#000;display:block}@media(max-width:600px){.skp .vclips{gap:10px}}
-/* On phones, let the browser drop the render memory of off-screen content blocks
-   as you scroll past them, so a long page doesn't accumulate to an iOS reload. */
-@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}
-/* Daily schedule: compact pink timeline (smaller + tighter than the default list) */
-.skp .sched{max-width:560px;margin:clamp(18px,3vw,24px) auto 0;position:relative;padding-left:26px}
-.skp .sched::before{content:"";position:absolute;left:5px;top:9px;bottom:9px;width:2px;background:var(--line)}
-.skp .sched .srow{display:block;grid-template-columns:none;gap:0;padding:0 0 15px;border-top:0;position:relative}
-.skp .sched .srow:last-child{padding-bottom:0}
-.skp .sched .srow::before{content:"";position:absolute;left:-26px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--pink);border:2.5px solid var(--bg)}
-.skp .sched .srow .st{font-size:14px;letter-spacing:.03em;line-height:1.1;margin-bottom:1px}
-.skp .sched .srow h3{font-size:12px;margin:0 0 2px}
-.skp .sched .srow p{font-size:12.5px;line-height:1.5}
+<style>@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}
 /* What to bring & gear rental: structured cards */
 .skp .band .bt .blead{font-size:14.5px;color:#4c4b47;line-height:1.75;margin:10px 0 0}
 .skp .brgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px;align-items:stretch}
@@ -42,12 +30,40 @@
 .skp .apply-cta{text-align:center;margin-top:24px}
 @media(max-width:760px){.skp .reqcard{padding:22px 20px}}</style>
 <div class="skp">
-  <!-- GEAR & WHAT TO BRING -->
+  <!-- WHAT'S INCLUDED -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">05 &middot; What&rsquo;s Included</div>
+    <h2>What&rsquo;s Included in Your Foil Retreat</h2>
+    <div class="cards4">
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+        <div class="dur">Accommodation &amp; Transportation</div>
+        <ul><li>Transportation from Panama City to Playa Venao and return</li><li>7 nights at Playa Venao Resort in comfortable rooms</li><li>Daily breakfast and dinner at the resort</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3 0 4-2 7-2s4 2 7 2 4-2 4-2"/><path d="M14 5a2.2 2.2 0 1 1-4 1"/><path d="M11 7l-2 6"/></svg>
+        <div class="dur">Foil Tow-In Sessions</div>
+        <ul><li>Up to 12 jet ski tow-in sessions (2 per day)</li><li>Jet ski drivers experienced in foil towing</li><li>Full tow-in foil setup provided</li><li>Safety briefings and session planning each day</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-2h5L16 7"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+        <div class="dur">Professional Filming &amp; Photography</div>
+        <ul><li>Professional drone photography and filming</li><li>Daily drone filming during sessions</li><li>All drone footage delivered</li><li>All professional photos delivered</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 3 5 10 2 18-1 2-3 2-4 0C7 13 8 6 12 3z"/><path d="M12 7v9"/></svg>
+        <div class="dur">Bonus Amenities</div>
+        <ul><li>Free use of surfboards at Shokogi</li><li>Access to Playa Venao Resort facilities</li><li>Local knowledge and wave forecasting</li></ul>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- WHAT TO BRING & GEAR RENTAL -->
   <div class="sec"><div class="wrap">
     <div class="band rev">
       {%- if section.settings.bring_image -%}<img src="{{ section.settings.bring_image | image_url: width: 900 }}" alt="Foil gear in Playa Venao" loading="lazy">{%- endif -%}
       <div class="bt">
-        <div class="kicker">04 &middot; Gear &amp; What to Bring</div>
+        <div class="kicker">06 &middot; What to Bring</div>
         <h2>What to Bring &amp; Gear Rental</h2>
         <p class="blead">Your sessions, stay, breakfast and dinner, filming, and jet&nbsp;ski support are all covered. Here&rsquo;s the short list to arrange yourself &mdash; and the complete foil setup you can rent on site.</p>
       </div>
@@ -72,37 +88,6 @@
           <li>Reserve your gear when booking</li>
         </ul>
       </div>
-    </div>
-  </div></div>
-
-  <!-- DAILY SCHEDULE -->
-  <div class="sec tint"><div class="wrap">
-    <div class="kicker" style="text-align:center">05 &middot; A Day at the Retreat</div>
-    <h2>Your Daily Retreat Schedule</h2>
-    <div class="sched">
-      <div class="srow"><div class="st">7:00 AM</div><div><h3>Morning Tow-In Session</h3><p>1.5&ndash;2 hours on the water with drone filming.</p></div></div>
-      <div class="srow"><div class="st">9:30 AM</div><div><h3>Breakfast &amp; Session Planning</h3><p>Review conditions and plan the day&rsquo;s approach.</p></div></div>
-      <div class="srow"><div class="st">11:00 AM</div><div><h3>Free Time</h3><p>Relax, explore, lunch, or free surf.</p></div></div>
-      <div class="srow"><div class="st">2:00 PM</div><div><h3>Video Review <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400">(select days)</span></h3><p>Watch footage, receive coaching, plan improvements.</p></div></div>
-      <div class="srow"><div class="st">5:00 PM</div><div><h3>Afternoon Tow-In Session</h3><p>Second 1.5&ndash;2 hour session with a different tide.</p></div></div>
-    </div>
-  </div></div>
-
-  <!-- WHY PLAYA VENAO -->
-  <div class="sec"><div class="wrap">
-    <div class="kicker" style="text-align:center">06 &middot; Why Playa Venao</div>
-    <h2>Why Playa Venao for Foil Tow-In Training?</h2>
-    {%- assign wv = section.settings.why_video -%}
-    <video class="wideimg skvid" muted loop playsinline preload="none" style="height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover">
-      {%- if wv != blank and wv.sources.size > 0 -%}{%- for src in wv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
-    </video>
-    <div class="story">
-      <h3>Multiple Locations, Not One Break</h3>
-      <p>Most foil retreats lock you into one break with variable conditions. Playa Venao offers multiple tow-in locations within minutes &mdash; we choose the best spot daily based on swell, wind, and your ability. This flexibility means you&rsquo;re never stuck with poor conditions.</p>
-      <h3>Maximum Water Time</h3>
-      <p>Our jet ski drivers eliminate positioning guesswork and maximize your wave count. You get dramatically more attempts per session compared to paddling or self-towing. Our drivers are experienced foilers themselves who know these breaks intimately and can coach technique in real-time.</p>
-      <h3>World-Class Year-Round Conditions</h3>
-      <p>78&ndash;82&deg;F water (no thick wetsuits needed), consistent Pacific swells (never flat), and uncrowded lineups &mdash; often entire sections to yourself. We successfully run retreats 12 months a year, though May&ndash;June offers peak consistency for this program.</p>
     </div>
   </div></div>
 
@@ -173,33 +158,11 @@
   </div></div>
 </div>
 
-<script>
-/* Each clip loads the first time it scrolls into view (preload="none") and then
-   just plays while visible / pauses when off-screen - the decoded buffer is kept. */
-(function(){
-  if(window.__skVid)return; window.__skVid=1;
-  var vids=[].slice.call(document.querySelectorAll('.skp video.skvid'));
-  if(!vids.length) return;
-  var play=function(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} };
-  if(!('IntersectionObserver' in window)){ vids.forEach(play); return; }
-  var io=new IntersectionObserver(function(ents){
-    ents.forEach(function(e){
-      var v=e.target;
-      if(e.isIntersecting){ play(v); }
-      else if(!v.paused){ v.pause(); }
-    });
-  }, {rootMargin:'300px 0px', threshold:0.1});
-  vids.forEach(function(v){ io.observe(v); });
-})();
-</script>
-
 {% schema %}
 {
   "name": "Foil Retreat — Part 2",
   "tag": "section",
   "settings": [
-    { "type": "header", "content": "Videos" },
-    { "type": "video", "id": "why_video", "label": "Why Playa Venao video" },
     { "type": "header", "content": "Section images" },
     { "type": "image_picker", "id": "bring_image", "label": "What to Bring image" },
     { "type": "image_picker", "id": "who_image", "label": "Who Should Attend image" }
