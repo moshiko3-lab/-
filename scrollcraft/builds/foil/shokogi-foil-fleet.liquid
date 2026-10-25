@@ -86,6 +86,7 @@ p{margin:0}
 .static .viewport{position:relative}
 .viewport{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
 .world{position:absolute;left:0;top:0;width:3900px;height:3400px;transform-origin:0 0}
+@media(max-width:760px){.world{zoom:.3}#fx{display:none}}
 .craft{position:absolute;inset:0}
 .world img{position:absolute;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .p{position:absolute;left:0;top:0;transform-origin:50% 50%}
@@ -100,7 +101,6 @@ p{margin:0}
 #glow{background:radial-gradient(closest-side,rgba(255,140,40,.75),rgba(255,120,30,.25) 60%,transparent);mix-blend-mode:screen}
 #shaft{background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.75) 12px 16px);mix-blend-mode:screen;background-size:28px 100%}
 #rope-line{position:absolute;left:0;top:0;width:3900px;height:3400px;overflow:visible;pointer-events:none}
-@media(max-width:760px){#rope-line{width:975px;height:850px;transform:scale(4);transform-origin:0 0}}
 #fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none}
 
 .hud{position:absolute;inset:auto 0 0 0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));direction:ltr;display:grid;gap:10px;background:linear-gradient(to top,var(--paper) 55%,rgba(245,247,246,0))}
@@ -309,7 +309,7 @@ function applyCam(cam){
   const s=Math.min(W/cam.w, ah/cam.h);
   const tx=(W-cam.w*s)/2 - wx(cam.x)*s;
   const ty=topPad+(ah-cam.h*s)/2 - wy(cam.y)*s;
-  world.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;
+  world.style.transform=MOBILE?`translate(${tx/0.3}px,${ty/0.3}px) scale(${s/0.3})`:`translate(${tx}px,${ty}px) scale(${s})`;
 }
 
 // rope line (pylon top -> coil)
