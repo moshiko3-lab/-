@@ -42,7 +42,7 @@ h2{font-family:var(--f-display);font-weight:400;line-height:1.05;margin:0}
 p{margin:0}
 
 #stage{position:relative}
-.viewport{position:relative;height:620px;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
+.viewport{position:relative;height:300px;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
 .world{position:absolute;left:0;top:0;width:3900px;height:3400px;transform-origin:0 0}
 @media(max-width:760px){.world{zoom:.3}#fx{display:none}}
 .craft{position:absolute;inset:0}
@@ -154,9 +154,9 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 const MODELS={
-  wake:{src:'wake',jet:true,dir:-1,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672],camL:{x:-30,y:-30,w:1850,h:970},camP:{x:-30,y:-40,w:1830,h:990}},
-  gtx:{src:'gtx',jet:true,dir:-1,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670],camL:{x:-30,y:-30,w:1850,h:970},camP:{x:-30,y:-40,w:1830,h:990}},
-  bee:{src:'bee',jet:false,dir:1,nozzle:[1690,672],engine:[1560,275,1730,560],shaft:[1700,650,1730,680],camL:{x:-20,y:-50,w:1870,h:970},camP:{x:-20,y:-60,w:1840,h:990}}
+  wake:{src:'wake',jet:true,dir:-1,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672],camL:{x:-130,y:120,w:1926,h:770},camP:{x:-22,y:114,w:1808,h:739}},
+  gtx:{src:'gtx',jet:true,dir:-1,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670],camL:{x:-130,y:120,w:1926,h:770},camP:{x:-22,y:114,w:1808,h:739}},
+  bee:{src:'bee',jet:false,dir:1,nozzle:[1690,672],engine:[1560,275,1730,560],shaft:[1700,650,1730,680],camL:{x:20,y:40,w:1900,h:820},camP:{x:17,y:39,w:1765,h:838}}
 };
 let model=MODELS.wake;
 
@@ -166,7 +166,7 @@ const world=sr.getElementById('world'), vp=sr.getElementById('vp');
 function cam(){ return (vp.clientWidth/vp.clientHeight<0.9)?model.camP:model.camL; }
 function applyCam(c){
   const W=vp.clientWidth, H=vp.clientHeight;
-  const topPad=54, botPad=Math.min(100,H*.2);
+  const topPad=48, botPad=Math.min(80,H*.16);
   const ah=Math.max(120,H-topPad-botPad);
   const s=Math.min(W/c.w, ah/c.h);
   const tx=(W-c.w*s)/2 - wx(c.x)*s;
@@ -186,7 +186,7 @@ placeOverlays();
 // responsive viewport height (no scroll scrubbing anymore — it's a normal block)
 function sizeViewport(){
   const W=document.documentElement.clientWidth;
-  vp.style.height=Math.round(clamp(W<700?W*0.92:W*0.5,320,600))+'px';
+  vp.style.height=Math.round(clamp(W<700?W*0.76:W*0.46,280,520))+'px';
 }
 
 // model switch
