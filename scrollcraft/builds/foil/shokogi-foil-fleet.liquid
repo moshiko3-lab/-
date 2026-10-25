@@ -1,20 +1,26 @@
 {%- comment -%}
-  SHOKOGI foil — the owner's jet-ski assembly, dropped in as-is, inside a Shadow
-  DOM so its CSS can't touch the theme (or be touched by it). Markup + CSS are
-  verbatim from the prototype; only :root/body became :host, DOM lookups are
-  scoped to the shadow root, and the 8 images point at the hosted copies instead
-  of 1.5MB of embedded data. Edit freely from here.
+  SHOKOGI foil — the jet ski on its own: a Sea-Doo tow ski (Wake Pro / GTX
+  Limited) you can rev with the throttle, with engine sound and a model
+  toggle. The scroll-assembly of the tow rig (pylon, rope, sled, floats) was
+  removed on the owner's request — this is just the ski. The ski image +
+  engine/water FX + sound are the proven prototype code, inside a Shadow DOM so
+  its CSS can't touch the theme. A SHOKOGI-styled heading frames it in brand.
 {%- endcomment -%}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=IBM+Plex+Sans+Hebrew:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=IBM+Plex+Mono:wght@400;500&display=swap">
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+
+<div class="skp"><div class="sec"><div class="wrap" style="text-align:center">
+  <div class="kicker">03 &middot; The Jet Ski</div>
+  <h2>Your Tow Platform</h2>
+  <p class="lead">Our Sea-Doo tow ski, with its Rotax engine and stern water-jet &mdash; the power behind every wave. Switch between our two models, hold the throttle to rev it, and turn the engine sound on.</p>
+</div></div></div>
 
 <div id="skrig-host-{{ section.id }}"></div>
 <template id="skrig-tpl-{{ section.id }}">
 <style>
 :host{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}:host{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
-
-
 :host{
   --paper:#f5f7f6;
   --paper-2:#eaefed;
@@ -24,161 +30,54 @@
   --orange:#e2681b;
   --grid:rgba(23,143,135,.09);
   --rule:rgba(21,25,27,.14);
-  --f-display:"Secular One","IBM Plex Sans Hebrew",system-ui,sans-serif;
-  --f-body:"IBM Plex Sans Hebrew",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-display:"Secular One",system-ui,sans-serif;
+  --f-body:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
   color-scheme:light;
 }
 *{box-sizing:border-box}
 :host{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;}
-.page{
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:28px 28px;
-}
-.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.05;text-wrap:balance;margin:0}
+.page{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;}
+h2{font-family:var(--f-display);font-weight:400;line-height:1.05;margin:0}
 p{margin:0}
 
-
-.hero{padding-block:clamp(28px,6vw,64px) 24px}
-.hero-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px}
-.hero h1{font-size:clamp(44px,9vw,112px);margin-top:clamp(18px,4vw,36px);letter-spacing:-.01em}
-.hero h1 em{font-style:normal;color:var(--teal)}
-.hero-lede{max-width:56ch;margin-top:14px;color:var(--muted);font-size:clamp(16px,2vw,19px)}
-.hero-img{position:relative;margin-top:clamp(16px,3vw,28px)}
-.hero-img img{display:block;width:100%;height:auto}
-.dim{position:absolute;inset:auto 2% 4% 2%;height:0;border-top:1px dashed var(--teal)}
-.dim span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:var(--paper);padding:0 8px}
-.cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
-.btn.play{background:var(--ink);color:#fff;font-size:16px;padding:12px 20px}
-.cue{display:flex;align-items:center;gap:10px}
-.cue i{display:block;width:1px;height:34px;background:var(--ink);transform-origin:top;animation:cue 1.8s ease-in-out infinite}
-@keyframes cue{0%{transform:scaleY(.2)}50%{transform:scaleY(1)}100%{transform:scaleY(.2)}}
-
-
-.parts{padding-block:clamp(40px,7vw,90px)}
-.sec-head{display:grid;gap:10px;margin-bottom:clamp(24px,4vw,44px)}
-.sec-head h2{font-size:clamp(34px,5.4vw,64px)}
-.sec-head p{color:var(--muted);max-width:60ch}
-.part{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(16px,4vw,48px);align-items:center;padding-block:clamp(22px,4vw,40px);border-top:1px solid var(--rule)}
-.part:nth-child(even) .plate{order:2}
-.plate{position:relative;background:#fff;border:1px solid var(--rule);aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;padding:clamp(14px,3vw,30px);overflow:hidden}
-.plate::before,.plate::after{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--ink)}
-.plate::before{top:8px;right:8px;border-left:0;border-bottom:0}
-.plate::after{bottom:8px;left:8px;border-right:0;border-top:0}
-.plate img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-.plate:hover img{transform:scale(1.04) rotate(-1deg)}
-.plate .tag{position:absolute;top:10px;left:14px}
-.ptext{display:grid;gap:10px;min-width:0}
-.ptext h3{font-size:clamp(28px,4vw,44px)}
-.ptext .brand{font-family:var(--f-mono);font-size:13px;color:var(--teal);letter-spacing:.06em}
-.ptext p{color:var(--ink);max-width:46ch}
-.spec{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:6px;font-size:14px;border-top:1px dashed var(--rule);padding-top:10px}
-.spec dt{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;padding-top:2px}
-.spec dd{margin:0}
-.hulls{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,24px)}
-.hulls .plate{aspect-ratio:2/1.15}
-
-
-#assembly{position:relative;height:440svh}
-.static #assembly{height:auto}
-.static .viewport{position:relative}
-.viewport{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
+#stage{position:relative}
+.viewport{position:relative;height:620px;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
 .world{position:absolute;left:0;top:0;width:3900px;height:3400px;transform-origin:0 0}
 @media(max-width:760px){.world{zoom:.3}#fx{display:none}}
 .craft{position:absolute;inset:0}
 .world img{position:absolute;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
-.p{position:absolute;left:0;top:0;transform-origin:50% 50%}
-.lbl{transition:none}
-.p img{position:static;width:100%;height:auto}
-.lbl{position:absolute;font-family:var(--f-mono);font-size:26px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;direction:ltr}
-.lbl b{display:block;font-family:var(--f-display);font-weight:400;font-size:44px;letter-spacing:0}
-.lbl::before{content:"";position:absolute;top:-16px;left:0;width:60px;height:3px;background:var(--orange)}
 #hull{left:1500px;top:1200px;width:1774px;height:887px}
 #engineClip{left:1500px;top:1200px;width:1774px;height:887px}
 .ov{position:absolute;pointer-events:none;opacity:0;transition:opacity .4s}
 #glow{background:radial-gradient(closest-side,rgba(255,140,40,.75),rgba(255,120,30,.25) 60%,transparent);mix-blend-mode:screen}
 #shaft{background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.75) 12px 16px);mix-blend-mode:screen;background-size:28px 100%}
-#rope-line{position:absolute;left:0;top:0;width:3900px;height:3400px;overflow:visible;pointer-events:none}
 #fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none}
 
 .hud{position:absolute;inset:auto 0 0 0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));direction:ltr;display:grid;gap:10px;background:linear-gradient(to top,var(--paper) 55%,rgba(245,247,246,0))}
-.steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
-.steps li{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;padding:4px 9px;border:1px solid var(--rule);background:#fff;color:var(--muted);transition:all .25s}
-.steps li.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.steps li.done{color:var(--teal);border-color:var(--teal)}
-.caption{font-family:var(--f-display);font-size:clamp(20px,3.2vw,34px);line-height:1.1;min-height:1.1em}
-.topbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:center;gap:10px;direction:ltr;flex-wrap:wrap}
+.topbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:center;align-items:center;gap:10px;direction:ltr;flex-wrap:wrap}
 .seg{display:inline-flex;border:1px solid var(--ink);background:#fff}
 .seg button{font:500 13px var(--f-mono);letter-spacing:.04em;padding:7px 12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.controls{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 .btn{font:500 14px var(--f-body);padding:10px 16px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
 .btn.gas{background:var(--orange);border-color:var(--orange);color:#fff;min-width:96px}
 .btn.gas.held{background:#b84f10}
 .btn:focus-visible,.seg button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 .rpm{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:14px;padding:9px 12px;border:1px solid var(--rule);background:#fff;min-width:140px;text-align:center}
 .rpm b{font-size:18px;font-weight:500}
-.run-ui{display:none}
-.running .run-ui{display:flex}
-
-.outro{padding-block:clamp(40px,7vw,80px)}
-.outro p{color:var(--muted);max-width:62ch}
-.outro h2{font-size:clamp(30px,4.6vw,52px);margin-bottom:12px}
-.gearcards{padding-block:clamp(26px,5vw,52px) clamp(6px,2vw,16px)}
-.gc-head{display:grid;gap:8px;margin-bottom:clamp(16px,3vw,26px);border-bottom:1px solid var(--rule);padding-bottom:12px}
-.gc-head h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,4.4vw,46px);line-height:1.05;margin:0}
-.gc-head p{color:var(--muted);max-width:62ch;margin:0}
-.gc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:clamp(10px,1.6vw,18px)}
-.gcard{border:1px solid var(--rule);background:#fff;display:flex;flex-direction:column;overflow:hidden}
-.gplate{position:relative;aspect-ratio:5/3;background:#fff;border-bottom:1px solid var(--rule)}
-.gplate::before,.gplate::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--ink);z-index:1}
-.gplate::before{top:7px;right:7px;border-left:0;border-bottom:0}
-.gplate::after{bottom:7px;left:7px;border-right:0;border-top:0}
-.gplate img{position:absolute;inset:0;margin:auto;max-width:calc(100% - 30px);max-height:calc(100% - 30px);object-fit:contain}
-.gtext{padding:12px 14px 14px;display:grid;gap:4px}
-.gbrand{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--teal);text-transform:uppercase}
-.gtext h3{font-family:var(--f-display);font-weight:400;font-size:clamp(18px,2.3vw,23px);line-height:1.1;margin:0}
-.gtext p{font-size:13px;line-height:1.45;color:var(--muted);margin:0}
-
-
-@media (max-width:760px){
-  .part{grid-template-columns:1fr}
-  .part:nth-child(even) .plate{order:0}
-  .hulls{grid-template-columns:1fr}
-  .lbl{font-size:34px}.lbl b{font-size:60px}
-}
-@media (prefers-reduced-motion:reduce){
-  .cue i{animation:none}
-  .plate img{transition:none}
-}
-
+@media (prefers-reduced-motion:reduce){ .ov{transition:none} }
 </style>
 <div class="page" dir="ltr" lang="en">
-
-<section class="gearcards wrap"><div class="gc-head"><span class="mono">Our gear</span><h2>The tow-in rig, part by part</h2><p>Everything we run for jet-ski tow-in foiling in Playa Venao &mdash; then scroll down to watch it assemble.</p></div><div class="gc-grid"><article class="gcard"><div class="gplate"><img data-img="pylon" alt="Tow pylon" loading="lazy"></div><div class="gtext"><span class="gbrand">BRP</span><h3>Tow pylon</h3><p>Two grab handles, a telescopic tube and a footed base &mdash; the rope&rsquo;s anchor point on the rear deck.</p></div></article><article class="gcard"><div class="gplate"><img data-img="rope" alt="Tow rope and handle" loading="lazy"></div><div class="gtext"><span class="gbrand">ARMSTRONG</span><h3>Tow rope &amp; handle</h3><p>A mesh-grip handle and a coiled braided rope; ties to the pylon and trails behind the ski.</p></div></article><article class="gcard"><div class="gplate"><img data-img="board" alt="Inflatable sled" loading="lazy"></div><div class="gtext"><span class="gbrand">JETTECH</span><h3>Inflatable sled</h3><p>Side grab handles, a bungee net and D-rings; rides behind the ski on the stern.</p></div></article><article class="gcard"><div class="gplate"><img data-img="arch" alt="Inflatable floats" loading="lazy"></div><div class="gtext"><span class="gbrand">JAIN</span><h3>Floats</h3><p>An inflatable tube with handles and D-rings that hugs the hull sides.</p></div></article><article class="gcard"><div class="gplate"><img data-img="wake" alt="Sea-Doo jet ski" loading="lazy"></div><div class="gtext"><span class="gbrand">Sea-Doo &middot; Rotax</span><h3>The jet-ski</h3><p>The tow platform &mdash; Wake Pro or GTX Limited &mdash; with the Rotax engine and stern water-jet.</p></div></article></div></section>
-<section id="assembly" aria-label="Assembly animation">
+<div id="stage">
   <div class="viewport" id="vp">
     <div class="world" id="world">
       <div class="craft" id="craft">
-        <div class="p" id="p-pylon"><img data-img="pylon" alt=""></div>
-        <img id="hull" data-img="wake" alt="">
+        <img id="hull" data-img="wake" alt="Sea-Doo jet ski">
         <img id="engineClip" data-img="wake" alt="">
         <div class="ov" id="glow"></div>
         <div class="ov" id="shaft"></div>
-        <div class="p" id="p-arch"><img data-img="sidetube" alt=""></div>
-        <div class="p" id="p-board"><img data-img="sled" alt=""></div>
-        <svg id="rope-line" viewBox="0 0 3900 3400" aria-hidden="true">
-          <path id="rope-path" d="" fill="none" stroke="#f2c21b" stroke-width="9" stroke-linecap="round"/>
-          <path id="rope-path2" d="" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 14" stroke-linecap="round"/>
-        </svg>
-        <div class="p" id="p-rope"><img data-img="rope" alt=""></div>
         <canvas id="fx"></canvas>
-        <div class="lbl" id="l-pylon"><b>Tow pylon</b>BRP</div>
-        <div class="lbl" id="l-rope"><b>Rope</b>ARMSTRONG</div>
-        <div class="lbl" id="l-board"><b>Sled</b>JETTECH</div>
-        <div class="lbl" id="l-arch"><b>Floats</b>JAIN</div>
       </div>
     </div>
 
@@ -187,28 +86,17 @@ p{margin:0}
         <button type="button" id="m-wake" aria-pressed="true">Wake Pro</button>
         <button type="button" id="m-gtx" aria-pressed="false">GTX Limited</button>
       </div>
-      <div class="controls"><button type="button" class="btn" id="play-stage">▶ Play from start</button><span class="mono" id="stepnum">Exploded view</span></div>
     </div>
 
     <div class="hud">
-      <ol class="steps" id="steps">
-        <li>Pylon</li><li>Rope</li><li>Sled</li><li>Floats</li><li>Ignition</li>
-      </ol>
-      <div class="caption" id="caption">All parts exploded. Scroll to assemble.</div>
-      <div class="controls run-ui">
+      <div class="controls">
         <div class="rpm" aria-live="off">RPM <b id="rpm">0</b></div>
         <button type="button" class="btn gas" id="gas" aria-label="Throttle, hold down">Throttle ▲</button>
         <button type="button" class="btn" id="sound" aria-pressed="false">Sound on</button>
       </div>
     </div>
   </div>
-</section>
-
-<section class="outro wrap">
-  <h2>Assembled and running</h2>
-  <p>Scroll back up to take it apart. Hold the throttle to raise the RPM and the water jet. This animation is a graphic illustration — the mounting positions aren't install instructions, and the RPM readout isn't manufacturer data.</p>
-</section>
-
+</div>
 </div>
 </template>
 
@@ -221,7 +109,7 @@ p{margin:0}
   var sr=host.attachShadow({mode:'open'});
   sr.appendChild(tpl.content.cloneNode(true));
 
-const IMG={arch:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-arch.webp?v=1792881173",board:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-board.webp?v=1792881173",gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",pylon:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-pylon.webp?v=1792879218",rope:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-rope.webp?v=1792879218",sidetube:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-floats.webp?v=1792879218",sled:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-sled.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"};
+const IMG={gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"};
 const MOBILE=matchMedia('(max-width:760px)').matches||/iPhone|iPad|iPod|Android/.test(navigator.userAgent);
 const IW=MOBILE?820:1280;
 const WIDE=u=>(!u||u.slice(0,5)==='data:')?u:u+(u.indexOf('?')>-1?'&':'?')+'width='+IW;
@@ -231,9 +119,6 @@ const OX=1500, OY=1200;               // image coords -> world coords
 const wx=x=>x+OX, wy=y=>y+OY;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const lerp=(a,b,t)=>a+(b-a)*t;
-const io=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;      // ease in-out cubic
-const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
 
 const MODELS={
   wake:{src:'wake',nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
@@ -241,51 +126,23 @@ const MODELS={
 };
 let model=MODELS.wake;
 
-// parts: natural aspect (h/w), start [cx,cy,w,rot], final [cx,cy,w,rot], timing [t0,t1]
-const PARTS={
-  pylon:{ar:1144/1000, s:[-430,330,200,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
-  rope: {ar:475/1000,  s:[-390,820,280,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
-  board:{ar:1087/539,  s:[2130,360,150,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
-  arch: {ar:955/129,   s:[2300,640,50,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
-};
-const LBL_L={pylon:[-430,520],rope:[-390,940],board:[2130,520],arch:[2300,900]};
-const LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
-// portrait screens: parts float above / below the hull instead of beside it
-const START_P={pylon:[360,-400,220,0],board:[1300,-420,150,6],rope:[520,1060,360,-4],arch:[1320,980,52,-90]};
-const LBL_P={pylon:[360,-200],board:[1300,-200],rope:[520,1230],arch:[1320,1190]};
-const START_L={}; for(const k in PARTS) START_L[k]=PARTS[k].s.slice();
-let portrait=null;
-function layout(){
-  const p=vp.clientWidth/vp.clientHeight<0.9;
-  if(p===portrait) return; portrait=p;
-  const LB=p?LBL_P:LBL_L;
-  for(const k in PARTS){
-    PARTS[k].s=(p?START_P:START_L)[k].slice();
-    const P=PARTS[k];
-    el[k].style.width=P.s[2]+'px';
-    lb[k].style.left=(wx(LB[k][0])-P.s[2]/2)+'px';
-    lb[k].style.top=wy(LB[k][1])+'px';
-  }
+const world=sr.getElementById('world'), vp=sr.getElementById('vp');
+
+// fixed camera framing — the approved big, centered ski view
+const CAM_FIX_L={x:-740,y:-150,w:3260,h:1200};
+const CAM_FIX_P={x:-760,y:-310,w:2700,h:1560};
+function cam(){ return (vp.clientWidth/vp.clientHeight<0.9)?CAM_FIX_P:CAM_FIX_L; }
+function applyCam(c){
+  const W=vp.clientWidth, H=vp.clientHeight;
+  const topPad=56, botPad=Math.min(190,H*.26);
+  const ah=Math.max(120,H-topPad-botPad);
+  const s=Math.min(W/c.w, ah/c.h);
+  const tx=(W-c.w*s)/2 - wx(c.x)*s;
+  const ty=topPad+(ah-c.h*s)/2 - wy(c.y)*s;
+  world.style.transform=MOBILE?`translate(${tx/0.3}px,${ty/0.3}px) scale(${s/0.3})`:`translate(${tx}px,${ty}px) scale(${s})`;
 }
 
-const world=sr.getElementById('world'), vp=sr.getElementById('vp');
-const el={}, lb={};
-for(const k in PARTS){
-  const P=PARTS[k];
-  el[k]=sr.getElementById('p-'+k);
-  el[k].style.width=P.s[2]+'px';
-  lb[k]=sr.getElementById('l-'+k);
-}
-function placePart(k,t){
-  const P=PARTS[k], e=io(seg(t,P.t[0],P.t[1]));
-  const w=P.s[2], h=w*P.ar;
-  const cx=lerp(P.s[0],P.f[0],e), cy=lerp(P.s[1],P.f[1],e)-Math.sin(Math.PI*e)*P.lift;
-  const sc=lerp(1,P.f[2]/w,e), rot=lerp(P.s[3],P.f[3],e);
-  const tilt=(P.tilt||0)*e, slope=(P.slope||0)*e, st=lerp(1,P.stretch||1,e);
-  el[k].style.transform=`translate(${wx(cx)-w/2}px,${wy(cy)-h/2}px)`+(tilt?` rotate(${slope}deg) perspective(1800px) rotateX(${tilt}deg)`:'')+` rotate(${rot}deg) scale(${sc},${sc*st})`;
-  const L=LBL_T[k]; lb[k].style.opacity=1-seg(t,L[0],L[1]);
-}
-// overlays
+// engine / jet overlays
 function placeOverlays(){
   const [ex1,ey1,ex2,ey2]=model.engine, [sx1,sy1,sx2,sy2]=model.shaft;
   Object.assign(sr.getElementById('glow').style,{left:wx(ex1-40)+'px',top:wy(ey1-30)+'px',width:(ex2-ex1+80)+'px',height:(ey2-ey1+60)+'px'});
@@ -294,128 +151,11 @@ function placeOverlays(){
 }
 placeOverlays();
 
-// camera
-const CAMS_P={
-  E:{x:-80,y:-1060,w:1940,h:2950},
-  R1:{x:-520,y:-140,w:1180,h:1180},
-  R2:{x:-1450,y:100,w:1750,h:1000},
-  F:{x:-1450,y:-700,w:3400,h:2200},
-  R4:{x:-60,y:60,w:1950,h:1000},
-  F2:{x:-1450,y:200,w:3400,h:700},
-  EN:{x:-1450,y:80,w:2250,h:1000}
-};
-const CAMS_L={
-  E:{x:-1000,y:-480,w:3400,h:1640},
-  R1:{x:-760,y:40,w:1500,h:820},
-  R2:{x:-1500,y:200,w:1950,h:800},
-  F:{x:-1450,y:0,w:3750,h:1000},
-  R4:{x:-60,y:200,w:2000,h:700},
-  F2:{x:-1450,y:140,w:3400,h:780},
-  EN:{x:-1450,y:280,w:2550,h:720}
-};
-const CAMK=[[0,'E'],[.5,'E'],[1.3,'R1'],[1.9,'R1'],[2.5,'R2'],[3.5,'R2'],[4.3,'F'],[5.2,'F'],[6.2,'R4'],[6.7,'R4'],[7.6,'F2'],[7.8,'F2'],[8.7,'EN'],[9.4,'EN']];
-const TEND=9.4;
-const CAM_FIX_L={x:-740,y:-150,w:3260,h:1200};
-const CAM_FIX_P={x:-760,y:-310,w:2700,h:1560};
-const CAMS=()=>portrait?CAMS_P:CAMS_L;
-function camAt(t){ return portrait?CAM_FIX_P:CAM_FIX_L; }
-function applyCam(cam){
-  const W=vp.clientWidth, H=vp.clientHeight;
-  const topPad=56, botPad=Math.min(190,H*.26);
-  const ah=Math.max(120,H-topPad-botPad);
-  const s=Math.min(W/cam.w, ah/cam.h);
-  const tx=(W-cam.w*s)/2 - wx(cam.x)*s;
-  const ty=topPad+(ah-cam.h*s)/2 - wy(cam.y)*s;
-  world.style.transform=MOBILE?`translate(${tx/0.3}px,${ty/0.3}px) scale(${s/0.3})`:`translate(${tx}px,${ty}px) scale(${s})`;
-}
-
-// rope line (pylon top -> coil)
-const ropeA=[338,282], ropeB=[-1010,690];
-const rp=sr.getElementById('rope-path'), rp2=sr.getElementById('rope-path2');
-const d=`M${wx(ropeA[0])},${wy(ropeA[1])} Q${wx(-330)},${wy(540)} ${wx(ropeB[0])},${wy(ropeB[1])}`;
-rp.setAttribute('d',d); rp2.setAttribute('d',d);
-const RL=rp.getTotalLength();
-rp.style.strokeDasharray=RL;
-
-// HUD
-const stepsEl=[...sr.querySelectorAll('#steps li')];
-const caption=sr.getElementById('caption'), stepnum=sr.getElementById('stepnum');
-const CAPS=['All parts exploded. Scroll, or press ▶ Play.','The tow pylon drops onto the rear deck','The rope ties to the top of the pylon','The sled locks on at the stern','The floats hug the hull sides','Running. Hold the throttle.'];
-const STEPT=[.15,1.9,3.6,5.2,8.6];
-let curStep=-1;
-function setStep(i){
-  if(i===curStep) return; curStep=i;
-  stepsEl.forEach((li,j)=>{li.classList.toggle('on',j===i-1);li.classList.toggle('done',j<i-1);});
-  caption.textContent=CAPS[i]||'';
-  stepnum.textContent=i===0?'Exploded view':`Step ${i} of 5`;
-}
-
-// scroll-driven timeline (smoothed)
-const sec=sr.getElementById('assembly');
-let tCur=0, tTarget=0, sraf=0;
-function render(t){
-  applyCam(camAt(t));
-  for(const k in PARTS) placePart(k,t);
-  rp.style.strokeDashoffset=RL*(1-io(seg(t,2.8,3.5)));
-  rp2.style.opacity=seg(t,3.3,3.5);
-  let s=0; STEPT.forEach((v,i)=>{ if(t>=v) s=i+1; }); setStep(s);
-  if(t>=8.65) startEngine(); else stopEngine();
-}
-// play mode: runs the whole sequence on a clock, independent of scrolling
-let mode='scroll', playing=false, playStart=0;
-const PLAY_MS=reduce?6000:13000;
-function play(){
-  playing=true; playStart=performance.now();
-  if(mode==='scroll'){ scrollTo({top:sec.getBoundingClientRect().top+scrollY,behavior:'instant'}); }
-  requestAnimationFrame(playTick);
-}
-function playTick(now){
-  if(!playing) return;
-  const k=clamp((now-playStart)/PLAY_MS,0,1);
-  tCur=tTarget=k*TEND; render(tCur);
-  if(k<1){ requestAnimationFrame(playTick); return; }
-  playing=false;
-  if(mode==='scroll'){ const r=sec.getBoundingClientRect(); scrollTo({top:r.top+scrollY+r.height-innerHeight,behavior:'instant'}); }
-}
-['wheel','touchstart','keydown'].forEach(ev=>addEventListener(ev,e=>{
-  if(!playing||mode!=='scroll') return;
-  if(e.target.closest&&e.target.closest('button')) return;
-  playing=false; readScroll();
-},{passive:true}));
-function readScroll(){
-  if(playing||mode!=='scroll') return;
-  const r=sec.getBoundingClientRect(), span=r.height-innerHeight;
-  tTarget=clamp(-r.top/span,0,1)*TEND;
-  if(!sraf) sraf=requestAnimationFrame(step);
-}
-function step(){
-  tCur+= reduce ? (tTarget-tCur) : (tTarget-tCur)*.14;
-  if(Math.abs(tTarget-tCur)<.0015) tCur=tTarget;
-  render(tCur);
-  sraf = tCur!==tTarget ? requestAnimationFrame(step) : 0;
-}
-addEventListener('scroll',readScroll,{passive:true});
-if('IntersectionObserver' in window){ new IntersectionObserver(function(es){ offscreen=!es[0].isIntersecting; if(offscreen){ stopEngine(); if(raf){cancelAnimationFrame(raf); raf=0;} } },{rootMargin:'0px'}).observe(vp); }
-addEventListener('resize',()=>{ if(mode==='static') sizeStatic(); layout(); render(tCur); });
-// some viewers grow the frame to the page's full height, so the page never scrolls itself.
-// there the stage becomes a normal block and the sequence plays on its own.
-function sizeStatic(){
+// responsive viewport height (no scroll scrubbing anymore — it's a normal block)
+function sizeViewport(){
   const W=document.documentElement.clientWidth;
-  const h=Math.round(clamp(W<700?W*1.55:W*0.56,460,880));
-  vp.style.height=h+'px';
+  vp.style.height=Math.round(clamp(W<700?W*1.5:W*0.56,460,760))+'px';
 }
-function checkMode(){
-  const se=document.scrollingElement||document.documentElement;
-  const canScroll=se.scrollHeight-innerHeight>innerHeight*2 && innerHeight<1800;
-  if(canScroll||mode==='static') return;
-  mode='static'; sr.querySelector('.page').classList.add('static');
-  var _hero=sr.querySelector('.hero'); if(_hero)_hero.after(sec);
-  sizeStatic(); portrait=null; layout(); render(0);
-  setTimeout(play,600);
-}
-var _ph=sr.getElementById('play-hero'); if(_ph)_ph.onclick=()=>play();
-sr.getElementById('play-stage').onclick=()=>play();
-
 
 // model switch
 function setModel(name){
@@ -438,13 +178,13 @@ const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
   if(MOBILE){ glow.style.mixBlendMode='normal'; shaft.style.mixBlendMode='normal'; }
 const rpmEl=sr.getElementById('rpm');
 function startEngine(){
-  if(running||offscreen) return; running=true; vp.classList.add('running');
+  if(running||offscreen) return; running=true;
   shaft.style.opacity=1;
   if(!raf) raf=requestAnimationFrame(loop);
   if(audio) audio.on();
 }
 function stopEngine(){
-  if(!running) return; running=false; vp.classList.remove('running');
+  if(!running) return; running=false;
   glow.style.opacity=0; shaft.style.opacity=0; target=0;
   if(audio) audio.off();
 }
@@ -530,7 +270,7 @@ function loop(now){
 
 // throttle button
 const gas=sr.getElementById('gas');
-const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(audio)audio.on();if(!raf)raf=requestAnimationFrame(loop);};
+const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(audio)audio.on();if(!running)startEngine();if(!raf)raf=requestAnimationFrame(loop);};
 const up=()=>{target=0;gas.classList.remove('held');};
 gas.addEventListener('pointerdown',down);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>gas.addEventListener(ev,up));
@@ -584,13 +324,22 @@ sb.onclick=()=>{
   sb.setAttribute('aria-pressed',soundOn);
   sb.textContent=soundOn?'Sound off':'Sound on';
 };
-layout(); readScroll(); render(tCur);
-setTimeout(checkMode,700);
+
+// init + visibility: idle the engine while the ski is on screen, stop it off screen
+sizeViewport();
+applyCam(cam());
+addEventListener('resize',()=>{ sizeViewport(); applyCam(cam()); });
+if('IntersectionObserver' in window){
+  new IntersectionObserver(function(es){
+    if(es[0].isIntersecting){ offscreen=false; startEngine(); }
+    else { offscreen=true; stopEngine(); if(raf){cancelAnimationFrame(raf); raf=0;} }
+  },{rootMargin:'0px'}).observe(vp);
+} else { startEngine(); }
 })();
 
 })();
 </script>
 
 {% schema %}
-{ "name": "Foil assembly (full)", "tag": "section", "class": "section-skrig-full", "settings": [], "presets": [ { "name": "Foil assembly (full)" } ] }
+{ "name": "Foil jet ski", "tag": "section", "class": "section-skrig-ski", "settings": [], "presets": [ { "name": "Foil jet ski" } ] }
 {% endschema %}
