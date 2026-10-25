@@ -1,0 +1,241 @@
+{%- comment -%} SHOKOGI Foil Retreat Panama — rebuilt faithfully from the live page content, in the Surf Camp design. {%- endcomment -%}
+{{ 'sk.css' | asset_url | stylesheet_tag }}
+<style>.skp .vclips{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}.skp .vclips video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:16px;background:#000;display:block}@media(max-width:600px){.skp .vclips{gap:10px}}</style>
+<div class="skp">
+  <!-- HERO (video) -->
+  {%- assign hv = section.settings.hero_video -%}
+  <div class="herofull"><video class="skvid" muted loop playsinline preload="none"{% if hv != blank and hv.preview_image %} poster="{{ hv.preview_image | image_url: width: 1600 }}"{% endif %}>
+    {%- if hv != blank and hv.sources.size > 0 -%}
+      {%- for src in hv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}
+    {%- else -%}
+      <source src="https://cdn.shopify.com/videos/c/vp/7bd939476537487f9c7445f02a6bc6ce/7bd939476537487f9c7445f02a6bc6ce.HD-720p-1.6Mbps-48686215.mp4" type="video/mp4">
+    {%- endif -%}
+  </video></div>
+  <div class="herotext">
+    <div class="htag">Foil Tow-In Retreat &middot; Playa Venao</div>
+    <h1>Foil Retreat Panama</h1>
+    <p>An intensive 8-day foil tow-in retreat for experienced foilers ready to ride empty, perfect waves &mdash; with professional jet ski support, drone filming, and video analysis.</p>
+    <a href="#retreat-book" class="btn pink">Email Us to Book</a>
+  </div>
+
+  <!-- RETREAT OVERVIEW -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">retreat overview</div>
+    <h2>8 Days of Empty, Perfect Waves</h2>
+    <div class="facts" style="margin-top:22px">
+      <div class="fact"><b>Length</b><span>8 Days, 7 Nights</span></div>
+      <div class="fact"><b>Group Size</b><span>Max 4 Foilers</span></div>
+      <div class="fact"><b>Sessions</b><span>1&ndash;2 Daily</span></div>
+      <div class="fact"><b>Level</b><span>Advanced</span></div>
+    </div>
+    <div class="story" style="margin-top:28px">
+      <p>This intensive retreat in Playa Venao, Panama is designed for experienced foilers eager to ride empty, perfect waves. With only 4 participants, you&rsquo;ll receive personalized coaching and professional jet ski support. Sessions are planned around the tides and conditions, with either two sessions or one extended session.</p>
+      <p><strong>2027 Retreat Dates</strong><br/>New dates coming soon.</p>
+    </div>
+  </div></div>
+
+  <!-- FOIL IN ACTION (2 vertical clips) -->
+  <div class="sec"><div class="wrap">
+    <div class="vclips">
+      {%- assign cv1 = section.settings.clip_1 -%}
+      <video class="skvid" muted loop playsinline preload="none"{% if cv1 != blank and cv1.preview_image %} poster="{{ cv1.preview_image | image_url: width: 900 }}"{% endif %}>
+        {%- if cv1 != blank and cv1.sources.size > 0 -%}{%- for src in cv1.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/8b82cc6917b04ad5a3742f217a5a215d/8b82cc6917b04ad5a3742f217a5a215d.HD-720p-4.5Mbps-66777386.mp4" type="video/mp4">{%- endif -%}
+      </video>
+      {%- assign cv2 = section.settings.clip_2 -%}
+      <video class="skvid" muted loop playsinline preload="none"{% if cv2 != blank and cv2.preview_image %} poster="{{ cv2.preview_image | image_url: width: 900 }}"{% endif %}>
+        {%- if cv2 != blank and cv2.sources.size > 0 -%}{%- for src in cv2.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/916db8bd39584dcb84492de30074a96b/916db8bd39584dcb84492de30074a96b.HD-720p-4.5Mbps-66775802.mp4" type="video/mp4">{%- endif -%}
+      </video>
+    </div>
+  </div></div>
+
+  <!-- WHAT'S INCLUDED -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">all inclusive</div>
+    <h2>What&rsquo;s Included in Your Foil Retreat</h2>
+    <div class="cards4">
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+        <div class="dur">Accommodation &amp; Transportation</div>
+        <ul><li>Transportation from Panama City to Playa Venao and return</li><li>7 nights at Playa Venao Resort in comfortable rooms</li><li>Daily breakfast and dinner at the resort</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3 0 4-2 7-2s4 2 7 2 4-2 4-2"/><path d="M14 5a2.2 2.2 0 1 1-4 1"/><path d="M11 7l-2 6"/></svg>
+        <div class="dur">Foil Tow-In Sessions</div>
+        <ul><li>Up to 12 jet ski tow-in sessions (2 per day)</li><li>Jet ski drivers experienced in foil towing</li><li>Full tow-in foil setup provided</li><li>Safety briefings and session planning each day</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-2h5L16 7"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+        <div class="dur">Professional Filming &amp; Photography</div>
+        <ul><li>Professional drone photography and filming</li><li>Daily drone filming during sessions</li><li>All drone footage delivered</li><li>All professional photos delivered</li></ul>
+      </div>
+      <div class="ccard">
+        <svg class="cico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 3 5 10 2 18-1 2-3 2-4 0C7 13 8 6 12 3z"/><path d="M12 7v9"/></svg>
+        <div class="dur">Bonus Amenities</div>
+        <ul><li>Free use of surfboards at Shokogi</li><li>Access to Playa Venao Resort facilities</li><li>Local knowledge and wave forecasting</li></ul>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- WHAT TO BRING & GEAR RENTAL -->
+  <div class="sec"><div class="wrap">
+    <div class="band rev">
+      {%- if section.settings.bring_image -%}<img src="{{ section.settings.bring_image | image_url: width: 1200 }}" alt="Foil gear in Playa Venao" loading="lazy">{%- endif -%}
+      <div class="bt">
+        <div class="kicker">what to bring</div>
+        <h2>What to Bring &amp; Gear Rental</h2>
+        <p style="font-weight:700;color:var(--ink);margin:0 0 6px">Not included:</p>
+        <ul class="xlist" style="margin:0;max-width:none">
+          <li>Foil equipment (board, foil, helmet, impact vest) &mdash; bring your own or rent</li>
+          <li>Lunch &mdash; restaurants within walking distance</li>
+          <li>Travel insurance &mdash; highly recommended</li>
+          <li>Flights to Panama City</li>
+        </ul>
+      </div>
+    </div>
+    <div class="notebox">
+      <h3>Foil Gear Rental Available</h3>
+      <p><strong>Complete foil setup: $100 per day.</strong> Includes a foil board. We carry high-performance equipment suitable for tow-in wave riding. Reserve your gear when booking.</p>
+    </div>
+  </div></div>
+
+  <!-- DAILY SCHEDULE -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">a day at the retreat</div>
+    <h2>Your Daily Retreat Schedule</h2>
+    <div class="sched">
+      <div class="srow"><div class="st">7:00 AM</div><div><h3>Morning Tow-In Session</h3><p>1.5&ndash;2 hours on the water with drone filming.</p></div></div>
+      <div class="srow"><div class="st">9:30 AM</div><div><h3>Breakfast &amp; Session Planning</h3><p>Review conditions and plan the day&rsquo;s approach.</p></div></div>
+      <div class="srow"><div class="st">11:00 AM</div><div><h3>Free Time</h3><p>Relax, explore, lunch, or free surf.</p></div></div>
+      <div class="srow"><div class="st">2:00 PM</div><div><h3>Video Review <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400">(select days)</span></h3><p>Watch footage, receive coaching, plan improvements.</p></div></div>
+      <div class="srow"><div class="st">5:00 PM</div><div><h3>Afternoon Tow-In Session</h3><p>Second 1.5&ndash;2 hour session with a different tide.</p></div></div>
+    </div>
+  </div></div>
+
+  <!-- WHY PLAYA VENAO -->
+  <div class="sec"><div class="wrap">
+    <div class="kicker" style="text-align:center">the advantage</div>
+    <h2>Why Playa Venao for Foil Tow-In Training?</h2>
+    {%- assign wv = section.settings.why_video -%}
+    <video class="wideimg skvid" muted loop playsinline preload="none" style="height:auto;max-height:520px;aspect-ratio:16/9;object-fit:cover">
+      {%- if wv != blank and wv.sources.size > 0 -%}{%- for src in wv.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}{%- else -%}<source src="https://cdn.shopify.com/videos/c/vp/37216f6105f6476eb886caa3a8420b7a/37216f6105f6476eb886caa3a8420b7a.HD-720p-4.5Mbps-37181063.mp4" type="video/mp4">{%- endif -%}
+    </video>
+    <div class="story">
+      <h3>Multiple Locations, Not One Break</h3>
+      <p>Most foil retreats lock you into one break with variable conditions. Playa Venao offers multiple tow-in locations within minutes &mdash; we choose the best spot daily based on swell, wind, and your ability. This flexibility means you&rsquo;re never stuck with poor conditions.</p>
+      <h3>Maximum Water Time</h3>
+      <p>Our jet ski drivers eliminate positioning guesswork and maximize your wave count. You get dramatically more attempts per session compared to paddling or self-towing. Our drivers are experienced foilers themselves who know these breaks intimately and can coach technique in real-time.</p>
+      <h3>World-Class Year-Round Conditions</h3>
+      <p>78&ndash;82&deg;F water (no thick wetsuits needed), consistent Pacific swells (never flat), and uncrowded lineups &mdash; often entire sections to yourself. We successfully run retreats 12 months a year, though May&ndash;June offers peak consistency for this program.</p>
+    </div>
+  </div></div>
+
+  <!-- WHO SHOULD ATTEND -->
+  <div class="sec tint"><div class="wrap">
+    <div class="band">
+      {%- if section.settings.who_image -%}<img src="{{ section.settings.who_image | image_url: width: 1200 }}" alt="Jet ski tow-in foiling in Playa Venao" loading="lazy">{%- endif -%}
+      <div class="bt">
+        <div class="kicker">is it for you?</div>
+        <h2>Who Should Attend This Foil Tow-In Retreat?</h2>
+        <p style="font-weight:700;color:var(--ink);margin:0 0 6px">This retreat is for you if:</p>
+        <ul class="bullets" style="margin:0;max-width:none">
+          <li>You can confidently fly a hydrofoil behind jet ski, boat, or wing</li>
+          <li>You&rsquo;re comfortable with tow-in basics (getting up, maintaining flight, releasing rope)</li>
+          <li>You want to transition from flat water to wave riding</li>
+          <li>You can handle intermediate waves (chest-high and above)</li>
+          <li>You want video analysis to accelerate progression</li>
+        </ul>
+      </div>
+    </div>
+    <div class="notebox">
+      <h3>Not Ready Yet?</h3>
+      <p>This retreat requires existing tow-in experience. If you&rsquo;re new to foiling, start with our <a href="/collections/foil-surfing">beginner foil lessons</a> to build foundational skills first.</p>
+    </div>
+    <div class="notebox">
+      <h3>Approval Required</h3>
+      <p>Before booking, submit foil riding videos showing your current ability. Email: <a href="mailto:shokogipanama@gmail.com">shokogipanama@gmail.com</a>. This ensures all participants have similar skill levels for the best group experience.</p>
+    </div>
+  </div></div>
+
+  <!-- PRICING & BOOKING -->
+  <div class="sec" id="retreat-book"><div class="wrap">
+    <div class="kicker" style="text-align:center">pricing &amp; booking</div>
+    <h2>Retreat Pricing &amp; Booking</h2>
+    <p class="lead">Accommodations: Shared Room (2 people) or Single Occupancy (private room).</p>
+    <div class="cards" style="grid-template-columns:1fr;max-width:520px;margin:0 auto">
+      <div class="ccard feat2">
+        <div class="dur">Your Investment Includes</div>
+        <ul>
+          <li>Transportation from Panama City (round-trip)</li>
+          <li>7 nights accommodation</li>
+          <li>12 meals (6 breakfasts, 6 dinners)</li>
+          <li>12 jet ski tow-in sessions</li>
+          <li>Drone filming</li>
+          <li>Video analysis coaching</li>
+        </ul>
+        <a href="mailto:shokogipanama@gmail.com?subject=Foil%20Retreat%20Panama%20Booking" class="bbtn">Email Us to Book</a>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- FAQ -->
+  <div class="sec tint"><div class="wrap">
+    <div class="kicker" style="text-align:center">Learn more about the Foil Retreat</div>
+    <h2>FAQ</h2>
+    <div class="faq" style="margin-top:22px">
+      <details open><summary>What skill level do I need?</summary><div class="ans">You must already be comfortable flying a hydrofoil behind a jet ski, boat, or wing. This retreat is for intermediate to advanced foilers transitioning to wave riding.</div></details>
+      <details><summary>How does the video approval process work?</summary><div class="ans">Before booking, submit foil riding videos showing your current ability to <a href="mailto:shokogipanama@gmail.com">shokogipanama@gmail.com</a>. This ensures all participants have similar skill levels for the best group experience.</div></details>
+      <details><summary>Should I bring my own foil equipment or rent?</summary><div class="ans">Foil equipment (board, foil, helmet, impact vest) isn&rsquo;t included &mdash; bring your own or rent. A complete foil setup is available for $100 per day and includes a foil board; reserve your gear when booking.</div></details>
+      <details><summary>How many hours on the water each day?</summary><div class="ans">Up to two tow-in sessions per day, each 1.5&ndash;2 hours on the water &mdash; up to 12 sessions across the retreat.</div></details>
+      <details><summary>Are flights to Panama included?</summary><div class="ans">No &mdash; flights to Panama City are not included. Round-trip transportation from Panama City to Playa Venao is included.</div></details>
+      <details><summary>How big are the waves at Playa Venao?</summary><div class="ans">Playa Venao receives consistent Pacific swells year-round and is never flat. For this retreat you should be comfortable in intermediate waves &mdash; chest-high and above.</div></details>
+      <details><summary>Is this suitable for beginners?</summary><div class="ans">No &mdash; this retreat requires existing tow-in experience. If you&rsquo;re new to foiling, start with our beginner foil lessons to build foundational skills first.</div></details>
+    </div>
+  </div></div>
+
+  <!-- CLOSER -->
+  <div class="sec"><div class="wrap closer">
+    <h2>Ready to ride empty, perfect waves?</h2>
+    <p>Just 4 spots per retreat. Email us your foil videos to apply and book your place in Playa Venao.</p>
+    <a href="mailto:shokogipanama@gmail.com?subject=Foil%20Retreat%20Panama%20Booking" class="btn pink">Email Us to Book</a>
+  </div></div>
+</div>
+
+<script>
+/* Play each clip only while it is on screen; pause (and release the decoder)
+   when it scrolls away. iOS allows only a few simultaneous video decoders, so
+   four always-on autoplay loops + the assembly below would exhaust memory and
+   crash the tab at the bottom of the page. preload="none" keeps them from
+   buffering until they are actually needed. */
+(function(){
+  var vids=[].slice.call(document.querySelectorAll('.skp video.skvid'));
+  if(!vids.length) return;
+  var play=function(v){ try{ var p=v.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} };
+  if(!('IntersectionObserver' in window)){ vids.forEach(play); return; }
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(e){
+      var v=e.target;
+      if(e.isIntersecting){ play(v); }
+      else if(!v.paused){ v.pause(); }
+    });
+  }, {rootMargin:'150px 0px', threshold:0.15});
+  vids.forEach(function(v){ io.observe(v); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Foil Retreat Page",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero video" },
+    { "type": "video", "id": "hero_video", "label": "Hero video" },
+    { "type": "video", "id": "why_video", "label": "Why Playa Venao video" },
+    { "type": "video", "id": "clip_1", "label": "Action clip 1 (vertical)" },
+    { "type": "video", "id": "clip_2", "label": "Action clip 2 (vertical)" },
+    { "type": "header", "content": "Section images" },
+    { "type": "image_picker", "id": "bring_image", "label": "What to Bring image" },
+    { "type": "image_picker", "id": "who_image", "label": "Who Should Attend image" }
+  ],
+  "presets": [ { "name": "Foil Retreat Page" } ]
+}
+{% endschema %}
