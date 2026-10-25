@@ -60,13 +60,20 @@ p{margin:0}
 .seg button{font:600 14px var(--f-mono);letter-spacing:.03em;padding:10px 18px;border:0;background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
 .seg button+button{border-left:1.5px solid var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
-@media(max-width:430px){.seg button{padding:9px 12px;font-size:12px}}
+@media(max-width:430px){
+  .seg button{padding:9px 12px;font-size:12px}
+  .controls{gap:6px;flex-wrap:nowrap}
+  .rpm{min-width:0;font-size:12px;padding:8px 10px}
+  .rpm b{font-size:16px}
+  .btn{padding:9px 12px;font-size:13px}
+  .btn.gas{min-width:78px}
+}
 .controls{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 .btn{font:500 14px var(--f-body);padding:10px 16px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
 .btn.gas{background:var(--orange);border-color:var(--orange);color:#fff;min-width:96px}
 .btn.gas.held{background:#b84f10}
 .btn:focus-visible,.seg button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
-.rpm{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:14px;padding:9px 12px;border:1px solid var(--rule);background:#fff;min-width:140px;text-align:center}
+.rpm{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:14px;padding:9px 12px;border:1px solid var(--rule);background:#fff;min-width:104px;text-align:center}
 .rpm b{font-size:18px;font-weight:500}
 @media (prefers-reduced-motion:reduce){ .ov{transition:none} }
 </style>
@@ -147,9 +154,9 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 const MODELS={
-  wake:{src:'wake',jet:true,dir:-1,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672],camL:{x:-100,y:-7,w:1980,h:900},camP:{x:-88,y:-120,w:1950,h:1250}},
-  gtx:{src:'gtx',jet:true,dir:-1,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670],camL:{x:-100,y:-7,w:1980,h:900},camP:{x:-88,y:-120,w:1950,h:1250}},
-  bee:{src:'bee',jet:false,dir:1,nozzle:[1690,672],engine:[1560,275,1730,560],shaft:[1700,650,1730,680],camL:{x:-75,y:-50,w:1950,h:900},camP:{x:-30,y:-200,w:1860,h:1230}}
+  wake:{src:'wake',jet:true,dir:-1,nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672],camL:{x:-30,y:-30,w:1850,h:970},camP:{x:-30,y:-40,w:1830,h:990}},
+  gtx:{src:'gtx',jet:true,dir:-1,nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670],camL:{x:-30,y:-30,w:1850,h:970},camP:{x:-30,y:-40,w:1830,h:990}},
+  bee:{src:'bee',jet:false,dir:1,nozzle:[1690,672],engine:[1560,275,1730,560],shaft:[1700,650,1730,680],camL:{x:-20,y:-50,w:1870,h:970},camP:{x:-20,y:-60,w:1840,h:990}}
 };
 let model=MODELS.wake;
 
@@ -159,7 +166,7 @@ const world=sr.getElementById('world'), vp=sr.getElementById('vp');
 function cam(){ return (vp.clientWidth/vp.clientHeight<0.9)?model.camP:model.camL; }
 function applyCam(c){
   const W=vp.clientWidth, H=vp.clientHeight;
-  const topPad=56, botPad=Math.min(160,H*.22);
+  const topPad=54, botPad=Math.min(100,H*.2);
   const ah=Math.max(120,H-topPad-botPad);
   const s=Math.min(W/c.w, ah/c.h);
   const tx=(W-c.w*s)/2 - wx(c.x)*s;
@@ -179,7 +186,7 @@ placeOverlays();
 // responsive viewport height (no scroll scrubbing anymore — it's a normal block)
 function sizeViewport(){
   const W=document.documentElement.clientWidth;
-  vp.style.height=Math.round(clamp(W<700?W*1.6:W*0.66,480,880))+'px';
+  vp.style.height=Math.round(clamp(W<700?W*0.92:W*0.5,320,600))+'px';
 }
 
 // model switch
