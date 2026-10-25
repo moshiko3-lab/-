@@ -1,6 +1,9 @@
 {%- comment -%} SHOKOGI Foil Retreat Panama — rebuilt faithfully from the live page content, in the Surf Camp design. {%- endcomment -%}
 {{ 'sk.css' | asset_url | stylesheet_tag }}
-<style>.skp .vclips{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}.skp .vclips video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:16px;background:#000;display:block}@media(max-width:600px){.skp .vclips{gap:10px}}</style>
+<style>.skp .vclips{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}.skp .vclips video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:16px;background:#000;display:block}@media(max-width:600px){.skp .vclips{gap:10px}}
+/* On phones, let the browser drop the render memory of off-screen content blocks
+   as you scroll past them, so a long page doesn't accumulate to an iOS reload. */
+@media(max-width:760px){.skp .sec{content-visibility:auto;contain-intrinsic-size:auto 560px}}</style>
 <div class="skp">
   <!-- HERO (video) -->
   {%- assign hv = section.settings.hero_video -%}
@@ -79,7 +82,7 @@
   <!-- WHAT TO BRING & GEAR RENTAL -->
   <div class="sec"><div class="wrap">
     <div class="band rev">
-      {%- if section.settings.bring_image -%}<img src="{{ section.settings.bring_image | image_url: width: 1200 }}" alt="Foil gear in Playa Venao" loading="lazy">{%- endif -%}
+      {%- if section.settings.bring_image -%}<img src="{{ section.settings.bring_image | image_url: width: 900 }}" alt="Foil gear in Playa Venao" loading="lazy">{%- endif -%}
       <div class="bt">
         <div class="kicker">what to bring</div>
         <h2>What to Bring &amp; Gear Rental</h2>
@@ -132,7 +135,7 @@
   <!-- WHO SHOULD ATTEND -->
   <div class="sec tint"><div class="wrap">
     <div class="band">
-      {%- if section.settings.who_image -%}<img src="{{ section.settings.who_image | image_url: width: 1200 }}" alt="Jet ski tow-in foiling in Playa Venao" loading="lazy">{%- endif -%}
+      {%- if section.settings.who_image -%}<img src="{{ section.settings.who_image | image_url: width: 900 }}" alt="Jet ski tow-in foiling in Playa Venao" loading="lazy">{%- endif -%}
       <div class="bt">
         <div class="kicker">is it for you?</div>
         <h2>Who Should Attend This Foil Tow-In Retreat?</h2>
