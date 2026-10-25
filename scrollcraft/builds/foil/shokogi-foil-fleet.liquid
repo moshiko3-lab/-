@@ -298,16 +298,16 @@ let model=MODELS.wake;
 
 // parts: natural aspect (h/w), start [cx,cy,w,rot], final [cx,cy,w,rot], timing [t0,t1]
 const PARTS={
-  pylon:{ar:1144/1000, s:[-450,250,440,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
-  rope: {ar:475/1000,  s:[-330,860,620,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
-  board:{ar:1087/539,  s:[2060,280,300,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
-  arch: {ar:955/129,   s:[2330,650,96,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
+  pylon:{ar:1144/1000, s:[-430,300,300,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
+  rope: {ar:475/1000,  s:[-370,830,420,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
+  board:{ar:1087/539,  s:[2080,320,210,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
+  arch: {ar:955/129,   s:[2300,620,70,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
 };
-const LBL_L={pylon:[-450,560],rope:[-330,1020],board:[2060,560],arch:[2330,1010]};
+const LBL_L={pylon:[-430,520],rope:[-370,960],board:[2080,520],arch:[2300,940]};
 const LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
 // portrait screens: parts float above / below the hull instead of beside it
-const START_P={pylon:[330,-430,470,0],board:[1330,-450,300,6],rope:[520,1120,760,-4],arch:[1330,1040,104,-90]};
-const LBL_P={pylon:[330,-90],board:[1330,-90],rope:[520,1350],arch:[1330,1300]};
+const START_P={pylon:[360,-420,330,0],board:[1300,-440,220,6],rope:[520,1100,540,-4],arch:[1320,1020,76,-90]};
+const LBL_P={pylon:[360,-170],board:[1300,-170],rope:[520,1280],arch:[1320,1240]};
 const START_L={}; for(const k in PARTS) START_L[k]=PARTS[k].s.slice();
 let portrait=null;
 function layout(){
