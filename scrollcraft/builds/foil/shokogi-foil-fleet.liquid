@@ -1,382 +1,653 @@
 {%- comment -%}
-  SHOKOGI foil — "Your tow-in setup, part by part".
-  Owner-built scroll-driven assembly (another session), rebuilt into a Shopify
-  section: English, Shokogi style (pink accent, Barlow Condensed + Figtree),
-  compact. Each piece is shown on its own in a gear strip, then the rig assembles
-  onto the Sea-Doo AS YOU SCROLL and the engine fires + jets water. Clean stage:
-  no buttons, no pinning, a calm fixed camera — the stage scrolls naturally and
-  the assembly is driven by how far it has passed through the viewport.
-  This is the only section on the two foil pages that loads sk.css + the foil
-  polish + the brand fonts, so the whole page keeps its polish. Images on Files.
+  SHOKOGI foil — the owner's jet-ski assembly, dropped in as-is, inside a Shadow
+  DOM so its CSS can't touch the theme (or be touched by it). Markup + CSS are
+  verbatim from the prototype; only :root/body became :host, DOM lookups are
+  scoped to the shadow root, and the 8 images point at the hosted copies instead
+  of 1.5MB of embedded data. Edit freely from here.
 {%- endcomment -%}
-{{ 'sk.css' | asset_url | stylesheet_tag }}
-{{ 'skplusfoil.css' | asset_url | stylesheet_tag }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=IBM+Plex+Sans+Hebrew:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-{%- assign B = 'https://cdn.shopify.com/s/files/1/0116/5364/4354/files/' -%}
-{%- assign V1 = '?v=1792879218' -%}
-{%- assign V2 = '?v=1792881173' -%}
+<div id="skrig-host-{{ section.id }}"></div>
+<template id="skrig-tpl-{{ section.id }}">
+<style>
+:host{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}:host{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
 
-<div class="sk-rig" id="sk-rig-{{ section.id }}" style="--skr-accent: {{ section.settings.accent_color }}; --skr-pt: {{ section.settings.padding_top }}px; --skr-pb: {{ section.settings.padding_bottom }}px;">
 
-  <div class="sk-rig__wrap">
-    <div class="sk-rig__head">
-      <span class="sk-rig__kick">{{ section.settings.kicker }}</span>
-      <h2 class="sk-rig__h2">{{ section.settings.heading }}</h2>
-      {%- if section.settings.lede != blank -%}<p class="sk-rig__lede">{{ section.settings.lede }}</p>{%- endif -%}
-    </div>
+:host{
+  --paper:#f5f7f6;
+  --paper-2:#eaefed;
+  --ink:#15191b;
+  --muted:#5a6569;
+  --teal:#178f87;
+  --orange:#e2681b;
+  --grid:rgba(23,143,135,.09);
+  --rule:rgba(21,25,27,.14);
+  --f-display:"Secular One","IBM Plex Sans Hebrew",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Hebrew",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+:host{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;}
+.page{
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.05;text-wrap:balance;margin:0}
+p{margin:0}
 
-    <div class="sk-rig__strip">
-      <article class="sk-rig__card">
-        <div class="sk-rig__plate"><span class="sk-rig__tag">Step 1</span><img src="{{ B }}sk-jet-pylon.webp{{ V1 }}" width="1000" height="1144" loading="lazy" alt="BRP tow pylon"></div>
-        <div class="sk-rig__ct"><span class="sk-rig__brand">BRP</span><h3>Tow pylon</h3><p>Twin-grip post on a telescopic base &mdash; the anchor point for the rope.</p><span class="sk-rig__where">Mounts on the rear deck</span></div>
-      </article>
-      <article class="sk-rig__card">
-        <div class="sk-rig__plate"><span class="sk-rig__tag">Step 2</span><img src="{{ B }}sk-jet-rope.webp{{ V1 }}" width="1000" height="475" loading="lazy" alt="Armstrong tow rope and handle"></div>
-        <div class="sk-rig__ct"><span class="sk-rig__brand">Armstrong</span><h3>Rope &amp; handle</h3><p>Triangular mesh handle and a coiled yellow-white tow line.</p><span class="sk-rig__where">Ties to the pylon head</span></div>
-      </article>
-      <article class="sk-rig__card">
-        <div class="sk-rig__plate"><span class="sk-rig__tag">Step 3</span><img src="{{ B }}sk-jet-board.webp{{ V2 }}" width="815" height="1087" loading="lazy" alt="JETTECH inflatable tow sled"></div>
-        <div class="sk-rig__ct"><span class="sk-rig__brand">JETTECH</span><h3>Inflatable sled</h3><p>Side grab handles, a blue bungee net and D-rings along the deck.</p><span class="sk-rig__where">Rides on the stern</span></div>
-      </article>
-      <article class="sk-rig__card">
-        <div class="sk-rig__plate"><span class="sk-rig__tag">Step 4</span><img src="{{ B }}sk-jet-arch.webp{{ V2 }}" width="932" height="967" loading="lazy" alt="JAIN inflatable floats"></div>
-        <div class="sk-rig__ct"><span class="sk-rig__brand">JAIN</span><h3>Inflatable floats</h3><p>Inflatable tube with handles and D-rings that hugs the hull sides.</p><span class="sk-rig__where">Runs along the hull</span></div>
-      </article>
-    </div>
+
+.hero{padding-block:clamp(28px,6vw,64px) 24px}
+.hero-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.hero h1{font-size:clamp(44px,9vw,112px);margin-top:clamp(18px,4vw,36px);letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-lede{max-width:56ch;margin-top:14px;color:var(--muted);font-size:clamp(16px,2vw,19px)}
+.hero-img{position:relative;margin-top:clamp(16px,3vw,28px)}
+.hero-img img{display:block;width:100%;height:auto}
+.dim{position:absolute;inset:auto 2% 4% 2%;height:0;border-top:1px dashed var(--teal)}
+.dim span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:var(--paper);padding:0 8px}
+.cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
+.btn.play{background:var(--ink);color:#fff;font-size:16px;padding:12px 20px}
+.cue{display:flex;align-items:center;gap:10px}
+.cue i{display:block;width:1px;height:34px;background:var(--ink);transform-origin:top;animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{0%{transform:scaleY(.2)}50%{transform:scaleY(1)}100%{transform:scaleY(.2)}}
+
+
+.parts{padding-block:clamp(40px,7vw,90px)}
+.sec-head{display:grid;gap:10px;margin-bottom:clamp(24px,4vw,44px)}
+.sec-head h2{font-size:clamp(34px,5.4vw,64px)}
+.sec-head p{color:var(--muted);max-width:60ch}
+.part{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(16px,4vw,48px);align-items:center;padding-block:clamp(22px,4vw,40px);border-top:1px solid var(--rule)}
+.part:nth-child(even) .plate{order:2}
+.plate{position:relative;background:#fff;border:1px solid var(--rule);aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;padding:clamp(14px,3vw,30px);overflow:hidden}
+.plate::before,.plate::after{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--ink)}
+.plate::before{top:8px;right:8px;border-left:0;border-bottom:0}
+.plate::after{bottom:8px;left:8px;border-right:0;border-top:0}
+.plate img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.plate:hover img{transform:scale(1.04) rotate(-1deg)}
+.plate .tag{position:absolute;top:10px;left:14px}
+.ptext{display:grid;gap:10px;min-width:0}
+.ptext h3{font-size:clamp(28px,4vw,44px)}
+.ptext .brand{font-family:var(--f-mono);font-size:13px;color:var(--teal);letter-spacing:.06em}
+.ptext p{color:var(--ink);max-width:46ch}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:6px;font-size:14px;border-top:1px dashed var(--rule);padding-top:10px}
+.spec dt{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;padding-top:2px}
+.spec dd{margin:0}
+.hulls{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,24px)}
+.hulls .plate{aspect-ratio:2/1.15}
+
+
+#assembly{position:relative;height:760svh}
+.static #assembly{height:auto}
+.static .viewport{position:relative}
+.viewport{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;direction:ltr}
+.world{position:absolute;left:0;top:0;width:3900px;height:3400px;transform-origin:0 0}
+.craft{position:absolute;inset:0}
+.world img{position:absolute;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.p{position:absolute;left:0;top:0;transform-origin:50% 50%}
+.lbl{transition:none}
+.p img{position:static;width:100%;height:auto}
+.lbl{position:absolute;font-family:var(--f-mono);font-size:26px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;direction:rtl}
+.lbl b{display:block;font-family:var(--f-display);font-weight:400;font-size:44px;letter-spacing:0}
+.lbl::before{content:"";position:absolute;top:-16px;right:0;width:60px;height:3px;background:var(--orange)}
+#hull{left:1500px;top:1200px;width:1774px;height:887px}
+#engineClip{left:1500px;top:1200px;width:1774px;height:887px}
+.ov{position:absolute;pointer-events:none;opacity:0;transition:opacity .4s}
+#glow{background:radial-gradient(closest-side,rgba(255,140,40,.75),rgba(255,120,30,.25) 60%,transparent);mix-blend-mode:screen}
+#shaft{background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.75) 12px 16px);mix-blend-mode:screen;background-size:28px 100%}
+#rope-line{position:absolute;left:0;top:0;width:3900px;height:3400px;overflow:visible;pointer-events:none}
+#fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none}
+
+.hud{position:absolute;inset:auto 0 0 0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));direction:rtl;display:grid;gap:10px;background:linear-gradient(to top,var(--paper) 55%,rgba(245,247,246,0))}
+.steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+.steps li{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;padding:4px 9px;border:1px solid var(--rule);background:#fff;color:var(--muted);transition:all .25s}
+.steps li.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.steps li.done{color:var(--teal);border-color:var(--teal)}
+.caption{font-family:var(--f-display);font-size:clamp(20px,3.2vw,34px);line-height:1.1;min-height:1.1em}
+.topbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:center;gap:10px;direction:rtl;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--ink);background:#fff}
+.seg button{font:500 13px var(--f-mono);letter-spacing:.04em;padding:7px 12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{font:500 14px var(--f-body);padding:10px 16px;border:1px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.btn.gas{background:var(--orange);border-color:var(--orange);color:#fff;min-width:96px}
+.btn.gas.held{background:#b84f10}
+.btn:focus-visible,.seg button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.rpm{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:14px;padding:9px 12px;border:1px solid var(--rule);background:#fff;min-width:140px;text-align:center}
+.rpm b{font-size:18px;font-weight:500}
+.run-ui{display:none}
+.running .run-ui{display:flex}
+
+.outro{padding-block:clamp(40px,7vw,80px)}
+.outro p{color:var(--muted);max-width:62ch}
+.outro h2{font-size:clamp(30px,4.6vw,52px);margin-bottom:12px}
+
+@media (max-width:760px){
+  .part{grid-template-columns:1fr}
+  .part:nth-child(even) .plate{order:0}
+  .hulls{grid-template-columns:1fr}
+  .lbl{font-size:34px}.lbl b{font-size:60px}
+}
+@media (prefers-reduced-motion:reduce){
+  .cue i{animation:none}
+  .plate img{transition:none}
+}
+
+</style>
+<div class="page" dir="rtl" lang="he">
+
+<header class="hero wrap">
+  <div class="hero-top">
+    <span class="mono">גיליון הרכבה · 6 שרטוטים · 4 אביזרים · 2 דגמים</span>
+    <span class="mono">Sea-Doo · ROTAX</span>
+  </div>
+  <h1>אופנוע ים, <em>חלק אחר חלק</em></h1>
+  <p class="hero-lede">כל אביזר מוצג בנפרד. בהמשך הגלילה החלקים עפים למקומם על הגוף, המנוע מותנע, והג׳ט מתחיל לירות מים.</p>
+  <div class="hero-img">
+    <img data-img="wake" alt="שרטוט חתך של Sea-Doo Wake Pro עם מנוע ROTAX" width="1774" height="887">
+  </div>
+  <div class="cta">
+    <button type="button" class="btn play" id="play-hero">▶ צפו בהרכבה</button>
+    <div class="cue"><i></i><span class="mono">או גללו למטה</span></div>
+  </div>
+</header>
+
+<section class="parts wrap" aria-labelledby="parts-h">
+  <div class="sec-head">
+    <span class="mono">רשימת חלקים</span>
+    <h2 id="parts-h">ארבעה אביזרים וגוף אחד</h2>
+    <p>החלקים מסודרים לפי סדר ההרכבה באנימציה.</p>
   </div>
 
-  <section class="sk-rig__asm" data-asm aria-label="Tow-in rig assembling on scroll">
-    <div class="sk-rig__vp" data-vp>
-      <div class="sk-rig__world" data-world>
-        <div class="sk-rig__craft" data-craft>
-          <div class="sk-rig__p" data-part="pylon"><img src="{{ B }}sk-jet-pylon.webp{{ V1 }}" alt="" loading="lazy"></div>
-          <img class="sk-rig__hull" data-hull src="{{ B }}sk-jet-wake.webp{{ V1 }}" width="1774" height="887" alt="{{ section.settings.heading | escape }}" loading="lazy">
-          <img class="sk-rig__hull sk-rig__clip" data-clip src="{{ B }}sk-jet-wake.webp{{ V1 }}" width="1774" height="887" alt="" loading="lazy">
-          <div class="sk-rig__ov sk-rig__glow" data-glow></div>
-          <div class="sk-rig__ov sk-rig__shaft" data-shaft></div>
-          <div class="sk-rig__p" data-part="arch"><img src="{{ B }}sk-jet-floats.webp{{ V1 }}" alt="" loading="lazy"></div>
-          <div class="sk-rig__p" data-part="board"><img src="{{ B }}sk-jet-sled.webp{{ V1 }}" alt="" loading="lazy"></div>
-          <svg class="sk-rig__rope" viewBox="0 0 3900 3400" aria-hidden="true">
-            <path data-rope1 d="" fill="none" stroke="#f2c21b" stroke-width="9" stroke-linecap="round"/>
-            <path data-rope2 d="" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 14" stroke-linecap="round"/>
-          </svg>
-          <div class="sk-rig__p" data-part="rope"><img src="{{ B }}sk-jet-rope.webp{{ V1 }}" alt="" loading="lazy"></div>
-          <canvas class="sk-rig__fx" data-fx></canvas>
-          <div class="sk-rig__lbl" data-lbl="pylon"><b>Tow pylon</b>BRP</div>
-          <div class="sk-rig__lbl" data-lbl="rope"><b>Rope</b>ARMSTRONG</div>
-          <div class="sk-rig__lbl" data-lbl="board"><b>Sled</b>JETTECH</div>
-          <div class="sk-rig__lbl" data-lbl="arch"><b>Floats</b>JAIN</div>
-        </div>
+  <article class="part">
+    <div class="plate"><span class="tag mono">שלב 1</span><img data-img="pylon" alt="עמוד גרירה BRP" loading="lazy"></div>
+    <div class="ptext">
+      <span class="brand">BRP</span>
+      <h3>עמוד גרירה</h3>
+      <p>עמוד עם שתי ידיות אחיזה, צינור טלסקופי ובסיס עם רגליים. נקודת העיגון של החבל.</p>
+      <dl class="spec"><dt>מיקום</dt><dd>על הסיפון האחורי, מאחורי המושב</dd></dl>
+    </div>
+  </article>
+
+  <article class="part">
+    <div class="plate"><span class="tag mono">שלב 2</span><img data-img="rope" alt="ידית וחבל גרירה Armstrong" loading="lazy"></div>
+    <div class="ptext">
+      <span class="brand">ARMSTRONG</span>
+      <h3>ידית וחבל גרירה</h3>
+      <p>ידית משולשת עם אחיזה מרושתת, וחבל קלוע צהוב-לבן מגולגל עם רצועת סקוטש.</p>
+      <dl class="spec"><dt>מיקום</dt><dd>נקשר לראש עמוד הגרירה ונגרר מאחור</dd></dl>
+    </div>
+  </article>
+
+  <article class="part">
+    <div class="plate"><span class="tag mono">שלב 3</span><img data-img="board" alt="סלד מתנפח Jettech, מבט קדמי ואחורי" loading="lazy"></div>
+    <div class="ptext">
+      <span class="brand">JETTECH</span>
+      <h3>סלד מתנפח</h3>
+      <p>סלד עם ידיות אחיזה לאורך הדפנות, רשת באנג׳י כחולה, טבעות D ושתי לולאות בקצה. מוצג מלפנים ומאחור.</p>
+      <dl class="spec"><dt>מיקום</dt><dd>מאחורי האופנוע, נשען על הירכתיים</dd></dl>
+    </div>
+  </article>
+
+  <article class="part">
+    <div class="plate"><span class="tag mono">שלב 4</span><img data-img="arch" alt="בידונים מתנפחים JAIN בשני מבטים" loading="lazy"></div>
+    <div class="ptext">
+      <span class="brand">JAIN</span>
+      <h3>בידונים מתנפחים</h3>
+      <p>צינור מתנפח עם ידיות וטבעות D שנצמד לדפנות האופנוע. מוצג במבט צד ובמבט חזית.</p>
+      <dl class="spec"><dt>מיקום</dt><dd>לאורך דפנות הגוף</dd></dl>
+    </div>
+  </article>
+
+  <article class="part" style="grid-template-columns:1fr">
+    <div class="ptext">
+      <span class="brand">SEA-DOO · ROTAX</span>
+      <h3>הגוף: שני דגמים</h3>
+      <p>בחתך רואים את המנוע, ציר ההנעה והמשאבה שיוצאת לג׳ט בירכתיים. אפשר לבחור באיזה דגם להרכיב.</p>
+    </div>
+    <div class="hulls">
+      <div class="plate"><span class="tag mono">Wake Pro</span><img data-img="wake" alt="Sea-Doo Wake Pro" loading="lazy"></div>
+      <div class="plate"><span class="tag mono">GTX Limited</span><img data-img="gtx" alt="Sea-Doo GTX Limited" loading="lazy"></div>
+    </div>
+  </article>
+</section>
+
+<section id="assembly" aria-label="אנימציית הרכבה">
+  <div class="viewport" id="vp">
+    <div class="world" id="world">
+      <div class="craft" id="craft">
+        <div class="p" id="p-pylon"><img data-img="pylon" alt=""></div>
+        <img id="hull" data-img="wake" alt="">
+        <img id="engineClip" data-img="wake" alt="">
+        <div class="ov" id="glow"></div>
+        <div class="ov" id="shaft"></div>
+        <div class="p" id="p-arch"><img data-img="sidetube" alt=""></div>
+        <div class="p" id="p-board"><img data-img="sled" alt=""></div>
+        <svg id="rope-line" viewBox="0 0 3900 3400" aria-hidden="true">
+          <path id="rope-path" d="" fill="none" stroke="#f2c21b" stroke-width="9" stroke-linecap="round"/>
+          <path id="rope-path2" d="" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 14" stroke-linecap="round"/>
+        </svg>
+        <div class="p" id="p-rope"><img data-img="rope" alt=""></div>
+        <canvas id="fx"></canvas>
+        <div class="lbl" id="l-pylon"><b>עמוד גרירה</b>BRP</div>
+        <div class="lbl" id="l-rope"><b>ידית וחבל</b>ARMSTRONG</div>
+        <div class="lbl" id="l-board"><b>סלד מתנפח</b>JETTECH</div>
+        <div class="lbl" id="l-arch"><b>בידונים</b>JAIN</div>
       </div>
     </div>
-  </section>
 
-  <div class="sk-rig__wrap sk-rig__outro">
-    <p>{{ section.settings.outro }}</p>
+    <div class="topbar">
+      <div class="seg" role="group" aria-label="בחירת דגם">
+        <button type="button" id="m-wake" aria-pressed="true">Wake Pro</button>
+        <button type="button" id="m-gtx" aria-pressed="false">GTX Limited</button>
+      </div>
+      <div class="controls"><button type="button" class="btn" id="play-stage">▶ נגן מההתחלה</button><span class="mono" id="stepnum">מבט מפורק</span></div>
+    </div>
+
+    <div class="hud">
+      <ol class="steps" id="steps">
+        <li>עמוד</li><li>חבל</li><li>סלד</li><li>בידונים</li><li>התנעה</li>
+      </ol>
+      <div class="caption" id="caption">כל החלקים מפורקים. גללו כדי להרכיב.</div>
+      <div class="controls run-ui">
+        <div class="rpm" aria-live="off">סל״ד <b id="rpm">0</b></div>
+        <button type="button" class="btn gas" id="gas" aria-label="גז, החזיקו לחוץ">גז ▲</button>
+        <button type="button" class="btn" id="sound" aria-pressed="false">הפעלת קול</button>
+      </div>
+    </div>
   </div>
+</section>
 
-  <script type="application/json" data-models>{ "wake": "{{ B }}sk-jet-wake.webp{{ V1 }}", "gtx": "{{ B }}sk-jet-gtx.webp{{ V1 }}" }</script>
+<section class="outro wrap">
+  <h2>מורכב ומותנע</h2>
+  <p>גללו למעלה כדי לפרק שוב. החזיקו את כפתור הגז כדי להגביר את סל״ד ואת זרם המים. האנימציה היא המחשה גרפית: מיקומי החיבור אינם הוראות התקנה, ומד הסל״ד אינו נתון יצרן.</p>
+</section>
+
 </div>
-
-<style>
-  .sk-rig{
-    --skr-ink:#191a1a; --skr-muted:#7c7b77; --skr-paper:#ffffff; --skr-paper-2:#f6f5f3;
-    --skr-grid:rgba(244,110,149,.055); --skr-rule:rgba(25,26,26,.12);
-    --skr-fd:"Barlow Condensed",-apple-system,"Segoe UI",Arial,sans-serif;
-    --skr-fb:"Figtree",-apple-system,"Segoe UI",Arial,sans-serif;
-    color:var(--skr-ink); font-family:var(--skr-fb); background:var(--skr-paper);
-    padding-top:var(--skr-pt,36px); overflow:clip;
-  }
-  .sk-rig *{box-sizing:border-box}
-  .sk-rig__wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-  .sk-rig__kick{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--skr-accent);font-weight:700}
-  .sk-rig__h2{font-family:var(--skr-fd);font-weight:700;font-size:clamp(30px,3.6vw,46px);line-height:1.02;letter-spacing:-.015em;margin:.35rem 0 .5rem;text-wrap:balance}
-  .sk-rig__lede{font-size:16px;line-height:1.6;color:var(--skr-muted);max-width:56ch;margin:0}
-
-  /* gear strip: compact 2x2, each piece on its own plate */
-  .sk-rig__strip{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(14px,1.8vw,20px);margin-top:clamp(20px,2.6vw,30px)}
-  .sk-rig__card{display:grid;grid-template-columns:minmax(0,142px) minmax(0,1fr);gap:16px;align-items:center;border:1px solid var(--skr-rule);border-radius:16px;padding:14px;background:var(--skr-paper);box-shadow:0 10px 28px -20px rgba(18,30,45,.28);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s cubic-bezier(.2,.7,.2,1)}
-  @media(hover:hover){.sk-rig__card:hover{transform:translateY(-2px);box-shadow:0 16px 34px -20px rgba(18,30,45,.34)}}
-  .sk-rig__plate{position:relative;aspect-ratio:1/1;display:grid;place-items:center;background:radial-gradient(120% 120% at 50% 20%,#ffffff 0%,#f4f5f7 100%);border-radius:13px;overflow:hidden;padding:12px}
-  .sk-rig__plate::before,.sk-rig__plate::after{content:"";position:absolute;width:12px;height:12px;border:1.5px solid rgba(25,26,26,.22)}
-  .sk-rig__plate::before{top:7px;right:7px;border-left:0;border-bottom:0}
-  .sk-rig__plate::after{bottom:7px;left:7px;border-right:0;border-top:0}
-  .sk-rig__plate img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 12px rgba(20,30,34,.14))}
-  .sk-rig__tag{position:absolute;top:7px;left:9px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--skr-muted);font-weight:600}
-  .sk-rig__ct{min-width:0}
-  .sk-rig__brand{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--skr-accent);font-weight:700}
-  .sk-rig__ct h3{font-family:var(--skr-fd);font-weight:700;font-size:clamp(17px,1.9vw,21px);line-height:1.1;margin:2px 0 5px}
-  .sk-rig__ct p{font-size:12.5px;line-height:1.5;color:#55554f;margin:0 0 6px}
-  .sk-rig__where{font-size:11px;letter-spacing:.02em;color:var(--skr-muted);border-top:1px dashed var(--skr-rule);padding-top:6px;display:block}
-
-  /* assembly: a clean stage that scrolls with the page (no pin, no controls) */
-  .sk-rig__asm{position:relative;margin-top:clamp(20px,3vw,34px)}
-  .sk-rig__vp{position:relative;height:min(72svh,640px);overflow:hidden;border-radius:20px;direction:ltr;isolation:isolate;
-    background:linear-gradient(180deg,#ffffff 0%,#fdfdfe 50%,#eef1f6 100%);
-    box-shadow:0 26px 60px -34px rgba(18,30,45,.32), 0 1px 0 rgba(255,255,255,.7) inset, 0 0 0 1px var(--skr-rule)}
-  .sk-rig__vp::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-    background-image:linear-gradient(var(--skr-grid) 1px,transparent 1px),linear-gradient(90deg,var(--skr-grid) 1px,transparent 1px);
-    background-size:36px 36px;
-    -webkit-mask-image:radial-gradient(140% 130% at 50% 40%,#000 50%,transparent 100%);
-    mask-image:radial-gradient(140% 130% at 50% 40%,#000 50%,transparent 100%)}
-  .sk-rig__vp::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;border-radius:inherit;
-    box-shadow:0 -60px 70px -40px rgba(120,140,170,.18) inset}
-  .sk-rig__world{position:absolute;left:0;top:0;z-index:1;width:3900px;height:3400px;transform-origin:0 0}
-  .sk-rig__craft{position:absolute;inset:0}
-  .sk-rig__world img{position:absolute;display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
-  .sk-rig__hull{left:1500px;top:1200px;width:1774px;height:887px}
-  .sk-rig__p{position:absolute;left:0;top:0;transform-origin:50% 50%}
-  .sk-rig__p img{position:static!important;width:100%;height:auto}
-  .sk-rig__ov{position:absolute;pointer-events:none;opacity:0;transition:opacity .4s}
-  .sk-rig__glow{background:radial-gradient(closest-side,rgba(255,140,40,.75),rgba(255,120,30,.25) 60%,transparent);mix-blend-mode:screen}
-  .sk-rig__shaft{background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,255,255,.75) 12px 16px);mix-blend-mode:screen;background-size:28px 100%}
-  .sk-rig__rope,.sk-rig__fx{position:absolute;left:0;top:0;width:3900px;height:3400px;pointer-events:none;overflow:visible}
-  .sk-rig__lbl{position:absolute;font-size:26px;letter-spacing:.06em;color:var(--skr-ink);white-space:nowrap;opacity:.72}
-  .sk-rig__lbl b{display:block;font-family:var(--skr-fd);font-weight:700;font-size:44px;letter-spacing:0}
-  .sk-rig__lbl::before{content:"";position:absolute;top:-15px;left:0;width:58px;height:3px;background:var(--skr-accent)}
-
-  .sk-rig__outro{margin-top:clamp(18px,2.4vw,28px);padding-bottom:var(--skr-pb,36px)}
-  .sk-rig__outro p{font-size:12.5px;line-height:1.6;color:var(--skr-muted);max-width:66ch;margin:0}
-
-  /* graceful staggered reveal (only when JS marks the section + motion allowed) */
-  @media (prefers-reduced-motion:no-preference){
-    .sk-rig--anim .sk-rig__head,.sk-rig--anim .sk-rig__card{
-      opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
-    .sk-rig--anim.is-in .sk-rig__head,.sk-rig--anim.is-in .sk-rig__card{opacity:1;transform:none}
-    .sk-rig--anim.is-in .sk-rig__card:nth-child(1){transition-delay:.10s}
-    .sk-rig--anim.is-in .sk-rig__card:nth-child(2){transition-delay:.18s}
-    .sk-rig--anim.is-in .sk-rig__card:nth-child(3){transition-delay:.26s}
-    .sk-rig--anim.is-in .sk-rig__card:nth-child(4){transition-delay:.34s}
-  }
-
-  @media (max-width:760px){
-    .sk-rig__strip{grid-template-columns:1fr}
-    .sk-rig__vp{height:min(56svh,460px)}
-    .sk-rig__lbl{font-size:32px}.sk-rig__lbl b{font-size:56px}
-  }
-</style>
+</template>
 
 <script>
 (function(){
-  var root=document.getElementById('sk-rig-{{ section.id }}');
-  if(!root||root.dataset.ready) return; root.dataset.ready='1';
-  var $=function(s){return root.querySelector(s)};
-  var vp=$('[data-vp]'), world=$('[data-world]'), craft=$('[data-craft]');
-  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var IMG=JSON.parse($('[data-models]').textContent);
+  var host=document.getElementById('skrig-host-{{ section.id }}');
+  if(!host||host.dataset.ready) return; host.dataset.ready='1';
+  var tpl=document.getElementById('skrig-tpl-{{ section.id }}');
+  if(!host.attachShadow){ host.appendChild(tpl.content.cloneNode(true)); return; }
+  var sr=host.attachShadow({mode:'open'});
+  sr.appendChild(tpl.content.cloneNode(true));
 
-  var OX=1500, OY=1200;
-  function wx(x){return x+OX} function wy(y){return y+OY}
-  function clamp(v,a,b){return Math.max(a,Math.min(b,v))} function lerp(a,b,t){return a+(b-a)*t}
-  function io(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
-  function seg(t,a,b){return clamp((t-a)/(b-a),0,1)}
+const IMG={arch:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-arch.webp?v=1792881173",board:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-board.webp?v=1792881173",gtx:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-gtx.webp?v=1792879218",pylon:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-pylon.webp?v=1792879218",rope:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-rope.webp?v=1792879218",sidetube:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-floats.webp?v=1792879218",sled:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-sled.webp?v=1792879218",wake:"https://cdn.shopify.com/s/files/1/0116/5364/4354/files/sk-jet-wake.webp?v=1792879218"};
+for(const im of sr.querySelectorAll('img[data-img]')) im.src=IMG[im.dataset.img];
+(function(){
+const OX=1500, OY=1200;               // image coords -> world coords
+const wx=x=>x+OX, wy=y=>y+OY;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const io=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;      // ease in-out cubic
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
 
-  var MODELS={
-    wake:{src:'wake',nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
-    gtx:{src:'gtx',nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670]}
-  };
-  var model=MODELS['{{ section.settings.default_model }}']||MODELS.wake;
+const MODELS={
+  wake:{src:'wake',nozzle:[52,655],engine:[530,545,905,765],shaft:[300,645,525,672]},
+  gtx:{src:'gtx',nozzle:[68,655],engine:[520,545,905,765],shaft:[300,640,515,670]}
+};
+let model=MODELS.wake;
 
-  var PARTS={
-    pylon:{ar:1144/1000, s:[-560,250,440,0],  f:[338,382,190,0],   t:[.7,1.8], lift:140},
-    rope: {ar:475/1000,  s:[-560,740,640,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
-    board:{ar:1087/539,  s:[2050,300,300,6],  f:[-310,690,500,-90],t:[3.7,5.1], lift:300, tilt:66, slope:-7},
-    arch: {ar:955/129,   s:[2000,560,96,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
-  };
-  var LBL_L={pylon:[-560,560],rope:[-560,960],board:[2050,660],arch:[2000,700]};
-  var LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
-  var START_P={pylon:[300,-300,430,0],board:[1330,-340,280,6],rope:[380,980,620,-4],arch:[1250,900,100,-90]};
-  var LBL_P={pylon:[300,0],board:[1330,0],rope:[380,1210],arch:[1250,1150]};
-  var START_L={}; for(var k0 in PARTS) START_L[k0]=PARTS[k0].s.slice();
-
-  // two framings per orientation: wide for the exploded spread, tighter once
-  // assembled — a single calm zoom-in, no panning. The stage itself scrolls, so
-  // the ski is never locked to the middle of the screen.
-  var CAM0_L={x:-1450,y:-40,w:3740,h:1030}, CAM1_L={x:-1430,y:135,w:3240,h:850};
-  var CAM0_P={x:-760,y:-620,w:2820,h:2060}, CAM1_P={x:-720,y:70,w:2620,h:1200};
-  function camAt(t){
-    var a=portrait?CAM0_P:CAM0_L, b=portrait?CAM1_P:CAM1_L, e=io(seg(t,1.4,8.2));
-    return {x:lerp(a.x,b.x,e),y:lerp(a.y,b.y,e),w:lerp(a.w,b.w,e),h:lerp(a.h,b.h,e)};
+// parts: natural aspect (h/w), start [cx,cy,w,rot], final [cx,cy,w,rot], timing [t0,t1]
+const PARTS={
+  pylon:{ar:1144/1000, s:[-560,250,440,0],  f:[338,382,190,0],  t:[.7,1.8],  lift:140},
+  rope: {ar:475/1000,  s:[-560,900,640,-4], f:[-1170,760,420,0], t:[1.9,3.0], lift:60},
+  board:{ar:1087/539,  s:[2060,290,300,6],  f:[-310,690,500,-90], t:[3.7,5.1], lift:300, tilt:66, slope:-7},
+  arch: {ar:955/129,   s:[2000,960,96,-90], f:[900,505,170,-91.8],t:[5.3,6.5], lift:80, stretch:1.36}
+};
+const LBL_L={pylon:[-560,560],rope:[-560,1120],board:[2060,640],arch:[2000,1080]};
+const LBL_T={pylon:[.5,.8],rope:[1.8,2.1],board:[3.5,3.8],arch:[5.2,5.5]};
+// portrait screens: parts float above / below the hull instead of beside it
+const START_P={pylon:[300,-620,520,0],board:[1380,-640,330,6],rope:[560,1300,860,-4],arch:[1350,1250,110,-90]};
+const LBL_P={pylon:[300,-260],board:[1380,-280],rope:[560,1550],arch:[1350,1390]};
+const START_L={}; for(const k in PARTS) START_L[k]=PARTS[k].s.slice();
+let portrait=null;
+function layout(){
+  const p=vp.clientWidth/vp.clientHeight<0.9;
+  if(p===portrait) return; portrait=p;
+  const LB=p?LBL_P:LBL_L;
+  for(const k in PARTS){
+    PARTS[k].s=(p?START_P:START_L)[k].slice();
+    const P=PARTS[k];
+    el[k].style.width=P.s[2]+'px';
+    lb[k].style.left=(wx(LB[k][0])-P.s[2]/2)+'px';
+    lb[k].style.top=wy(LB[k][1])+'px';
   }
+}
 
-  var el={}, lb={};
-  for(var k in PARTS){ el[k]=$('[data-part="'+k+'"]'); el[k].style.width=PARTS[k].s[2]+'px'; lb[k]=$('[data-lbl="'+k+'"]'); }
+const world=sr.getElementById('world'), vp=sr.getElementById('vp');
+const el={}, lb={};
+for(const k in PARTS){
+  const P=PARTS[k];
+  el[k]=sr.getElementById('p-'+k);
+  el[k].style.width=P.s[2]+'px';
+  lb[k]=sr.getElementById('l-'+k);
+}
+function placePart(k,t){
+  const P=PARTS[k], e=io(seg(t,P.t[0],P.t[1]));
+  const w=P.s[2], h=w*P.ar;
+  const cx=lerp(P.s[0],P.f[0],e), cy=lerp(P.s[1],P.f[1],e)-Math.sin(Math.PI*e)*P.lift;
+  const sc=lerp(1,P.f[2]/w,e), rot=lerp(P.s[3],P.f[3],e);
+  const tilt=(P.tilt||0)*e, slope=(P.slope||0)*e, st=lerp(1,P.stretch||1,e);
+  el[k].style.transform=`translate(${wx(cx)-w/2}px,${wy(cy)-h/2}px)`+(tilt?` rotate(${slope}deg) perspective(1800px) rotateX(${tilt}deg)`:'')+` rotate(${rot}deg) scale(${sc},${sc*st})`;
+  const L=LBL_T[k]; lb[k].style.opacity=1-seg(t,L[0],L[1]);
+}
+// overlays
+function placeOverlays(){
+  const [ex1,ey1,ex2,ey2]=model.engine, [sx1,sy1,sx2,sy2]=model.shaft;
+  Object.assign(sr.getElementById('glow').style,{left:wx(ex1-40)+'px',top:wy(ey1-30)+'px',width:(ex2-ex1+80)+'px',height:(ey2-ey1+60)+'px'});
+  Object.assign(sr.getElementById('shaft').style,{left:wx(sx1)+'px',top:wy(sy1)+'px',width:(sx2-sx1)+'px',height:(sy2-sy1)+'px'});
+  sr.getElementById('engineClip').style.clipPath=`inset(${ey1}px ${1774-ex2}px ${887-ey2}px ${ex1}px)`;
+}
+placeOverlays();
 
-  var portrait=null;
-  function layout(){
-    var p=vp.clientWidth/vp.clientHeight<0.9;
-    if(p===portrait) return; portrait=p;
-    var LB=p?LBL_P:LBL_L;
-    for(var k in PARTS){
-      PARTS[k].s=(p?START_P:START_L)[k].slice();
-      el[k].style.width=PARTS[k].s[2]+'px';
-      lb[k].style.left=(wx(LB[k][0])-PARTS[k].s[2]/2)+'px';
-      lb[k].style.top=wy(LB[k][1])+'px';
+// camera
+const CAMS_P={
+  E:{x:-80,y:-1060,w:1940,h:2950},
+  R1:{x:-520,y:-140,w:1180,h:1180},
+  R2:{x:-1450,y:100,w:1750,h:1000},
+  F:{x:-1450,y:-700,w:3400,h:2200},
+  R4:{x:-60,y:60,w:1950,h:1000},
+  F2:{x:-1450,y:200,w:3400,h:700},
+  EN:{x:-1450,y:80,w:2250,h:1000}
+};
+const CAMS_L={
+  E:{x:-1000,y:-480,w:3400,h:1640},
+  R1:{x:-760,y:40,w:1500,h:820},
+  R2:{x:-1500,y:200,w:1950,h:800},
+  F:{x:-1450,y:0,w:3750,h:1000},
+  R4:{x:-60,y:200,w:2000,h:700},
+  F2:{x:-1450,y:140,w:3400,h:780},
+  EN:{x:-1450,y:280,w:2550,h:720}
+};
+const CAMK=[[0,'E'],[.5,'E'],[1.3,'R1'],[1.9,'R1'],[2.5,'R2'],[3.5,'R2'],[4.3,'F'],[5.2,'F'],[6.2,'R4'],[6.7,'R4'],[7.6,'F2'],[7.8,'F2'],[8.7,'EN'],[9.4,'EN']];
+const TEND=9.4;
+const CAMS=()=>portrait?CAMS_P:CAMS_L;
+function camAt(t){
+  for(let i=0;i<CAMK.length-1;i++){
+    const [t0,a]=CAMK[i],[t1,b]=CAMK[i+1];
+    if(t<=t1){ const C=CAMS(), e=io(seg(t,t0,t1)), A=C[a], B=C[b];
+      return {x:lerp(A.x,B.x,e),y:lerp(A.y,B.y,e),w:lerp(A.w,B.w,e),h:lerp(A.h,B.h,e)}; }
+  }
+  return CAMS().EN;
+}
+function applyCam(cam){
+  const W=vp.clientWidth, H=vp.clientHeight;
+  const topPad=56, botPad=Math.min(190,H*.26);
+  const ah=Math.max(120,H-topPad-botPad);
+  const s=Math.min(W/cam.w, ah/cam.h);
+  const tx=(W-cam.w*s)/2 - wx(cam.x)*s;
+  const ty=topPad+(ah-cam.h*s)/2 - wy(cam.y)*s;
+  world.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;
+}
+
+// rope line (pylon top -> coil)
+const ropeA=[338,282], ropeB=[-1010,690];
+const rp=sr.getElementById('rope-path'), rp2=sr.getElementById('rope-path2');
+const d=`M${wx(ropeA[0])},${wy(ropeA[1])} Q${wx(-330)},${wy(540)} ${wx(ropeB[0])},${wy(ropeB[1])}`;
+rp.setAttribute('d',d); rp2.setAttribute('d',d);
+const RL=rp.getTotalLength();
+rp.style.strokeDasharray=RL;
+
+// HUD
+const stepsEl=[...sr.querySelectorAll('#steps li')];
+const caption=sr.getElementById('caption'), stepnum=sr.getElementById('stepnum');
+const CAPS=['החלקים מפורקים. גללו או לחצו ▶ נגן.','עמוד הגרירה נכנס לסיפון האחורי','החבל נקשר לראש העמוד','הסלד נצמד מאחור, על הירכתיים','הבידונים נצמדים לדפנות','מותנע. החזיקו גז.'];
+const STEPT=[.15,1.9,3.6,5.2,8.6];
+let curStep=-1;
+function setStep(i){
+  if(i===curStep) return; curStep=i;
+  stepsEl.forEach((li,j)=>{li.classList.toggle('on',j===i-1);li.classList.toggle('done',j<i-1);});
+  caption.textContent=CAPS[i]||'';
+  stepnum.textContent=i===0?'מבט מפורק':`שלב ${i} מתוך 5`;
+}
+
+// scroll-driven timeline (smoothed)
+const sec=sr.getElementById('assembly');
+let tCur=0, tTarget=0, sraf=0;
+function render(t){
+  applyCam(camAt(t));
+  for(const k in PARTS) placePart(k,t);
+  rp.style.strokeDashoffset=RL*(1-io(seg(t,2.8,3.5)));
+  rp2.style.opacity=seg(t,3.3,3.5);
+  let s=0; STEPT.forEach((v,i)=>{ if(t>=v) s=i+1; }); setStep(s);
+  if(t>=8.65) startEngine(); else stopEngine();
+}
+// play mode: runs the whole sequence on a clock, independent of scrolling
+let mode='scroll', playing=false, playStart=0;
+const PLAY_MS=reduce?6000:13000;
+function play(){
+  playing=true; playStart=performance.now();
+  if(mode==='scroll'){ scrollTo({top:sec.getBoundingClientRect().top+scrollY,behavior:'instant'}); }
+  requestAnimationFrame(playTick);
+}
+function playTick(now){
+  if(!playing) return;
+  const k=clamp((now-playStart)/PLAY_MS,0,1);
+  tCur=tTarget=k*TEND; render(tCur);
+  if(k<1){ requestAnimationFrame(playTick); return; }
+  playing=false;
+  if(mode==='scroll'){ const r=sec.getBoundingClientRect(); scrollTo({top:r.top+scrollY+r.height-innerHeight,behavior:'instant'}); }
+}
+['wheel','touchstart','keydown'].forEach(ev=>addEventListener(ev,e=>{
+  if(!playing||mode!=='scroll') return;
+  if(e.target.closest&&e.target.closest('button')) return;
+  playing=false; readScroll();
+},{passive:true}));
+function readScroll(){
+  if(playing||mode!=='scroll') return;
+  const r=sec.getBoundingClientRect(), span=r.height-innerHeight;
+  tTarget=clamp(-r.top/span,0,1)*TEND;
+  if(!sraf) sraf=requestAnimationFrame(step);
+}
+function step(){
+  tCur+= reduce ? (tTarget-tCur) : (tTarget-tCur)*.14;
+  if(Math.abs(tTarget-tCur)<.0015) tCur=tTarget;
+  render(tCur);
+  sraf = tCur!==tTarget ? requestAnimationFrame(step) : 0;
+}
+addEventListener('scroll',readScroll,{passive:true});
+addEventListener('resize',()=>{ if(mode==='static') sizeStatic(); layout(); render(tCur); });
+// some viewers grow the frame to the page's full height, so the page never scrolls itself.
+// there the stage becomes a normal block and the sequence plays on its own.
+function sizeStatic(){
+  const W=document.documentElement.clientWidth;
+  const h=Math.round(clamp(W<700?W*1.55:W*0.56,460,880));
+  vp.style.height=h+'px';
+}
+function checkMode(){
+  const se=document.scrollingElement||document.documentElement;
+  const canScroll=se.scrollHeight-innerHeight>innerHeight*2 && innerHeight<1800;
+  if(canScroll||mode==='static') return;
+  mode='static'; sr.querySelector('.page').classList.add('static');
+  sr.querySelector('.hero').after(sec);
+  sizeStatic(); portrait=null; layout(); render(0);
+  setTimeout(play,600);
+}
+sr.getElementById('play-hero').onclick=()=>play();
+sr.getElementById('play-stage').onclick=()=>play();
+
+
+// model switch
+function setModel(name){
+  model=MODELS[name];
+  sr.getElementById('hull').src=IMG[model.src];
+  sr.getElementById('engineClip').src=IMG[model.src];
+  sr.getElementById('m-wake').setAttribute('aria-pressed',name==='wake');
+  sr.getElementById('m-gtx').setAttribute('aria-pressed',name==='gtx');
+  placeOverlays();
+}
+sr.getElementById('m-wake').onclick=()=>setModel('wake');
+sr.getElementById('m-gtx').onclick=()=>setModel('gtx');
+
+// engine + water
+const cv=sr.getElementById('fx'), cx=cv.getContext('2d');
+const RES=(matchMedia('(max-width:760px)').matches||/iPhone|iPad|Android/.test(navigator.userAgent))?0.3:0.5; cv.width=3900*RES; cv.height=3400*RES;
+let running=false, throttle=0, target=0, parts=[], raf=0, t0=performance.now(), rpmShown=0;
+const craft=sr.getElementById('craft'), clip=sr.getElementById('engineClip');
+const glow=sr.getElementById('glow'), shaft=sr.getElementById('shaft');
+const rpmEl=sr.getElementById('rpm');
+function startEngine(){
+  if(running) return; running=true; vp.classList.add('running');
+  shaft.style.opacity=1;
+  if(!raf) raf=requestAnimationFrame(loop);
+  if(audio) audio.on();
+}
+function stopEngine(){
+  if(!running) return; running=false; vp.classList.remove('running');
+  glow.style.opacity=0; shaft.style.opacity=0; target=0;
+  if(audio) audio.off();
+}
+const WATER=742;
+function loop(now){
+  const dt=Math.min(.05,(now-t0)/1000); t0=now;
+  throttle+=(target-throttle)*Math.min(1,dt*(target>throttle?3:1.6));
+  const T=now/1000;
+  // shake + engine jitter
+  if(running && !reduce){
+    const a=.6+throttle*1.4;
+    craft.style.transform=`translate(${(Math.random()-.5)*a}px,${(Math.random()-.5)*a}px)`;
+    const j=1.2+throttle*2.5;
+    clip.style.transform=`translate(${(Math.random()-.5)*j}px,${(Math.random()-.5)*j}px)`;
+  } else { craft.style.transform=''; clip.style.transform=''; }
+  if(running){
+    glow.style.opacity=(.55+throttle*.4+Math.random()*.12).toFixed(2);
+    shaft.style.backgroundPositionX=((T*(300+throttle*1400))%28)+'px';
+    const rpm=Math.round(1550+throttle*6100+(Math.random()-.5)*60);
+    rpmShown+=(rpm-rpmShown)*.25; rpmEl.textContent=Math.round(rpmShown/10)*10;
+  }
+  // emit water
+  if(running){
+    const n=reduce?3:Math.round(10+throttle*26);
+    const [nx,ny]=model.nozzle;
+    for(let i=0;i<n;i++){
+      const sp=760+throttle*1500+Math.random()*300;
+      const ang=Math.PI+(Math.random()-.5)*(.12+throttle*.08)-.03;
+      parts.push({x:nx+Math.random()*6,y:ny+(Math.random()-.5)*14,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp+(Math.random()-.4)*40,life:0,max:.7+Math.random()*.6,r:3+Math.random()*7,k:Math.random()});
     }
   }
-  function placePart(k,t){
-    var P=PARTS[k], e=io(seg(t,P.t[0],P.t[1])), w=P.s[2], h=w*P.ar;
-    var cx=lerp(P.s[0],P.f[0],e), cy=lerp(P.s[1],P.f[1],e)-Math.sin(Math.PI*e)*P.lift;
-    var sc=lerp(1,P.f[2]/w,e), rot=lerp(P.s[3],P.f[3],e);
-    var tilt=(P.tilt||0)*e, slope=(P.slope||0)*e, st=lerp(1,P.stretch||1,e);
-    el[k].style.transform='translate('+(wx(cx)-w/2)+'px,'+(wy(cy)-h/2)+'px)'+(tilt?' rotate('+slope+'deg) perspective(1800px) rotateX('+tilt+'deg)':'')+' rotate('+rot+'deg) scale('+sc+','+(sc*st)+')';
-    lb[k].style.opacity=1-seg(t,LBL_T[k][0],LBL_T[k][1]);
-  }
-
-  var glow=$('[data-glow]'), shaft=$('[data-shaft]'), clip=$('[data-clip]'), hull=$('[data-hull]');
-  function placeOverlays(){
-    var E=model.engine, S=model.shaft;
-    glow.style.cssText+=';left:'+wx(E[0]-40)+'px;top:'+wy(E[1]-30)+'px;width:'+(E[2]-E[0]+80)+'px;height:'+(E[3]-E[1]+60)+'px';
-    shaft.style.cssText+=';left:'+wx(S[0])+'px;top:'+wy(S[1])+'px;width:'+(S[2]-S[0])+'px;height:'+(S[3]-S[1])+'px';
-    clip.style.clipPath='inset('+E[1]+'px '+(1774-E[2])+'px '+(887-E[3])+'px '+E[0]+'px)';
-  }
-
-  function applyCam(c){
-    var W=vp.clientWidth, H=vp.clientHeight, pad=26;
-    var aw=Math.max(80,W-pad*2), ah=Math.max(80,H-pad*2), s=Math.min(aw/c.w, ah/c.h);
-    var tx=(W-c.w*s)/2-wx(c.x)*s;
-    // anchor the water line low so the rig sits on the water with clean sky above
-    var ty=H*0.74 - wy(742)*s;
-    world.style.transform='translate('+tx+'px,'+ty+'px) scale('+s+')';
-  }
-
-  var rp=$('[data-rope1]'), rp2=$('[data-rope2]');
-  var d='M'+wx(338)+','+wy(282)+' Q'+wx(-330)+','+wy(540)+' '+wx(-1010)+','+wy(690);
-  rp.setAttribute('d',d); rp2.setAttribute('d',d);
-  var RL=rp.getTotalLength(); rp.style.strokeDasharray=RL;
-
-  var TEND=9.4;
-  var tCur=0, tTarget=0, sraf=0;
-  function render(t){
-    applyCam(camAt(t));
-    for(var k in PARTS) placePart(k,t);
-    rp.style.strokeDashoffset=RL*(1-io(seg(t,2.8,3.5)));
-    rp2.style.opacity=seg(t,3.3,3.5);
-    if(t>=8.4) startEngine(); else stopEngine();
-  }
-
-  // scroll-progress drives the timeline (no pin): how far the stage has passed
-  // through the viewport. Assembly completes around P1 and then holds running.
-  var P0=0.28, P1=0.52;
-  function readScroll(){
-    var r=vp.getBoundingClientRect(), H=r.height, vh=innerHeight||document.documentElement.clientHeight;
-    var progress=clamp((vh-r.top)/(vh+H),0,1);
-    tTarget=clamp((progress-P0)/(P1-P0),0,1)*TEND;
-    if(!sraf) sraf=requestAnimationFrame(stepFn);
-  }
-  function stepFn(){
-    tCur+= reduce ? (tTarget-tCur) : (tTarget-tCur)*.16;
-    if(Math.abs(tTarget-tCur)<.0015) tCur=tTarget;
-    render(tCur);
-    sraf = tCur!==tTarget ? requestAnimationFrame(stepFn) : 0;
-  }
-  addEventListener('scroll',readScroll,{passive:true});
-  addEventListener('resize',function(){ var was=portrait; layout(); if(was!==portrait) placeOverlays(); render(tCur); });
-
-  // engine + water (auto-runs once assembled; no throttle control)
-  var cv=$('[data-fx]'), cx=cv.getContext('2d');
-  var RES=(matchMedia('(max-width:760px)').matches||/iPhone|iPad|Android/.test(navigator.userAgent))?0.3:0.5; cv.width=3900*RES; cv.height=3400*RES;
-  var running=false, visible=true, throttle=0, target=0, drops=[], raf=0, t0=performance.now(), WATER=742;
-  function kick(){ if(!raf&&visible){ t0=performance.now(); raf=requestAnimationFrame(loop); } }
-  function startEngine(){ if(running) return; running=true; target=0.52; shaft.style.opacity=1; kick(); }
-  function stopEngine(){ if(!running) return; running=false; glow.style.opacity=0; shaft.style.opacity=0; target=0; }
-  function loop(now){
-    raf=0; if(!visible) return;
-    var dt=Math.min(.05,(now-t0)/1000); t0=now;
-    throttle+=(target-throttle)*Math.min(1,dt*(target>throttle?2.2:1.6));
-    var T=now/1000;
-    if(running&&!reduce){
-      var a=.5+throttle*1.2, j=1+throttle*2.2;
-      craft.style.transform='translate('+(Math.random()-.5)*a+'px,'+(Math.random()-.5)*a+'px)';
-      clip.style.transform='translate('+(Math.random()-.5)*j+'px,'+(Math.random()-.5)*j+'px)';
-    } else { craft.style.transform=''; clip.style.transform=''; }
+  // draw
+  cx.setTransform(RES,0,0,RES,0,0);
+  cx.clearRect(0,0,3900,3400);
+  // water surface
+  const wa=running?1:Math.max(0,(parts.length?.6:0));
+  if(running||parts.length){
+    cx.save();
+    cx.beginPath();
+    cx.moveTo(wx(-1500),wy(WATER));
+    for(let x=-1500;x<=2400;x+=24){
+      const y=WATER+Math.sin(x*.012+T*2.2)*5+Math.sin(x*.031-T*3.1)*2.5+(x<60&&x>-900?Math.sin(x*.05+T*9)*(2+throttle*6)*(1-(60-x)/960):0);
+      cx.lineTo(wx(x),wy(y));
+    }
+    cx.strokeStyle=`rgba(20,110,140,${.7*wa})`; cx.lineWidth=3; cx.stroke();
+    cx.lineTo(wx(2400),wy(1160)); cx.lineTo(wx(-1500),wy(1160)); cx.closePath();
+    const g=cx.createLinearGradient(0,wy(WATER),0,wy(900));
+    g.addColorStop(0,`rgba(23,143,170,${.22*wa})`); g.addColorStop(1,'rgba(23,143,170,0)');
+    cx.fillStyle=g; cx.fill();
+    cx.restore();
+    // core stream
     if(running){
-      glow.style.opacity=(.5+throttle*.4+Math.random()*.1).toFixed(2);
-      shaft.style.backgroundPositionX=((T*(300+throttle*1400))%28)+'px';
-      var n=reduce?3:Math.round(9+throttle*22), nz=model.nozzle;
-      for(var i=0;i<n;i++){
-        var sp=720+throttle*1400+Math.random()*300, ang=Math.PI+(Math.random()-.5)*(.12+throttle*.08)-.03;
-        drops.push({x:nz[0]+Math.random()*6,y:nz[1]+(Math.random()-.5)*14,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp+(Math.random()-.4)*40,life:0,max:.7+Math.random()*.6,r:3+Math.random()*7,k:Math.random()});
-      }
+      const [nx,ny]=model.nozzle, len=420+throttle*700;
+      const sg=cx.createLinearGradient(wx(nx),0,wx(nx-len),0);
+      sg.addColorStop(0,'rgba(190,235,250,.95)'); sg.addColorStop(.6,'rgba(90,180,215,.55)'); sg.addColorStop(1,'rgba(90,180,215,0)');
+      cx.fillStyle=sg;
+      cx.beginPath();
+      cx.moveTo(wx(nx),wy(ny-11));
+      cx.quadraticCurveTo(wx(nx-len*.6),wy(ny-16-throttle*10),wx(nx-len),wy(ny+40+throttle*30));
+      cx.quadraticCurveTo(wx(nx-len*.55),wy(ny+22+throttle*14),wx(nx),wy(ny+11));
+      cx.fill();
+      cx.strokeStyle='rgba(30,120,160,.45)'; cx.lineWidth=2; cx.stroke();
     }
-    cx.setTransform(RES,0,0,RES,0,0); cx.clearRect(0,0,3900,3400);
-    if(running||drops.length){
-      var wa=running?1:.6;
-      cx.beginPath(); cx.moveTo(wx(-1500),wy(WATER));
-      for(var x=-1500;x<=2400;x+=24){
-        var y=WATER+Math.sin(x*.012+T*2.2)*5+Math.sin(x*.031-T*3.1)*2.5+(x<60&&x>-900?Math.sin(x*.05+T*9)*(2+throttle*6)*(1-(60-x)/960):0);
-        cx.lineTo(wx(x),wy(y));
-      }
-      cx.strokeStyle='rgba(20,110,140,'+(.7*wa)+')'; cx.lineWidth=3; cx.stroke();
-      cx.lineTo(wx(2400),wy(1160)); cx.lineTo(wx(-1500),wy(1160)); cx.closePath();
-      var g=cx.createLinearGradient(0,wy(WATER),0,wy(900));
-      g.addColorStop(0,'rgba(23,143,170,'+(.22*wa)+')'); g.addColorStop(1,'rgba(23,143,170,0)');
-      cx.fillStyle=g; cx.fill();
-      if(running){
-        var nz2=model.nozzle, len=420+throttle*700, nx=nz2[0], ny=nz2[1];
-        var sg=cx.createLinearGradient(wx(nx),0,wx(nx-len),0);
-        sg.addColorStop(0,'rgba(190,235,250,.95)'); sg.addColorStop(.6,'rgba(90,180,215,.55)'); sg.addColorStop(1,'rgba(90,180,215,0)');
-        cx.fillStyle=sg; cx.beginPath();
-        cx.moveTo(wx(nx),wy(ny-11));
-        cx.quadraticCurveTo(wx(nx-len*.6),wy(ny-16-throttle*10),wx(nx-len),wy(ny+40+throttle*30));
-        cx.quadraticCurveTo(wx(nx-len*.55),wy(ny+22+throttle*14),wx(nx),wy(ny+11));
-        cx.fill(); cx.strokeStyle='rgba(30,120,160,.45)'; cx.lineWidth=2; cx.stroke();
-      }
-    }
-    for(var i2=drops.length-1;i2>=0;i2--){
-      var p=drops[i2]; p.life+=dt; p.vy+=900*dt; p.vx*=(1-dt*.8); p.x+=p.vx*dt; p.y+=p.vy*dt;
-      if(p.y>WATER+4){ p.y=WATER+4; p.vy*=-.18; p.vx*=.5; p.max=Math.min(p.max,p.life+.25); }
-      var al=1-p.life/p.max; if(al<=0){ drops.splice(i2,1); continue; }
-      cx.beginPath(); cx.arc(wx(p.x),wy(p.y),p.r*(1+p.life*1.6),0,6.283);
-      cx.fillStyle=p.k>.55?'rgba(255,255,255,'+(.85*al)+')':'rgba(110,195,225,'+(.6*al)+')'; cx.fill();
-      if(p.k>.55){ cx.strokeStyle='rgba(40,130,170,'+(.5*al)+')'; cx.lineWidth=1.5; cx.stroke(); }
-    }
-    if(running||drops.length) raf=requestAnimationFrame(loop);
-    else { craft.style.transform=''; cx.clearRect(0,0,3900,3400); }
   }
-
-  // set the chosen hull image + overlays once (no model toggle)
-  hull.src=IMG[model.src]; clip.src=IMG[model.src]; placeOverlays();
-
-  layout(); readScroll(); render(tCur);
-
-  // graceful staggered reveal of the heading + gear cards (JS-gated; no-JS shows them)
-  if('IntersectionObserver' in window){
-    root.classList.add('sk-rig--anim');
-    var rvO=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ root.classList.add('is-in'); rvO.disconnect(); } }); },{threshold:.12});
-    rvO.observe($('.sk-rig__wrap'));
+  // droplets
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i]; p.life+=dt;
+    p.vy+=900*dt; p.vx*=(1-dt*.8);
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    if(p.y>WATER+4){ p.y=WATER+4; p.vy*=-.18; p.vx*=.5; p.max=Math.min(p.max,p.life+.25); }
+    const a=1-p.life/p.max;
+    if(a<=0){parts.splice(i,1);continue;}
+    const r=p.r*(1+p.life*1.6);
+    cx.beginPath(); cx.arc(wx(p.x),wy(p.y),r,0,6.283);
+    cx.fillStyle=p.k>.55?`rgba(255,255,255,${.85*a})`:`rgba(110,195,225,${.6*a})`;
+    cx.fill();
+    if(p.k>.55){cx.strokeStyle=`rgba(40,130,170,${.5*a})`;cx.lineWidth=1.5;cx.stroke();}
   }
+  if(running||parts.length) raf=requestAnimationFrame(loop);
+  else { raf=0; craft.style.transform=''; cx.clearRect(0,0,3900,3400); }
+}
 
-  // pause the water loop when the stage is off-screen
-  if('IntersectionObserver' in window){
-    new IntersectionObserver(function(es){ es.forEach(function(e){
-      visible=e.isIntersecting; if(visible&&running) kick();
-    }); },{threshold:0}).observe(vp);
-  }
+// throttle button
+const gas=sr.getElementById('gas');
+const down=e=>{e.preventDefault();target=1;gas.classList.add('held');if(!raf)raf=requestAnimationFrame(loop);};
+const up=()=>{target=0;gas.classList.remove('held');};
+gas.addEventListener('pointerdown',down);
+['pointerup','pointerleave','pointercancel'].forEach(ev=>gas.addEventListener(ev,up));
+gas.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')down(e);});
+gas.addEventListener('keyup',up);
+gas.addEventListener('contextmenu',e=>e.preventDefault());
+
+// synthesized engine sound
+let audio=null;
+function makeAudio(){
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null;
+  const ac=new AC();
+  const master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=500; lp.Q.value=4;
+  const am=ac.createGain(); am.gain.value=.6; am.connect(lp); lp.connect(master);
+  const o1=ac.createOscillator(); o1.type='sawtooth';
+  const o2=ac.createOscillator(); o2.type='square';
+  const g2=ac.createGain(); g2.gain.value=.35;
+  o1.connect(am); o2.connect(g2); g2.connect(am);
+  const lfo=ac.createOscillator(); lfo.type='sine'; const lg=ac.createGain(); lg.gain.value=.35;
+  lfo.connect(lg); lg.connect(am.gain);
+  const nb=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate), ch=nb.getChannelData(0);
+  for(let i=0;i<ch.length;i++) ch[i]=Math.random()*2-1;
+  const ns=ac.createBufferSource(); ns.buffer=nb; ns.loop=true;
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1400; bp.Q.value=.8;
+  const ng=ac.createGain(); ng.gain.value=0; ns.connect(bp); bp.connect(ng); ng.connect(master);
+  [o1,o2,lfo,ns].forEach(n=>n.start());
+  let live=false;
+  (function tick(){
+    const f=36+throttle*115, t=ac.currentTime;
+    o1.frequency.setTargetAtTime(f,t,.05); o2.frequency.setTargetAtTime(f*.5,t,.05);
+    lfo.frequency.setTargetAtTime(f*1.5,t,.05);
+    lp.frequency.setTargetAtTime(380+throttle*2200,t,.08);
+    ng.gain.setTargetAtTime(live?(.12+throttle*.35):0,t,.1);
+    requestAnimationFrame(tick);
+  })();
+  return {
+    on(){live=true;ac.resume();master.gain.setTargetAtTime(.28,ac.currentTime,.25);},
+    off(){live=false;master.gain.setTargetAtTime(0,ac.currentTime,.15);},
+    stop(){live=false;master.gain.setTargetAtTime(0,ac.currentTime,.1);}
+  };
+}
+const sb=sr.getElementById('sound');
+let soundOn=false;
+sb.onclick=()=>{
+  soundOn=!soundOn;
+  if(soundOn){
+    if(!audio){ const a=makeAudio(); if(a){ const on=a.on; a.on=()=>{ if(soundOn) on(); }; audio=a; } }
+    if(audio&&running) audio.on();
+  } else if(audio) audio.off();
+  sb.setAttribute('aria-pressed',soundOn);
+  sb.textContent=soundOn?'כיבוי קול':'הפעלת קול';
+};
+layout(); readScroll(); render(tCur);
+setTimeout(checkMode,700);
+})();
+
 })();
 </script>
 
 {% schema %}
-{
-  "name": "Foil rig assembly",
-  "tag": "section",
-  "class": "section-sk-rig",
-  "settings": [
-    { "type": "text", "id": "kicker", "label": "Kicker", "default": "The rig" },
-    { "type": "text", "id": "heading", "label": "Heading", "default": "Your tow-in setup, part by part" },
-    { "type": "textarea", "id": "lede", "label": "Intro", "default": "Each piece on its own — then scroll, and watch them lock onto the ski and fire up." },
-    { "type": "color", "id": "accent_color", "label": "Accent color", "default": "#f46e95" },
-    { "type": "select", "id": "default_model", "label": "Jet-ski model", "default": "wake",
-      "options": [ { "value": "wake", "label": "Wake Pro" }, { "value": "gtx", "label": "GTX Limited" } ] },
-    { "type": "header", "content": "Footnote" },
-    { "type": "textarea", "id": "outro", "label": "Footnote", "default": "A graphic illustration of how the tow-in rig comes together — the mounting positions aren’t install instructions." },
-    { "type": "header", "content": "Spacing" },
-    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 },
-    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 100, "step": 4, "unit": "px", "default": 40 }
-  ],
-  "presets": [ { "name": "Foil rig assembly" } ]
-}
+{ "name": "Foil assembly (full)", "tag": "section", "class": "section-skrig-full", "settings": [], "presets": [ { "name": "Foil assembly (full)" } ] }
 {% endschema %}
