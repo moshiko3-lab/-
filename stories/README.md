@@ -82,7 +82,7 @@ Details:
   story comes out grey and washed out.
 * Music from Mixkit (Stock Music Free License: commercial and social use, no
   credit needed), only tracks marked `"upbeat": true` in `music/catalog.json`
-  (34 of 52, chosen by measured beat strength and tempo, then by ear for the
+  (34 of 52, chosen by measured beat strength and tempo, then by title and genre for the
   mood: no Christmas, children's or slow tracks), never one of the last twelve
   used, and each from its `"start"`: the liveliest ten seconds of the track,
   measured, rather than a quiet intro. A video's own sound stays on top.
