@@ -431,6 +431,9 @@ def start(dry_run=False, limit=None):
             tzinfo=_dt.timezone.utc).timestamp()
         if age < STALE_SECS:
             print(f"another run is active (heartbeat {int(age)}s ago)"); return
+    # written before the thread starts, so a wait() straight after never reads the last run's result
+    _save(STATUS_PATH, {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
+                        "results": [], "message": "starting"})
     _THREAD = threading.Thread(target=_run, kwargs={"dry_run": dry_run, "limit": limit}, daemon=True)
     _THREAD.start()
     print("started")
