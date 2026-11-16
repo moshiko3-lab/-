@@ -9,6 +9,15 @@ second of any. The settings are `inbox_folders`, `per_day` (4), `stream` and
 `as_is_9x16` (false: every one of these photos gets the design) in
 `stories_config.json`.
 
+**Approval on WhatsApp.** At about 7:52 Panama time the day's four are prepared
+and one image of them goes to the owner's WhatsApp (+507 6259 6666) through
+Green-API (`stories/wa.py`, credentials GREENAPI_ID / GREENAPI_TOKEN /
+GREENAPI_URL in this environment, as in Bloowatch). At 8:52, 9:52, 10:52 and
+11:52 the answer is read: a yes (אישור, כן, סבבה, 👍...) publishes exactly the
+stories in that image; a no (לא, עצור...) or silence by the last check
+publishes nothing that day. `require_approval` in the config enforces it in
+the code: without `approved_day` = today, a run publishes nothing.
+
 Earlier the source was the main folder itself, which holds stories the school
 designed (1080×1920): those go up untouched with a song when `as_is_9x16` is
 true. A file not to post goes in the **לא לפרסום** subfolder.

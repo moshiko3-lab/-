@@ -17,6 +17,9 @@ ignore_daily_cap=True lets one run go past per_day. only=["name.jpg", ...] (name
 or Drive ids) runs just those files, whatever their place in the queue. Every rendered story leaves
 a small preview in /mnt/files/previews/<drive file id>.jpg.
 
+"require_approval": true publishes nothing on a day without "approved_day" = that
+day (Panama date), which approve_today() sets after the owner's yes on WhatsApp.
+
 stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
 "stream" names the current source, and only its stories count toward per_day;
 "as_is_9x16": false puts the design on every picture, even a story-shaped one.
@@ -330,6 +333,14 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
             status["finished"] = _now()
             beat("paused: stories_config.json has \"paused\": true, so nothing was published")
             return
+        if cfg.get("require_approval") and not dry_run and not prepare \
+                and cfg.get("approved_day") != _panama_day(_now()):
+            # the owner approves each day's stories on WhatsApp; without today's yes, nothing goes up
+            status["state"] = "done"
+            status["awaiting_approval"] = True
+            status["finished"] = _now()
+            beat("waiting for today's approval on WhatsApp, so nothing was published")
+            return
         ig = cfg["ig_user_id"]
         lang = cfg.get("language", "en")        # one language per story: "en" or "es"
         log = _load(LOG_PATH, {"items": {}, "text_idx": 0})
@@ -514,6 +525,57 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
         status["error"] = f"{e}\n{traceback.format_exc()[-1500:]}"
         status["finished"] = _now()
         beat("stopped with an error")
+
+
+# ---------------------------------------------------------------- WhatsApp approval
+# The morning preview: prepare the day's stories, send one image of them to the
+# owner (stories/wa.py, run where the Green-API credentials are), and publish only
+# the stories in that image, only after a yes on the same day.
+
+APPROVAL_PATH = f"{BASE}/stories_approval.json"
+
+
+def approval_sheet():
+    """After start(prepare=True): one image of the prepared stories, left to right,
+    at a public link that lasts an hour, and today's approval record."""
+    import requests
+    from PIL import Image
+    st = _load(STATUS_PATH, {})
+    rows = [r for r in st.get("results", []) if str(r.get("result", "")).startswith("prepared") and r.get("preview")]
+    if not rows:
+        return {"error": "nothing prepared"}
+    sheet = Image.new("RGB", (len(rows) * 540 + (len(rows) - 1) * 20, 960), (235, 235, 235))
+    for i, r in enumerate(rows):
+        sheet.paste(Image.open(r["preview"]).convert("RGB").resize((540, 960)), (i * 560, 0))
+    path = f"{PREVIEWS}/approval_sheet.jpg"
+    sheet.save(path, quality=86)
+    up, err = upload_local_file(path)
+    if err:
+        return {"error": f"upload: {err}"}
+    link = requests.get((up.get("data") or up).get("s3_url"), allow_redirects=False, timeout=30).headers.get("location")
+    rec = {"day": _panama_day(_now()), "items": [{"name": r["name"], "line": r.get("line")} for r in rows],
+           "sheet_url": link, "sent_at": None, "decision": None}
+    _save(APPROVAL_PATH, rec)
+    return rec
+
+
+def approval_record():
+    return _load(APPROVAL_PATH, {})
+
+
+def approval_mark(**fields):
+    rec = _load(APPROVAL_PATH, {})
+    rec.update(fields)
+    _save(APPROVAL_PATH, rec)
+    return rec
+
+
+def approve_today():
+    """Record the owner's yes for today; returns the names of the stories it covers."""
+    cfg = json.load(open(CFG_PATH))
+    cfg["approved_day"] = _panama_day(_now())
+    _save(CFG_PATH, cfg)
+    return [i["name"] for i in approval_record().get("items", [])]
 
 
 _THREAD = globals().get("_THREAD")    # survive a second exec() of this file
