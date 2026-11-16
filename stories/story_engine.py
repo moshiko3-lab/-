@@ -572,17 +572,36 @@ def _zone_of(y, h):
     return "top" if c < 800 else ("middle" if c < 1200 else "bottom")
 
 
-def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False):
+def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False, mode=None):
     """Draw a look: the hand, the pill and its place, tilt, emoji. Where the words go is
     decided afterwards, from the photo. `recent` (the looks just before) keeps it varied.
-    clean: always the clean hand (Figtree Light, the pink pill, no tilt, no emoji); only
-    the places change."""
+    mode "clean": always the clean hand (Figtree Light, the pink pill), only places change.
+    mode "balanced": mostly the clean hand, now and then the wordmark's condensed capitals,
+    plain boxes or the card; nothing tilted, no emoji; shokogi.com on about one story in
+    three. mode "mixed": every hand, tilts, stickers, emoji."""
+    mode = mode or ("clean" if clean else "mixed")
     rt = [r.get("treatment") for r in recent][-3:]
     rp = [r.get("pill") for r in recent][-1:]
-    if clean:
+    if mode == "clean":
         return {"treatment": "light", "pill": rnd.choice([p for p in ("under", "opposite") if p not in rp]),
                 "pill_scheme": "pink", "tilt": 0, "sticker_tilt": 0, "eyebrow": rnd.random() < 0.5,
-                "box": "white", "emoji": "", "clean": True}
+                "box": "white", "emoji": "", "mode": mode}
+    if mode == "balanced":
+        weights = {"light": 50, "bold": 20, "boxed": 15, "card": 15}
+        if not is_image:
+            weights.pop("card")
+        for t in rt:                                   # a playful hand not twice in three stories
+            if t != "light":
+                weights.pop(t, None)
+        if rt[-2:] == ["light", "light"]:              # nor three clean ones in a row
+            weights.pop("light", None)
+        weights = weights or {"light": 1}
+        t = rnd.choices(list(weights), list(weights.values()))[0]
+        had_pill = any(r.get("pill") not in (None, "none") for r in recent[-2:])
+        return {"treatment": t, "pill": "none" if had_pill else rnd.choice(["under", "opposite"]),
+                "pill_scheme": "pink", "tilt": 0, "sticker_tilt": 0,
+                "eyebrow": t in ("light", "bold", "card") and rnd.random() < 0.5,
+                "box": rnd.choice(["white", "dark"]), "emoji": "", "mode": mode}
     ts = [t for t in TREATMENTS if is_image or t != "card"]
     t = rnd.choice([x for x in ts if x not in rt] or ts)
     look = {"treatment": t, "pill": rnd.choice([p for p in PILL_MODES if p not in rp]),
@@ -591,7 +610,8 @@ def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False):
             "sticker_tilt": round(rnd.choice([-1, 1]) * rnd.uniform(4, 8), 1),
             "eyebrow": t in ("light", "bold", "card") and rnd.random() < 0.6,
             "box": rnd.choice(list(BOX_SCHEMES)),
-            "emoji": rnd.choice(list(emoji)) if emoji and t in ("boxed", "script", "neon") and rnd.random() < 0.6 else ""}
+            "emoji": rnd.choice(list(emoji)) if emoji and t in ("boxed", "script", "neon") and rnd.random() < 0.6 else "",
+            "mode": "mixed"}
     return look
 
 
@@ -669,7 +689,9 @@ def compose(layer, look, block, x, y, lum, shade=True, maps=None):
     bx = _put(layer, block, x, y, look.get("tilt", 0))
     inner = (bx[0] + PAD, bx[1] + PAD, bx[2] - PAD, bx[3] - PAD)
     side = {"left": X0 - 20, "center": W / 2 - pill.width / 2, "right": W - X0 - pw - 20}
-    if look["pill"] == "under":
+    if look["pill"] == "none":
+        pass                                     # this story carries no shokogi.com
+    elif look["pill"] == "under":
         _put(layer, pill, side[align], inner[3] + 26 - 20)
     elif look["pill"] == "opposite":
         # alone at the other end of the screen: under the wordmark, or near the foot,
@@ -716,7 +738,7 @@ def render_look(src, line, spec):
     im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
-    look = plan_look(rnd, recent, True, spec.get("emoji", []), spec.get("clean", False))
+    look = plan_look(rnd, recent, True, spec.get("emoji", []), spec.get("clean", False), spec.get("mode"))
     last_zone = (recent[-1].get("zone") if recent else None)
     if look["treatment"] == "card":
         look["at"] = rnd.choice(["top", "bottom"])
@@ -748,7 +770,7 @@ def video_look_layer(line, spec):
     there is no quiet part to find), with a steady shade."""
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
-    look = plan_look(rnd, recent, False, spec.get("emoji", []), spec.get("clean", False))
+    look = plan_look(rnd, recent, False, spec.get("emoji", []), spec.get("clean", False), spec.get("mode"))
     look["align"] = rnd.choice(_aligns(look["treatment"]))
     look["at"] = rnd.choice(["top", "bottom"])
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))

@@ -27,8 +27,10 @@ stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
 written in; "paused": true stops every real run before it touches anything.
 Each story gets a freshly drawn look (story_engine.render_look): where the words
 sit and where shokogi.com goes, unlike the story just before it. "look_mode":
-"clean" (the default) keeps one hand, the clean one (Figtree Light, the pink pill);
-"mixed" also varies the hand (bold, boxed, script, neon, card, emoji, tilt).
+"balanced" (the default): mostly the clean hand (Figtree Light), now and then the
+wordmark's condensed capitals, plain boxes or the card, nothing tilted, no emoji,
+and shokogi.com on about one story in three; "clean": always the clean hand with
+the pill; "mixed": every hand (also script, neon), tilts, stickers, emoji.
 "looks": false goes back to fixed designs taken in turn, "styles" (optional) listing
 them from story_engine.STYLES (classic, editorial, headline, tag, frame, card).
 
@@ -473,7 +475,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             # a freshly drawn story look, unlike the ones just before it
                             style = "look"
                             look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
-                                    "clean": cfg.get("look_mode", "clean") == "clean",
+                                    "mode": cfg.get("look_mode", "balanced"),
                                     "recent": [x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
                                         key=lambda x: x.get("updated") or "")[-3:]]}

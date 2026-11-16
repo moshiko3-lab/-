@@ -43,11 +43,15 @@ Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour)
 `stories_config.json` (`en` or `es`).
 
 **Every story is laid out afresh**, so the day's stories do not look alike
-(`render_look` in `story_engine.py`). By default (`"look_mode": "clean"`) the hand is
-always the clean one described above, Figtree Light with the pink pill, and only the
-places change: where the words sit (top, middle or foot; left or centre; with or
-without the eyebrow) and where shokogi.com goes (under the words, or alone at the
-other end of the screen). `"look_mode": "mixed"` also varies the hand:
+(`render_look` in `story_engine.py`). By default (`"look_mode": "balanced"`) the
+hand is mostly the clean one described above, Figtree Light, and now and then the
+wordmark's condensed capitals, plain white or dark boxes, or the card: never the
+same playful one twice in three stories, never three clean ones in a row, nothing
+tilted, no emoji. The places change too: where the words sit (top, middle or foot;
+left or centre; with or without the eyebrow). shokogi.com is on about one story in
+three (never when one of the last two had it), under the words or alone at the
+other end of the screen. `"look_mode": "clean"` keeps the clean hand and the pill on
+every story; `"look_mode": "mixed"` uses every hand:
 
 * **Where the words go**: the quietest stretch of the photo, top, middle or foot,
   left, centre or right. "Quiet" is measured: edges (people, boards, splash) and,
