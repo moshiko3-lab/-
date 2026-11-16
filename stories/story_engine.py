@@ -84,54 +84,168 @@ def balanced(d, text, font, maxw):
 
 LINE_FONT, LINE_SIZE, LINE_LH = 300, 56, 74        # Figtree Light: the one line of the story
 MARK_Y = SAFE_TOP + 12
+X0 = 92                             # left margin of the left-aligned styles
 
+# Ways to set the same few things (wordmark, eyebrow, the line, shokogi.com), so a
+# day's stories do not all look alike. Every one keeps the site's type and colours;
+# all but "card" keep the photo full-screen. "card" shows the whole photo, uncropped,
+# on a blurred copy of itself (for a wide photo). "headline" needs a title.
+STYLES = ("classic", "editorial", "headline", "tag", "frame", "card")
+LEFT_STYLES = ("editorial", "tag")
 
 TEXT_ZONE = (0, 1300, W, 1660)      # where the words sit, for measuring the photo behind them
 
 
-def layout(line, shade=1.0):
-    """An RGBA layer over a full-screen photo: a soft shade at the foot, the site's
-    eyebrow, the story's line in light type, and shokogi.com. Quiet on purpose.
-    `shade` deepens the shade for a bright photo, so light type still reads."""
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-
-    # shade only where the text sits, so the photo stays the photo
+def _foot_shade(layer, shade, start=0.52):
+    """Shade only where the text sits, so the photo stays the photo."""
     g = Image.new("L", (1, H))
     for y in range(H):
-        t = max(0.0, (y - H * 0.52) / (H * 0.48))
+        t = max(0.0, (y - H * start) / (H * (1 - start)))
         g.putpixel((0, y), min(235, int(165 * shade * t ** 1.3)))
-    shade = Image.new("RGBA", (W, H), (*DARK, 0)); shade.putalpha(g.resize((W, H)))
-    layer.alpha_composite(shade)
+    s = Image.new("RGBA", (W, H), (*DARK, 0)); s.putalpha(g.resize((W, H)))
+    layer.alpha_composite(s)
 
-    txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(txt)
-    lf = figtree(LINE_SIZE, LINE_FONT)
-    lines = balanced(d, line, lf, W - 2 * 110)
-    if len(lines) > 3:
-        lf = figtree(48, LINE_FONT)
-        lines = balanced(d, line, lf, W - 2 * 110)
-    lh = int(lf.size * 1.32)
-    pill_h = 64
-    block = 30 + 44 + len(lines) * lh + 40 + pill_h
-    y = SAFE_BOTTOM - 20 - block
-    draw_spaced(d, W / 2, y + 15, EYEBROW, figtree(24, 600), 7, WHITE + (215,))
+
+def _pill(d, x, y, align="center", fill=PINK, color=WHITE, h=64):
+    """shokogi.com on a small pill, the site's button colour. x is its centre or its left edge."""
+    pf = figtree(27, 600)
+    pw = spaced_width("shokogi.com", pf, 3) + 2 * 38
+    left = x - pw / 2 if align == "center" else x
+    d.rounded_rectangle((left, y, left + pw, y + h), radius=h / 2, fill=fill)
+    draw_spaced(d, left + pw / 2, y + h / 2, "shokogi.com", pf, 3, color)
+    return pw
+
+
+def _fit(d, line, size, maxw, weight=LINE_FONT, max_lines=3, smaller=None):
+    lf = figtree(size, weight)
+    lines = balanced(d, line, lf, maxw)
+    if len(lines) > max_lines and smaller:
+        lf = figtree(smaller, weight)
+        lines = balanced(d, line, lf, maxw)
+    return lf, lines
+
+
+def _eyebrow(d, x, y, align="center"):
+    ef = figtree(24, 600)
+    cx = x if align == "center" else x + spaced_width(EYEBROW, ef, 7) / 2
+    draw_spaced(d, cx, y, EYEBROW, ef, 7, WHITE + (215,))
+
+
+def _classic(d, line):
+    """Centred at the foot: eyebrow, the line in light type, the pink pill."""
+    lf, lines = _fit(d, line, LINE_SIZE, W - 220, smaller=48)
+    lh, pill_h = int(lf.size * 1.32), 64
+    y = SAFE_BOTTOM - 20 - (30 + 44 + len(lines) * lh + 40 + pill_h)
+    _eyebrow(d, W / 2, y + 15)
     y += 30 + 44
     for l in lines:
         d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
-    y += 40
-    # shokogi.com on a small pink pill, the site's button colour
+    _pill(d, W / 2, y + 40)
+
+
+def _editorial(d, line):
+    """Left-aligned, like a magazine page: a short pink rule, the eyebrow, the line
+    larger, the pill under it."""
+    lf, lines = _fit(d, line, 70, W - X0 - 150, smaller=60)
+    lh, pill_h = int(lf.size * 1.22), 64
+    y = SAFE_BOTTOM - 20 - (4 + 34 + 30 + 30 + len(lines) * lh + 44 + pill_h)
+    d.rectangle((X0, y, X0 + 64, y + 4), fill=PINK)
+    y += 4 + 34
+    _eyebrow(d, X0, y + 15, align="left")
+    y += 30 + 30
+    for l in lines:
+        d.text((X0, y + lh / 2), l, font=lf, fill=WHITE, anchor="lm"); y += lh
+    _pill(d, X0, y + 44, align="left")
+
+
+def _headline(d, line, title):
+    """The topic in the wordmark's condensed type, large, the line small under it."""
+    if not title:
+        return _classic(d, line)
+    title = title.upper()
+    size = 200
+    while size > 90 and spaced_width(title, barlow(size), 3) > W - 170:
+        size -= 6
+    tf = barlow(size)
+    cap = -tf.getbbox("H", anchor="ls")[1]
+    lf, lines = _fit(d, line, 42, W - 240, max_lines=2, smaller=38)
+    lh, pill_h = int(lf.size * 1.35), 64
+    y = SAFE_BOTTOM - 20 - (30 + 34 + cap + 38 + len(lines) * lh + 40 + pill_h)
+    _eyebrow(d, W / 2, y + 15)
+    y += 30 + 34
+    x = W / 2 - spaced_width(title, tf, 3) / 2
+    for c in title:
+        d.text((x, y + cap), c, font=tf, fill=WHITE, anchor="ls"); x += tf.getlength(c) + 3
+    y += cap + 38
+    for l in lines:
+        d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
+    _pill(d, W / 2, y + 40)
+
+
+def _tag(d, line):
+    """Left-aligned, the line on pink labels, shokogi.com on a white pill."""
+    lf, lines = _fit(d, line, 50, W - X0 - 220, weight=600, smaller=44)
+    padx, pady, gap, pill_h = 24, 13, 10, 64
+    lh = lf.size + 2 * pady
+    y = SAFE_BOTTOM - 20 - (30 + 32 + len(lines) * (lh + gap) - gap + 40 + pill_h)
+    _eyebrow(d, X0, y + 15, align="left")
+    y += 30 + 32
+    for l in lines:
+        d.rectangle((X0, y, X0 + d.textlength(l, font=lf) + 2 * padx, y + lh), fill=PINK)
+        d.text((X0 + padx, y + lh / 2), l, font=lf, fill=WHITE, anchor="lm")
+        y += lh + gap
+    _pill(d, X0, y - gap + 40, align="left", fill=WHITE, color=PINK)
+
+
+def _frame(d, line):
+    """The classic words inside a thin white frame: its top edge breaks for the
+    wordmark, its bottom edge for shokogi.com."""
+    m, t, col, pill_h = 56, 3, WHITE + (225,), 64
     pf = figtree(27, 600)
     pw = spaced_width("shokogi.com", pf, 3) + 2 * 38
-    d.rounded_rectangle(((W - pw) / 2, y, (W + pw) / 2, y + pill_h), radius=pill_h / 2, fill=PINK)
-    draw_spaced(d, W / 2, y + pill_h / 2, "shokogi.com", pf, 3, WHITE)
+    bottom = SAFE_BOTTOM - 20 - pill_h / 2
+    top = MARK_Y
+    half_mark = spaced_width("SHOKOGI", barlow(46, "Bold"), 14) / 2 + 34
+    d.rectangle((m, top - t / 2, W / 2 - half_mark, top + t / 2), fill=col)
+    d.rectangle((W / 2 + half_mark, top - t / 2, W - m, top + t / 2), fill=col)
+    d.rectangle((m - t / 2, top - t / 2, m + t / 2, bottom + t / 2), fill=col)
+    d.rectangle((W - m - t / 2, top - t / 2, W - m + t / 2, bottom + t / 2), fill=col)
+    d.rectangle((m, bottom - t / 2, W / 2 - pw / 2 - 22, bottom + t / 2), fill=col)
+    d.rectangle((W / 2 + pw / 2 + 22, bottom - t / 2, W - m, bottom + t / 2), fill=col)
+    _pill(d, W / 2, bottom - pill_h / 2)
+    lf, lines = _fit(d, line, LINE_SIZE, W - 2 * m - 150, smaller=48)
+    lh = int(lf.size * 1.32)
+    y = bottom - pill_h / 2 - 52 - len(lines) * lh
+    _eyebrow(d, W / 2, y - 44)
+    for l in lines:
+        d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
 
-    soft = Image.new("RGBA", (W, H), (0, 0, 0, 0)); soft.putalpha(txt.split()[3].point(lambda a: int(a * 0.45)))
+
+def layout(line, shade=1.0, style="classic", title=None):
+    """An RGBA layer over a full-screen photo: a soft shade at the foot and the words,
+    set in one of STYLES. Quiet on purpose. `shade` deepens the shade for a bright
+    photo, so light type still reads."""
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    _foot_shade(layer, shade, start=0.44 if style == "headline" else 0.52)
+    txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(txt)
+    if style == "editorial": _editorial(d, line)
+    elif style == "headline": _headline(d, line, title)
+    elif style == "tag": _tag(d, line)
+    elif style == "frame": _frame(d, line)
+    else: _classic(d, line)
+    soft = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    soft.putalpha(txt.split()[3].point(lambda a: int(a * (0.22 if style == "tag" else 0.45))))
     layer.alpha_composite(soft.filter(ImageFilter.GaussianBlur(9)))
     layer.alpha_composite(txt)
     return layer
 
 
-def wordmark(base, shade=1.0):
+def _mark_x(align):
+    return W / 2 if align == "center" else X0 + spaced_width("SHOKOGI", barlow(46, "Bold"), 14) / 2
+
+
+def wordmark(base, shade=1.0, align="center"):
     """The site's SHOKOGI wordmark, small and white (pink O, as on the site), at the
     top over a faint shade; `shade` deepens it where the photo is bright behind it."""
     g = Image.new("L", (1, 420))
@@ -140,7 +254,7 @@ def wordmark(base, shade=1.0):
     top = Image.new("RGBA", (W, 420), (*DARK, 0)); top.putalpha(g.resize((W, 420)))
     base.alpha_composite(top)
     mark = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    draw_spaced(ImageDraw.Draw(mark), W / 2, MARK_Y, "SHOKOGI", barlow(46, "Bold"), 14,
+    draw_spaced(ImageDraw.Draw(mark), _mark_x(align), MARK_Y, "SHOKOGI", barlow(46, "Bold"), 14,
                 WHITE, colors={4: PINK})
     halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     halo.putalpha(mark.split()[3].point(lambda a: int(a * min(0.75, 0.35 * shade))))
@@ -185,22 +299,47 @@ def is_finished_story(path):
     return abs(w / h - W / H) < 0.01
 
 
-def render_frame(src, line):
-    """The finished picture for a photo."""
+def _card(im, line):
+    """The whole photo, uncropped, as a card with rounded corners, on a blurred and
+    darkened copy of itself; the words under it as in "classic"."""
+    bg = ImageOps.fit(im, (W, H), Image.LANCZOS).filter(ImageFilter.GaussianBlur(40))
+    frame = Image.blend(bg, Image.new("RGB", (W, H), DARK), 0.38).convert("RGBA")
+    box_top, box_w, box_h = 340, W - 2 * 72, 960
+    card = ImageOps.contain(im, (box_w, box_h), Image.LANCZOS)
+    x, y = (W - card.width) // 2, box_top + (box_h - card.height) // 2
+    mask = Image.new("L", card.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=26, fill=255)
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((x, y + 18, x + card.width, y + card.height + 18), radius=26,
+                                         fill=(0, 0, 0, 130))
+    frame.alpha_composite(sh.filter(ImageFilter.GaussianBlur(28)))
+    frame.paste(card, (x, y), mask)
+    wordmark(frame, shade=1.0)
+    frame.alpha_composite(layout(line, shade=0.85, style="classic"))
+    return frame
+
+
+def render_frame(src, line, style="classic", title=None):
+    """The finished picture for a photo, in one of STYLES."""
     try:
         import pillow_heif
         pillow_heif.register_heif_opener()
     except Exception:
         pass
     im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    if style == "card":
+        return _card(im, line).convert("RGB")
+    align = "left" if style in LEFT_STYLES else "center"
     frame = smart_fit(im, (W, H)).convert("RGBA")
-    behind = frame.crop((W // 2 - 220, MARK_Y - 45, W // 2 + 220, MARK_Y + 45)).convert("L")
+    mx = _mark_x(align)
+    behind = frame.crop((int(mx - 220), MARK_Y - 45, int(mx + 220), MARK_Y + 45)).convert("L")
     px = sorted(behind.getdata())
     top_lum = px[int(len(px) * 0.85)]     # the bright part decides: a white patch behind a letter is enough
-    wordmark(frame, shade=min(2.6, max(1.0, 1.0 + (top_lum - 110) / 55)))
-    zone = frame.crop(TEXT_ZONE).convert("L")
+    wordmark(frame, shade=min(2.6, max(1.0, 1.0 + (top_lum - 110) / 55)), align=align)
+    zone = frame.crop((0, 1150, W, 1660) if style == "headline" else TEXT_ZONE).convert("L")
     lum = sum(zone.getdata()) / (zone.width * zone.height)
-    frame.alpha_composite(layout(line, shade=min(1.6, max(0.85, 0.85 + (lum - 95) / 110))))
+    frame.alpha_composite(layout(line, shade=min(1.6, max(0.85, 0.85 + (lum - 95) / 110)),
+                                 style=style, title=title))
     return frame.convert("RGB")
 
 
@@ -242,19 +381,20 @@ def tonemap(path):
             f"zscale=p=bt709,tonemap=tonemap=mobius:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
 
 
-def _video_layer(line):
+def _video_layer(line, style="classic", title=None):
+    style = "classic" if style == "card" else style      # a card needs a still photo
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    wordmark(layer, shade=1.6)      # a video changes under the wordmark: a little more shade
-    layer.alpha_composite(layout(line, shade=1.2))     # and under the words
+    wordmark(layer, shade=1.6, align="left" if style in LEFT_STYLES else "center")   # a video changes under the wordmark
+    layer.alpha_composite(layout(line, shade=1.2, style=style, title=title))      # and under the words
     return layer
 
 
-def _render_apart(kind, src, line, out):
+def _render_apart(kind, src, line, out, style="classic", title=None):
     """Draw in a separate, short-lived process. The sandbox has about 1 GB, and a big
     photo drawn inside the workbench's own process once took the whole workbench down;
     a child process gives its memory back when it ends, and if it dies it only fails
     this story."""
-    r = subprocess.run([sys.executable, os.path.abspath(__file__), kind, src, line, out],
+    r = subprocess.run([sys.executable, os.path.abspath(__file__), kind, src, line, out, style, title or ""],
                        capture_output=True, text=True, env=dict(os.environ, STORY_BRAND_DIR=B))
     if r.returncode:
         raise RuntimeError(f"render ({kind}) failed: {r.stderr[-800:] or r.returncode}")
@@ -264,9 +404,11 @@ ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500
        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart"]
 
 
-def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, designed=None):
+def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, designed=None,
+               style="classic", title=None):
     """designed: True posts a picture untouched, False always draws the design,
-    None decides by shape (a 9:16 picture counts as already designed)."""
+    None decides by shape (a 9:16 picture counts as already designed).
+    style: one of STYLES; title: the topic, for "headline"."""
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
@@ -274,7 +416,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
     try:
         if is_img:
             as_is = is_finished_story(src) if designed is None else designed
-            _render_apart("asis" if as_is else "frame", src, line or "-", tmp)
+            _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
@@ -282,7 +424,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
                  "-crf", "18", out])
             return trk
 
-        _render_apart("layer", "-", line, tmp)
+        _render_apart("layer", "-", line, tmp, style, title)
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
         frame = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1"
@@ -315,9 +457,11 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
 
 
 if __name__ == "__main__":
-    # python story_engine.py frame <photo> <line> <out.png> | layer - <line> <out.png>
+    # python story_engine.py frame <photo> <line> <out.png> [style] [title] | layer - <line> <out.png> [style] [title]
     kind, src, line, out = sys.argv[1:5]
+    style = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] in STYLES else "classic"
+    title = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] else None
     if kind == "asis":
         ImageOps.exif_transpose(Image.open(src)).convert("RGB").resize((W, H), Image.LANCZOS).save(out)
     else:
-        (render_frame(src, line) if kind == "frame" else _video_layer(line)).save(out)
+        (render_frame(src, line, style, title) if kind == "frame" else _video_layer(line, style, title)).save(out)

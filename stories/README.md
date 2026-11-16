@@ -42,6 +42,21 @@ bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
 Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
+**Six designs, in turn**, so the day's four stories do not all look alike
+(`STYLES` in `story_engine.py`; `"styles"` in `stories_config.json` narrows the list):
+
+| style | what changes |
+|---|---|
+| `classic` | the words centred at the foot, as above |
+| `editorial` | left-aligned, a short pink rule, the line larger; the wordmark moves left |
+| `headline` | the topic's name large in the wordmark's condensed type (`KIDS CAMP`), the line small under it |
+| `tag` | left-aligned, the line on pink labels, `shokogi.com` on a white pill |
+| `frame` | a thin white frame whose top edge breaks for the wordmark and bottom edge for the pill |
+| `card` | the whole photo, uncropped, as a rounded card on a blurred copy of itself (photos only) |
+
+Each story takes the next style in the rotation; `headline` is skipped for a file
+without a topic, `card` for a video. The style is recorded in the log.
+
 Details:
 
 * 1080×1920, everything clear of the parts Instagram covers.
