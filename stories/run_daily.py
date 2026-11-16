@@ -74,6 +74,47 @@ TEXTS = [
     ("Keep Venao Surfing", "Keep Venao Surfing"),
 ]
 
+# Lines per topic for the photos taken from the site, so a foil photo never says
+# "surf lessons". The topic is the file name without its number (kids-camp-03.jpg
+# -> "kids camp"). Every claim is on shokogi.com or in the school's own designs.
+TOPIC_LINES = {
+    "playa venao": [("¡Las olas te esperan en Playa Venao!", "The waves are waiting for you in Playa Venao"),
+                    ("Otro día perfecto en Venao", "Another perfect day in Venao"),
+                    ("Olas todo el año en Playa Venao", "Waves all year round in Playa Venao"),
+                    ("El mar nos llama", "The ocean is calling"),
+                    ("Hoy es un buen día para surfear", "Today is a good day to surf"),
+                    ("Keep Venao Surfing", "Keep Venao Surfing")],
+    "surf camp": [("Surf camps en Playa Venao", "Surf camps in Playa Venao"),
+                  ("Campamentos de 7, 10 y 15 días", "7, 10 and 15 day surf camps"),
+                  ("Tu aventura en Panamá empieza en el agua", "Your Panama adventure starts in the water"),
+                  ("Donde los amigos se vuelven familia", "Where friends become family"),
+                  ("Coaching diario para tu nivel", "Daily coaching for your level"),
+                  ("Surf, sonrisas y buena energía", "Surf, smiles and good vibes")],
+    "kids camp": [("Campamento de surf para niños", "Kids surf camp in Playa Venao"),
+                  ("Surf camps seguros y divertidos", "Safe, fun surf camps for kids and teens"),
+                  ("Su primera ola empieza aquí", "Their first wave starts here"),
+                  ("Clases, juegos y educación oceánica", "Lessons, games and ocean education")],
+    "surf lessons": [("Clases de surf para todos los niveles", "Surf lessons for every level"),
+                     ("Tu primera ola empieza aquí", "Your first wave starts here"),
+                     ("Rema, ponte de pie, sonríe", "Paddle, pop up, smile"),
+                     ("De tu primera ola a nivel avanzado", "From your first wave to advanced"),
+                     ("Cada ola es una nueva lección", "Every wave is a new lesson"),
+                     ("Instructores expertos, olas perfectas", "Expert instructors, perfect waves")],
+    "foil the bee": [("Vuela sobre el agua con foil surf", "Fly above the water: foil surfing in Venao"),
+                     ("Tow-in foil con The Bee", "Tow-in foil with The Bee"),
+                     ("Olas a las que no llegas remando", "Reach waves you can't paddle to"),
+                     ("Desliza sobre las olas", "Glide above the waves")],
+    "ocean monkey": [("Tablas soft-top Ocean Monkey", "Ocean Monkey soft-top boards"),
+                     ("Seguras para aprender, divertidas para surfear", "Safe to learn, fun to ride"),
+                     ("Hechas para tu primera ola", "Made for your first wave")],
+    "board rentals": [("Alquiler de tablas junto a las olas", "Board rentals steps from the waves"),
+                      ("Más de 100 tablas para elegir", "100+ boards, every size on hand"),
+                      ("Cada forma y tamaño para cada ola", "Every shape & size for every wave")],
+    "shop": [("Gorras y lycras SHOKOGI", "SHOKOGI hats and rash guards"),
+             ("Representa a SHOKOGI donde surfees", "Represent SHOKOGI wherever you surf"),
+             ("Keep Venao Surfing", "Keep Venao Surfing")],
+}
+
 # Names cameras, phones and apps give files: these are not captions.
 AUTO_NAME = re.compile(
     r"(?i)\b(img|vid|mov|dsc[nf]?|dji|gopr\w*|gopro|pxl|mvimg|screenshot|screen|recording|whatsapp|"
@@ -357,6 +398,14 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                         if designed:
                             it["as_is"] = True              # already a designed story: only the song is added
                             it["line"] = ""
+                        elif TOPIC_LINES.get(_topic(name)):
+                            # a photo from a topic folder: the topic's own lines, in turn
+                            tp = _topic(name)
+                            ti = log.setdefault("topic_idx", {})
+                            texts = TOPIC_LINES[tp][ti.get(tp, 0) % len(TOPIC_LINES[tp])]
+                            ti[tp] = ti.get(tp, 0) + 1                    # a dry run never saves it
+                            it["text_es"], it["text_en"] = texts
+                            it["line"] = it["text_es"] if lang == "es" else it["text_en"]
                         else:
                             recent = sorted((x for x in log["items"].values() if x.get("published_at")),
                                             key=lambda x: x["published_at"])[-3:]
