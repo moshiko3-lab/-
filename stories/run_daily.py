@@ -160,10 +160,15 @@ def _panama_day(iso):
     return t.date().isoformat()
 
 
-def _mixed_order(files):
+def _mixed_order(files, log=None):
     """Oldest first, but one of each topic before the second of any: three photos of
-    the same thing do not go out on the same day."""
+    the same thing do not go out on the same day. Topics already published count, so
+    the second family photo waits until every other topic has had its first."""
     seen, ranked = {}, []
+    for it in (log or {}).get("items", {}).values():
+        if it.get("status") == "published":
+            t = _topic(it.get("name", ""))
+            seen[t] = seen.get(t, 0) + 1
     for f in sorted(files, key=lambda f: f.get("createdTime", "")):
         t = _topic(f.get("name", ""))
         ranked.append((seen.get(t, 0), f.get("createdTime", ""), f))
@@ -259,7 +264,7 @@ def _run(dry_run=False, limit=None):
         status["quota"] = {"used": used, "total": total}
         room = max(0, total - used - 2)
 
-        files = _mixed_order(_list_inbox(cfg))
+        files = _mixed_order(_list_inbox(cfg), log)
         status["found"] = len(files)
         beat(f"{len(files)} file(s) in the inbox")
 
