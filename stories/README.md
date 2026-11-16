@@ -1,8 +1,14 @@
 # Daily Instagram stories
 
-Put a photo or a video in the Drive folder **SHOKOGI Stories → 1 - להעלאה**.
-Once a day it becomes a branded 9:16 story on `shokogi_venao` and the file
-moves to **2 - פורסם**. Nothing else to do.
+Put a photo or a video in the Drive folder **SHOKOGI Instagram Stories**
+(owned by the school's account, shared with the one Composio uses). Every
+evening up to three of them become branded 9:16 stories on `shokogi_venao`
+and move to its **פורסם** subfolder. Nothing else to do.
+
+Three a day is `per_day` in `stories_config.json`, counted by the calendar day
+in Panama. Files waiting their turn go out one of each topic before the second
+of any (the topic is the file name without its numbers), so three photos of
+the same thing never go out together.
 
 ## What a story looks like
 
@@ -20,7 +26,8 @@ moves to **2 - פורסם**. Nothing else to do.
   on top.
 * The line comes from a rotating list of thirty (every claim in it is on
   shokogi.com). If the file has a real name — "first wave for the kids", not
-  `IMG_4411` — that name is turned into the line instead, in both languages.
+  `IMG_4411` — that name is turned into the line instead, in both languages,
+  unless the same topic was among the last three stories.
 
 There is no clickable link: Instagram's publishing API does not allow link,
 poll or location stickers on stories, so the story says "link in bio".

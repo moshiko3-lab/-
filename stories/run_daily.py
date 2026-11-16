@@ -148,6 +148,29 @@ def _filename_text(name):
     return None
 
 
+def _topic(name):
+    """What a file is about, from its name: '01-family-surf-camps-2.jpg' -> 'family surf camps'."""
+    stem = re.sub(r"[\d_\-\.\(\)\[\]]+", " ", os.path.splitext(name)[0])
+    return re.sub(r"\s+", " ", stem).strip().lower()
+
+
+def _panama_day(iso):
+    """The calendar day in Playa Venao (UTC-5, no daylight saving) of a UTC timestamp."""
+    t = _dt.datetime.strptime(iso, "%Y-%m-%dT%H:%M:%SZ") - _dt.timedelta(hours=5)
+    return t.date().isoformat()
+
+
+def _mixed_order(files):
+    """Oldest first, but one of each topic before the second of any: three photos of
+    the same thing do not go out on the same day."""
+    seen, ranked = {}, []
+    for f in sorted(files, key=lambda f: f.get("createdTime", "")):
+        t = _topic(f.get("name", ""))
+        ranked.append((seen.get(t, 0), f.get("createdTime", ""), f))
+        seen[t] = seen.get(t, 0) + 1
+    return [f for _, _, f in sorted(ranked, key=lambda r: (r[0], r[1]))]
+
+
 def _choose_track(log):
     cat = json.load(open(f"{BASE}/music/catalog.json"))
     done = sorted((it for it in log["items"].values() if it.get("track")), key=lambda it: it.get("updated", ""))
@@ -236,12 +259,18 @@ def _run(dry_run=False, limit=None):
         status["quota"] = {"used": used, "total": total}
         room = max(0, total - used - 2)
 
-        files = _list_inbox(cfg)
+        files = _mixed_order(_list_inbox(cfg))
         status["found"] = len(files)
         beat(f"{len(files)} file(s) in the inbox")
 
+        per_day = int(cfg.get("per_day", MAX_PER_RUN))
+        today = _panama_day(_now())
+        done_today = sum(1 for it in log["items"].values()
+                         if it.get("status") == "published" and it.get("published_at")
+                         and _panama_day(it["published_at"]) == today)
+        status["today"] = {"per_day": per_day, "already_published": done_today}
         published_now = 0
-        cap = min(MAX_PER_RUN, room, limit if limit else MAX_PER_RUN)
+        cap = max(0, min(MAX_PER_RUN, room, per_day - done_today, limit if limit else MAX_PER_RUN))
         for f in files:
             fid, name = f["id"], f.get("name", "")
             it = log["items"].get(fid) or {"name": name, "attempts": 0}
@@ -276,7 +305,11 @@ def _run(dry_run=False, limit=None):
                             src = os.path.join(WORK, fid + ".video")
                             os.replace(raw, src)
 
-                        texts = _filename_text(name)
+                        recent = sorted((x for x in log["items"].values() if x.get("published_at")),
+                                        key=lambda x: x["published_at"])[-3:]
+                        texts = None
+                        if _topic(name) not in {_topic(x.get("name", "")) for x in recent}:
+                            texts = _filename_text(name)
                         if not texts:
                             texts = TEXTS[log.get("text_idx", 0) % len(TEXTS)]
                             log["text_idx"] = log.get("text_idx", 0) + 1   # a dry run never saves it
