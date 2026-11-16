@@ -74,7 +74,5 @@ is left in the inbox and reported.
 * Instagram allows 100 API publishes per 24 hours on this account (checked at
   the start of every run); a run publishes at most 25.
 * The account is a Creator account. Meta's documentation says story publishing
-  needs a Business account; Instagram accepted and processed a story container
-  from this account on 2026-11-16, and the first real publish is the final test.
-  If it is refused, switch the account to Business in the Instagram app
-  (Settings → Account type and tools) — nothing here needs to change.
+  needs a Business account, but it works on this one: the first story went out
+  on 2026-11-16 (`01-family-surf-camps-1.jpg`, media 17956520385289414).
