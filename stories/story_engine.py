@@ -1,7 +1,7 @@
 """SHOKOGI story renderer: one photo or video in, one 9:16 story out.
 
-The photo fills the screen. Over it, quietly: the site's SHOKOGI wordmark (pink O)
-small at the top, and at the foot, on a soft shade, the site's eyebrow
+The photo fills the screen. Over it, quietly: the site's SHOKOGI wordmark, white
+with its pink O, small at the top, and at the foot, on a soft shade, the site's eyebrow
 PLAYA VENAO · PANAMA, the story's one line in light type, and shokogi.com.
 
 A photo becomes a still picture with a song under it: Instagram's API cannot
@@ -122,21 +122,20 @@ def layout(line, shade=1.0):
     return layer
 
 
-def wordmark(base, dark=False):
-    """The site's SHOKOGI wordmark (pink O), small, at the top: white over a faint
-    shade, or dark where the photo is too bright behind it."""
-    if not dark:
-        g = Image.new("L", (1, 400))
-        for y in range(400):
-            g.putpixel((0, y), int(55 * (1 - y / 400) ** 1.6))
-        shade = Image.new("RGBA", (W, 400), (*DARK, 0)); shade.putalpha(g.resize((W, 400)))
-        base.alpha_composite(shade)
+def wordmark(base, shade=1.0):
+    """The site's SHOKOGI wordmark, small and white (pink O, as on the site), at the
+    top over a faint shade; `shade` deepens it where the photo is bright behind it."""
+    g = Image.new("L", (1, 420))
+    for y in range(420):
+        g.putpixel((0, y), min(200, int(60 * shade * (1 - y / 420) ** 1.4)))
+    top = Image.new("RGBA", (W, 420), (*DARK, 0)); top.putalpha(g.resize((W, 420)))
+    base.alpha_composite(top)
     mark = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw_spaced(ImageDraw.Draw(mark), W / 2, MARK_Y, "SHOKOGI", barlow(46, "Bold"), 14,
-                DARK if dark else WHITE, colors={4: PINK})
-    halo = Image.new("RGBA", (W, H), WHITE + (0,) if dark else (0, 0, 0, 0))
-    halo.putalpha(mark.split()[3].point(lambda a: a // 2 if dark else a // 3))
-    base.alpha_composite(halo.filter(ImageFilter.GaussianBlur(6)))
+                WHITE, colors={4: PINK})
+    halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    halo.putalpha(mark.split()[3].point(lambda a: int(a * min(0.75, 0.35 * shade))))
+    base.alpha_composite(halo.filter(ImageFilter.GaussianBlur(7)))
     base.alpha_composite(mark)
 
 
@@ -173,8 +172,10 @@ def render_frame(src, line):
         pass
     im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     frame = smart_fit(im, (W, H)).convert("RGBA")
-    behind = frame.crop((W // 2 - 200, MARK_Y - 40, W // 2 + 200, MARK_Y + 40)).convert("L")
-    wordmark(frame, dark=sum(behind.getdata()) / (behind.width * behind.height) > 175)
+    behind = frame.crop((W // 2 - 220, MARK_Y - 45, W // 2 + 220, MARK_Y + 45)).convert("L")
+    px = sorted(behind.getdata())
+    top_lum = px[int(len(px) * 0.85)]     # the bright part decides: a white patch behind a letter is enough
+    wordmark(frame, shade=min(2.6, max(1.0, 1.0 + (top_lum - 110) / 55)))
     zone = frame.crop(TEXT_ZONE).convert("L")
     lum = sum(zone.getdata()) / (zone.width * zone.height)
     frame.alpha_composite(layout(line, shade=min(1.6, max(0.85, 0.85 + (lum - 95) / 110))))
@@ -238,7 +239,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
             return trk
 
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        wordmark(layer)                 # a video's brightness is unknown: white with its shade
+        wordmark(layer, shade=1.6)      # a video changes under the wordmark: a little more shade
         layer.alpha_composite(layout(line, shade=1.2))     # a video changes under the words
         layer.save(tmp)
         real = probe_duration(src) or 15
