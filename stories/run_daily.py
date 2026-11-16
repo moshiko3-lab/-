@@ -11,6 +11,11 @@ thread because a single workbench cell is cut off after 180 seconds:
 start(dry_run=True) renders and creates the Instagram containers but never
 publishes, never moves a file and never writes the log.
 
+start(prepare=True, limit=4) goes as far as a dry run but records the result:
+the next real run publishes those very containers (same picture, line, song).
+ignore_daily_cap=True lets one run go past per_day. Every rendered story leaves
+a small preview in /mnt/files/previews/<drive file id>.jpg.
+
 stories_config.json: "language" ("en" or "es") is the one language a story is
 written in; "paused": true stops every real run before it touches anything.
 
@@ -240,7 +245,22 @@ def _wait_container(cid, beat, timeout=420):
 
 # ---------------------------------------------------------------- the run
 
-def _run(dry_run=False, limit=None):
+PREVIEWS = f"{BASE}/previews"
+
+
+def _save_preview(engine, fid, src, out, line, is_image):
+    """A small copy of what the story looks like, kept after the work files are gone."""
+    os.makedirs(PREVIEWS, exist_ok=True)
+    path = f"{PREVIEWS}/{fid}.jpg"
+    if is_image:
+        engine.render_frame(src, line).resize((540, 960)).save(path, quality=85)
+    else:
+        subprocess.run([engine.FF, "-y", "-loglevel", "error", "-ss", "1", "-i", out, "-frames:v", "1",
+                        "-vf", "scale=540:960", path], check=True)
+    return path
+
+
+def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
     status = {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
               "results": [], "message": ""}
 
@@ -256,7 +276,7 @@ def _run(dry_run=False, limit=None):
         import importlib, story_engine
         importlib.reload(story_engine)
         cfg = json.load(open(CFG_PATH))
-        if cfg.get("paused") and not dry_run:
+        if cfg.get("paused") and not dry_run and not prepare:
             status["state"] = "done"
             status["paused"] = True
             status["finished"] = _now()
@@ -285,7 +305,8 @@ def _run(dry_run=False, limit=None):
                          and _panama_day(it["published_at"]) == today)
         status["today"] = {"per_day": per_day, "already_published": done_today}
         published_now = 0
-        cap = max(0, min(MAX_PER_RUN, room, per_day - done_today, limit if limit else MAX_PER_RUN))
+        day_room = MAX_PER_RUN if ignore_daily_cap else per_day - done_today
+        cap = max(0, min(MAX_PER_RUN, room, day_room, limit if limit else MAX_PER_RUN))
         for f in files:
             fid, name = f["id"], f.get("name", "")
             it = log["items"].get(fid) or {"name": name, "attempts": 0}
@@ -337,6 +358,8 @@ def _run(dry_run=False, limit=None):
                         story_engine.make_story(src, out, it["line"], track=trk)
                         it["track"] = trk["file"]
                         it["track_title"] = trk.get("title")
+                        it["preview"] = _save_preview(story_engine, fid, src, out, it["line"],
+                                                      mime.startswith("image/"))
 
                         beat(f"uploading {name}")
                         up, err = upload_local_file(out)
@@ -363,7 +386,17 @@ def _run(dry_run=False, limit=None):
                         published_now += 1
                         row.update(result="dry run: container ready, not published",
                                    container_id=it["container_id"], line=it.get("line"),
-                                   track=it.get("track_title"))
+                                   track=it.get("track_title"), preview=it.get("preview"))
+                        continue
+                    elif prepare:
+                        # everything but the publish: the next real run publishes exactly this
+                        published_now += 1
+                        it["prepared_at"] = it["updated"] = _now()
+                        log["items"][fid] = it
+                        _save(LOG_PATH, log)
+                        row.update(result="prepared: container ready, not published",
+                                   container_id=it["container_id"], line=it.get("line"),
+                                   track=it.get("track_title"), preview=it.get("preview"))
                         continue
                     else:
                         beat(f"publishing {name}")
@@ -420,7 +453,7 @@ def _run(dry_run=False, limit=None):
 _THREAD = globals().get("_THREAD")    # survive a second exec() of this file
 
 
-def start(dry_run=False, limit=None):
+def start(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
     """Begin a run in the background. Refuses if one is already going."""
     global _THREAD
     st = _load(STATUS_PATH, {})
@@ -434,7 +467,8 @@ def start(dry_run=False, limit=None):
     # written before the thread starts, so a wait() straight after never reads the last run's result
     _save(STATUS_PATH, {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
                         "results": [], "message": "starting"})
-    _THREAD = threading.Thread(target=_run, kwargs={"dry_run": dry_run, "limit": limit}, daemon=True)
+    _THREAD = threading.Thread(target=_run, daemon=True, kwargs={
+        "dry_run": dry_run, "limit": limit, "prepare": prepare, "ignore_daily_cap": ignore_daily_cap})
     _THREAD.start()
     print("started")
 
