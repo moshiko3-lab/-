@@ -6,9 +6,12 @@ moves to **2 - פורסם**. Nothing else to do.
 
 ## What a story looks like
 
-* 1080×1920. Photos become a 7-second clip with a slow zoom over a blurred
-  fill; videos are cropped to fill the frame and cut at 60 seconds (Instagram's
-  limit; anything under 3 seconds holds its last frame).
+* 1080×1920. Photos (HEIC from an iPhone too) become a 7-second clip with a
+  slow zoom over a blurred fill; videos are cropped to fill the frame and cut
+  at 60 seconds (Instagram's limit; anything under 3 seconds holds its last
+  frame).
+* HDR video, which is what an iPhone records by default, is tone-mapped to
+  ordinary colour; without it the story comes out grey and washed out.
 * The white SHOKOGI logo at the top and a line in Spanish with English below,
   over a pink `shokogi.com · link in bio` pill — all placed clear of the parts
   Instagram covers.
@@ -47,6 +50,12 @@ wait(40)                                                 # repeat until state is
 
 `start(dry_run=True, limit=1)` renders and creates the Instagram container but
 publishes nothing, moves nothing and writes no log.
+
+The sandbox has one CPU and about 1 GB of memory, and it loses installed
+packages when it restarts (the files under `/mnt/files` stay). The run
+reinstalls what it needs, renders one file at a time, and if a large source
+gets a render killed it shrinks the source first and tries again. Never start
+two renders at once there.
 
 Each file's progress is written to the log as it goes, so a run that dies
 halfway is simply started again; a story already published is recognised from
