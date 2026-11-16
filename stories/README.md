@@ -16,7 +16,7 @@ The photo fills the screen. Over it, quietly, in the site's type: the
 `SHOK`**`O`**`GI` wordmark small and white at the top (over a faint shade that
 deepens where the photo is bright behind it), and at the foot, on a soft shade that deepens only for a
 bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
-Figtree Light, and `shokogi.com`. One language per story: `language` in
+Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
 Details:

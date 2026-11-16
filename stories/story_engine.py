@@ -2,7 +2,8 @@
 
 The photo fills the screen. Over it, quietly: the site's SHOKOGI wordmark, white
 with its pink O, small at the top, and at the foot, on a soft shade, the site's eyebrow
-PLAYA VENAO · PANAMA, the story's one line in light type, and shokogi.com.
+PLAYA VENAO · PANAMA, the story's one line in light type, and shokogi.com on a
+small pink pill.
 
 A photo becomes a still picture with a song under it: Instagram's API cannot
 attach music to a photo story, so it goes up as a video whose every frame is
@@ -107,14 +108,19 @@ def layout(line, shade=1.0):
         lf = figtree(48, LINE_FONT)
         lines = balanced(d, line, lf, W - 2 * 110)
     lh = int(lf.size * 1.32)
-    block = 30 + 44 + len(lines) * lh + 44 + 30
+    pill_h = 64
+    block = 30 + 44 + len(lines) * lh + 40 + pill_h
     y = SAFE_BOTTOM - 20 - block
     draw_spaced(d, W / 2, y + 15, EYEBROW, figtree(24, 600), 7, WHITE + (215,))
     y += 30 + 44
     for l in lines:
         d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
-    y += 44
-    draw_spaced(d, W / 2, y + 15, "shokogi.com", figtree(27, 500), 3, WHITE + (205,))
+    y += 40
+    # shokogi.com on a small pink pill, the site's button colour
+    pf = figtree(27, 600)
+    pw = spaced_width("shokogi.com", pf, 3) + 2 * 38
+    d.rounded_rectangle(((W - pw) / 2, y, (W + pw) / 2, y + pill_h), radius=pill_h / 2, fill=PINK)
+    draw_spaced(d, W / 2, y + pill_h / 2, "shokogi.com", pf, 3, WHITE)
 
     soft = Image.new("RGBA", (W, H), (0, 0, 0, 0)); soft.putalpha(txt.split()[3].point(lambda a: int(a * 0.45)))
     layer.alpha_composite(soft.filter(ImageFilter.GaussianBlur(9)))
