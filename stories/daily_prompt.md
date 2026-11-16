@@ -2,9 +2,15 @@
 
 **Name:** SHOKOGI – סטורי יומי לאינסטגרם
 **When:** every day at 18:43, Panama time (`CRON_TZ=America/Panama 43 18 * * *`)
-**Connector it needs:** `instgram` (Composio). Without it the session has no way to
-reach the sandbox and the run does not happen; it says so in its report.
-**Notifications:** push
+**Where it runs:** inside the Claude Code session that built this system, which
+holds the `instgram` (Composio) connector. A task that starts a fresh session
+gets no connectors and cannot reach the sandbox: the first version was set up
+that way and its test run did nothing. The school's other tasks that need a
+connector (the Keep Venao Surfing wall) run the same way, inside a session.
+
+If that session is ever lost, recreate the task from a session that has the
+`instgram` connector, bound to that session, with this prompt (the older one
+below it is the same procedure written for a fresh session).
 
 The prompt, word for word:
 
