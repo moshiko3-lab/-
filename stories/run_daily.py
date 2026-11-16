@@ -13,7 +13,8 @@ publishes, never moves a file and never writes the log.
 
 start(prepare=True, limit=4) goes as far as a dry run but records the result:
 the next real run publishes those very containers (same picture, line, song).
-ignore_daily_cap=True lets one run go past per_day. Every rendered story leaves
+ignore_daily_cap=True lets one run go past per_day. only=["name.jpg", ...] (names
+or Drive ids) runs just those files, whatever their place in the queue. Every rendered story leaves
 a small preview in /mnt/files/previews/<drive file id>.jpg.
 
 stories_config.json: "language" ("en" or "es") is the one language a story is
@@ -258,7 +259,7 @@ def _save_preview(engine, fid, src, out, line, is_image):
     return path
 
 
-def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
+def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=None):
     status = {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
               "results": [], "message": ""}
 
@@ -307,6 +308,8 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
         cap = max(0, min(MAX_PER_RUN, room, day_room, limit if limit else MAX_PER_RUN))
         for f in files:
             fid, name = f["id"], f.get("name", "")
+            if only and name not in only and fid not in only:
+                continue                    # a run for chosen files leaves the rest alone
             it = log["items"].get(fid) or {"name": name, "attempts": 0}
             row = {"name": name}
             status["results"].append(row)
@@ -455,7 +458,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
 _THREAD = globals().get("_THREAD")    # survive a second exec() of this file
 
 
-def start(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
+def start(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=None):
     """Begin a run in the background. Refuses if one is already going."""
     global _THREAD
     st = _load(STATUS_PATH, {})
@@ -470,7 +473,8 @@ def start(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False):
     _save(STATUS_PATH, {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
                         "results": [], "message": "starting"})
     _THREAD = threading.Thread(target=_run, daemon=True, kwargs={
-        "dry_run": dry_run, "limit": limit, "prepare": prepare, "ignore_daily_cap": ignore_daily_cap})
+        "dry_run": dry_run, "limit": limit, "prepare": prepare, "ignore_daily_cap": ignore_daily_cap,
+        "only": only})
     _THREAD.start()
     print("started")
 
