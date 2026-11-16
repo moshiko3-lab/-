@@ -9,6 +9,13 @@ second of any. The settings are `inbox_folders`, `per_day` (4), `stream` and
 `as_is_9x16` (false: every one of these photos gets the design) in
 `stories_config.json`.
 
+**Where WhatsApp runs.** The Green-API credentials live only in the Bloowatch
+environment. So the daily task (in the session that holds the Instagram
+connector) starts one helper session on Bloowatch each morning, which runs
+`stories/wa.py send-url` (Green-API fetches the preview image by its one-hour
+link) and later `wa.py check` / `wa.py text` when asked. No credential is
+copied anywhere.
+
 **Approval on WhatsApp.** At 6:10 Panama time the day's four are prepared
 and one image of them goes to the owner's WhatsApp (+507 6259 6666) through
 Green-API (`stories/wa.py`, credentials GREENAPI_ID / GREENAPI_TOKEN /
