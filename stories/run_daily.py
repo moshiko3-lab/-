@@ -11,6 +11,9 @@ thread because a single workbench cell is cut off after 180 seconds:
 start(dry_run=True) renders and creates the Instagram containers but never
 publishes, never moves a file and never writes the log.
 
+stories_config.json: "language" ("en" or "es") is the one language a story is
+written in; "paused": true stops every real run before it touches anything.
+
 Every step is recorded per Drive file id in stories_log.json, so a run that
 dies halfway can simply be started again: a file is never published twice.
 """
@@ -253,7 +256,14 @@ def _run(dry_run=False, limit=None):
         import importlib, story_engine
         importlib.reload(story_engine)
         cfg = json.load(open(CFG_PATH))
+        if cfg.get("paused") and not dry_run:
+            status["state"] = "done"
+            status["paused"] = True
+            status["finished"] = _now()
+            beat("paused: stories_config.json has \"paused\": true, so nothing was published")
+            return
         ig = cfg["ig_user_id"]
+        lang = cfg.get("language", "en")        # one language per story: "en" or "es"
         log = _load(LOG_PATH, {"items": {}, "text_idx": 0})
         os.makedirs(WORK, exist_ok=True)
 
@@ -319,11 +329,12 @@ def _run(dry_run=False, limit=None):
                             texts = TEXTS[log.get("text_idx", 0) % len(TEXTS)]
                             log["text_idx"] = log.get("text_idx", 0) + 1   # a dry run never saves it
                         it["text_es"], it["text_en"] = texts
+                        it["line"] = it["text_es"] if lang == "es" else it["text_en"]
                         trk = _choose_track(log)
 
                         beat(f"rendering {name}")
                         out = os.path.join(WORK, fid + "_story.mp4")
-                        story_engine.make_story(src, out, it["text_es"], it["text_en"], track=trk)
+                        story_engine.make_story(src, out, it["line"], track=trk)
                         it["track"] = trk["file"]
                         it["track_title"] = trk.get("title")
 
@@ -351,7 +362,7 @@ def _run(dry_run=False, limit=None):
                     elif dry_run:
                         published_now += 1
                         row.update(result="dry run: container ready, not published",
-                                   container_id=it["container_id"], text_en=it["text_en"],
+                                   container_id=it["container_id"], line=it.get("line"),
                                    track=it.get("track_title"))
                         continue
                     else:
@@ -379,7 +390,7 @@ def _run(dry_run=False, limit=None):
                     log["items"][fid] = it
                     _save(LOG_PATH, log)
                     row.update(result="published" if row.pop("fresh", False) else "published earlier, moved now",
-                               text_es=it.get("text_es"), text_en=it.get("text_en"),
+                               line=it.get("line") or it.get("text_en"),
                                track=it.get("track_title"), media_id=it.get("media_id"))
             except Exception as e:
                 it["attempts"] = it.get("attempts", 0) + 1

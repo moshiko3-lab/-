@@ -1,15 +1,12 @@
-"""SHOKOGI story renderer: one photo or video in, one 9:16 story out, laid out
-like the mobile home page of shokogi.com.
+"""SHOKOGI story renderer: one photo or video in, one 9:16 story out.
 
-    photo (top, full width)  with the SHOKOGI wordmark over it
-    PLAYA VENAO · PANAMA     pink, letter-spaced            (the site's eyebrow)
-    SPANISH LINE             Barlow Condensed, uppercase    (the site's H1)
-    English line             Figtree, warm grey             (the site's subtitle)
-    ( SHOKOGI.COM )          pink pill                      (the site's button)
+The photo fills the screen. Over it, quietly: the site's SHOKOGI wordmark (pink O)
+small at the top, and at the foot, on a soft shade, the site's eyebrow
+PLAYA VENAO · PANAMA, the story's one line in light type, and shokogi.com.
 
 A photo becomes a still picture with a song under it: Instagram's API cannot
 attach music to a photo story, so it goes up as a video whose every frame is
-the same picture. Nothing moves. A video stays a video in the photo area.
+the same picture. Nothing moves. A video stays a video, filling the screen.
 
 Runs in the Composio workbench sandbox; STORY_BRAND_DIR points elsewhere for
 local previews. make_story() returns the catalog entry of the track it used.
@@ -21,13 +18,11 @@ import imageio_ffmpeg
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 B = os.environ.get("STORY_BRAND_DIR", "/mnt/files/brand")
 W, H = 1080, 1920
-PINK = (244, 110, 149); DARK = (26, 23, 25); BODY = (76, 75, 71); WHITE = (255, 255, 255)
+PINK = (244, 110, 149); DARK = (26, 23, 25); WHITE = (255, 255, 255)
 PHOTO_SECS = 10                     # how long a photo story plays
 MIN_SECS, MAX_SECS = 3, 60          # Instagram's limits for a story video
 SAFE_TOP, SAFE_BOTTOM = 230, H - 280    # clear of the story header and the reply bar
-SIDE = 72
 EYEBROW = "PLAYA VENAO · PANAMA"
-BUTTON = "SHOKOGI.COM"
 
 
 # ---------------------------------------------------------------- type
@@ -83,60 +78,61 @@ def balanced(d, text, font, maxw):
 
 # ---------------------------------------------------------------- layout
 
-def _text_block(d, es, en):
-    """The lines under the photo and the height they need."""
-    h1 = barlow(96)
-    sub = figtree(42, 400)
-    es_lines = balanced(d, es.upper(), h1, W - 2 * SIDE)
-    if len(es_lines) > 2:                       # a long line steps down a size
-        h1 = barlow(80)
-        es_lines = balanced(d, es.upper(), h1, W - 2 * SIDE)
-    en_lines = balanced(d, en, sub, W - 2 * SIDE - 40)
-    h1_lh, sub_lh = int(h1.size * 1.06), 66
-    height = 34 + 52 + len(es_lines) * h1_lh + 34 + len(en_lines) * sub_lh + 64 + 124
-    return h1, sub, es_lines, en_lines, h1_lh, sub_lh, height
+LINE_FONT, LINE_SIZE, LINE_LH = 300, 56, 74        # Figtree Light: the one line of the story
+MARK_Y = SAFE_TOP + 12
 
 
-def layout(es, en):
-    """Where the photo ends, and an RGBA layer with everything except the photo."""
+TEXT_ZONE = (0, 1300, W, 1660)      # where the words sit, for measuring the photo behind them
+
+
+def layout(line, shade=1.0):
+    """An RGBA layer over a full-screen photo: a soft shade at the foot, the site's
+    eyebrow, the story's line in light type, and shokogi.com. Quiet on purpose.
+    `shade` deepens the shade for a bright photo, so light type still reads."""
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    h1, sub, es_lines, en_lines, h1_lh, sub_lh, block = _text_block(d, es, en)
-    pad = 72
-    photo_h = min(1040, SAFE_BOTTOM - block - 2 * pad)
-    d.rectangle((0, photo_h, W, H), fill=WHITE)
 
-    # the text block, centred in the white area above the reply bar
-    y = photo_h + (SAFE_BOTTOM - photo_h - block) // 2 + 34
-    draw_spaced(d, W / 2, y + 18, EYEBROW, figtree(31, 700), 9.5, PINK)
-    y += 52 + 34
-    for l in es_lines:
-        d.text((W / 2, y + h1_lh / 2), l, font=h1, fill=DARK, anchor="mm"); y += h1_lh
-    y += 34
-    for l in en_lines:
-        d.text((W / 2, y + sub_lh / 2), l, font=sub, fill=BODY, anchor="mm"); y += sub_lh
-    y += 64
-    bf = figtree(34, 700)
-    bw = spaced_width(BUTTON, bf, 8.5) + 2 * 96
-    d.rounded_rectangle(((W - bw) / 2, y, (W + bw) / 2, y + 124), radius=62, fill=PINK)
-    draw_spaced(d, W / 2, y + 62, BUTTON, bf, 8.5, WHITE)
-    return photo_h, layer
+    # shade only where the text sits, so the photo stays the photo
+    g = Image.new("L", (1, H))
+    for y in range(H):
+        t = max(0.0, (y - H * 0.52) / (H * 0.48))
+        g.putpixel((0, y), min(235, int(165 * shade * t ** 1.3)))
+    shade = Image.new("RGBA", (W, H), (*DARK, 0)); shade.putalpha(g.resize((W, H)))
+    layer.alpha_composite(shade)
 
+    txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(txt)
+    lf = figtree(LINE_SIZE, LINE_FONT)
+    lines = balanced(d, line, lf, W - 2 * 110)
+    if len(lines) > 3:
+        lf = figtree(48, LINE_FONT)
+        lines = balanced(d, line, lf, W - 2 * 110)
+    lh = int(lf.size * 1.32)
+    block = 30 + 44 + len(lines) * lh + 44 + 30
+    y = SAFE_BOTTOM - 20 - block
+    draw_spaced(d, W / 2, y + 15, EYEBROW, figtree(24, 600), 7, WHITE + (215,))
+    y += 30 + 44
+    for l in lines:
+        d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
+    y += 44
+    draw_spaced(d, W / 2, y + 15, "shokogi.com", figtree(27, 500), 3, WHITE + (205,))
 
-MARK_Y = SAFE_TOP + 20
+    soft = Image.new("RGBA", (W, H), (0, 0, 0, 0)); soft.putalpha(txt.split()[3].point(lambda a: int(a * 0.45)))
+    layer.alpha_composite(soft.filter(ImageFilter.GaussianBlur(9)))
+    layer.alpha_composite(txt)
+    return layer
 
 
 def wordmark(base, dark=False):
-    """The site's SHOKOGI wordmark (pink O) over the top of the photo: white with a
-    light shade, as on the site, or dark where the photo is too bright behind it."""
+    """The site's SHOKOGI wordmark (pink O), small, at the top: white over a faint
+    shade, or dark where the photo is too bright behind it."""
     if not dark:
-        g = Image.new("L", (1, 420))
-        for y in range(420):
-            g.putpixel((0, y), int(70 * (1 - y / 420) ** 1.6))
-        shade = Image.new("RGBA", (W, 420), (*DARK, 0)); shade.putalpha(g.resize((W, 420)))
+        g = Image.new("L", (1, 400))
+        for y in range(400):
+            g.putpixel((0, y), int(55 * (1 - y / 400) ** 1.6))
+        shade = Image.new("RGBA", (W, 400), (*DARK, 0)); shade.putalpha(g.resize((W, 400)))
         base.alpha_composite(shade)
     mark = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    draw_spaced(ImageDraw.Draw(mark), W / 2, MARK_Y, "SHOKOGI", barlow(64, "Bold"), 19,
+    draw_spaced(ImageDraw.Draw(mark), W / 2, MARK_Y, "SHOKOGI", barlow(46, "Bold"), 14,
                 DARK if dark else WHITE, colors={4: PINK})
     halo = Image.new("RGBA", (W, H), WHITE + (0,) if dark else (0, 0, 0, 0))
     halo.putalpha(mark.split()[3].point(lambda a: a // 2 if dark else a // 3))
@@ -168,21 +164,20 @@ def smart_fit(im, size):
     return ImageOps.fit(im, size, Image.LANCZOS, centering=(best, 0.5))
 
 
-def render_frame(src, es, en):
+def render_frame(src, line):
     """The finished picture for a photo."""
-    photo_h, layer = layout(es, en)
     try:
         import pillow_heif
         pillow_heif.register_heif_opener()
     except Exception:
         pass
     im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
-    frame = Image.new("RGBA", (W, H), WHITE + (255,))
-    frame.paste(smart_fit(im, (W, photo_h)), (0, 0))
-    behind = frame.crop((W // 2 - 260, MARK_Y - 50, W // 2 + 260, MARK_Y + 50)).convert("L")
-    bright = sum(behind.getdata()) / (behind.width * behind.height) > 165
-    wordmark(frame, dark=bright)
-    frame.alpha_composite(layer)
+    frame = smart_fit(im, (W, H)).convert("RGBA")
+    behind = frame.crop((W // 2 - 200, MARK_Y - 40, W // 2 + 200, MARK_Y + 40)).convert("L")
+    wordmark(frame, dark=sum(behind.getdata()) / (behind.width * behind.height) > 175)
+    zone = frame.crop(TEXT_ZONE).convert("L")
+    lum = sum(zone.getdata()) / (zone.width * zone.height)
+    frame.alpha_composite(layout(line, shade=min(1.6, max(0.85, 0.85 + (lum - 95) / 110))))
     return frame.convert("RGB")
 
 
@@ -228,33 +223,33 @@ ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500
        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart"]
 
 
-def make_story(src, out, text_es, text_en, seed=None, track=None, photo_secs=PHOTO_SECS):
+def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
     small = out + ".small.mp4"
     try:
         if is_img:
-            render_frame(src, text_es, text_en).save(tmp)
+            render_frame(src, line).save(tmp)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
                  "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC, out])
             return trk
 
-        photo_h, layer = layout(text_es, text_en)
+        layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         wordmark(layer)                 # a video's brightness is unknown: white with its shade
+        layer.alpha_composite(layout(line, shade=1.2))     # a video changes under the words
         layer.save(tmp)
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
-        frame = (f"scale={W}:{photo_h}:force_original_aspect_ratio=increase,crop={W}:{photo_h},setsar=1"
+        frame = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1"
                  + tonemap(src))
 
         def video_cmd(source, frame_filters):
             # a clip shorter than Instagram's minimum holds its last frame
             hold = f",tpad=stop_mode=clone:stop_duration={MIN_SECS - real:.2f}" if real < MIN_SECS else ""
-            vf = (f"[0:v]{frame_filters},fps=30{hold},pad={W}:{H}:0:0:white[b];"
-                  f"[b][1:v]overlay=0:0,format=yuv420p[v]")
+            vf = f"[0:v]{frame_filters},fps=30{hold}[b];[b][1:v]overlay=0:0,format=yuv420p[v]"
             if has_audio(source):
                 af = (f"[0:a]volume=0.6,apad[o];[2:a]volume=0.35,afade=t=out:st={max(dur-1.5,0)}:d=1.5[m];"
                       f"[o][m]amix=inputs=2:duration=shortest[a]")

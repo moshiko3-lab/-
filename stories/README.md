@@ -12,14 +12,12 @@ the same thing never go out together.
 
 ## What a story looks like
 
-It is laid out like the mobile home page of shokogi.com, top to bottom:
-
-* the photo, full width, with the site's `SHOK`**`O`**`GI` wordmark over it
-  (white with a light shade, or dark where the photo is bright behind it);
-* on white, the site's eyebrow `PLAYA VENAO · PANAMA` (Figtree bold, pink,
-  letter-spaced), the Spanish line as the site's heading (Barlow Condensed
-  ExtraBold, uppercase), the English line as its subtitle (Figtree, warm grey),
-  and a pink pill button reading `SHOKOGI.COM`.
+The photo fills the screen. Over it, quietly, in the site's type: the
+`SHOK`**`O`**`GI` wordmark small at the top (white, or dark where the photo is
+bright behind it), and at the foot, on a soft shade that deepens only for a
+bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
+Figtree Light, and `shokogi.com`. One language per story: `language` in
+`stories_config.json` (`en` or `es`).
 
 Details:
 
@@ -27,9 +25,9 @@ Details:
 * A photo (HEIC from an iPhone too) is a still picture for 10 seconds with a
   song under it. Nothing moves. It goes up as a video only because Instagram's
   API cannot attach music to a photo story.
-* A photo is cropped to the photo area: sideways it keeps the busiest part of
+* A photo is cropped to fill the screen: sideways it keeps the busiest part of
   the picture, up and down it keeps the upper part, where heads are.
-* A video plays in the photo area, cut at 60 seconds (Instagram's limit;
+* A video fills the screen too, cut at 60 seconds (Instagram's limit;
   anything under 3 seconds holds its last frame). HDR video, which is what an
   iPhone records by default, is tone-mapped to ordinary colour; without it the
   story comes out grey and washed out.
@@ -68,7 +66,8 @@ wait(40)                                                 # repeat until state is
 ```
 
 `start(dry_run=True, limit=1)` renders and creates the Instagram container but
-publishes nothing, moves nothing and writes no log.
+publishes nothing, moves nothing and writes no log. `"paused": true` in
+`stories_config.json` stops every real run before it touches anything.
 
 The sandbox has one CPU and about 1 GB of memory, and it loses installed
 packages when it restarts (the files under `/mnt/files` stay). The run
