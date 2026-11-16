@@ -3,6 +3,7 @@
 
     python3 stories/wa.py status
     python3 stories/wa.py send --image sheet.jpg --caption-file caption.txt
+    python3 stories/wa.py send-url --url https://... --caption-file caption.txt
     python3 stories/wa.py text --message "..."
     python3 stories/wa.py check --since 1794830000
 
@@ -102,6 +103,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("status")
     s = sub.add_parser("send"); s.add_argument("--image", required=True); s.add_argument("--caption-file", required=True)
+    u = sub.add_parser("send-url"); u.add_argument("--url", required=True); u.add_argument("--caption-file", required=True)
     t = sub.add_parser("text"); t.add_argument("--message", required=True)
     c = sub.add_parser("check"); c.add_argument("--since", type=float, required=True)
     a = ap.parse_args()
@@ -114,6 +116,13 @@ def main():
         caption = open(a.caption_file, encoding="utf-8").read().strip() + "\n\n" + MARK
         body, ctype = multipart({"chatId": TO, "caption": caption[:1000]}, a.image)
         r = call(f"{media}/waInstance{ident}/sendFileByUpload/{token}", body, ctype, timeout=180)
+        print(json.dumps({"ok": True, "id": (r or {}).get("idMessage"), "sent_at": time.time()}))
+    elif a.cmd == "send-url":
+        # Green-API fetches the image itself: for a machine whose network cannot reach the file
+        caption = open(a.caption_file, encoding="utf-8").read().strip() + "\n\n" + MARK
+        body = json.dumps({"chatId": TO, "urlFile": a.url, "fileName": "shokogi-stories.jpg",
+                           "caption": caption[:1000]}).encode("utf-8")
+        r = call(f"{base}/waInstance{ident}/sendFileByUrl/{token}", body, "application/json", timeout=180)
         print(json.dumps({"ok": True, "id": (r or {}).get("idMessage"), "sent_at": time.time()}))
     elif a.cmd == "text":
         body = json.dumps({"chatId": TO, "message": a.message.strip() + "\n\n" + MARK}).encode("utf-8")
