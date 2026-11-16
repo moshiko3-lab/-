@@ -36,12 +36,13 @@ which holds the Google Drive and Instagram connections:
 | `/mnt/files/stories_run_status.json` | the last run's progress and result |
 | `/mnt/files/brand/`, `/mnt/files/music/` | logo, Figtree font, 30 tracks and their catalog |
 
-A workbench cell is cut off after 180 seconds, so the run works in a
+A workbench cell is cut off after 180 seconds, and the MCP client gives up on a
+call after about 60, so the run works in a
 background thread:
 
 ```python
 exec(open('/mnt/files/run_daily.py').read()); start()   # begin
-wait(160)                                                # repeat until state is not "running"
+wait(40)                                                 # repeat until state is not "running"
 ```
 
 `start(dry_run=True, limit=1)` renders and creates the Instagram container but

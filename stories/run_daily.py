@@ -6,7 +6,7 @@ upload_local_file and invoke_llm as globals. The work runs in a background
 thread because a single workbench cell is cut off after 180 seconds:
 
     exec(open('/mnt/files/run_daily.py').read()); start()   # begin
-    wait(160)                                                # repeat until state != "running"
+    wait(40)                                                 # repeat until state != "running"
 
 start(dry_run=True) renders and creates the Instagram containers but never
 publishes, never moves a file and never writes the log.
@@ -66,7 +66,8 @@ TEXTS = [
 AUTO_NAME = re.compile(
     r"(?i)\b(img|vid|mov|dsc[nf]?|dji|gopr\w*|gopro|pxl|mvimg|screenshot|screen|recording|whatsapp|"
     r"image|video|photo|foto|movie|copy|copia|untitled|captura|pantalla|edited|final|at|"
-    r"צילום|מסך|תמונה|סרטון|וידאו)\b")
+    r"test|example|sample|demo|story|stories|reel|clip|new|draft|ejemplo|prueba|nuevo|"
+    r"צילום|מסך|תמונה|סרטון|וידאו|דוגמה|דוגמא|בדיקה|ניסיון|חדש|סטורי|טיוטה)\b")
 SAFE_TEXT = re.compile(r"^[A-Za-zÀ-ÿ0-9 ,.!¡?¿'’&:+\-]+$")
 
 IMAGE_EXT = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic",
@@ -80,10 +81,12 @@ def _now():
 
 
 def _load(path, default):
-    try:
-        return json.load(open(path, encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return default
+    for p in (path, path + ".tmp"):       # an interrupted replace leaves only the temp copy
+        try:
+            return json.load(open(p, encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+    return default
 
 
 def _save(path, obj):
@@ -116,14 +119,17 @@ def _ensure_deps():
 def _filename_text(name):
     """A caption from a meaningful file name, in Spanish and English, or None."""
     stem = os.path.splitext(name)[0]
-    left = re.sub(r"[\d_\-\.\(\)\[\]]+", " ", AUTO_NAME.sub(" ", stem))
+    left = AUTO_NAME.sub(" ", re.sub(r"[\d_\-\.\(\)\[\]]+", " ", stem))
     if len(re.sub(r"\W", "", left)) < 4:
         return None
     prompt = (
         "You write short Instagram Story overlay text for SHOKOGI, a surf school in Playa Venao, Panama.\n"
         f"A team member named the uploaded file: {json.dumps(stem, ensure_ascii=False)}\n"
-        "If the name is a meaningful description or caption (not a camera/app auto-name, not random "
-        "characters), turn it into a short upbeat story line in Spanish and in English, keeping its "
+        "Only treat it as meaningful if it says what is in the photo/video or carries a message for "
+        "viewers, e.g. 'first wave for the kids', 'sunset session', 'שיעור גלישה לילדים'. NOT meaningful: "
+        "camera/app auto-names, random characters, dates, a lone first name, or generic words such as "
+        "example, test, video, photo, story, new, file. When in doubt, it is not meaningful.\n"
+        "If meaningful, turn it into a short upbeat story line in Spanish and in English, keeping its "
         "meaning. Do not invent facts, prices, dates or offers. Spanish at most 45 characters, English "
         "at most 55. No emojis, no hashtags, no quotation marks.\n"
         'Reply with JSON only: {"meaningful": true or false, "es": "...", "en": "..."}')
@@ -273,8 +279,7 @@ def _run(dry_run=False, limit=None):
                         texts = _filename_text(name)
                         if not texts:
                             texts = TEXTS[log.get("text_idx", 0) % len(TEXTS)]
-                            if not dry_run:
-                                log["text_idx"] = log.get("text_idx", 0) + 1
+                            log["text_idx"] = log.get("text_idx", 0) + 1   # a dry run never saves it
                         it["text_es"], it["text_en"] = texts
                         trk = _choose_track(log)
 
@@ -363,7 +368,7 @@ def _run(dry_run=False, limit=None):
         beat("stopped with an error")
 
 
-_THREAD = None
+_THREAD = globals().get("_THREAD")    # survive a second exec() of this file
 
 
 def start(dry_run=False, limit=None):
@@ -382,19 +387,20 @@ def start(dry_run=False, limit=None):
     print("started")
 
 
-def wait(seconds=160):
-    """Block up to `seconds` (stay under the 180 s cell limit), then print the status."""
+def wait(seconds=40):
+    """Block up to `seconds`, then print the status. Keep it well under the caller's
+    tool timeout: the MCP client gives up on a workbench call after about 60 s."""
     t0 = time.time()
     st = {}
     while time.time() - t0 < seconds:
-        st = _load(STATUS_PATH, {})
-        if st.get("state") != "running":
+        st = _load(STATUS_PATH, {}) or st     # a read can miss while the file is replaced
+        if st and st.get("state") != "running":
             break
-        time.sleep(5)
+        time.sleep(4)
     if st.get("state") == "running":
         age = time.time() - _dt.datetime.strptime(st["heartbeat"], "%Y-%m-%dT%H:%M:%SZ").replace(
             tzinfo=_dt.timezone.utc).timestamp()
-        if age > STALE_SECS:
+        if age > STALE_SECS or (_THREAD is not None and not _THREAD.is_alive()):
             st["state"] = "stalled"
     print(json.dumps(st, ensure_ascii=False, indent=1))
     return st
