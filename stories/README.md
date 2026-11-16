@@ -5,6 +5,9 @@ Put a photo or a video in the Drive folder **SHOKOGI Instagram Stories**
 evening up to three of them become branded 9:16 stories on `shokogi_venao`
 and move to its **פורסם** subfolder. Nothing else to do.
 
+A file the school decides not to post goes in the **לא לפרסום** subfolder:
+only pictures directly in the main folder are ever picked up.
+
 Three a day is `per_day` in `stories_config.json`, counted by the calendar day
 in Panama. Files waiting their turn go out one of each topic before the second
 of any (the topic is the file name without its numbers), so three photos of
