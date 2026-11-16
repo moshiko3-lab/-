@@ -616,6 +616,9 @@ def wait(seconds=40):
         age = time.time() - _dt.datetime.strptime(st["heartbeat"], "%Y-%m-%dT%H:%M:%SZ").replace(
             tzinfo=_dt.timezone.utc).timestamp()
         if age > STALE_SECS or (_THREAD is not None and not _THREAD.is_alive()):
-            st["state"] = "stalled"
+            time.sleep(2)
+            st = _load(STATUS_PATH, {}) or st      # the thread may have finished a moment ago
+            if st.get("state") == "running":
+                st["state"] = "stalled"
     print(json.dumps(st, ensure_ascii=False, indent=1))
     return st
