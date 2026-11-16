@@ -25,8 +25,10 @@ stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
 "as_is_9x16": false puts the design on every picture, even a story-shaped one.
 "language" ("en" or "es") is the one language a story is
 written in; "paused": true stops every real run before it touches anything.
-"styles" (optional) lists the designs to take in turn, from story_engine.STYLES
-(classic, editorial, headline, tag, frame, card); without it, all of them.
+Each story gets a freshly drawn look (story_engine.render_look): where the words
+sit, their hand, where shokogi.com goes, unlike the stories just before it.
+"looks": false goes back to fixed designs taken in turn, "styles" (optional) listing
+them from story_engine.STYLES (classic, editorial, headline, tag, frame, card).
 
 Every step is recorded per Drive file id in stories_log.json, so a run that
 dies halfway can simply be started again: a file is never published twice.
@@ -119,6 +121,11 @@ TOPIC_LINES = {
              ("Representa a SHOKOGI donde surfees", "Represent SHOKOGI wherever you surf"),
              ("Keep Venao Surfing", "Keep Venao Surfing")],
 }
+
+# Emoji a story about each topic may carry (one, sometimes; never for a designed file).
+TOPIC_EMOJI = {"playa venao": ["🌊", "☀️", "🌴"], "surf camp": ["🏄", "🤙", "🌊"], "kids camp": ["🤙", "☀️", "🏄"],
+               "surf lessons": ["🏄", "🤙"], "foil the bee": ["🌊", "🤙"], "ocean monkey": ["🐒", "🏄"],
+               "board rentals": ["🏄", "🌊"], "shop": ["🧢", "🤙"]}
 
 # A title per topic, for the "headline" design: the topic's name, as the site uses it.
 TOPIC_TITLES = {"playa venao": "Playa Venao", "surf camp": "Surf Camp", "kids camp": "Kids Camp",
@@ -454,13 +461,27 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             it["line"] = it["text_es"] if lang == "es" else it["text_en"]
                         trk = _choose_track(log)
                         title = TOPIC_TITLES.get(_topic(name))
-                        style = None if designed else _choose_style(log, cfg, title, mime.startswith("image/"))
+                        look = None
+                        if designed:
+                            style = None
+                        elif cfg.get("looks", True):
+                            # a freshly drawn story look, unlike the ones just before it
+                            style = "look"
+                            look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
+                                    "recent": [x["look"] for x in sorted(
+                                        (x for x in log["items"].values() if x.get("look")),
+                                        key=lambda x: x.get("updated") or "")[-3:]]}
+                        else:
+                            style = _choose_style(log, cfg, title, mime.startswith("image/"))
                         it["style"] = style
 
                         beat(f"rendering {name}")
                         out = os.path.join(WORK, fid + "_story.mp4")
                         story_engine.make_story(src, out, it["line"], track=trk, designed=designed,
-                                                style=style or "classic", title=title)
+                                                style=style if style in story_engine.STYLES else "classic",
+                                                title=title, look=look)
+                        if look is not None:
+                            it["look"] = look.get("drawn")
                         it["track"] = trk["file"]
                         it["track_title"] = trk.get("title")
                         it["preview"] = _save_preview(story_engine, fid, src, out, it["line"],

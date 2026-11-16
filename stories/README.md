@@ -42,20 +42,27 @@ bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
 Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
-**Six designs, in turn**, so the day's four stories do not all look alike
-(`STYLES` in `story_engine.py`; `"styles"` in `stories_config.json` narrows the list):
+**Every story is laid out afresh**, the way a person makes one in the app, so the
+day's stories do not look alike (`render_look` in `story_engine.py`):
 
-| style | what changes |
-|---|---|
-| `classic` | the words centred at the foot, as above |
-| `editorial` | left-aligned, a short pink rule, the line larger; the wordmark moves left |
-| `headline` | the topic's name large in the wordmark's condensed type (`KIDS CAMP`), the line small under it |
-| `tag` | left-aligned, the line on pink labels, `shokogi.com` on a white pill |
-| `frame` | a thin white frame whose top edge breaks for the wordmark and bottom edge for the pill |
-| `card` | the whole photo, uncropped, as a rounded card on a blurred copy of itself (photos only) |
+* **Where the words go**: the quietest stretch of the photo, top, middle or foot,
+  left, centre or right. "Quiet" is measured: edges (people, boards, splash) and,
+  heavily, skin colour, so the words stay off faces and bodies.
+* **Their hand**: light (Figtree Light, as above), bold (the wordmark's condensed
+  capitals, large), boxed (each line on a white, pink or dark box, as the app's text
+  background, slightly tilted), script (Caveat, a handwriting face, tilted), neon
+  (white with a pink glow), or card (the whole photo, uncropped, as a rounded card
+  on a blurred copy of itself; photos only). Sometimes one emoji of the topic
+  (Noto Color Emoji).
+* **shokogi.com** on its pink (or white) pill: under the words, alone at the other
+  end of the screen on its quietest side, or as a tilted sticker on a corner of the
+  words.
 
-Each story takes the next style in the rotation; `headline` is skipped for a file
-without a topic, `card` for a video. The style is recorded in the log.
+The hand differs from the last three stories, the place and the pill from the last
+one. What was drawn is recorded in the log (`look`). `"looks": false` in
+`stories_config.json` goes back to fixed designs taken in turn (`STYLES`:
+classic, editorial, headline, tag, frame, card; `"styles"` narrows them).
+The wordmark always stays: white, small, at the top.
 
 Details:
 
@@ -92,7 +99,7 @@ which holds the Google Drive and Instagram connections:
 | `/mnt/files/stories_config.json` | Drive folder ids and the Instagram account id |
 | `/mnt/files/stories_log.json` | one entry per Drive file: what was published, when, with what |
 | `/mnt/files/stories_run_status.json` | the last run's progress and result |
-| `/mnt/files/brand/`, `/mnt/files/music/` | Figtree and Barlow Condensed (the site's fonts), 30 tracks and their catalog |
+| `/mnt/files/brand/`, `/mnt/files/music/` | Figtree and Barlow Condensed (the site's fonts), Caveat (handwriting, OFL), Noto Color Emoji (the CBDT build, v2.047: Pillow cannot draw the COLRv1 one), 30 tracks and their catalog |
 
 A workbench cell is cut off after 180 seconds, and the MCP client gives up on a
 call after about 60, so the run works in a

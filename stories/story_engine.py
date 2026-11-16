@@ -343,6 +343,409 @@ def render_frame(src, line, style="classic", title=None):
     return frame.convert("RGB")
 
 
+# ---------------------------------------------------------------- story looks
+# A story made the way a person makes one in the app. The words go where the photo
+# is quiet (the top, the middle or the foot), in one of several hands, sometimes
+# tilted, sometimes with an emoji; shokogi.com moves around: under the words, at the
+# other end of the screen, or slapped on as a tilted sticker. Each story's look is
+# drawn at random, but its hand, its place and its pill differ from the stories just
+# before it. The wordmark stays where it is: white, small, at the top.
+
+TREATMENTS = ("light", "bold", "boxed", "script", "neon", "card")
+ZONES = {"top": (330, 820), "middle": (760, 1240), "bottom": (1180, SAFE_BOTTOM - 20)}
+PILL_MODES = ("under", "opposite", "sticker")
+PAD = 40                             # room around a block for its shadow or glow
+PILL_H = 64
+
+
+def caveat(size, weight=700):
+    f = ImageFont.truetype(f"{B}/Caveat.ttf", size)
+    try: f.set_variation_by_axes([weight])
+    except Exception: pass
+    return f
+
+
+def emoji_img(ch, h):
+    """One colour emoji, `h` pixels high (Noto Color Emoji draws only at 109)."""
+    f = ImageFont.truetype(f"{B}/NotoColorEmoji.ttf", 109)
+    im = Image.new("RGBA", (200, 160), (0, 0, 0, 0))
+    ImageDraw.Draw(im).text((10, 10), ch, font=f, embedded_color=True)
+    im = im.crop(im.getbbox())
+    return im.resize((max(1, int(im.width * h / im.height)), h), Image.LANCZOS)
+
+
+def _measure():
+    return ImageDraw.Draw(Image.new("L", (1, 1)))
+
+
+def _shadowed(img, strength=0.45, blur=9):
+    out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    sh.putalpha(img.split()[3].point(lambda a: int(a * strength)))
+    out.alpha_composite(sh.filter(ImageFilter.GaussianBlur(blur)))
+    out.alpha_composite(img)
+    return out
+
+
+def _x_in(align, bw, w):
+    return PAD + {"left": 0, "center": (bw - w) / 2, "right": bw - w}[align]
+
+
+def _with_emoji(block, emo, h, align):
+    """Put an emoji after the block's last line (or under it, centred, for a centred block)."""
+    if not emo:
+        return block
+    try:
+        e = emoji_img(emo, h)
+    except Exception:
+        return block
+    # the letters' own edges, not their soft shadow
+    bb = block.split()[3].point(lambda a: 255 if a > 140 else 0).getbbox() or (PAD, PAD, block.width - PAD, block.height - PAD)
+    if align == "center":
+        out = Image.new("RGBA", (max(block.width, e.width + 2 * PAD), bb[3] + 12 + e.height + PAD), (0, 0, 0, 0))
+        out.alpha_composite(block, ((out.width - block.width) // 2, 0))
+        out.alpha_composite(e, ((out.width - e.width) // 2, bb[3] + 12))
+        return out
+    out = Image.new("RGBA", (bb[2] + 14 + e.width + PAD, block.height), (0, 0, 0, 0))
+    out.alpha_composite(block, (0, 0))
+    out.alpha_composite(e, (bb[2] + 14, max(0, bb[3] - e.height - 2)))
+    return out
+
+
+def _b_light(line, align, maxw, eyebrow):
+    d = _measure()
+    lf, lines = _fit(d, line, 62, maxw, smaller=52)
+    lh = int(lf.size * 1.28)
+    ef = figtree(24, 600)
+    top = 60 if eyebrow else 0
+    ws = [d.textlength(l, font=lf) for l in lines]
+    bw = int(max(ws + ([spaced_width(EYEBROW, ef, 7)] if eyebrow else [])))
+    img = Image.new("RGBA", (bw + 2 * PAD, top + len(lines) * lh + 2 * PAD), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(img)
+    if eyebrow:
+        ew = spaced_width(EYEBROW, ef, 7)
+        draw_spaced(dd, _x_in(align, bw, ew) + ew / 2, PAD + 15, EYEBROW, ef, 7, WHITE + (215,))
+    y = PAD + top
+    for l, w in zip(lines, ws):
+        dd.text((_x_in(align, bw, w), y + lh / 2), l, font=lf, fill=WHITE, anchor="lm"); y += lh
+    return _shadowed(img)
+
+
+def _b_bold(line, align, maxw, eyebrow):
+    d = _measure()
+    text = line.upper()
+    for size in range(132, 62, -6):
+        tf = barlow(size)
+        lines = balanced(d, text, tf, maxw)
+        if len(lines) <= 3 and all(d.textlength(l, font=tf) <= maxw for l in lines):
+            break
+    cap = -tf.getbbox("H", anchor="ls")[1]
+    gap = int(cap * 0.30)
+    ef = figtree(24, 600)
+    top = 56 if eyebrow else 0
+    ws = [d.textlength(l, font=tf) for l in lines]
+    bw = int(max(ws + ([spaced_width(EYEBROW, ef, 7)] if eyebrow else [])))
+    img = Image.new("RGBA", (bw + 2 * PAD, top + len(lines) * (cap + gap) - gap + 2 * PAD), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(img)
+    if eyebrow:
+        ew = spaced_width(EYEBROW, ef, 7)
+        draw_spaced(dd, _x_in(align, bw, ew) + ew / 2, PAD + 12, EYEBROW, ef, 7, WHITE + (215,))
+    y = PAD + top
+    for l, w in zip(lines, ws):
+        dd.text((_x_in(align, bw, w), y + cap), l, font=tf, fill=WHITE, anchor="ls"); y += cap + gap
+    return _shadowed(img, 0.5, 10)
+
+
+BOX_SCHEMES = {"white": (WHITE, DARK), "pink": (PINK, WHITE), "dark": (DARK, WHITE)}
+
+
+def _b_boxed(line, align, maxw, scheme):
+    """Each line on its own rounded box, as the app's text background does it."""
+    d = _measure()
+    lf, lines = _fit(d, line, 54, maxw - 60, weight=650, smaller=46)
+    padx, pady = 26, 14
+    lh = lf.size + 2 * pady
+    ws = [d.textlength(l, font=lf) + 2 * padx for l in lines]
+    bw = int(max(ws))
+    img = Image.new("RGBA", (bw + 2 * PAD, len(lines) * lh + 2 * PAD), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(img)
+    bg, fg = BOX_SCHEMES[scheme]
+    y = PAD
+    for l, w in zip(lines, ws):
+        x = _x_in(align, bw, w)
+        dd.rounded_rectangle((x, y, x + w, y + lh + 1), radius=16, fill=bg)
+        dd.text((x + padx, y + lh / 2), l, font=lf, fill=fg, anchor="lm"); y += lh
+    return _shadowed(img, 0.25, 12)
+
+
+def _b_script(line, align, maxw):
+    d = _measure()
+    lf = caveat(100)
+    lines = balanced(d, line, lf, maxw)
+    if len(lines) > 3:
+        lf = caveat(86); lines = balanced(d, line, lf, maxw)
+    lh = int(lf.size * 1.0)
+    ws = [d.textlength(l, font=lf) for l in lines]
+    bw = int(max(ws))
+    img = Image.new("RGBA", (bw + 2 * PAD, len(lines) * lh + 2 * PAD + 20), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(img)
+    y = PAD
+    for l, w in zip(lines, ws):
+        dd.text((_x_in(align, bw, w), y + lh / 2), l, font=lf, fill=WHITE, anchor="lm"); y += lh
+    return _shadowed(img, 0.55, 8)
+
+
+def _b_neon(line, align, maxw):
+    """White letters with a pink glow, the site's pink."""
+    d = _measure()
+    lf, lines = _fit(d, line, 64, maxw, weight=600, smaller=54)
+    lh = int(lf.size * 1.3)
+    ws = [d.textlength(l, font=lf) for l in lines]
+    bw = int(max(ws))
+    size = (bw + 2 * PAD, len(lines) * lh + 2 * PAD)
+    txt = Image.new("RGBA", size, (0, 0, 0, 0)); dd = ImageDraw.Draw(txt)
+    y = PAD
+    for l, w in zip(lines, ws):
+        dd.text((_x_in(align, bw, w), y + lh / 2), l, font=lf, fill=WHITE, anchor="lm"); y += lh
+    a = txt.split()[3]
+    glow = Image.new("RGBA", size, PINK + (0,))
+    glow.putalpha(a.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(14)).point(lambda v: min(255, v * 2)))
+    out = Image.new("RGBA", size, (0, 0, 0, 0))
+    out.alpha_composite(glow); out.alpha_composite(glow); out.alpha_composite(txt)
+    return out
+
+
+def _pill_img(scheme):
+    fill, color = (PINK, WHITE) if scheme == "pink" else (WHITE, PINK)
+    pf = figtree(27, 600)
+    pw = int(spaced_width("shokogi.com", pf, 3) + 2 * 38)
+    img = Image.new("RGBA", (pw + 40, PILL_H + 40), (0, 0, 0, 0))
+    sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((20, 26, 20 + pw, 26 + PILL_H), radius=PILL_H / 2, fill=(0, 0, 0, 70))
+    img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(8)))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle((20, 20, 20 + pw, 20 + PILL_H), radius=PILL_H / 2, fill=fill)
+    draw_spaced(d, 20 + pw / 2, 20 + PILL_H / 2, "shokogi.com", pf, 3, color)
+    return img
+
+
+def _put(layer, img, x, y, angle=0, margin=0):
+    """Paste, tilted by `angle` degrees about its centre, kept on the screen (`margin`
+    clear of its edges). Returns the box."""
+    if angle:
+        cx, cy = x + img.width / 2, y + img.height / 2
+        img = img.rotate(angle, resample=Image.BICUBIC, expand=True)
+        x, y = cx - img.width / 2, cy - img.height / 2
+    x = int(min(max(margin, x), W - img.width - margin)); y = int(min(max(0, y), H - img.height))
+    layer.alpha_composite(img, (x, y))
+    return (x, y, x + img.width, y + img.height)
+
+
+def _band(layer, y0, y1, alpha):
+    """A soft dark band behind words on a full-screen photo, strongest where they sit."""
+    g = Image.new("L", (1, H), 0)
+    for y in range(H):
+        if y < y0: t = max(0.0, 1 - (y0 - y) / 260)
+        elif y > y1: t = max(0.0, 1 - (y - y1) / 260)
+        else: t = 1.0
+        g.putpixel((0, y), int(alpha * t ** 1.6))
+    s = Image.new("RGBA", (W, H), (*DARK, 0)); s.putalpha(g.resize((W, H)))
+    layer.alpha_composite(s)
+
+
+def cost_maps(frame):
+    """Where words would hurt the photo, at a quarter of the size: edges (people,
+    boards, splash) plus, heavily, anything skin-coloured (faces, arms). And brightness."""
+    import numpy as np
+    sm = frame.convert("RGB").resize((W // 4, H // 4), Image.BILINEAR)
+    e = np.asarray(sm.convert("L").filter(ImageFilter.FIND_EDGES), float)
+    ycc = np.asarray(sm.convert("YCbCr"), float)
+    y, cb, cr = ycc[..., 0], ycc[..., 1], ycc[..., 2]
+    skin = ((cr >= 138) & (cr <= 175) & (cb >= 85) & (cb <= 130) & (y > 60)).astype(float)
+    return e + 260 * skin, y
+
+
+def _zone_of(y, h):
+    c = y + h / 2
+    return "top" if c < 800 else ("middle" if c < 1200 else "bottom")
+
+
+def plan_look(rnd, recent=(), is_image=True, emoji=()):
+    """Draw a look: the hand, the pill and its place, tilt, emoji. Where the words go is
+    decided afterwards, from the photo. `recent` (the looks just before) keeps it varied."""
+    rt = [r.get("treatment") for r in recent][-3:]
+    rp = [r.get("pill") for r in recent][-1:]
+    ts = [t for t in TREATMENTS if is_image or t != "card"]
+    t = rnd.choice([x for x in ts if x not in rt] or ts)
+    look = {"treatment": t, "pill": rnd.choice([p for p in PILL_MODES if p not in rp]),
+            "pill_scheme": rnd.choice(["pink", "pink", "white"]),
+            "tilt": round(rnd.choice([-1, 1]) * rnd.uniform(2, 4.5), 1) if t in ("boxed", "script") else 0,
+            "sticker_tilt": round(rnd.choice([-1, 1]) * rnd.uniform(4, 8), 1),
+            "eyebrow": t in ("light", "bold", "card") and rnd.random() < 0.6,
+            "box": rnd.choice(list(BOX_SCHEMES)),
+            "emoji": rnd.choice(list(emoji)) if emoji and t in ("boxed", "script", "neon") and rnd.random() < 0.6 else ""}
+    return look
+
+
+def _aligns(t):
+    return ["left", "center", "right"] if t in ("boxed", "script") else ["left", "center"]
+
+
+def _box_x(align, bw):
+    return {"left": X0, "center": (W - bw) / 2, "right": W - X0 - bw}[align]
+
+
+def _block(look, line):
+    t, align = look["treatment"], look["align"]
+    maxw = W - 2 * X0 - (60 if align != "center" else 0)
+    if t == "bold": b = _b_bold(line, align, maxw, look["eyebrow"])
+    elif t == "boxed": b = _b_boxed(line, align, maxw - 80, look["box"])
+    elif t == "script": b = _b_script(line, align, maxw - 60)
+    elif t == "neon": b = _b_neon(line, align, maxw - 40)
+    else: b = _b_light(line, align, maxw - 60, look["eyebrow"])
+    eh = {"boxed": 62, "script": 84, "neon": 70}.get(t, 0)
+    return _with_emoji(b, look.get("emoji"), eh, align)
+
+
+def _room(look):
+    """Space the pill needs next to the words: (above, below)."""
+    return {"under": (0, PILL_H + 34), "sticker": (PILL_H + 10, 0)}.get(look["pill"], (0, 0))
+
+
+def place(look, line, maps, rnd, recent_zone=None, fixed=None):
+    """Choose alignment and height for the words: the quietest stretch of the photo
+    (no faces, no busy splash), a different part of the screen from the last story if
+    an almost-as-quiet one exists, and some chance. Returns (block, x, y, lum)."""
+    up, down = _room(look)
+    cands = []
+    for al in ([look["align"]] if fixed else _aligns(look["treatment"])):
+        blk = _block(dict(look, align=al), line)
+        bw, bh = blk.width - 2 * PAD, blk.height - 2 * PAD
+        x = _box_x(al, bw)
+        if fixed:
+            y0, y1 = fixed
+            ys = [y0 + up] if look.get("at") == "top" else [y1 - bh - down]
+        else:
+            ys = range(330 + up, int(SAFE_BOTTOM - 20 - bh - down) + 1, 20)
+        for y in ys:
+            if maps is None:
+                cands.append((0, y, al, blk, 110)); continue
+            cost, lum = maps
+            r0, r1 = int((y - up) / 4), int((y + bh + down) / 4)
+            c0, c1 = int(max(0, x) / 4), int(min(W, x + bw) / 4)
+            cands.append((float(cost[r0:r1, c0:c1].mean()), y, al, blk, float(lum[r0:r1, c0:c1].mean())))
+    best = min(c[0] for c in cands)
+    ok = [c for c in cands if c[0] <= best * 1.22 + 2]
+    ok = [c for c in ok if _zone_of(c[1], c[3].height - 2 * PAD) != recent_zone] or ok
+    c, y, al, blk, lum = rnd.choice(ok)
+    look["align"], look["zone"] = al, _zone_of(y, blk.height - 2 * PAD)
+    return blk, _box_x(al, blk.width - 2 * PAD) - PAD, y - PAD, lum
+
+
+def compose(layer, look, block, x, y, lum, shade=True, maps=None):
+    """Draw the words (already set, at x, y) and the pill on `layer`. `maps` (from
+    cost_maps) lets a pill on its own find a quiet spot."""
+    t, align = look["treatment"], look["align"]
+    pill = _pill_img(look["pill_scheme"])
+    pw = pill.width - 40
+    up, down = _room(look)
+    if shade and t in ("light", "bold", "neon", "script"):
+        a = min(185, max(55, 70 + (lum - 90) * 1.1 + (30 if t == "neon" else 0)))
+        _band(layer, y + PAD - up, y + block.height - PAD + down, a)
+    bx = _put(layer, block, x, y, look.get("tilt", 0))
+    inner = (bx[0] + PAD, bx[1] + PAD, bx[2] - PAD, bx[3] - PAD)
+    side = {"left": X0 - 20, "center": W / 2 - pill.width / 2, "right": W - X0 - pw - 20}
+    if look["pill"] == "under":
+        _put(layer, pill, side[align], inner[3] + 26 - 20)
+    elif look["pill"] == "opposite":
+        # alone at the other end of the screen: under the wordmark, or near the foot,
+        # on whichever side is quietest
+        py = MARK_Y + 64 if look["zone"] == "bottom" else SAFE_BOTTOM - 20 - PILL_H - 20
+        px = side[align]
+        if maps is not None:
+            cost = maps[0]
+            r0, r1 = int((py + 20) / 4), int((py + 20 + PILL_H) / 4)
+            px = min(side.values(), key=lambda v: float(cost[r0:r1, int(max(0, v + 20) / 4):int(min(W, v + 20 + pw) / 4)].mean()))
+        _put(layer, pill, px, py, margin=24)
+    else:   # a sticker on a corner of the words, tilted
+        right = align != "right"
+        px = (inner[2] - pw * 0.55) if right else (inner[0] - pw * 0.45)
+        _put(layer, pill, px - 20, inner[1] - PILL_H - 24 - 20, look["sticker_tilt"] * (1 if right else -1), margin=24)
+    return layer
+
+
+def _card_back(im, look):
+    """The whole photo, uncropped, as a card on a blurred copy of itself, away from the
+    words (look["zone"]: where the words go)."""
+    bg = ImageOps.fit(im, (W, H), Image.LANCZOS).filter(ImageFilter.GaussianBlur(40))
+    frame = Image.blend(bg, Image.new("RGB", (W, H), DARK), 0.38).convert("RGBA")
+    top, bot = (330, 1130) if look["zone"] == "bottom" else (800, SAFE_BOTTOM - 10)
+    card = ImageOps.contain(im, (W - 2 * 72, bot - top), Image.LANCZOS)
+    x, y = (W - card.width) // 2, top + (bot - top - card.height) // 2
+    mask = Image.new("L", card.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=26, fill=255)
+    sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((x, y + 18, x + card.width, y + card.height + 18), radius=26, fill=(0, 0, 0, 130))
+    frame.alpha_composite(sh.filter(ImageFilter.GaussianBlur(28)))
+    frame.paste(card, (x, y), mask)
+    return frame
+
+
+def render_look(src, line, spec):
+    """The finished picture for a photo in a freshly drawn look. spec: seed, recent
+    (looks just before), emoji (the topic's). Returns (picture, look)."""
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except Exception:
+        pass
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    rnd = random.Random(spec.get("seed"))
+    recent = spec.get("recent", [])
+    look = plan_look(rnd, recent, True, spec.get("emoji", []))
+    last_zone = (recent[-1].get("zone") if recent else None)
+    if look["treatment"] == "card":
+        look["at"] = rnd.choice(["top", "bottom"])
+        look["zone"] = look["at"]
+        frame = _card_back(im, dict(look, zone="bottom" if look["at"] == "bottom" else "top"))
+        wordmark(frame, 1.0)
+        if look["pill"] == "opposite":
+            look["pill"] = "under"                  # alone, it would sit on the card
+        words = dict(look, treatment="light", align="center")
+        zone = (1140, SAFE_BOTTOM - 20) if look["at"] == "bottom" else (330, 790)
+        blk, x, y, _ = place(words, line, None, rnd, fixed=zone)
+        compose(frame, words, blk, x, y, 60)
+        look["align"] = "center"
+        return frame.convert("RGB"), look
+    frame = smart_fit(im, (W, H)).convert("RGBA")
+    behind = frame.crop((W // 2 - 220, MARK_Y - 45, W // 2 + 220, MARK_Y + 45)).convert("L")
+    px = sorted(behind.getdata())
+    top_lum = px[int(len(px) * 0.85)]
+    look["align"] = "center"
+    maps = cost_maps(frame)
+    blk, x, y, lum = place(look, line, maps, rnd, last_zone)
+    wordmark(frame, shade=min(2.6, max(1.0, 1.0 + (top_lum - 110) / 55)))
+    compose(frame, look, blk, x, y, lum, maps=maps)
+    return frame.convert("RGB"), look
+
+
+def video_look_layer(line, spec):
+    """A clear layer for a video: the words at the top or the foot (a video moves, so
+    there is no quiet part to find), with a steady shade."""
+    rnd = random.Random(spec.get("seed"))
+    recent = spec.get("recent", [])
+    look = plan_look(rnd, recent, False, spec.get("emoji", []))
+    look["align"] = rnd.choice(_aligns(look["treatment"]))
+    look["at"] = rnd.choice(["top", "bottom"])
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    wordmark(layer, shade=1.6)
+    zone = (330, 820) if look["at"] == "top" else (1180, SAFE_BOTTOM - 20)
+    blk, x, y, _ = place(look, line, None, rnd, fixed=zone)
+    look["zone"] = look["at"]
+    compose(layer, look, blk, x, y, 120)
+    return layer, look
+
+
 # ---------------------------------------------------------------- media
 
 def pick_track(seed=None):
@@ -389,15 +792,18 @@ def _video_layer(line, style="classic", title=None):
     return layer
 
 
-def _render_apart(kind, src, line, out, style="classic", title=None):
+def _render_apart(kind, src, line, out, style="classic", title=None, spec=None):
     """Draw in a separate, short-lived process. The sandbox has about 1 GB, and a big
     photo drawn inside the workbench's own process once took the whole workbench down;
     a child process gives its memory back when it ends, and if it dies it only fails
     this story."""
-    r = subprocess.run([sys.executable, os.path.abspath(__file__), kind, src, line, out, style, title or ""],
+    r = subprocess.run([sys.executable, os.path.abspath(__file__), kind, src, line, out, style, title or "",
+                        json.dumps(spec or {}, ensure_ascii=False)],
                        capture_output=True, text=True, env=dict(os.environ, STORY_BRAND_DIR=B))
     if r.returncode:
         raise RuntimeError(f"render ({kind}) failed: {r.stderr[-800:] or r.returncode}")
+    last = (r.stdout.strip().splitlines() or [""])[-1]
+    return json.loads(last) if last.startswith("{") else None
 
 
 ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500k", "-bufsize", "7000k",
@@ -405,10 +811,12 @@ ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500
 
 
 def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, designed=None,
-               style="classic", title=None):
+               style="classic", title=None, look=None):
     """designed: True posts a picture untouched, False always draws the design,
     None decides by shape (a 9:16 picture counts as already designed).
-    style: one of STYLES; title: the topic, for "headline"."""
+    style: one of STYLES; title: the topic, for "headline".
+    look: a spec dict (seed, recent, emoji) for a freshly drawn story look instead of
+    a fixed style; the look drawn is written back into it as look["drawn"]."""
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
@@ -416,7 +824,10 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
     try:
         if is_img:
             as_is = is_finished_story(src) if designed is None else designed
-            _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title)
+            if look is not None and not as_is:
+                look["drawn"] = _render_apart("look", src, line or "-", tmp, style, title, look)
+            else:
+                _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
@@ -424,7 +835,10 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
                  "-crf", "18", out])
             return trk
 
-        _render_apart("layer", "-", line, tmp, style, title)
+        if look is not None:
+            look["drawn"] = _render_apart("vlook", "-", line, tmp, style, title, look)
+        else:
+            _render_apart("layer", "-", line, tmp, style, title)
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
         frame = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1"
@@ -461,7 +875,12 @@ if __name__ == "__main__":
     kind, src, line, out = sys.argv[1:5]
     style = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] in STYLES else "classic"
     title = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] else None
-    if kind == "asis":
+    spec = json.loads(sys.argv[7]) if len(sys.argv) > 7 and sys.argv[7] else {}
+    if kind in ("look", "vlook"):
+        pic, drawn = render_look(src, line, spec) if kind == "look" else video_look_layer(line, spec)
+        pic.save(out)
+        print(json.dumps(drawn, ensure_ascii=False))
+    elif kind == "asis":
         ImageOps.exif_transpose(Image.open(src)).convert("RGB").resize((W, H), Image.LANCZOS).save(out)
     else:
         (render_frame(src, line, style, title) if kind == "frame" else _video_layer(line, style, title)).save(out)
