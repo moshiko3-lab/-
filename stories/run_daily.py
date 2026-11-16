@@ -249,14 +249,12 @@ PREVIEWS = f"{BASE}/previews"
 
 
 def _save_preview(engine, fid, src, out, line, is_image):
-    """A small copy of what the story looks like, kept after the work files are gone."""
+    """A small copy of what the story looks like, kept after the work files are gone.
+    Taken from the finished video by ffmpeg, so nothing is drawn twice in this process."""
     os.makedirs(PREVIEWS, exist_ok=True)
     path = f"{PREVIEWS}/{fid}.jpg"
-    if is_image:
-        engine.render_frame(src, line).resize((540, 960)).save(path, quality=85)
-    else:
-        subprocess.run([engine.FF, "-y", "-loglevel", "error", "-ss", "1", "-i", out, "-frames:v", "1",
-                        "-vf", "scale=540:960", path], check=True)
+    subprocess.run([engine.FF, "-y", "-loglevel", "error", "-ss", "1", "-i", out, "-frames:v", "1",
+                    "-vf", "scale=540:960", "-q:v", "3", path], check=True)
     return path
 
 

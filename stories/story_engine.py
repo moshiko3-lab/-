@@ -12,7 +12,7 @@ the same picture. Nothing moves. A video stays a video, filling the screen.
 Runs in the Composio workbench sandbox; STORY_BRAND_DIR points elsewhere for
 local previews. make_story() returns the catalog entry of the track it used.
 """
-import json, os, random, re, subprocess
+import json, os, random, re, subprocess, sys
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
@@ -226,6 +226,24 @@ def tonemap(path):
             f"zscale=p=bt709,tonemap=tonemap=mobius:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
 
 
+def _video_layer(line):
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    wordmark(layer, shade=1.6)      # a video changes under the wordmark: a little more shade
+    layer.alpha_composite(layout(line, shade=1.2))     # and under the words
+    return layer
+
+
+def _render_apart(kind, src, line, out):
+    """Draw in a separate, short-lived process. The sandbox has about 1 GB, and a big
+    photo drawn inside the workbench's own process once took the whole workbench down;
+    a child process gives its memory back when it ends, and if it dies it only fails
+    this story."""
+    r = subprocess.run([sys.executable, os.path.abspath(__file__), kind, src, line, out],
+                       capture_output=True, text=True, env=dict(os.environ, STORY_BRAND_DIR=B))
+    if r.returncode:
+        raise RuntimeError(f"render ({kind}) failed: {r.stderr[-800:] or r.returncode}")
+
+
 ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500k", "-bufsize", "7000k",
        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart"]
 
@@ -237,17 +255,14 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
     small = out + ".small.mp4"
     try:
         if is_img:
-            render_frame(src, line).save(tmp)
+            _render_apart("frame", src, line, tmp)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
                  "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC, out])
             return trk
 
-        layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        wordmark(layer, shade=1.6)      # a video changes under the wordmark: a little more shade
-        layer.alpha_composite(layout(line, shade=1.2))     # a video changes under the words
-        layer.save(tmp)
+        _render_apart("layer", "-", line, tmp)
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
         frame = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1"
@@ -277,3 +292,9 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
     finally:
         for f in (tmp, small):
             if os.path.exists(f): os.remove(f)
+
+
+if __name__ == "__main__":
+    # python story_engine.py frame <photo> <line> <out.png> | layer - <line> <out.png>
+    kind, src, line, out = sys.argv[1:5]
+    (render_frame(src, line) if kind == "frame" else _video_layer(line)).save(out)
