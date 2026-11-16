@@ -88,6 +88,17 @@ def has_audio(path):
     return "Audio:" in subprocess.run([FF, "-i", path], capture_output=True, text=True).stderr
 
 
+def tonemap(path):
+    """Filters that bring an HDR phone video (HLG or PQ, BT.2020) down to ordinary
+    SDR BT.709; without them it comes out grey and washed out. Empty for SDR."""
+    info = subprocess.run([FF, "-i", path], capture_output=True, text=True).stderr
+    m = re.search(r"Video:.*?\b(arib-std-b67|smpte2084)\b", info)
+    if not m:
+        return ""
+    return (f",zscale=tin={m[1]}:min=bt2020nc:pin=bt2020:rin=tv:t=linear:npl=100,format=gbrpf32le,"
+            f"zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
+
+
 def make_story(src, out, text_es, text_en, seed=None, photo_secs=7, track=None):
     tmp = out + ".ov.png"
     overlay(text_es, text_en).save(tmp)
@@ -109,21 +120,35 @@ def make_story(src, out, text_es, text_en, seed=None, photo_secs=7, track=None):
     else:
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
-        # a clip shorter than Instagram's minimum holds its last frame
-        hold = f",tpad=stop_mode=clone:stop_duration={MIN_SECS - real:.2f}" if real < MIN_SECS else ""
-        vf = f"[0:v]{fill},fps=30{hold}[b];[b][1:v]overlay=0:0,format=yuv420p[v]"
-        if has_audio(src):
-            af = (f"[0:a]volume=0.6,apad[o];[2:a]volume=0.35,afade=t=out:st={max(dur-1.5,0)}:d=1.5[m];"
-                  f"[o][m]amix=inputs=2:duration=shortest[a]")
-        else:
-            af = f"[2:a]afade=t=in:d=0.5,afade=t=out:st={max(dur-1.5,0)}:d=1.5,volume=0.8[a]"
-        cmd = [FF, "-y", "-i", src, "-i", tmp, "-i", trk["file"],
-               "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}"]
-    cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-maxrate", "3500k", "-bufsize", "7000k",
-            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-movflags", "+faststart", out]
+        frame = fill + tonemap(src)
+
+        def video_cmd(source, frame_filters):
+            # a clip shorter than Instagram's minimum holds its last frame
+            hold = f",tpad=stop_mode=clone:stop_duration={MIN_SECS - real:.2f}" if real < MIN_SECS else ""
+            vf = f"[0:v]{frame_filters},fps=30{hold}[b];[b][1:v]overlay=0:0,format=yuv420p[v]"
+            if has_audio(source):
+                af = (f"[0:a]volume=0.6,apad[o];[2:a]volume=0.35,afade=t=out:st={max(dur-1.5,0)}:d=1.5[m];"
+                      f"[o][m]amix=inputs=2:duration=shortest[a]")
+            else:
+                af = f"[2:a]afade=t=in:d=0.5,afade=t=out:st={max(dur-1.5,0)}:d=1.5,volume=0.8[a]"
+            return [FF, "-y", "-i", source, "-i", tmp, "-i", trk["file"],
+                    "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}"]
+        cmd = video_cmd(src, frame)
+    enc = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-maxrate", "3500k", "-bufsize", "7000k",
+           "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart", out]
+    small = out + ".small.mp4"
     try:
-        run(cmd)
+        try:
+            run(cmd + enc)
+        except RuntimeError:
+            if is_img:
+                raise
+            # The sandbox has little memory and a large source (4K, HDR) can get the
+            # one-pass render killed. Shrink the source on its own first, then render.
+            run([FF, "-y", "-threads", "1", "-i", src, "-t", f"{dur:.2f}", "-vf", frame + ",format=yuv420p",
+                 "-c:v", "libx264", "-preset", "ultrafast", "-crf", "16", "-c:a", "aac", "-b:a", "192k", small])
+            run(video_cmd(small, "setsar=1") + enc)
     finally:
-        for f in (tmp, out + ".base.jpg"):
+        for f in (tmp, out + ".base.jpg", small):
             if os.path.exists(f): os.remove(f)
     return trk
