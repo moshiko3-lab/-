@@ -5,6 +5,9 @@ with its pink O, small at the top, and at the foot, on a soft shade, the site's 
 PLAYA VENAO · PANAMA, the story's one line in light type, and shokogi.com on a
 small pink pill.
 
+A picture that is already 9:16 (a story the school designed) is left exactly as it
+is: no wordmark, no line, no crop, only the song.
+
 A photo becomes a still picture with a song under it: Instagram's API cannot
 attach music to a photo story, so it goes up as a video whose every frame is
 the same picture. Nothing moves. A video stays a video, filling the screen.
@@ -169,6 +172,19 @@ def smart_fit(im, size):
     return ImageOps.fit(im, size, Image.LANCZOS, centering=(best, 0.5))
 
 
+def is_finished_story(path):
+    """True for a picture that is already a 9:16 story (one the school designed, or a
+    phone's story-shaped shot): it goes up exactly as it is, with only the song added."""
+    with Image.open(path) as im:
+        w, h = im.size
+        try:
+            if im.getexif().get(274) in (5, 6, 7, 8):      # rotated by its EXIF tag
+                w, h = h, w
+        except Exception:
+            pass
+    return abs(w / h - W / H) < 0.01
+
+
 def render_frame(src, line):
     """The finished picture for a photo."""
     try:
@@ -255,11 +271,12 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
     small = out + ".small.mp4"
     try:
         if is_img:
-            _render_apart("frame", src, line, tmp)
+            _render_apart("asis" if is_finished_story(src) else "frame", src, line or "-", tmp)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
-                 "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC, out])
+                 "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC,
+                 "-crf", "18", out])
             return trk
 
         _render_apart("layer", "-", line, tmp)
@@ -297,4 +314,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
 if __name__ == "__main__":
     # python story_engine.py frame <photo> <line> <out.png> | layer - <line> <out.png>
     kind, src, line, out = sys.argv[1:5]
-    (render_frame(src, line) if kind == "frame" else _video_layer(line)).save(out)
+    if kind == "asis":
+        ImageOps.exif_transpose(Image.open(src)).convert("RGB").resize((W, H), Image.LANCZOS).save(out)
+    else:
+        (render_frame(src, line) if kind == "frame" else _video_layer(line)).save(out)

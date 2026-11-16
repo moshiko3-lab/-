@@ -12,6 +12,10 @@ the same thing never go out together.
 
 ## What a story looks like
 
+**A picture that is already 9:16** (1080×1920: a story the school designed) goes
+up exactly as it is, with only a song added: no wordmark, no line, no crop.
+Everything below is for an ordinary photo.
+
 The photo fills the screen. Over it, quietly, in the site's type: the
 `SHOK`**`O`**`GI` wordmark small and white at the top (over a faint shade that
 deepens where the photo is bright behind it), and at the foot, on a soft shade that deepens only for a
