@@ -579,7 +579,8 @@ def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False, mode=None):
     mode "clean": always the clean hand (Figtree Light, the pink pill), only places change.
     mode "balanced": mostly the clean hand, now and then the wordmark's condensed capitals,
     plain boxes or the card; nothing tilted, no emoji; shokogi.com on about one story in
-    three. mode "mixed": every hand, tilts, stickers, emoji."""
+    three. mode "mixed": every hand, tilts, stickers, emoji; shokogi.com, too, on about
+    one story in three."""
     mode = mode or ("clean" if clean else "mixed")
     rt = [r.get("treatment") for r in recent][-3:]
     rp = [r.get("pill") for r in recent][-1:]
@@ -605,7 +606,9 @@ def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False, mode=None):
                 "box": rnd.choice(["white", "dark"]), "emoji": "", "mode": mode}
     ts = [t for t in TREATMENTS if is_image or t != "card"]
     t = rnd.choice([x for x in ts if x not in rt] or ts)
-    look = {"treatment": t, "pill": rnd.choice([p for p in PILL_MODES if p not in rp]),
+    had_pill = any(r.get("pill") not in (None, "none") for r in recent[-2:])
+    look = {"treatment": t,
+            "pill": "none" if had_pill else rnd.choice([p for p in PILL_MODES if p not in rp]),
             "pill_scheme": rnd.choice(["pink", "pink", "white"]),
             "tilt": round(rnd.choice([-1, 1]) * rnd.uniform(2, 4.5), 1) if t in ("boxed", "script") else 0,
             "sticker_tilt": round(rnd.choice([-1, 1]) * rnd.uniform(4, 8), 1),
