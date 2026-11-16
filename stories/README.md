@@ -42,10 +42,12 @@ bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
 Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
-**Every story is laid out afresh** (`"look_mode": "mixed"`, the one in use, set in
-`stories_config.json`; `render_look` in `story_engine.py`), as described in the list
-below, with shokogi.com on about one story in three (never when either of the last
-two carried it).
+**Every story is laid out afresh** (`render_look` in `story_engine.py`). The mode in
+use is `"look_mode": "story"` (set in `stories_config.json`): the hands light, bold,
+boxed (white or dark), script and card in turn, but no neon, no emoji, no stickers,
+only the handwriting slightly tilted, and shokogi.com on about one story in three
+(never when either of the last two carried it). `"mixed"` is the fuller version
+described in the list below (also neon, emoji, tilted boxes and stickers).
 
 Other modes: `"classic"` is the design as first approved, the same on every story
 (shokogi.com again on about one in three). With `"look_mode": "balanced"` the

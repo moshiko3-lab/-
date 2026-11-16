@@ -579,7 +579,9 @@ def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False, mode=None):
     mode "clean": always the clean hand (Figtree Light, the pink pill), only places change.
     mode "balanced": mostly the clean hand, now and then the wordmark's condensed capitals,
     plain boxes or the card; nothing tilted, no emoji; shokogi.com on about one story in
-    three. mode "mixed": every hand, tilts, stickers, emoji; shokogi.com, too, on about
+    three. mode "story": light, bold, boxed, script and card in turn, but no neon, no emoji,
+    no stickers, only the handwriting slightly tilted; shokogi.com on about one in three.
+    mode "mixed": every hand, tilts, stickers, emoji; shokogi.com, too, on about
     one story in three."""
     mode = mode or ("clean" if clean else "mixed")
     rt = [r.get("treatment") for r in recent][-3:]
@@ -588,6 +590,23 @@ def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False, mode=None):
         return {"treatment": "light", "pill": rnd.choice([p for p in ("under", "opposite") if p not in rp]),
                 "pill_scheme": "pink", "tilt": 0, "sticker_tilt": 0, "eyebrow": rnd.random() < 0.5,
                 "box": "white", "emoji": "", "mode": mode}
+    if mode == "story":
+        # the story feel without the ornament: no neon, no emoji, no stickers; only the
+        # handwriting leans, a little
+        weights = {"light": 30, "bold": 20, "boxed": 20, "script": 15, "card": 15}
+        if not is_image:
+            weights.pop("card")
+        for t in rt[-2:]:
+            if t != "light":
+                weights.pop(t, None)
+        weights = weights or {"light": 1}
+        t = rnd.choices(list(weights), list(weights.values()))[0]
+        had_pill = any(r.get("pill") not in (None, "none") for r in recent[-2:])
+        return {"treatment": t, "pill": "none" if had_pill else rnd.choice(["under", "opposite"]),
+                "pill_scheme": "pink",
+                "tilt": round(rnd.choice([-1, 1]) * rnd.uniform(1.5, 2.5), 1) if t == "script" else 0,
+                "sticker_tilt": 0, "eyebrow": t in ("light", "bold", "card") and rnd.random() < 0.5,
+                "box": rnd.choice(["white", "dark"]), "emoji": "", "mode": mode}
     if mode == "balanced":
         weights = {"light": 50, "bold": 20, "boxed": 15, "card": 15}
         if not is_image:
