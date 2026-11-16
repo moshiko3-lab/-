@@ -27,7 +27,8 @@ stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
 written in; "paused": true stops every real run before it touches anything.
 Each story gets a freshly drawn look (story_engine.render_look): where the words
 sit and where shokogi.com goes, unlike the story just before it. "look_mode":
-"balanced" (the default): mostly the clean hand (Figtree Light), now and then the
+"classic" (the default): the design as first approved, the same on every story,
+with shokogi.com on about one story in three. "balanced": mostly the clean hand (Figtree Light), now and then the
 wordmark's condensed capitals, plain boxes or the card, nothing tilted, no emoji,
 and shokogi.com on about one story in three; "clean": always the clean hand with
 the pill; "mixed": every hand (also script, neon), tilts, stickers, emoji.
@@ -469,13 +470,23 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                         trk = _choose_track(log)
                         title = TOPIC_TITLES.get(_topic(name))
                         look = None
+                        pill = True
+                        mode = cfg.get("look_mode", "classic")
                         if designed:
                             style = None
+                        elif mode == "classic":
+                            # the design as first approved, always the same; shokogi.com on about one
+                            # story in three (not when either of the last two carried it)
+                            style = "classic"
+                            last = sorted((x for x in log["items"].values() if x.get("style")),
+                                          key=lambda x: x.get("updated") or "")[-2:]
+                            pill = not any(x.get("pill") for x in last)
+                            it["pill"] = pill
                         elif cfg.get("looks", True):
                             # a freshly drawn story look, unlike the ones just before it
                             style = "look"
                             look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
-                                    "mode": cfg.get("look_mode", "balanced"),
+                                    "mode": mode,
                                     "recent": [x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
                                         key=lambda x: x.get("updated") or "")[-3:]]}
@@ -487,7 +498,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                         out = os.path.join(WORK, fid + "_story.mp4")
                         story_engine.make_story(src, out, it["line"], track=trk, designed=designed,
                                                 style=style if style in story_engine.STYLES else "classic",
-                                                title=title, look=look)
+                                                title=title, look=look, pill=pill)
                         if look is not None:
                             it["look"] = look.get("drawn")
                         it["track"] = trk["file"]

@@ -42,8 +42,12 @@ bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
 Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
-**Every story is laid out afresh**, so the day's stories do not look alike
-(`render_look` in `story_engine.py`). By default (`"look_mode": "balanced"`) the
+**The design is the one first approved** (`"look_mode": "classic"`, the default):
+the same on every story, as described above, except that shokogi.com is on about
+one story in three (never when either of the last two carried it).
+
+**Other modes**, for when the stories should vary more: every story laid out afresh
+(`render_look` in `story_engine.py`). With `"look_mode": "balanced"` the
 hand is mostly the clean one described above, Figtree Light, and now and then the
 wordmark's condensed capitals, plain white or dark boxes, or the card: never the
 same playful one twice in three stories, never three clean ones in a row, nothing

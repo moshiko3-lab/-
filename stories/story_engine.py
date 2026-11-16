@@ -131,16 +131,17 @@ def _eyebrow(d, x, y, align="center"):
     draw_spaced(d, cx, y, EYEBROW, ef, 7, WHITE + (215,))
 
 
-def _classic(d, line):
-    """Centred at the foot: eyebrow, the line in light type, the pink pill."""
+def _classic(d, line, pill=True):
+    """Centred at the foot: eyebrow, the line in light type, the pink pill (when `pill`)."""
     lf, lines = _fit(d, line, LINE_SIZE, W - 220, smaller=48)
     lh, pill_h = int(lf.size * 1.32), 64
-    y = SAFE_BOTTOM - 20 - (30 + 44 + len(lines) * lh + 40 + pill_h)
+    y = SAFE_BOTTOM - 20 - (30 + 44 + len(lines) * lh + (40 + pill_h if pill else 0))
     _eyebrow(d, W / 2, y + 15)
     y += 30 + 44
     for l in lines:
         d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
-    _pill(d, W / 2, y + 40)
+    if pill:
+        _pill(d, W / 2, y + 40)
 
 
 def _editorial(d, line):
@@ -221,7 +222,7 @@ def _frame(d, line):
         d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
 
 
-def layout(line, shade=1.0, style="classic", title=None):
+def layout(line, shade=1.0, style="classic", title=None, pill=True):
     """An RGBA layer over a full-screen photo: a soft shade at the foot and the words,
     set in one of STYLES. Quiet on purpose. `shade` deepens the shade for a bright
     photo, so light type still reads."""
@@ -233,7 +234,7 @@ def layout(line, shade=1.0, style="classic", title=None):
     elif style == "headline": _headline(d, line, title)
     elif style == "tag": _tag(d, line)
     elif style == "frame": _frame(d, line)
-    else: _classic(d, line)
+    else: _classic(d, line, pill)
     soft = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     soft.putalpha(txt.split()[3].point(lambda a: int(a * (0.22 if style == "tag" else 0.45))))
     layer.alpha_composite(soft.filter(ImageFilter.GaussianBlur(9)))
@@ -319,7 +320,7 @@ def _card(im, line):
     return frame
 
 
-def render_frame(src, line, style="classic", title=None):
+def render_frame(src, line, style="classic", title=None, pill=True):
     """The finished picture for a photo, in one of STYLES."""
     try:
         import pillow_heif
@@ -339,7 +340,7 @@ def render_frame(src, line, style="classic", title=None):
     zone = frame.crop((0, 1150, W, 1660) if style == "headline" else TEXT_ZONE).convert("L")
     lum = sum(zone.getdata()) / (zone.width * zone.height)
     frame.alpha_composite(layout(line, shade=min(1.6, max(0.85, 0.85 + (lum - 95) / 110)),
-                                 style=style, title=title))
+                                 style=style, title=title, pill=pill))
     return frame.convert("RGB")
 
 
@@ -820,11 +821,11 @@ def tonemap(path):
             f"zscale=p=bt709,tonemap=tonemap=mobius:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
 
 
-def _video_layer(line, style="classic", title=None):
+def _video_layer(line, style="classic", title=None, pill=True):
     style = "classic" if style == "card" else style      # a card needs a still photo
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     wordmark(layer, shade=1.6, align="left" if style in LEFT_STYLES else "center")   # a video changes under the wordmark
-    layer.alpha_composite(layout(line, shade=1.2, style=style, title=title))      # and under the words
+    layer.alpha_composite(layout(line, shade=1.2, style=style, title=title, pill=pill))      # and under the words
     return layer
 
 
@@ -847,12 +848,13 @@ ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500
 
 
 def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, designed=None,
-               style="classic", title=None, look=None):
+               style="classic", title=None, look=None, pill=True):
     """designed: True posts a picture untouched, False always draws the design,
     None decides by shape (a 9:16 picture counts as already designed).
     style: one of STYLES; title: the topic, for "headline".
     look: a spec dict (seed, recent, emoji) for a freshly drawn story look instead of
-    a fixed style; the look drawn is written back into it as look["drawn"]."""
+    a fixed style; the look drawn is written back into it as look["drawn"].
+    pill: False leaves shokogi.com off a fixed-style story."""
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
@@ -863,7 +865,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
             if look is not None and not as_is:
                 look["drawn"] = _render_apart("look", src, line or "-", tmp, style, title, look)
             else:
-                _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title)
+                _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title, {"pill": pill})
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp,
                  "-ss", str(trk.get("start", 0)), "-i", trk["file"],
@@ -875,7 +877,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
         if look is not None:
             look["drawn"] = _render_apart("vlook", "-", line, tmp, style, title, look)
         else:
-            _render_apart("layer", "-", line, tmp, style, title)
+            _render_apart("layer", "-", line, tmp, style, title, {"pill": pill})
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
         frame = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1"
@@ -920,4 +922,5 @@ if __name__ == "__main__":
     elif kind == "asis":
         ImageOps.exif_transpose(Image.open(src)).convert("RGB").resize((W, H), Image.LANCZOS).save(out)
     else:
-        (render_frame(src, line, style, title) if kind == "frame" else _video_layer(line, style, title)).save(out)
+        pill = spec.get("pill", True)
+        (render_frame(src, line, style, title, pill) if kind == "frame" else _video_layer(line, style, title, pill)).save(out)
