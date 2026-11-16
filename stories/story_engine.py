@@ -264,14 +264,17 @@ ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500
        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart"]
 
 
-def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS):
+def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, designed=None):
+    """designed: True posts a picture untouched, False always draws the design,
+    None decides by shape (a 9:16 picture counts as already designed)."""
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
     small = out + ".small.mp4"
     try:
         if is_img:
-            _render_apart("asis" if is_finished_story(src) else "frame", src, line or "-", tmp)
+            as_is = is_finished_story(src) if designed is None else designed
+            _render_apart("asis" if as_is else "frame", src, line or "-", tmp)
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",

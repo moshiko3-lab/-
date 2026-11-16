@@ -17,7 +17,10 @@ ignore_daily_cap=True lets one run go past per_day. only=["name.jpg", ...] (name
 or Drive ids) runs just those files, whatever their place in the queue. Every rendered story leaves
 a small preview in /mnt/files/previews/<drive file id>.jpg.
 
-stories_config.json: "language" ("en" or "es") is the one language a story is
+stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
+"stream" names the current source, and only its stories count toward per_day;
+"as_is_9x16": false puts the design on every picture, even a story-shaped one.
+"language" ("en" or "es") is the one language a story is
 written in; "paused": true stops every real run before it touches anything.
 
 Every step is recorded per Drive file id in stories_log.json, so a run that
@@ -75,7 +78,7 @@ TEXTS = [
 AUTO_NAME = re.compile(
     r"(?i)\b(img|vid|mov|dsc[nf]?|dji|gopr\w*|gopro|pxl|mvimg|screenshot|screen|recording|whatsapp|"
     r"image|video|photo|foto|movie|copy|copia|untitled|captura|pantalla|edited|final|at|"
-    r"test|example|sample|demo|story|stories|reel|clip|new|draft|ejemplo|prueba|nuevo|"
+    r"test|example|sample|demo|story|stories|reel|clip|new|draft|ejemplo|prueba|nuevo|shop|"
     r"צילום|מסך|תמונה|סרטון|וידאו|דוגמה|דוגמא|בדיקה|ניסיון|חדש|סטורי|טיוטה)\b")
 SAFE_TEXT = re.compile(r"^[A-Za-zÀ-ÿ0-9 ,.!¡?¿'’&:+\-]+$")
 
@@ -195,18 +198,23 @@ def _choose_track(log):
 # ---------------------------------------------------------------- the steps
 
 def _list_inbox(cfg):
-    files, token = [], None
-    while True:
-        args = {"folder_id": cfg["inbox"], "orderBy": "createdTime", "pageSize": 100,
-                "q": "(mimeType contains 'image/' or mimeType contains 'video/') and trashed = false",
-                "fields": "nextPageToken,files(id,name,mimeType,size,createdTime)"}
-        if token:
-            args["pageToken"] = token
-        d = _tool("GOOGLEDRIVE_FIND_FILE", args)
-        files += d.get("files") or []
-        token = d.get("nextPageToken")
-        if not token:
-            return files
+    """Every picture or video directly inside the source folder(s): `inbox_folders`
+    when the config lists several, otherwise the single `inbox`."""
+    files = []
+    for folder in cfg.get("inbox_folders") or [cfg["inbox"]]:
+        token = None
+        while True:
+            args = {"folder_id": folder, "orderBy": "createdTime", "pageSize": 100,
+                    "q": "(mimeType contains 'image/' or mimeType contains 'video/') and trashed = false",
+                    "fields": "nextPageToken,files(id,name,mimeType,size,createdTime)"}
+            if token:
+                args["pageToken"] = token
+            d = _tool("GOOGLEDRIVE_FIND_FILE", args)
+            files += d.get("files") or []
+            token = d.get("nextPageToken")
+            if not token:
+                break
+    return files
 
 
 def _download(f, dest):
@@ -299,9 +307,10 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
 
         per_day = int(cfg.get("per_day", MAX_PER_RUN))
         today = _panama_day(_now())
+        stream = cfg.get("stream")
         done_today = sum(1 for it in log["items"].values()
                          if it.get("status") == "published" and it.get("published_at")
-                         and _panama_day(it["published_at"]) == today)
+                         and _panama_day(it["published_at"]) == today and it.get("stream") == stream)
         status["today"] = {"per_day": per_day, "already_published": done_today}
         published_now = 0
         day_room = MAX_PER_RUN if ignore_daily_cap else per_day - done_today
@@ -311,6 +320,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
             if only and name not in only and fid not in only:
                 continue                    # a run for chosen files leaves the rest alone
             it = log["items"].get(fid) or {"name": name, "attempts": 0}
+            it.setdefault("stream", cfg.get("stream"))
             row = {"name": name}
             status["results"].append(row)
 
@@ -342,7 +352,9 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             src = os.path.join(WORK, fid + ".video")
                             os.replace(raw, src)
 
-                        if mime.startswith("image/") and story_engine.is_finished_story(src):
+                        designed = (mime.startswith("image/") and cfg.get("as_is_9x16", True)
+                                    and story_engine.is_finished_story(src))
+                        if designed:
                             it["as_is"] = True              # already a designed story: only the song is added
                             it["line"] = ""
                         else:
@@ -360,7 +372,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
 
                         beat(f"rendering {name}")
                         out = os.path.join(WORK, fid + "_story.mp4")
-                        story_engine.make_story(src, out, it["line"], track=trk)
+                        story_engine.make_story(src, out, it["line"], track=trk, designed=designed)
                         it["track"] = trk["file"]
                         it["track_title"] = trk.get("title")
                         it["preview"] = _save_preview(story_engine, fid, src, out, it["line"],

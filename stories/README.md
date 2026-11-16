@@ -1,17 +1,17 @@
 # Daily Instagram stories
 
-Put a photo or a video in the Drive folder **SHOKOGI Instagram Stories**
-(owned by the school's account, shared with the one Composio uses). Every
-evening up to three of them become branded 9:16 stories on `shokogi_venao`
-and move to its **פורסם** subfolder. Nothing else to do.
+**Now:** every morning at about 9:00, Panama time, four photos from the Drive
+folder **SHOKOGI Instagram Stories → תמונות מהאתר** (its eight topic folders,
+photos taken from shokogi.com: surf camps, kids camp, lessons, foil, Ocean
+Monkey, rentals, shop, general) go up as stories on `shokogi_venao` in the
+full-screen design below, and move to **פורסם**. One of each topic before the
+second of any. The settings are `inbox_folders`, `per_day` (4), `stream` and
+`as_is_9x16` (false: every one of these photos gets the design) in
+`stories_config.json`.
 
-A file the school decides not to post goes in the **לא לפרסום** subfolder:
-only pictures directly in the main folder are ever picked up.
-
-Three a day is `per_day` in `stories_config.json`, counted by the calendar day
-in Panama. Files waiting their turn go out one of each topic before the second
-of any (the topic is the file name without its numbers), so three photos of
-the same thing never go out together.
+Earlier the source was the main folder itself, which holds stories the school
+designed (1080×1920): those go up untouched with a song when `as_is_9x16` is
+true. A file not to post goes in the **לא לפרסום** subfolder.
 
 ## What a story looks like
 
