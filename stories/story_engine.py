@@ -1,72 +1,192 @@
-"""SHOKOGI story renderer: one photo or video in, one branded 9:16 story video out.
+"""SHOKOGI story renderer: one photo or video in, one 9:16 story out, laid out
+like the mobile home page of shokogi.com.
 
-Runs in the Composio workbench sandbox, where the brand assets and music live
-under /mnt/files. make_story() returns the catalog entry of the track it used.
+    photo (top, full width)  with the SHOKOGI wordmark over it
+    PLAYA VENAO · PANAMA     pink, letter-spaced            (the site's eyebrow)
+    SPANISH LINE             Barlow Condensed, uppercase    (the site's H1)
+    English line             Figtree, warm grey             (the site's subtitle)
+    ( SHOKOGI.COM )          pink pill                      (the site's button)
+
+A photo becomes a still picture with a song under it: Instagram's API cannot
+attach music to a photo story, so it goes up as a video whose every frame is
+the same picture. Nothing moves. A video stays a video in the photo area.
+
+Runs in the Composio workbench sandbox; STORY_BRAND_DIR points elsewhere for
+local previews. make_story() returns the catalog entry of the track it used.
 """
-import subprocess, json, random, os, re
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+import json, os, random, re, subprocess
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 import imageio_ffmpeg
 
 FF = imageio_ffmpeg.get_ffmpeg_exe()
-B = "/mnt/files/brand"
+B = os.environ.get("STORY_BRAND_DIR", "/mnt/files/brand")
 W, H = 1080, 1920
-PINK = (244, 110, 149); DARK = (26, 23, 25); CREAM = (243, 240, 235)
+PINK = (244, 110, 149); DARK = (26, 23, 25); BODY = (76, 75, 71); WHITE = (255, 255, 255)
+PHOTO_SECS = 10                     # how long a photo story plays
 MIN_SECS, MAX_SECS = 3, 60          # Instagram's limits for a story video
+SAFE_TOP, SAFE_BOTTOM = 230, H - 280    # clear of the story header and the reply bar
+SIDE = 72
+EYEBROW = "PLAYA VENAO · PANAMA"
+BUTTON = "SHOKOGI.COM"
 
 
-def font(sz, wght=700):
-    f = ImageFont.truetype(f"{B}/Figtree.ttf", sz)
-    try: f.set_variation_by_axes([wght])
+# ---------------------------------------------------------------- type
+
+def figtree(size, weight):
+    f = ImageFont.truetype(f"{B}/Figtree.ttf", size)
+    try: f.set_variation_by_axes([weight])
     except Exception: pass
     return f
 
 
-def white_logo(width):
-    lg = Image.open(f"{B}/logo.png").convert("RGBA")
-    a = lg.split()[3]
-    wl = Image.new("RGBA", lg.size, (255, 255, 255, 0)); wl.putalpha(a)
-    r = width / lg.width
-    return wl.resize((width, int(lg.height * r)), Image.LANCZOS)
+def barlow(size, weight="ExtraBold"):
+    return ImageFont.truetype(f"{B}/BarlowCondensed-{weight}.ttf", size)
 
 
-def wrap(draw, text, f, maxw):
+def spaced_width(text, font, tracking):
+    return sum(font.getlength(c) for c in text) + tracking * (len(text) - 1)
+
+
+def draw_spaced(d, cx, cy, text, font, tracking, fill, colors=None):
+    """Centred text with letter-spacing (PIL has none); `colors` overrides per index."""
+    x = cx - spaced_width(text, font, tracking) / 2
+    for i, c in enumerate(text):
+        d.text((x, cy), c, font=font, fill=(colors or {}).get(i, fill), anchor="lm")
+        x += font.getlength(c) + tracking
+
+
+def wrap(d, text, font, maxw):
     words, lines, cur = text.split(), [], ""
     for w in words:
         t = (cur + " " + w).strip()
-        if draw.textlength(t, font=f) <= maxw: cur = t
+        if d.textlength(t, font=font) <= maxw: cur = t
         else: lines.append(cur); cur = w
     if cur: lines.append(cur)
     return lines
 
 
-def overlay(text_es, text_en):
-    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    g = Image.new("L", (1, H))
-    for y in range(H):
-        top = max(0, 1 - y / 520) * 130
-        bot = max(0, (y - (H - 950)) / 950) * 225
-        g.putpixel((0, y), int(max(top, bot)))
-    shade = Image.new("RGBA", (W, H), (*DARK, 0)); shade.putalpha(g.resize((W, H)))
-    ov = Image.alpha_composite(ov, shade)
-    lg = white_logo(250)
-    ov.alpha_composite(lg, ((W - lg.width) // 2, 290))      # below Instagram's top bar
-    d = ImageDraw.Draw(ov)
-    fes, fen, fsite = font(68, 800), font(44, 500), font(40, 700)
-    y = H - 430                                              # above the reply box
-    site = "shokogi.com  ·  link in bio"
-    sw = d.textlength(site, font=fsite); pad = 34
-    d.rounded_rectangle(((W - sw) / 2 - pad, y - 18, (W + sw) / 2 + pad, y + 62), radius=40, fill=PINK)
-    d.text((W / 2, y + 22), site, font=fsite, fill="white", anchor="mm")
-    en_lines = wrap(d, text_en, fen, W - 160)
-    es_lines = wrap(d, text_es, fes, W - 160)
-    yy = y - 50 - len(en_lines) * 56
-    for l in en_lines:
-        d.text((W / 2, yy), l, font=fen, fill=CREAM, anchor="mm"); yy += 56
-    yy = y - 80 - len(en_lines) * 56 - len(es_lines) * 82
-    for l in es_lines:
-        d.text((W / 2, yy), l, font=fes, fill="white", anchor="mm"); yy += 82
-    return ov
+def balanced(d, text, font, maxw):
+    """As few lines as fit, with the words spread evenly: no lone word on the last line."""
+    import itertools
+    words = text.split()
+    n = len(wrap(d, text, font, maxw))
+    if n <= 1:
+        return [text]
+    best, best_score = None, None
+    for cuts in itertools.combinations(range(1, len(words)), n - 1):
+        parts = [" ".join(words[a:b]) for a, b in zip((0,) + cuts, cuts + (len(words),))]
+        widths = [d.textlength(p, font=font) for p in parts]
+        if max(widths) <= maxw and (best_score is None or max(widths) - min(widths) < best_score):
+            best, best_score = parts, max(widths) - min(widths)
+    return best or wrap(d, text, font, maxw)
 
+
+# ---------------------------------------------------------------- layout
+
+def _text_block(d, es, en):
+    """The lines under the photo and the height they need."""
+    h1 = barlow(96)
+    sub = figtree(42, 400)
+    es_lines = balanced(d, es.upper(), h1, W - 2 * SIDE)
+    if len(es_lines) > 2:                       # a long line steps down a size
+        h1 = barlow(80)
+        es_lines = balanced(d, es.upper(), h1, W - 2 * SIDE)
+    en_lines = balanced(d, en, sub, W - 2 * SIDE - 40)
+    h1_lh, sub_lh = int(h1.size * 1.06), 66
+    height = 34 + 52 + len(es_lines) * h1_lh + 34 + len(en_lines) * sub_lh + 64 + 124
+    return h1, sub, es_lines, en_lines, h1_lh, sub_lh, height
+
+
+def layout(es, en):
+    """Where the photo ends, and an RGBA layer with everything except the photo."""
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    h1, sub, es_lines, en_lines, h1_lh, sub_lh, block = _text_block(d, es, en)
+    pad = 72
+    photo_h = min(1040, SAFE_BOTTOM - block - 2 * pad)
+    d.rectangle((0, photo_h, W, H), fill=WHITE)
+
+    # the text block, centred in the white area above the reply bar
+    y = photo_h + (SAFE_BOTTOM - photo_h - block) // 2 + 34
+    draw_spaced(d, W / 2, y + 18, EYEBROW, figtree(31, 700), 9.5, PINK)
+    y += 52 + 34
+    for l in es_lines:
+        d.text((W / 2, y + h1_lh / 2), l, font=h1, fill=DARK, anchor="mm"); y += h1_lh
+    y += 34
+    for l in en_lines:
+        d.text((W / 2, y + sub_lh / 2), l, font=sub, fill=BODY, anchor="mm"); y += sub_lh
+    y += 64
+    bf = figtree(34, 700)
+    bw = spaced_width(BUTTON, bf, 8.5) + 2 * 96
+    d.rounded_rectangle(((W - bw) / 2, y, (W + bw) / 2, y + 124), radius=62, fill=PINK)
+    draw_spaced(d, W / 2, y + 62, BUTTON, bf, 8.5, WHITE)
+    return photo_h, layer
+
+
+MARK_Y = SAFE_TOP + 20
+
+
+def wordmark(base, dark=False):
+    """The site's SHOKOGI wordmark (pink O) over the top of the photo: white with a
+    light shade, as on the site, or dark where the photo is too bright behind it."""
+    if not dark:
+        g = Image.new("L", (1, 420))
+        for y in range(420):
+            g.putpixel((0, y), int(70 * (1 - y / 420) ** 1.6))
+        shade = Image.new("RGBA", (W, 420), (*DARK, 0)); shade.putalpha(g.resize((W, 420)))
+        base.alpha_composite(shade)
+    mark = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    draw_spaced(ImageDraw.Draw(mark), W / 2, MARK_Y, "SHOKOGI", barlow(64, "Bold"), 19,
+                DARK if dark else WHITE, colors={4: PINK})
+    halo = Image.new("RGBA", (W, H), WHITE + (0,) if dark else (0, 0, 0, 0))
+    halo.putalpha(mark.split()[3].point(lambda a: a // 2 if dark else a // 3))
+    base.alpha_composite(halo.filter(ImageFilter.GaussianBlur(6)))
+    base.alpha_composite(mark)
+
+
+def smart_fit(im, size):
+    """Crop to fill `size`. Sideways, keep the busiest part of the picture (edges and
+    colour), pulled toward the centre so it moves only for a reason. Up and down, keep
+    the upper part: that is where heads are, and the busiest part of a surf photo is
+    usually the splash at the bottom."""
+    import numpy as np
+    tw, th = size
+    wide = im.width / im.height > tw / th
+    if not wide:
+        return ImageOps.fit(im, size, Image.LANCZOS, centering=(0.5, 0.33))
+    small = im.resize((240, max(1, int(240 * im.height / im.width))))
+    e = np.asarray(small.convert("L").filter(ImageFilter.FIND_EDGES), float) \
+        + 0.5 * np.asarray(small.convert("HSV").split()[1], float)
+    prof = e.sum(0)
+    span = small.height * tw / th
+    win = max(1, min(len(prof), int(round(span))))
+    sums = np.convolve(prof, np.ones(win), "valid")
+    if len(sums) <= 1:
+        return ImageOps.fit(im, size, Image.LANCZOS)
+    pos = np.arange(len(sums)) / (len(sums) - 1)
+    best = float(pos[int(np.argmax(sums * (1 - 0.4 * np.abs(pos - 0.5) ** 2 / 0.25)))])
+    return ImageOps.fit(im, size, Image.LANCZOS, centering=(best, 0.5))
+
+
+def render_frame(src, es, en):
+    """The finished picture for a photo."""
+    photo_h, layer = layout(es, en)
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except Exception:
+        pass
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    frame = Image.new("RGBA", (W, H), WHITE + (255,))
+    frame.paste(smart_fit(im, (W, photo_h)), (0, 0))
+    behind = frame.crop((W // 2 - 260, MARK_Y - 50, W // 2 + 260, MARK_Y + 50)).convert("L")
+    bright = sum(behind.getdata()) / (behind.width * behind.height) > 165
+    wordmark(frame, dark=bright)
+    frame.alpha_composite(layer)
+    return frame.convert("RGB")
+
+
+# ---------------------------------------------------------------- media
 
 def pick_track(seed=None):
     cat = json.load(open("/mnt/files/music/catalog.json"))
@@ -104,56 +224,54 @@ def tonemap(path):
             f"zscale=p=bt709,tonemap=tonemap=mobius:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
 
 
-def make_story(src, out, text_es, text_en, seed=None, photo_secs=7, track=None):
-    tmp = out + ".ov.png"
-    overlay(text_es, text_en).save(tmp)
+ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "3500k", "-bufsize", "7000k",
+       "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart"]
+
+
+def make_story(src, out, text_es, text_en, seed=None, track=None, photo_secs=PHOTO_SECS):
     trk = track or pick_track(seed)
-    is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic")
-    fill = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1"
-    if is_img:
-        im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
-        base = out + ".base.jpg"
-        bg = ImageOps.fit(im, (W, H)).filter(ImageFilter.GaussianBlur(40))
-        fg = ImageOps.contain(im, (W, H)) if im.width > im.height * 0.75 else ImageOps.fit(im, (W, H))
-        bg.paste(fg, ((W - fg.width) // 2, (H - fg.height) // 2)); bg.save(base, quality=95)
-        dur = photo_secs
-        vf = (f"[0:v]scale=1188:2112,zoompan=z='min(zoom+0.0007,1.08)':d={dur*30}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=30[b];"
-              f"[b][1:v]overlay=0:0,format=yuv420p[v]")
-        cmd = [FF, "-y", "-loop", "1", "-t", str(dur), "-i", base, "-i", tmp, "-i", trk["file"],
-               "-filter_complex", vf + f";[2:a]afade=t=in:d=0.5,afade=t=out:st={dur-1}:d=1,volume=0.8[a]",
-               "-map", "[v]", "-map", "[a]", "-t", str(dur)]
-    else:
+    is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
+    tmp = out + ".png"
+    small = out + ".small.mp4"
+    try:
+        if is_img:
+            render_frame(src, text_es, text_en).save(tmp)
+            dur = photo_secs
+            run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
+                 "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
+                 "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC, out])
+            return trk
+
+        photo_h, layer = layout(text_es, text_en)
+        wordmark(layer)                 # a video's brightness is unknown: white with its shade
+        layer.save(tmp)
         real = probe_duration(src) or 15
         dur = min(max(real, MIN_SECS), MAX_SECS)
-        frame = fill + tonemap(src)
+        frame = (f"scale={W}:{photo_h}:force_original_aspect_ratio=increase,crop={W}:{photo_h},setsar=1"
+                 + tonemap(src))
 
         def video_cmd(source, frame_filters):
             # a clip shorter than Instagram's minimum holds its last frame
             hold = f",tpad=stop_mode=clone:stop_duration={MIN_SECS - real:.2f}" if real < MIN_SECS else ""
-            vf = f"[0:v]{frame_filters},fps=30{hold}[b];[b][1:v]overlay=0:0,format=yuv420p[v]"
+            vf = (f"[0:v]{frame_filters},fps=30{hold},pad={W}:{H}:0:0:white[b];"
+                  f"[b][1:v]overlay=0:0,format=yuv420p[v]")
             if has_audio(source):
                 af = (f"[0:a]volume=0.6,apad[o];[2:a]volume=0.35,afade=t=out:st={max(dur-1.5,0)}:d=1.5[m];"
                       f"[o][m]amix=inputs=2:duration=shortest[a]")
             else:
                 af = f"[2:a]afade=t=in:d=0.5,afade=t=out:st={max(dur-1.5,0)}:d=1.5,volume=0.8[a]"
             return [FF, "-y", "-i", source, "-i", tmp, "-i", trk["file"],
-                    "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}"]
-        cmd = video_cmd(src, frame)
-    enc = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-maxrate", "3500k", "-bufsize", "7000k",
-           "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2", "-movflags", "+faststart", out]
-    small = out + ".small.mp4"
-    try:
+                    "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}", *ENC, out]
+
         try:
-            run(cmd + enc)
+            run(video_cmd(src, frame))
         except RuntimeError:
-            if is_img:
-                raise
             # The sandbox has little memory and a large source (4K, HDR) can get the
             # one-pass render killed. Shrink the source on its own first, then render.
             run([FF, "-y", "-threads", "1", "-i", src, "-t", f"{dur:.2f}", "-vf", frame + ",format=yuv420p",
                  "-c:v", "libx264", "-preset", "ultrafast", "-crf", "16", "-c:a", "aac", "-b:a", "192k", small])
-            run(video_cmd(small, "setsar=1") + enc)
+            run(video_cmd(small, "setsar=1"))
+        return trk
     finally:
-        for f in (tmp, out + ".base.jpg", small):
+        for f in (tmp, small):
             if os.path.exists(f): os.remove(f)
-    return trk

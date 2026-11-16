@@ -12,15 +12,27 @@ the same thing never go out together.
 
 ## What a story looks like
 
-* 1080×1920. Photos (HEIC from an iPhone too) become a 7-second clip with a
-  slow zoom over a blurred fill; videos are cropped to fill the frame and cut
-  at 60 seconds (Instagram's limit; anything under 3 seconds holds its last
-  frame).
-* HDR video, which is what an iPhone records by default, is tone-mapped to
-  ordinary colour; without it the story comes out grey and washed out.
-* The white SHOKOGI logo at the top and a line in Spanish with English below,
-  over a pink `shokogi.com · link in bio` pill — all placed clear of the parts
-  Instagram covers.
+It is laid out like the mobile home page of shokogi.com, top to bottom:
+
+* the photo, full width, with the site's `SHOK`**`O`**`GI` wordmark over it
+  (white with a light shade, or dark where the photo is bright behind it);
+* on white, the site's eyebrow `PLAYA VENAO · PANAMA` (Figtree bold, pink,
+  letter-spaced), the Spanish line as the site's heading (Barlow Condensed
+  ExtraBold, uppercase), the English line as its subtitle (Figtree, warm grey),
+  and a pink pill button reading `SHOKOGI.COM`.
+
+Details:
+
+* 1080×1920, everything clear of the parts Instagram covers.
+* A photo (HEIC from an iPhone too) is a still picture for 10 seconds with a
+  song under it. Nothing moves. It goes up as a video only because Instagram's
+  API cannot attach music to a photo story.
+* A photo is cropped to the photo area: sideways it keeps the busiest part of
+  the picture, up and down it keeps the upper part, where heads are.
+* A video plays in the photo area, cut at 60 seconds (Instagram's limit;
+  anything under 3 seconds holds its last frame). HDR video, which is what an
+  iPhone records by default, is tone-mapped to ordinary colour; without it the
+  story comes out grey and washed out.
 * Music from Mixkit (Stock Music Free License: commercial and social use, no
   credit needed), never one of the last twelve used. A video's own sound stays
   on top.
@@ -44,7 +56,7 @@ which holds the Google Drive and Instagram connections:
 | `/mnt/files/stories_config.json` | Drive folder ids and the Instagram account id |
 | `/mnt/files/stories_log.json` | one entry per Drive file: what was published, when, with what |
 | `/mnt/files/stories_run_status.json` | the last run's progress and result |
-| `/mnt/files/brand/`, `/mnt/files/music/` | logo, Figtree font, 30 tracks and their catalog |
+| `/mnt/files/brand/`, `/mnt/files/music/` | Figtree and Barlow Condensed (the site's fonts), 30 tracks and their catalog |
 
 A workbench cell is cut off after 180 seconds, and the MCP client gives up on a
 call after about 60, so the run works in a
