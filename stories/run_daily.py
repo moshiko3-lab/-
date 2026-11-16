@@ -26,7 +26,9 @@ stories_config.json: "inbox_folders" (several source folders) or "inbox" (one);
 "language" ("en" or "es") is the one language a story is
 written in; "paused": true stops every real run before it touches anything.
 Each story gets a freshly drawn look (story_engine.render_look): where the words
-sit, their hand, where shokogi.com goes, unlike the stories just before it.
+sit and where shokogi.com goes, unlike the story just before it. "look_mode":
+"clean" (the default) keeps one hand, the clean one (Figtree Light, the pink pill);
+"mixed" also varies the hand (bold, boxed, script, neon, card, emoji, tilt).
 "looks": false goes back to fixed designs taken in turn, "styles" (optional) listing
 them from story_engine.STYLES (classic, editorial, headline, tag, frame, card).
 
@@ -247,10 +249,13 @@ def _mixed_order(files, log=None):
 
 
 def _choose_track(log):
+    """An upbeat track (marked in the catalog), not one of the last twelve used. Each
+    catalog entry's "start" is where its liveliest ten seconds begin."""
     cat = json.load(open(f"{BASE}/music/catalog.json"))
+    pool = [t for t in cat if t.get("upbeat")] or cat
     done = sorted((it for it in log["items"].values() if it.get("track")), key=lambda it: it.get("updated", ""))
     recent = {it["track"] for it in done[-12:]}
-    return random.choice([t for t in cat if t["file"] not in recent] or cat)
+    return random.choice([t for t in pool if t["file"] not in recent] or pool)
 
 
 # ---------------------------------------------------------------- the steps
@@ -468,6 +473,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             # a freshly drawn story look, unlike the ones just before it
                             style = "look"
                             look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
+                                    "clean": cfg.get("look_mode", "clean") == "clean",
                                     "recent": [x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
                                         key=lambda x: x.get("updated") or "")[-3:]]}

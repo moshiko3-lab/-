@@ -562,7 +562,9 @@ def cost_maps(frame):
     ycc = np.asarray(sm.convert("YCbCr"), float)
     y, cb, cr = ycc[..., 0], ycc[..., 1], ycc[..., 2]
     skin = ((cr >= 138) & (cr <= 175) & (cb >= 85) & (cb <= 130) & (y > 60)).astype(float)
-    return e + 260 * skin, y
+    # a face is a patch of skin, not a few scattered pixels: blur, and keep the patches
+    patch = np.asarray(Image.fromarray((skin * 255).astype("uint8")).filter(ImageFilter.BoxBlur(5)), float) / 255
+    return e + 260 * skin + 220 * np.clip((patch - 0.35) / 0.4, 0, 1), y
 
 
 def _zone_of(y, h):
@@ -570,11 +572,17 @@ def _zone_of(y, h):
     return "top" if c < 800 else ("middle" if c < 1200 else "bottom")
 
 
-def plan_look(rnd, recent=(), is_image=True, emoji=()):
+def plan_look(rnd, recent=(), is_image=True, emoji=(), clean=False):
     """Draw a look: the hand, the pill and its place, tilt, emoji. Where the words go is
-    decided afterwards, from the photo. `recent` (the looks just before) keeps it varied."""
+    decided afterwards, from the photo. `recent` (the looks just before) keeps it varied.
+    clean: always the clean hand (Figtree Light, the pink pill, no tilt, no emoji); only
+    the places change."""
     rt = [r.get("treatment") for r in recent][-3:]
     rp = [r.get("pill") for r in recent][-1:]
+    if clean:
+        return {"treatment": "light", "pill": rnd.choice([p for p in ("under", "opposite") if p not in rp]),
+                "pill_scheme": "pink", "tilt": 0, "sticker_tilt": 0, "eyebrow": rnd.random() < 0.5,
+                "box": "white", "emoji": "", "clean": True}
     ts = [t for t in TREATMENTS if is_image or t != "card"]
     t = rnd.choice([x for x in ts if x not in rt] or ts)
     look = {"treatment": t, "pill": rnd.choice([p for p in PILL_MODES if p not in rp]),
@@ -597,7 +605,7 @@ def _box_x(align, bw):
 
 def _block(look, line):
     t, align = look["treatment"], look["align"]
-    maxw = W - 2 * X0 - (60 if align != "center" else 0)
+    maxw = look.get("maxw") or W - 2 * X0 - (60 if align != "center" else 0)
     if t == "bold": b = _b_bold(line, align, maxw, look["eyebrow"])
     elif t == "boxed": b = _b_boxed(line, align, maxw - 80, look["box"])
     elif t == "script": b = _b_script(line, align, maxw - 60)
@@ -616,10 +624,13 @@ def place(look, line, maps, rnd, recent_zone=None, fixed=None):
     """Choose alignment and height for the words: the quietest stretch of the photo
     (no faces, no busy splash), a different part of the screen from the last story if
     an almost-as-quiet one exists, and some chance. Returns (block, x, y, lum)."""
+    import numpy as np
     up, down = _room(look)
     cands = []
-    for al in ([look["align"]] if fixed else _aligns(look["treatment"])):
-        blk = _block(dict(look, align=al), line)
+    shapes = [(look["align"], None)] if fixed else \
+        [(al, mw) for al in _aligns(look["treatment"]) for mw in ((None, 600) if al != "center" else (None,))]
+    for al, mw in shapes:                     # a narrow column at a side can pass beside a face
+        blk = _block(dict(look, align=al, maxw=mw), line)
         bw, bh = blk.width - 2 * PAD, blk.height - 2 * PAD
         x = _box_x(al, bw)
         if fixed:
@@ -631,9 +642,12 @@ def place(look, line, maps, rnd, recent_zone=None, fixed=None):
             if maps is None:
                 cands.append((0, y, al, blk, 110)); continue
             cost, lum = maps
-            r0, r1 = int((y - up) / 4), int((y + bh + down) / 4)
-            c0, c1 = int(max(0, x) / 4), int(min(W, x + bw) / 4)
-            cands.append((float(cost[r0:r1, c0:c1].mean()), y, al, blk, float(lum[r0:r1, c0:c1].mean())))
+            # with some air around it: words should not touch a face either
+            r0, r1 = int(max(0, y - up - 30) / 4), int(min(H, y + bh + down + 30) / 4)
+            c0, c1 = int(max(0, x - 60) / 4), int(min(W, x + bw + 60) / 4)
+            reg = cost[r0:r1, c0:c1]
+            # the average, and the worst spot: words must not cross a face even if the rest is calm
+            cands.append((float(reg.mean() + 0.3 * np.percentile(reg, 98)), y, al, blk, float(lum[r0:r1, c0:c1].mean())))
     best = min(c[0] for c in cands)
     ok = [c for c in cands if c[0] <= best * 1.22 + 2]
     ok = [c for c in ok if _zone_of(c[1], c[3].height - 2 * PAD) != recent_zone] or ok
@@ -702,7 +716,7 @@ def render_look(src, line, spec):
     im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
-    look = plan_look(rnd, recent, True, spec.get("emoji", []))
+    look = plan_look(rnd, recent, True, spec.get("emoji", []), spec.get("clean", False))
     last_zone = (recent[-1].get("zone") if recent else None)
     if look["treatment"] == "card":
         look["at"] = rnd.choice(["top", "bottom"])
@@ -734,7 +748,7 @@ def video_look_layer(line, spec):
     there is no quiet part to find), with a steady shade."""
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
-    look = plan_look(rnd, recent, False, spec.get("emoji", []))
+    look = plan_look(rnd, recent, False, spec.get("emoji", []), spec.get("clean", False))
     look["align"] = rnd.choice(_aligns(look["treatment"]))
     look["at"] = rnd.choice(["top", "bottom"])
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -829,7 +843,8 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
             else:
                 _render_apart("asis" if as_is else "frame", src, line or "-", tmp, style, title)
             dur = photo_secs
-            run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp, "-i", trk["file"],
+            run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp,
+                 "-ss", str(trk.get("start", 0)), "-i", trk["file"],
                  "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
                  "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC,
                  "-crf", "18", out])
@@ -853,7 +868,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
                       f"[o][m]amix=inputs=2:duration=shortest[a]")
             else:
                 af = f"[2:a]afade=t=in:d=0.5,afade=t=out:st={max(dur-1.5,0)}:d=1.5,volume=0.8[a]"
-            return [FF, "-y", "-i", source, "-i", tmp, "-i", trk["file"],
+            return [FF, "-y", "-i", source, "-i", tmp, "-ss", str(trk.get("start", 0)), "-i", trk["file"],
                     "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}", *ENC, out]
 
         try:

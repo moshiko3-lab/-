@@ -42,8 +42,12 @@ bright photo, the eyebrow `PLAYA VENAO · PANAMA`, the story's one line in
 Figtree Light, and `shokogi.com` on a small pink pill (the site's button colour). One language per story: `language` in
 `stories_config.json` (`en` or `es`).
 
-**Every story is laid out afresh**, the way a person makes one in the app, so the
-day's stories do not look alike (`render_look` in `story_engine.py`):
+**Every story is laid out afresh**, so the day's stories do not look alike
+(`render_look` in `story_engine.py`). By default (`"look_mode": "clean"`) the hand is
+always the clean one described above, Figtree Light with the pink pill, and only the
+places change: where the words sit (top, middle or foot; left or centre; with or
+without the eyebrow) and where shokogi.com goes (under the words, or alone at the
+other end of the screen). `"look_mode": "mixed"` also varies the hand:
 
 * **Where the words go**: the quietest stretch of the photo, top, middle or foot,
   left, centre or right. "Quiet" is measured: edges (people, boards, splash) and,
@@ -77,8 +81,11 @@ Details:
   iPhone records by default, is tone-mapped to ordinary colour; without it the
   story comes out grey and washed out.
 * Music from Mixkit (Stock Music Free License: commercial and social use, no
-  credit needed), never one of the last twelve used. A video's own sound stays
-  on top.
+  credit needed), only tracks marked `"upbeat": true` in `music/catalog.json`
+  (34 of 52, chosen by measured beat strength and tempo, then by ear for the
+  mood: no Christmas, children's or slow tracks), never one of the last twelve
+  used, and each from its `"start"`: the liveliest ten seconds of the track,
+  measured, rather than a quiet intro. A video's own sound stays on top.
 * The line comes from a rotating list of thirty (every claim in it is on
   shokogi.com). If the file has a real name — "first wave for the kids", not
   `IMG_4411` — that name is turned into the line instead, in both languages,
