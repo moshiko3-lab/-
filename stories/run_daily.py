@@ -355,14 +355,29 @@ def _download(f, dest):
     raise RuntimeError(f"download failed: {r.stderr[-300:]}")
 
 
+_TO_JPEG = r"""
+import sys
+from PIL import Image, ImageOps
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except Exception:
+    pass
+im = Image.open(sys.argv[1])
+im.draft("RGB", (2600, 2600))          # a JPEG decodes straight at a reduced scale
+im = ImageOps.exif_transpose(im).convert("RGB")
+im.thumbnail((2600, 2600), Image.LANCZOS)
+im.save(sys.argv[2], quality=93)
+"""
+
+
 def _to_jpeg(src, dest):
-    from PIL import Image, ImageOps
-    try:
-        import pillow_heif
-        pillow_heif.register_heif_opener()
-    except Exception:
-        pass
-    ImageOps.exif_transpose(Image.open(src)).convert("RGB").save(dest, quality=95)
+    """Upright (EXIF), RGB, at most 2600 px a side (plenty for a 1080x1920 story), in a
+    child process: a 24-megapixel camera photo opened inside the workbench took the
+    whole workbench down."""
+    r = subprocess.run([sys.executable, "-c", _TO_JPEG, src, dest], capture_output=True, text=True)
+    if r.returncode or not os.path.exists(dest):
+        raise RuntimeError(f"could not read the picture: {r.stderr[-300:]}")
 
 
 def _container_status(cid):
