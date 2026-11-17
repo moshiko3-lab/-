@@ -319,9 +319,15 @@ def _choose_style(log, cfg, title, is_image):
 def _list_inbox(cfg):
     """Every picture or video directly inside the source folder(s): `inbox_folders`
     when the config lists several, otherwise the single `inbox`; first those in
-    `priority_folders` (new photos the school wants out before the rest)."""
+    `priority_folders` (new photos the school wants out before the rest), each with the
+    folders directly inside it (one per day, say)."""
     files = []
     priority = list(cfg.get("priority_folders") or [])
+    for top in list(priority):           # a photographer's folder may hold one folder per day
+        d = _tool("GOOGLEDRIVE_FIND_FILE", {"q": f"'{top}' in parents and mimeType = 'application/vnd.google-apps.folder' "
+                                                 "and trashed = false", "pageSize": 100, "fields": "files(id,name)"})
+        for sub in sorted(d.get("files") or [], key=lambda f: f.get("name", "")):
+            priority.insert(priority.index(top) + 1, sub["id"])
     for folder in priority + list(cfg.get("inbox_folders") or [cfg["inbox"]]):
         token = None
         while True:
@@ -453,6 +459,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
         room = max(0, total - used - 2)
 
         files = _mixed_order(_list_inbox(cfg), log, cfg.get("ranks"))
+        run_looks = []                      # a dry run saves no log: its looks are kept here
         status["found"] = len(files)
         beat(f"{len(files)} file(s) in the inbox")
 
@@ -553,9 +560,10 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             style = "look"
                             look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
                                     "mode": mode,
-                                    "recent": [x["look"] for x in sorted(
+                                    "recent": ([x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
-                                        key=lambda x: x.get("updated") or "")[-3:]]}
+                                        key=lambda x: x.get("updated") or "")]
+                                        + (run_looks if dry_run else []))[-3:]}
                         else:
                             style = _choose_style(log, cfg, title, mime.startswith("image/"))
                         it["style"] = style
@@ -567,6 +575,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                                                 title=title, look=look, pill=pill)
                         if look is not None:
                             it["look"] = look.get("drawn")
+                            run_looks.append(it["look"])
                         it["track"] = trk["file"]
                         it["track_title"] = trk.get("title")
                         it["preview"] = _save_preview(story_engine, fid, src, out, it["line"],
