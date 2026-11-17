@@ -179,6 +179,37 @@ def _tool(slug, args, retries=2):
     return data
 
 
+STATE_NAME = "shokogi_stories_state.json"
+
+
+def _backup_state():
+    """One copy of the config, the log and today's approval record in Google Drive
+    (a file in the main stories folder), rewritten after every run and approval step:
+    the sandbox's storage has come back empty before, and bootstrap.py restores from
+    this copy. Never stops a run: a failure is returned as text."""
+    try:
+        cfg = _load(CFG_PATH, None)
+        if not cfg:
+            return "no config to back up"
+        text = json.dumps({"saved_at": _now(), "config": cfg, "log": _load(LOG_PATH, None),
+                           "approval": _load(f"{BASE}/stories_approval.json", None)}, ensure_ascii=False)
+        if cfg.get("state_file_id"):
+            try:
+                _tool("GOOGLEDRIVE_EDIT_FILE", {"file_id": cfg["state_file_id"], "content": text,
+                                                "mime_type": "application/json"})
+                return "backed up"
+            except Exception:
+                pass                          # deleted or unreachable: make a new one
+        d = _tool("GOOGLEDRIVE_CREATE_FILE_FROM_TEXT", {"file_name": STATE_NAME, "text_content": text,
+                                                        "parent_id": cfg.get("root") or cfg.get("inbox"),
+                                                        "mime_type": "application/json"})
+        cfg["state_file_id"] = d.get("id") or (d.get("file") or {}).get("id")
+        _save(CFG_PATH, cfg)
+        return "backed up (new file)"
+    except Exception as e:
+        return f"backup failed: {str(e)[:200]}"
+
+
 def _ensure_deps():
     for mod, pkg in (("imageio_ffmpeg", "imageio-ffmpeg"), ("pillow_heif", "pillow-heif")):
         try:
@@ -238,7 +269,8 @@ def _panama_day(iso):
 def _mixed_order(files, log=None):
     """Oldest first, but one of each topic before the second of any: three photos of
     the same thing do not go out on the same day. Topics already published count, so
-    the second family photo waits until every other topic has had its first."""
+    the second family photo waits until every other topic has had its first. Files from
+    `priority_folders` come before all of these, in the order they were shot (by name)."""
     seen, ranked = {}, []
     for it in (log or {}).get("items", {}).values():
         if it.get("status") == "published":
@@ -248,7 +280,8 @@ def _mixed_order(files, log=None):
         t = _topic(f.get("name", ""))
         ranked.append((seen.get(t, 0), f.get("createdTime", ""), f))
         seen[t] = seen.get(t, 0) + 1
-    return [f for _, _, f in sorted(ranked, key=lambda r: (r[0], r[1]))]
+    first = sorted((f for f in files if f.get("_priority")), key=lambda f: (f["_priority"], f.get("name", "")))
+    return first + [f for _, _, f in sorted(ranked, key=lambda r: (r[0], r[1])) if not f.get("_priority")]
 
 
 def _choose_track(log):
@@ -282,9 +315,11 @@ def _choose_style(log, cfg, title, is_image):
 
 def _list_inbox(cfg):
     """Every picture or video directly inside the source folder(s): `inbox_folders`
-    when the config lists several, otherwise the single `inbox`."""
+    when the config lists several, otherwise the single `inbox`; first those in
+    `priority_folders` (new photos the school wants out before the rest)."""
     files = []
-    for folder in cfg.get("inbox_folders") or [cfg["inbox"]]:
+    priority = list(cfg.get("priority_folders") or [])
+    for folder in priority + list(cfg.get("inbox_folders") or [cfg["inbox"]]):
         token = None
         while True:
             args = {"folder_id": folder, "orderBy": "createdTime", "pageSize": 100,
@@ -293,7 +328,10 @@ def _list_inbox(cfg):
             if token:
                 args["pageToken"] = token
             d = _tool("GOOGLEDRIVE_FIND_FILE", args)
-            files += d.get("files") or []
+            for f in d.get("files") or []:
+                if folder in priority:
+                    f["_priority"] = priority.index(folder) + 1
+                files.append(f)
             token = d.get("nextPageToken")
             if not token:
                 break
@@ -445,9 +483,15 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
 
                         designed = (mime.startswith("image/") and cfg.get("as_is_9x16", True)
                                     and story_engine.is_finished_story(src))
+                        caption = (cfg.get("captions") or {}).get(name)
                         if designed:
                             it["as_is"] = True              # already a designed story: only the song is added
                             it["line"] = ""
+                        elif caption:
+                            # a line written for this very photo (the config's "captions")
+                            it["text_en"] = caption if isinstance(caption, str) else caption.get("en")
+                            it["text_es"] = None if isinstance(caption, str) else caption.get("es")
+                            it["line"] = (it["text_es"] if lang == "es" and it["text_es"] else it["text_en"])
                         elif TOPIC_LINES.get(_topic(name)):
                             # a photo from a topic folder: the topic's own lines, in turn
                             tp = _topic(name)
@@ -587,11 +631,14 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
 
         status["state"] = "done"
         status["finished"] = _now()
+        if not dry_run:
+            status["backup"] = _backup_state()
         beat("finished")
     except Exception as e:
         status["state"] = "error"
         status["error"] = f"{e}\n{traceback.format_exc()[-1500:]}"
         status["finished"] = _now()
+        status["backup"] = _backup_state()
         beat("stopped with an error")
 
 
@@ -624,6 +671,7 @@ def approval_sheet():
     rec = {"day": _panama_day(_now()), "items": [{"name": r["name"], "line": r.get("line")} for r in rows],
            "sheet_url": link, "sent_at": None, "decision": None}
     _save(APPROVAL_PATH, rec)
+    rec["backup"] = _backup_state()
     return rec
 
 
@@ -635,6 +683,7 @@ def approval_mark(**fields):
     rec = _load(APPROVAL_PATH, {})
     rec.update(fields)
     _save(APPROVAL_PATH, rec)
+    _backup_state()
     return rec
 
 
@@ -643,6 +692,7 @@ def approve_today():
     cfg = json.load(open(CFG_PATH))
     cfg["approved_day"] = _panama_day(_now())
     _save(CFG_PATH, cfg)
+    _backup_state()
     return [i["name"] for i in approval_record().get("items", [])]
 
 
