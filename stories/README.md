@@ -9,6 +9,19 @@ second of any. The settings are `inbox_folders`, `per_day` (4), `stream` and
 `as_is_9x16` (false: every one of these photos gets the design) in
 `stories_config.json`.
 
+**New photos first.** A folder in `priority_folders` (now **Yuval Upload - By days**,
+the photographer's uploads) is taken before the topic folders: its photos go out first,
+in the order `ranks` gives them (file name -> place; near-identical shots are spread
+over different days), each with the line written for it in `captions` (file name ->
+English line; camera names such as `131A8712.JPG` say nothing about the photo).
+
+**If the sandbox comes back empty.** It has, twice. Every task starts with
+`stories/bootstrap.py` (`ensure()`), which fetches the code from this branch, the
+fonts and the upbeat tracks (in the background), and, when the config is missing,
+restores `stories_config.json`, `stories_log.json` and `stories_approval.json` from
+`shokogi_stories_state.json` in the main Drive folder. `run_daily.py` rewrites that
+file after every run and every approval step.
+
 **Where WhatsApp runs.** The Green-API credentials live only in the Bloowatch
 environment. So the daily task (in the session that holds the Instagram
 connector) starts one helper session on Bloowatch each morning, which runs

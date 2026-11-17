@@ -266,11 +266,12 @@ def _panama_day(iso):
     return t.date().isoformat()
 
 
-def _mixed_order(files, log=None):
+def _mixed_order(files, log=None, ranks=None):
     """Oldest first, but one of each topic before the second of any: three photos of
     the same thing do not go out on the same day. Topics already published count, so
     the second family photo waits until every other topic has had its first. Files from
-    `priority_folders` come before all of these, in the order they were shot (by name)."""
+    `priority_folders` come before all of these, in the order the config's "ranks" gives
+    them (name -> place), else in the order they were shot (by name)."""
     seen, ranked = {}, []
     for it in (log or {}).get("items", {}).values():
         if it.get("status") == "published":
@@ -280,7 +281,9 @@ def _mixed_order(files, log=None):
         t = _topic(f.get("name", ""))
         ranked.append((seen.get(t, 0), f.get("createdTime", ""), f))
         seen[t] = seen.get(t, 0) + 1
-    first = sorted((f for f in files if f.get("_priority")), key=lambda f: (f["_priority"], f.get("name", "")))
+    ranks = ranks or {}
+    first = sorted((f for f in files if f.get("_priority")),
+                   key=lambda f: (f["_priority"], ranks.get(f.get("name"), 10 ** 6), f.get("name", "")))
     return first + [f for _, _, f in sorted(ranked, key=lambda r: (r[0], r[1])) if not f.get("_priority")]
 
 
@@ -343,9 +346,13 @@ def _download(f, dest):
     url = (d.get("downloaded_file_content") or {}).get("s3url")
     if not url:
         raise RuntimeError("Drive download returned no file URL")
-    r = subprocess.run(["curl", "-sSfL", "--retry", "3", "-o", dest, url], capture_output=True, text=True)
-    if r.returncode or not os.path.getsize(dest):
-        raise RuntimeError(f"download failed: {r.stderr[-300:]}")
+    for attempt in range(3):              # a large file over a flaky link: curl's own retry misses SSL errors
+        r = subprocess.run(["curl", "-sSfL", "--retry", "3", "--retry-all-errors", "-o", dest, url],
+                           capture_output=True, text=True)
+        if not r.returncode and os.path.exists(dest) and os.path.getsize(dest):
+            return
+        time.sleep(5)
+    raise RuntimeError(f"download failed: {r.stderr[-300:]}")
 
 
 def _to_jpeg(src, dest):
@@ -430,7 +437,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
         status["quota"] = {"used": used, "total": total}
         room = max(0, total - used - 2)
 
-        files = _mixed_order(_list_inbox(cfg), log)
+        files = _mixed_order(_list_inbox(cfg), log, cfg.get("ranks"))
         status["found"] = len(files)
         beat(f"{len(files)} file(s) in the inbox")
 
