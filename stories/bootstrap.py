@@ -54,6 +54,8 @@ MUSIC = [
     ("738", "Hip Hop 02", 0.0), ("466", "Games Worldbeat", 0.0), ("250", "Island Beat", 16.1),
     ("51", "Sports Highlights", 0.0),
 ]
+import threading as _threading
+_LOCK = _threading.Lock()
 _UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"}
 
 
@@ -115,20 +117,30 @@ def ensure():
             _write(f"{HOME}/brand/{fn}", _get(url))
             did.append(fn)
     cat_path = f"{HOME}/music/catalog.json"
-    if not os.path.exists(cat_path):
+    if not os.path.exists(cat_path) or len(json.load(open(cat_path))) < len(MUSIC):
+        # in the background (about a minute and a half for all of them): the catalog
+        # lists each track as soon as it is there, so a render can start meanwhile
+        import threading
         from concurrent.futures import ThreadPoolExecutor
 
         def fetch(t):
             p = f"{HOME}/music/{t[0]}.mp3"
-            if not os.path.exists(p):
-                _write(p, _get(f"https://assets.mixkit.co/music/{t[0]}/{t[0]}.mp3", _UA))
-            return t
-        with ThreadPoolExecutor(8) as ex:
-            got = list(ex.map(fetch, MUSIC))
-        cat = [{"id": i, "title": ti, "file": f"{HOME}/music/{i}.mp3", "upbeat": True, "start": st,
-                "source": "https://mixkit.co (Stock Music Free License)"} for i, ti, st in got]
-        _write(cat_path, json.dumps(cat, ensure_ascii=False, indent=1).encode("utf-8"))
-        did.append(f"{len(cat)} tracks")
+            try:
+                if not os.path.exists(p):
+                    _write(p, _get(f"https://assets.mixkit.co/music/{t[0]}/{t[0]}.mp3", _UA))
+            except Exception:
+                return
+            with _LOCK:
+                have = {i for i, _, _ in MUSIC if os.path.exists(f"{HOME}/music/{i}.mp3")}
+                cat = [{"id": i, "title": ti, "file": f"{HOME}/music/{i}.mp3", "upbeat": True, "start": st,
+                        "source": "https://mixkit.co (Stock Music Free License)"} for i, ti, st in MUSIC if i in have]
+                _write(cat_path, json.dumps(cat, ensure_ascii=False, indent=1).encode("utf-8"))
+
+        def run():
+            with ThreadPoolExecutor(8) as ex:
+                list(ex.map(fetch, MUSIC))
+        threading.Thread(target=run, daemon=True).start()
+        did.append("music (downloading in the background)")
     if not os.path.exists(f"{HOME}/{STATE_FILES['config']}"):
         did.append(restore_state())
     os.makedirs(f"{HOME}/previews", exist_ok=True)
