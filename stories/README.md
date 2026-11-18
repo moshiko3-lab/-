@@ -9,8 +9,9 @@ second of any. The settings are `inbox_folders`, `per_day` (4), `stream` and
 `as_is_9x16` (false: every one of these photos gets the design) in
 `stories_config.json`.
 
-**New photos first.** A folder in `priority_folders` (now **Yuval Upload - By days**,
-the photographer's uploads) is taken before the topic folders: its photos go out first,
+**New photos first.** A folder in `priority_folders` (none at the moment: the
+photographer's folder was tried on 2026-11-17 and taken out at the owner's request)
+is taken before the topic folders: its photos go out first,
 in the order `ranks` gives them (file name -> place; near-identical shots are spread
 over different days), each with the line written for it in `captions` (file name ->
 English line; camera names such as `131A8712.JPG` say nothing about the photo).
