@@ -72,7 +72,7 @@ def _get(url, headers=None, timeout=90):
 
 def _write(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
+    tmp = f"{path}.{_threading.get_ident()}.part"      # its own name: several threads write the catalog
     with open(tmp, "wb") as f:
         f.write(data)
     os.replace(tmp, path)

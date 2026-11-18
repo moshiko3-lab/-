@@ -335,8 +335,11 @@ def _sync_music(cfg):
         cat.append({"id": f["id"], "drive_id": f["id"], "title": os.path.splitext(f["name"])[0], "file": path,
                     "own": True, "upbeat": True, "start": _liveliest(path), "source": "the school's music folder in Drive"})
         added += 1
-    cat = [t for t in cat if not t.get("drive_id") or t["drive_id"] in live]      # removed from the folder: dropped
-    _save(cat_path, cat)
+    kept = [t for t in cat if not t.get("drive_id") or t["drive_id"] in live]     # removed from the folder: dropped
+    if added or len(kept) != len(cat):
+        tmp = f"{cat_path}.sync.part"           # not the bootstrap's temp name: both may write the catalog
+        json.dump(kept, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        os.replace(tmp, cat_path)
     return added
 
 
