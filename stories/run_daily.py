@@ -331,10 +331,13 @@ def _sync_music(cfg):
             continue
         ext = os.path.splitext(f["name"])[1].lower() or ".mp3"
         path = f"{BASE}/music/own_{f['id']}{ext}"
-        _download(f, path)
-        cat.append({"id": f["id"], "drive_id": f["id"], "title": os.path.splitext(f["name"])[0], "file": path,
-                    "own": True, "upbeat": True, "start": _liveliest(path), "source": "the school's music folder in Drive"})
-        added += 1
+        try:                                    # one bad file does not keep the rest out
+            _download(f, path)
+            cat.append({"id": f["id"], "drive_id": f["id"], "title": os.path.splitext(f["name"])[0], "file": path,
+                        "own": True, "upbeat": True, "start": _liveliest(path), "source": "the school's music folder in Drive"})
+            added += 1
+        except Exception:
+            continue
     kept = [t for t in cat if not t.get("drive_id") or t["drive_id"] in live]     # removed from the folder: dropped
     if added or len(kept) != len(cat):
         tmp = f"{cat_path}.sync.part"           # not the bootstrap's temp name: both may write the catalog
