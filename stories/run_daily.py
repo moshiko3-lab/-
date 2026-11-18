@@ -287,11 +287,66 @@ def _mixed_order(files, log=None, ranks=None):
     return first + [f for _, _, f in sorted(ranked, key=lambda r: (r[0], r[1])) if not f.get("_priority")]
 
 
+def _liveliest(path, secs=10):
+    """Where the liveliest `secs` seconds of a track start: steady beat and loudness,
+    measured on the onset envelope (the same measure the Mixkit starts came from)."""
+    import numpy as np
+    import imageio_ffmpeg
+    sr, hop = 11025, 256
+    raw = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-i", path, "-ac", "1", "-ar", str(sr),
+                          "-f", "s16le", "-"], capture_output=True).stdout
+    x = np.frombuffer(raw, np.int16).astype(np.float32) / 32768
+    n = len(x) // hop
+    if n < 10:
+        return 0.0
+    rms = np.sqrt((x[: n * hop].reshape(n, hop) ** 2).mean(1)) + 1e-6
+    env = np.convolve(np.maximum(0, np.diff(np.log(rms), prepend=np.log(rms[0]))), np.ones(3) / 3, "same")
+    fps, win = sr / hop, int(sr / hop * secs)
+    best, score = 0.0, -1.0
+    for st in range(0, max(1, n - win), int(fps / 2)):
+        sc = float(env[st:st + win].mean() * rms[st:st + win].mean())
+        if sc > score:
+            score, best = sc, st / fps
+    return round(best, 1)
+
+
+def _sync_music(cfg):
+    """Tracks the school puts in its music folder in Drive (`music_folder`): fetched,
+    measured for their liveliest ten seconds, and added to the catalog as "own". Once
+    there are five or more, only they are used. The school picks them, and is
+    responsible for having the right to use them (a music subscription, say)."""
+    folder = cfg.get("music_folder")
+    if not folder:
+        return 0
+    cat_path = f"{BASE}/music/catalog.json"
+    cat = _load(cat_path, [])
+    have = {t.get("drive_id") for t in cat if t.get("drive_id")}
+    d = _tool("GOOGLEDRIVE_FIND_FILE", {"q": f"'{folder}' in parents and trashed = false and mimeType contains 'audio/'",
+                                         "pageSize": 200, "fields": "files(id,name,mimeType)"})
+    files = d.get("files") or []
+    live = {f["id"] for f in files}
+    added = 0
+    for f in files:
+        if f["id"] in have:
+            continue
+        ext = os.path.splitext(f["name"])[1].lower() or ".mp3"
+        path = f"{BASE}/music/own_{f['id']}{ext}"
+        _download(f, path)
+        cat.append({"id": f["id"], "drive_id": f["id"], "title": os.path.splitext(f["name"])[0], "file": path,
+                    "own": True, "upbeat": True, "start": _liveliest(path), "source": "the school's music folder in Drive"})
+        added += 1
+    cat = [t for t in cat if not t.get("drive_id") or t["drive_id"] in live]      # removed from the folder: dropped
+    _save(cat_path, cat)
+    return added
+
+
 def _choose_track(log):
-    """An upbeat track (marked in the catalog), not one of the last twelve used. Each
-    catalog entry's "start" is where its liveliest ten seconds begin."""
+    """A track from the school's own music folder once it holds five or more, else an
+    upbeat Mixkit one; not one of the last twelve used. Each catalog entry's "start" is
+    where its liveliest ten seconds begin."""
     cat = json.load(open(f"{BASE}/music/catalog.json"))
-    pool = [t for t in cat if t.get("upbeat")] or cat
+    own = [t for t in cat if t.get("own") and os.path.exists(t["file"])]
+    pool = own if len(own) >= 5 else ([t for t in cat if t.get("upbeat") and not t.get("own")] or cat)
     done = sorted((it for it in log["items"].values() if it.get("track")), key=lambda it: it.get("updated", ""))
     recent = {it["track"] for it in done[-12:]}
     return random.choice([t for t in pool if t["file"] not in recent] or pool)
@@ -429,6 +484,10 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
     try:
         beat("starting")
         _ensure_deps()
+        try:
+            status["music_added"] = _sync_music(json.load(open(CFG_PATH)))
+        except Exception as e:              # the Mixkit tracks still serve
+            status["music_error"] = str(e)[:200]
         import importlib, story_engine
         importlib.reload(story_engine)
         cfg = json.load(open(CFG_PATH))

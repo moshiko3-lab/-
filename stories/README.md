@@ -105,7 +105,13 @@ Details:
   anything under 3 seconds holds its last frame). HDR video, which is what an
   iPhone records by default, is tone-mapped to ordinary colour; without it the
   story comes out grey and washed out.
-* Music from Mixkit (Stock Music Free License: commercial and social use, no
+* Music: the school's own tracks first. Audio files put in the Drive folder
+  **מוזיקה לסטורים** (`music_folder`) are fetched, measured for their liveliest ten
+  seconds and, once there are five or more, used instead of anything else. The
+  school chooses them and must hold the right to use them on its Instagram (a music
+  subscription such as Epidemic Sound, or tracks it owns): the system cannot check a
+  licence. Instagram's own music (the songs in the app) cannot be added through the
+  API at all. Until then: music from Mixkit (Stock Music Free License: commercial and social use, no
   credit needed), only tracks marked `"upbeat": true` in `music/catalog.json`
   (34 of 52, chosen by measured beat strength and tempo, then by title and genre for the
   mood: no Christmas, children's or slow tracks), never one of the last twelve
