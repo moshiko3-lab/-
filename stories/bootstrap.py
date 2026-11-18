@@ -85,6 +85,16 @@ def _drive(slug, args):
     return r.get("data", r) if isinstance(r, dict) else r
 
 
+def _count(cat_path):
+    """How many Mixkit tracks the catalog lists (it is rewritten while tracks arrive)."""
+    for p in (cat_path, cat_path + ".tmp"):
+        try:
+            return sum(1 for t in json.load(open(p)) if not t.get("own"))
+        except Exception:
+            pass
+    return 0
+
+
 def state_file():
     """The Drive file that holds the state, or None."""
     d = _drive("GOOGLEDRIVE_FIND_FILE", {"q": f"name = '{STATE_NAME}' and trashed = false", "pageSize": 10,
@@ -117,7 +127,7 @@ def ensure():
             _write(f"{HOME}/brand/{fn}", _get(url))
             did.append(fn)
     cat_path = f"{HOME}/music/catalog.json"
-    if not os.path.exists(cat_path) or len(json.load(open(cat_path))) < len(MUSIC):
+    if _count(cat_path) < len(MUSIC):
         # in the background (about a minute and a half for all of them): the catalog
         # lists each track as soon as it is there, so a render can start meanwhile
         import threading
@@ -132,9 +142,16 @@ def ensure():
                 return
             with _LOCK:
                 have = {i for i, _, _ in MUSIC if os.path.exists(f"{HOME}/music/{i}.mp3")}
+                own = []
+                for q in (cat_path, cat_path + ".tmp"):       # the school's own tracks stay listed
+                    try:
+                        own = [t for t in json.load(open(q)) if t.get("own")]
+                        break
+                    except Exception:
+                        pass
                 cat = [{"id": i, "title": ti, "file": f"{HOME}/music/{i}.mp3", "upbeat": True, "start": st,
                         "source": "https://mixkit.co (Stock Music Free License)"} for i, ti, st in MUSIC if i in have]
-                _write(cat_path, json.dumps(cat, ensure_ascii=False, indent=1).encode("utf-8"))
+                _write(cat_path, json.dumps(cat + own, ensure_ascii=False, indent=1).encode("utf-8"))
 
         def run():
             with ThreadPoolExecutor(8) as ex:
