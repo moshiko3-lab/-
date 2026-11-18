@@ -132,6 +132,12 @@ TOPIC_EMOJI = {"playa venao": ["🌊", "☀️", "🌴"], "surf camp": ["🏄", 
                "surf lessons": ["🏄", "🤙"], "foil the bee": ["🌊", "🤙"], "ocean monkey": ["🐒", "🏄"],
                "board rentals": ["🏄", "🌊"], "shop": ["🧢", "🤙"]}
 
+# Stories that sell something carry the pill, with a call to action; the others (a
+# beautiful day in Venao) carry none. The pill cannot be tapped: Instagram's API adds
+# no link stickers, so it names the site.
+SALES_CTA = {"surf camp": "Book now", "kids camp": "Book now", "surf lessons": "Book now",
+             "foil the bee": "Book now", "board rentals": "Book now", "shop": "Shop now"}
+
 # A title per topic, for the "headline" design: the topic's name, as the site uses it.
 TOPIC_TITLES = {"playa venao": "Playa Venao", "surf camp": "Surf Camp", "kids camp": "Kids Camp",
                 "surf lessons": "Surf Lessons", "foil the bee": "Foil", "ocean monkey": "Ocean Monkey",
@@ -618,13 +624,16 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             style = "classic"
                             last = sorted((x for x in log["items"].values() if x.get("style")),
                                           key=lambda x: x.get("updated") or "")[-2:]
-                            pill = not any(x.get("pill") for x in last)
-                            it["pill"] = pill
+                            cta = SALES_CTA.get(_topic(name))
+                            it["pill"] = bool(cta) and not any(x.get("pill") for x in last)
+                            pill = f"{cta} · shokogi.com" if it["pill"] else False
                         elif cfg.get("looks", True):
                             # a freshly drawn story look, unlike the ones just before it
                             style = "look"
                             look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
                                     "mode": mode,
+                                    "sales": bool(SALES_CTA.get(_topic(name))),
+                                    "cta": (SALES_CTA[_topic(name)] + " · shokogi.com") if SALES_CTA.get(_topic(name)) else None,
                                     "recent": ([x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
                                         key=lambda x: x.get("updated") or "")]

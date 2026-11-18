@@ -63,8 +63,12 @@ only the handwriting slightly tilted, and shokogi.com on about one story in thre
 (never when either of the last two carried it). `"mixed"` is the fuller version
 described in the list below (also neon, emoji, tilted boxes and stickers).
 
-Other modes: `"classic"` is the design as first approved, the same on every story
-(shokogi.com again on about one in three). With `"look_mode": "balanced"` the
+Other modes: `"classic"` (the one in use now) is the design as first approved, the
+same on every story. The pill goes only on a story that sells something (camps,
+lessons, foil, rentals: "Book now · shokogi.com"; the shop: "Shop now · shokogi.com"),
+and not when either of the two stories before carried it; a story that only shows a
+beautiful day carries none. It cannot be tapped (the API adds no link stickers), so
+it names the site. With `"look_mode": "balanced"` the
 hand is mostly the clean one described above, Figtree Light, and now and then the
 wordmark's condensed capitals, plain white or dark boxes, or the card: never the
 same playful one twice in three stories, never three clean ones in a row, nothing

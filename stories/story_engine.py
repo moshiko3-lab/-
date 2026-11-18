@@ -106,13 +106,14 @@ def _foot_shade(layer, shade, start=0.52):
     layer.alpha_composite(s)
 
 
-def _pill(d, x, y, align="center", fill=PINK, color=WHITE, h=64):
-    """shokogi.com on a small pill, the site's button colour. x is its centre or its left edge."""
+def _pill(d, x, y, align="center", fill=PINK, color=WHITE, h=64, text="shokogi.com"):
+    """shokogi.com (or a call to action with it, "Book now · shokogi.com") on a small
+    pill, the site's button colour. x is its centre or its left edge."""
     pf = figtree(27, 600)
-    pw = spaced_width("shokogi.com", pf, 3) + 2 * 38
+    pw = spaced_width(text, pf, 3) + 2 * 38
     left = x - pw / 2 if align == "center" else x
     d.rounded_rectangle((left, y, left + pw, y + h), radius=h / 2, fill=fill)
-    draw_spaced(d, left + pw / 2, y + h / 2, "shokogi.com", pf, 3, color)
+    draw_spaced(d, left + pw / 2, y + h / 2, text, pf, 3, color)
     return pw
 
 
@@ -132,7 +133,8 @@ def _eyebrow(d, x, y, align="center"):
 
 
 def _classic(d, line, pill=True):
-    """Centred at the foot: eyebrow, the line in light type, the pink pill (when `pill`)."""
+    """Centred at the foot: eyebrow, the line in light type, the pink pill (when `pill`;
+    a string is the pill's own text, a call to action)."""
     lf, lines = _fit(d, line, LINE_SIZE, W - 220, smaller=48)
     lh, pill_h = int(lf.size * 1.32), 64
     y = SAFE_BOTTOM - 20 - (30 + 44 + len(lines) * lh + (40 + pill_h if pill else 0))
@@ -141,7 +143,7 @@ def _classic(d, line, pill=True):
     for l in lines:
         d.text((W / 2, y + lh / 2), l, font=lf, fill=WHITE, anchor="mm"); y += lh
     if pill:
-        _pill(d, W / 2, y + 40)
+        _pill(d, W / 2, y + 40, text=pill if isinstance(pill, str) else "shokogi.com")
 
 
 def _editorial(d, line):
@@ -525,17 +527,18 @@ def _b_neon(line, align, maxw):
     return out
 
 
-def _pill_img(scheme):
+def _pill_img(scheme, text=None):
+    text = text or "shokogi.com"
     fill, color = (PINK, WHITE) if scheme == "pink" else (WHITE, PINK)
     pf = figtree(27, 600)
-    pw = int(spaced_width("shokogi.com", pf, 3) + 2 * 38)
+    pw = int(spaced_width(text, pf, 3) + 2 * 38)
     img = Image.new("RGBA", (pw + 40, PILL_H + 40), (0, 0, 0, 0))
     sh = Image.new("RGBA", img.size, (0, 0, 0, 0))
     ImageDraw.Draw(sh).rounded_rectangle((20, 26, 20 + pw, 26 + PILL_H), radius=PILL_H / 2, fill=(0, 0, 0, 70))
     img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(8)))
     d = ImageDraw.Draw(img)
     d.rounded_rectangle((20, 20, 20 + pw, 20 + PILL_H), radius=PILL_H / 2, fill=fill)
-    draw_spaced(d, 20 + pw / 2, 20 + PILL_H / 2, "shokogi.com", pf, 3, color)
+    draw_spaced(d, 20 + pw / 2, 20 + PILL_H / 2, text, pf, 3, color)
     return img
 
 
@@ -712,7 +715,7 @@ def compose(layer, look, block, x, y, lum, shade=True, maps=None):
     """Draw the words (already set, at x, y) and the pill on `layer`. `maps` (from
     cost_maps) lets a pill on its own find a quiet spot."""
     t, align = look["treatment"], look["align"]
-    pill = _pill_img(look["pill_scheme"])
+    pill = _pill_img(look["pill_scheme"], look.get("cta"))
     pw = pill.width - 40
     up, down = _room(look)
     if shade and t in ("light", "bold", "neon", "script"):
@@ -771,6 +774,9 @@ def render_look(src, line, spec):
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
     look = plan_look(rnd, recent, True, spec.get("emoji", []), spec.get("clean", False), spec.get("mode"))
+    if spec.get("sales") is False:
+        look["pill"] = "none"
+    look["cta"] = spec.get("cta")
     last_zone = (recent[-1].get("zone") if recent else None)
     if look["treatment"] == "card":
         look["at"] = rnd.choice(["top", "bottom"])
@@ -803,6 +809,9 @@ def video_look_layer(line, spec):
     rnd = random.Random(spec.get("seed"))
     recent = spec.get("recent", [])
     look = plan_look(rnd, recent, False, spec.get("emoji", []), spec.get("clean", False), spec.get("mode"))
+    if spec.get("sales") is False:
+        look["pill"] = "none"
+    look["cta"] = spec.get("cta")
     look["align"] = rnd.choice(_aligns(look["treatment"]))
     look["at"] = rnd.choice(["top", "bottom"])
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -885,7 +894,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
     style: one of STYLES; title: the topic, for "headline".
     look: a spec dict (seed, recent, emoji) for a freshly drawn story look instead of
     a fixed style; the look drawn is written back into it as look["drawn"].
-    pill: False leaves shokogi.com off a fixed-style story."""
+    pill: False leaves shokogi.com off a fixed-style story; a string is the pill's text."""
     trk = track or pick_track(seed)
     is_img = src.lower().split(".")[-1] in ("jpg", "jpeg", "png", "webp", "heic", "heif")
     tmp = out + ".png"
