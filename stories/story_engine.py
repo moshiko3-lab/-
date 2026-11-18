@@ -276,6 +276,15 @@ def smart_fit(im, size):
     small = im.resize((240, max(1, int(240 * im.height / im.width))))
     e = np.asarray(small.convert("L").filter(ImageFilter.FIND_EDGES), float) \
         + 0.5 * np.asarray(small.convert("HSV").split()[1], float)
+    # people first: a patch of skin colour outweighs any splash, so a surfer at the
+    # side of a wide photo is not cut off for the busier whitewater next to him
+    ycc = np.asarray(small.convert("YCbCr"), float)
+    skin = ((ycc[..., 2] >= 138) & (ycc[..., 2] <= 175) & (ycc[..., 1] >= 85) & (ycc[..., 1] <= 130)
+            & (ycc[..., 0] > 60)).astype("uint8") * 255
+    patch = np.asarray(Image.fromarray(skin).filter(ImageFilter.BoxBlur(2)), float) / 255
+    # but only skin with detail in it: smooth sand or a blurred sunset has the same colour
+    detail = np.asarray(Image.fromarray(((e > 40) * 255).astype("uint8")).filter(ImageFilter.BoxBlur(2)), float) / 255
+    e = e + 900 * np.clip((patch - 0.3) / 0.4, 0, 1) * np.clip(detail / 0.25, 0, 1)
     prof = e.sum(0)
     span = small.height * tw / th
     win = max(1, min(len(prof), int(round(span))))
