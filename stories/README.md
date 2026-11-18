@@ -111,7 +111,12 @@ Details:
   school chooses them and must hold the right to use them on its Instagram (a music
   subscription such as Epidemic Sound, or tracks it owns): the system cannot check a
   licence. Instagram's own music (the songs in the app) cannot be added through the
-  API at all. Until then: music from Mixkit (Stock Music Free License: commercial and social use, no
+  API at all. The folder now holds 28 tracks chosen on 2026-11-18 from three
+  artists who release everything under CC0 (public domain: any use, no credit):
+  HoliznaCC0, Loyalty Freak Music and Monplaisir, on freemusicarchive.org; each
+  track's CC0 licence was checked on its own page, and the picks were made by
+  measured beat and energy and by title (no one listened to them). Before that, and
+  as the fallback below five own tracks: music from Mixkit (Stock Music Free License: commercial and social use, no
   credit needed), only tracks marked `"upbeat": true` in `music/catalog.json`
   (34 of 52, chosen by measured beat strength and tempo, then by title and genre for the
   mood: no Christmas, children's or slow tracks), never one of the last twelve
