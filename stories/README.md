@@ -16,6 +16,12 @@ in the order `ranks` gives them (file name -> place; near-identical shots are sp
 over different days), each with the line written for it in `captions` (file name ->
 English line; camera names such as `131A8712.JPG` say nothing about the photo).
 
+A large folder (the photographer's **Shokogi media / fav**, hundreds of photos) is
+not taken whole: `priority_picks` names the photos chosen from it (the sharpest of
+each burst, then by eye), `photo_topics` gives each its topic (so it gets that
+topic's lines and, if it sells, "Book now"), and files from a priority folder are
+never moved: someone else's folder stays as it is, and the log remembers what went up.
+
 **If the sandbox comes back empty.** It has, twice. Every task starts with
 `stories/bootstrap.py` (`ensure()`), which fetches the code from this branch, the
 fonts and the upbeat tracks (in the background), and, when the config is missing,

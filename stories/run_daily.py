@@ -404,9 +404,13 @@ def _list_inbox(cfg):
             if token:
                 args["pageToken"] = token
             d = _tool("GOOGLEDRIVE_FIND_FILE", args)
+            picks = set(cfg.get("priority_picks") or [])
             for f in d.get("files") or []:
                 if folder in priority:
+                    if picks and f.get("name") not in picks:
+                        continue            # only the photos chosen from a large folder
                     f["_priority"] = priority.index(folder) + 1
+                    f["_keep"] = True       # someone else's folder: leave the file where it is
                 files.append(f)
             token = d.get("nextPageToken")
             if not token:
@@ -544,11 +548,18 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
         published_now = 0
         day_room = MAX_PER_RUN if ignore_daily_cap else per_day - done_today
         cap = max(0, min(MAX_PER_RUN, room, day_room, limit if limit else MAX_PER_RUN))
+        photo_topics = cfg.get("photo_topics") or {}
+
+        def topic_of(n):
+            return photo_topics.get(n) or _topic(n)
+
         for f in files:
             fid, name = f["id"], f.get("name", "")
             if only and name not in only and fid not in only:
                 continue                    # a run for chosen files leaves the rest alone
             it = log["items"].get(fid) or {"name": name, "attempts": 0}
+            if f.get("_keep") and it.get("status") == "published":
+                continue                    # a photographer's file stays where it is; done is done
             it.setdefault("stream", cfg.get("stream"))
             row = {"name": name}
             status["results"].append(row)
@@ -592,9 +603,9 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             it["text_en"] = caption if isinstance(caption, str) else caption.get("en")
                             it["text_es"] = None if isinstance(caption, str) else caption.get("es")
                             it["line"] = (it["text_es"] if lang == "es" and it["text_es"] else it["text_en"])
-                        elif TOPIC_LINES.get(_topic(name)):
+                        elif TOPIC_LINES.get(topic_of(name)):
                             # a photo from a topic folder: the topic's own lines, in turn
-                            tp = _topic(name)
+                            tp = topic_of(name)
                             ti = log.setdefault("topic_idx", {})
                             texts = TOPIC_LINES[tp][ti.get(tp, 0) % len(TOPIC_LINES[tp])]
                             ti[tp] = ti.get(tp, 0) + 1                    # a dry run never saves it
@@ -612,7 +623,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             it["text_es"], it["text_en"] = texts
                             it["line"] = it["text_es"] if lang == "es" else it["text_en"]
                         trk = _choose_track(log)
-                        title = TOPIC_TITLES.get(_topic(name))
+                        title = TOPIC_TITLES.get(topic_of(name))
                         look = None
                         pill = True
                         mode = cfg.get("look_mode", "classic")
@@ -624,16 +635,16 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                             style = "classic"
                             last = sorted((x for x in log["items"].values() if x.get("style")),
                                           key=lambda x: x.get("updated") or "")[-2:]
-                            cta = SALES_CTA.get(_topic(name))
+                            cta = SALES_CTA.get(topic_of(name))
                             it["pill"] = bool(cta) and not any(x.get("pill") for x in last)
                             pill = f"{cta} · shokogi.com" if it["pill"] else False
                         elif cfg.get("looks", True):
                             # a freshly drawn story look, unlike the ones just before it
                             style = "look"
-                            look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(_topic(name), []),
+                            look = {"seed": random.randrange(1 << 30), "emoji": TOPIC_EMOJI.get(topic_of(name), []),
                                     "mode": mode,
-                                    "sales": bool(SALES_CTA.get(_topic(name))),
-                                    "cta": (SALES_CTA[_topic(name)] + " · shokogi.com") if SALES_CTA.get(_topic(name)) else None,
+                                    "sales": bool(SALES_CTA.get(topic_of(name))),
+                                    "cta": (SALES_CTA[topic_of(name)] + " · shokogi.com") if SALES_CTA.get(topic_of(name)) else None,
                                     "recent": ([x["look"] for x in sorted(
                                         (x for x in log["items"].values() if x.get("look")),
                                         key=lambda x: x.get("updated") or "")]
@@ -710,7 +721,11 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                     log["items"][fid] = it
                     _save(LOG_PATH, log)
 
-                if not dry_run:
+                if not dry_run and f.get("_keep"):
+                    row.update(result="published" if row.pop("fresh", False) else "published earlier",
+                               line=it.get("line") or it.get("text_en"), track=it.get("track_title"),
+                               media_id=it.get("media_id"))
+                elif not dry_run:
                     beat(f"moving {name} to the published folder")
                     _tool("GOOGLEDRIVE_MOVE_FILE", {"file_id": fid, "add_parents": cfg["done"]})
                     it["moved_at"] = _now()
