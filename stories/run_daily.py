@@ -509,7 +509,24 @@ def _save_preview(engine, fid, src, out, line, is_image):
     return path
 
 
+def _untangle_output():
+    """ipykernel routes print() by remembering which thread created which. Entries of
+    dead threads stay and thread ids get reused, and a thread created by the kernel
+    thread keeps whatever stale entry its id had: on 2026-11-19 the run thread and a
+    worker thread pointed at each other, and the first print() inside upload_local_file
+    looped forever. Drops the entries of dead threads and the calling thread's own."""
+    alive = {t.ident for t in threading.enumerate()}
+    me = threading.get_ident()
+    for stream in (sys.stdout, sys.stderr):
+        table = getattr(stream, "_thread_to_parent", None)
+        if isinstance(table, dict):
+            for k in list(table):
+                if k == me or k not in alive:
+                    table.pop(k, None)
+
+
 def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=None):
+    _untangle_output()
     status = {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
               "results": [], "message": ""}
 
@@ -858,6 +875,7 @@ def start(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only
     # written before the thread starts, so a wait() straight after never reads the last run's result
     _save(STATUS_PATH, {"state": "running", "dry_run": dry_run, "started": _now(), "heartbeat": _now(),
                         "results": [], "message": "starting"})
+    _untangle_output()
     _THREAD = threading.Thread(target=_run, daemon=True, kwargs={
         "dry_run": dry_run, "limit": limit, "prepare": prepare, "ignore_daily_cap": ignore_daily_cap,
         "only": only})
