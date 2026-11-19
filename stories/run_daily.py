@@ -176,9 +176,31 @@ def _save(path, obj):
     os.replace(tmp, path)
 
 
-def _tool(slug, args, retries=2):
-    res, err = run_composio_tool(slug, args, retry_params={"max_retries": retries, "delay_ms": 3000},
-                                 print_schema_for_tool=False)
+_TOOL_POOL = None
+
+
+def _tool(slug, args, retries=2, timeout=150):
+    """One Composio call, given up on after `timeout` seconds: the workbench helper waits
+    for an answer without a time limit, and on 2026-11-19 one Drive listing hung for
+    minutes (the same call answered in under a second when asked again). A call that
+    gets no answer is asked again only when `retries` allows it, so publishing
+    (retries=0) is never repeated; its caller asks Instagram whether it went out."""
+    global _TOOL_POOL
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as _NoAnswer
+    for attempt in range(3 if retries else 1):
+        if _TOOL_POOL is None:
+            _TOOL_POOL = ThreadPoolExecutor(4)
+        fut = _TOOL_POOL.submit(run_composio_tool, slug, args,
+                                retry_params={"max_retries": retries, "delay_ms": 3000},
+                                print_schema_for_tool=False)
+        try:
+            res, err = fut.result(timeout=timeout)
+            break
+        except _NoAnswer:
+            _TOOL_POOL.shutdown(wait=False)     # the stuck call stays behind in its own thread
+            _TOOL_POOL = None
+    else:
+        raise RuntimeError(f"{slug}: no answer after {timeout} s")
     if err:
         raise RuntimeError(f"{slug}: {str(err)[:400]}")
     data = res.get("data", res)
