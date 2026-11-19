@@ -187,7 +187,12 @@ def _tool(slug, args, retries=2, timeout=150):
     (retries=0) is never repeated; its caller asks Instagram whether it went out."""
     global _TOOL_POOL
     from concurrent.futures import ThreadPoolExecutor, TimeoutError as _NoAnswer
-    for attempt in range(3 if retries else 1):
+    # passing errors on Composio's side, worth asking again (seen 2026-11-19: a Drive
+    # listing refused with "No authentication provided" that worked seconds later)
+    passing = ("No authentication provided", "Auth_NoAuthProvided", "'status': 429", "'status': 500",
+               "'status': 502", "'status': 503", "'status': 504", "Too Many Requests", "Read timed out")
+    tries = 3 if retries else 1
+    for attempt in range(tries):
         if _TOOL_POOL is None:
             _TOOL_POOL = ThreadPoolExecutor(4)
         fut = _TOOL_POOL.submit(run_composio_tool, slug, args,
@@ -195,12 +200,16 @@ def _tool(slug, args, retries=2, timeout=150):
                                 print_schema_for_tool=False)
         try:
             res, err = fut.result(timeout=timeout)
-            break
         except _NoAnswer:
             _TOOL_POOL.shutdown(wait=False)     # the stuck call stays behind in its own thread
             _TOOL_POOL = None
-    else:
-        raise RuntimeError(f"{slug}: no answer after {timeout} s")
+            if attempt == tries - 1:
+                raise RuntimeError(f"{slug}: no answer after {timeout} s")
+            continue
+        if err and attempt < tries - 1 and any(p in str(err) for p in passing):
+            time.sleep(5 * (attempt + 1))
+            continue
+        break
     if err:
         raise RuntimeError(f"{slug}: {str(err)[:400]}")
     data = res.get("data", res)
