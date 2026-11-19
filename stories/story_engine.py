@@ -835,6 +835,31 @@ def run(cmd):
     if r.returncode: raise RuntimeError(r.stderr[-1500:])
 
 
+# How loud the music plays: about as loud as commercial music. Measured on 2026-11-19,
+# the free tracks' ten-second parts ran from -18 to -10.5 LUFS as mixed (median -13.5),
+# so the quiet ones sounded weak next to everything else on Instagram.
+MUSIC_LUFS = -11.0
+
+
+def music_gain_db(trk, secs):
+    """The gain (dB, within +-8) that brings the part of the track a story plays to MUSIC_LUFS."""
+    try:
+        r = subprocess.run([FF, "-hide_banner", "-nostats", "-ss", str(trk.get("start", 0)), "-t", f"{secs:.2f}",
+                            "-i", trk["file"], "-af", "loudnorm=print_format=json", "-f", "null", "-"],
+                           capture_output=True, text=True, timeout=60)
+        m = re.search(r'"input_i"\s*:\s*"(-?[\d.]+)"', r.stderr)
+        return max(min(MUSIC_LUFS - float(m.group(1)), 8.0), -8.0) if m else 0.0
+    except Exception:
+        return 0.0
+
+
+def music_filter(trk, secs, fade_in):
+    """Fades, the level set by music_gain_db, and a limiter that keeps peaks under -1 dBFS
+    so a raised track does not distort."""
+    return (f"afade=t=in:d={fade_in},afade=t=out:st={max(secs - 1.5, 0):.2f}:d=1.5,"
+            f"volume={music_gain_db(trk, secs):.1f}dB,alimiter=limit=0.891:attack=5:release=80:level=0")
+
+
 def probe_duration(path):
     r = subprocess.run([FF, "-i", path], capture_output=True, text=True).stderr
     m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", r)
@@ -909,7 +934,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
             dur = photo_secs
             run([FF, "-y", "-loop", "1", "-framerate", "30", "-t", str(dur), "-i", tmp,
                  "-ss", str(trk.get("start", 0)), "-i", trk["file"],
-                 "-filter_complex", f"[1:a]afade=t=in:d=0.6,afade=t=out:st={dur-1.5}:d=1.5,volume=0.85[a]",
+                 "-filter_complex", f"[1:a]{music_filter(trk, dur, 0.6)}[a]",
                  "-map", "0:v", "-map", "[a]", "-t", str(dur), "-tune", "stillimage", "-r", "30", *ENC,
                  "-crf", "18", out])
             return trk
@@ -931,7 +956,7 @@ def make_story(src, out, line, seed=None, track=None, photo_secs=PHOTO_SECS, des
                 af = (f"[0:a]volume=0.6,apad[o];[2:a]volume=0.35,afade=t=out:st={max(dur-1.5,0)}:d=1.5[m];"
                       f"[o][m]amix=inputs=2:duration=shortest[a]")
             else:
-                af = f"[2:a]afade=t=in:d=0.5,afade=t=out:st={max(dur-1.5,0)}:d=1.5,volume=0.8[a]"
+                af = f"[2:a]{music_filter(trk, dur, 0.5)}[a]"
             return [FF, "-y", "-i", source, "-i", tmp, "-ss", str(trk.get("start", 0)), "-i", trk["file"],
                     "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", f"{dur:.2f}", *ENC, out]
 
