@@ -854,10 +854,10 @@ def music_gain_db(trk, secs):
 
 
 def music_filter(trk, secs, fade_in):
-    """Fades, the level set by music_gain_db, and a limiter that keeps peaks under -1 dBFS
+    """Fades, the level set by music_gain_db, and a limiter that keeps peaks under -2 dBFS (AAC encoding adds about 1 dB)
     so a raised track does not distort."""
     return (f"afade=t=in:d={fade_in},afade=t=out:st={max(secs - 1.5, 0):.2f}:d=1.5,"
-            f"volume={music_gain_db(trk, secs):.1f}dB,alimiter=limit=0.891:attack=5:release=80:level=0")
+            f"volume={music_gain_db(trk, secs):.1f}dB,alimiter=limit=0.794:attack=5:release=80:level=0")
 
 
 def probe_duration(path):
