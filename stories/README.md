@@ -72,7 +72,7 @@ described in the list below (also neon, emoji, tilted boxes and stickers).
 Other modes: `"classic"` (the one in use now) is the design as first approved, the
 same on every story. The pill goes only on a story that sells something (camps,
 lessons, foil, rentals: "Book now · shokogi.com"; the shop: "Shop now · shokogi.com"),
-and not when either of the two stories before carried it; a story that only shows a
+and never on two stories in a row; a story that only shows a
 beautiful day carries none. It cannot be tapped (the API adds no link stickers), so
 it names the site. With `"look_mode": "balanced"` the
 hand is mostly the clean one described above, Figtree Light, and now and then the

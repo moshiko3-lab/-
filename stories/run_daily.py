@@ -557,6 +557,7 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
 
         files = _mixed_order(_list_inbox(cfg), log, cfg.get("ranks"))
         run_looks = []                      # a dry run saves no log: its looks are kept here
+        run_items = []                      # ... and the stories it drew, for the button spacing
         status["found"] = len(files)
         beat(f"{len(files)} file(s) in the inbox")
 
@@ -652,13 +653,15 @@ def _run(dry_run=False, limit=None, prepare=False, ignore_daily_cap=False, only=
                         if designed:
                             style = None
                         elif mode == "classic":
-                            # the design as first approved, always the same; shokogi.com on about one
-                            # story in three (not when either of the last two carried it)
+                            # the design as first approved, always the same; "Book now · shokogi.com"
+                            # (or "Shop now") on the sales stories only, never on two stories in a row
                             style = "classic"
-                            last = sorted((x for x in log["items"].values() if x.get("style")),
-                                          key=lambda x: x.get("updated") or "")[-2:]
+                            last = (sorted((x for x in log["items"].values() if x.get("style")),
+                                           key=lambda x: x.get("updated") or "")
+                                    + (run_items if dry_run else []))[-1:]
                             cta = SALES_CTA.get(topic_of(name))
                             it["pill"] = bool(cta) and not any(x.get("pill") for x in last)
+                            run_items.append(it)
                             pill = f"{cta} · shokogi.com" if it["pill"] else False
                         elif cfg.get("looks", True):
                             # a freshly drawn story look, unlike the ones just before it
