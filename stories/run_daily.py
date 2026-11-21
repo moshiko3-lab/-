@@ -469,16 +469,24 @@ def _download(f, dest):
 
 _TO_JPEG = r"""
 import sys
-from PIL import Image, ImageOps
+from PIL import Image
 try:
     import pillow_heif
     pillow_heif.register_heif_opener()
 except Exception:
     pass
+size = int(sys.argv[3]) if len(sys.argv) > 3 else 2600
 im = Image.open(sys.argv[1])
-im.draft("RGB", (2600, 2600))          # a JPEG decodes straight at a reduced scale
-im = ImageOps.exif_transpose(im).convert("RGB")
-im.thumbnail((2600, 2600), Image.LANCZOS)
+turn = im.getexif().get(0x0112, 1)      # read before shrinking; the header only, no pixels yet
+im.draft("RGB", (size, size))          # a JPEG decodes straight at a reduced scale
+im.thumbnail((size, size), Image.LANCZOS, reducing_gap=2.0)   # shrink first: less memory for what follows
+T = Image.Transpose                    # the same turns as ImageOps.exif_transpose
+way = {2: T.FLIP_LEFT_RIGHT, 3: T.ROTATE_180, 4: T.FLIP_TOP_BOTTOM, 5: T.TRANSPOSE,
+       6: T.ROTATE_270, 7: T.TRANSVERSE, 8: T.ROTATE_90}.get(turn)
+if way is not None:
+    im = im.transpose(way)
+if im.mode != "RGB":
+    im = im.convert("RGB")
 im.save(sys.argv[2], quality=93)
 """
 
@@ -486,10 +494,18 @@ im.save(sys.argv[2], quality=93)
 def _to_jpeg(src, dest):
     """Upright (EXIF), RGB, at most 2600 px a side (plenty for a 1080x1920 story), in a
     child process: a 24-megapixel camera photo opened inside the workbench took the
-    whole workbench down."""
-    r = subprocess.run([sys.executable, "-c", _TO_JPEG, src, dest], capture_output=True, text=True)
-    if r.returncode or not os.path.exists(dest):
-        raise RuntimeError(f"could not read the picture: {r.stderr[-300:]}")
+    whole workbench down. If the sandbox's memory killer still stops the child (seen
+    on 2026-11-21, with the storage driver holding a large cache), it is asked again at
+    1500 px, which a JPEG decodes at a quarter of its size."""
+    for size in (2600, 1500):
+        if os.path.exists(dest):
+            os.remove(dest)
+        r = subprocess.run([sys.executable, "-c", _TO_JPEG, src, dest, str(size)], capture_output=True, text=True)
+        if not r.returncode and os.path.exists(dest):
+            return
+        if r.returncode >= 0:                  # a real error, not the memory killer
+            break
+    raise RuntimeError(f"could not read the picture (exit {r.returncode}): {r.stderr[-300:]}")
 
 
 def _container_status(cid):
