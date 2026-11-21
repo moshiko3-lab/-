@@ -369,7 +369,11 @@ def _sync_music(cfg):
         ext = os.path.splitext(f["name"])[1].lower() or ".mp3"
         path = f"{BASE}/music/own_{f['id']}{ext}"
         try:                                    # one bad file does not keep the rest out
-            _download(f, path)
+            # already on disk but missing from the catalog (bootstrap's background
+            # music download rewrites the catalog and can drop entries added meanwhile):
+            # list it again instead of fetching all the tracks anew
+            if not (os.path.exists(path) and os.path.getsize(path) > 10000):
+                _download(f, path)
             cat.append({"id": f["id"], "drive_id": f["id"], "title": os.path.splitext(f["name"])[0], "file": path,
                         "own": True, "upbeat": True, "start": _liveliest(path), "source": "the school's music folder in Drive"})
             added += 1
