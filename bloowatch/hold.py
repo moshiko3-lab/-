@@ -39,16 +39,17 @@ HOLD = True
 SINCE = "19/10/2026"
 WORDS = "נעצור כרגע את התחזיות והלו״ז, נשים הכל בהולד עד שאני אומר להחזיר"
 
-# What the hold still covers. The owner lifted the rota and the personal
-# messages on 27/11/2026 -- *"אני רוצה להחזיר את עניין הלו״ז למדריכים
-# בקבוצת הצוות והודעות לכל מדריך בסוף יום"* -- and asked for nothing else
-# back, so the forecast to the two surfer groups stays stopped.
+# What the hold still covers. On 27/11/2026 the owner took the whole rota
+# side back -- *"אני רוצה להחזיר את עניין הלו״ז למדריכים בקבוצת הצוות
+# והודעות לכל מדריך בסוף יום"*, and then the 20:00 changes pass with it --
+# so only the forecast to the two surfer groups is still stopped, with the
+# 18:00 preview that feeds it.
 #
-# `changes` is the 20:00 pass that tells the group and the instructors when
-# tomorrow's board moved after the 19:00 rota went out. It is left held
-# because he did not ask for it; the cost of that is that a change made
-# after seven in the evening reaches nobody until the next rota.
-HELD = ("forecast", "preview", "changes")
+# `changes` belongs with the rota rather than apart from it: it is what
+# tells the group and the instructors that tomorrow's board moved after
+# the 19:00 rota went out. Held, a change made at eight in the evening
+# reached nobody until the next day's rota.
+HELD = ("forecast", "preview")
 
 # The reminders were never in here: stopping those would mean instructors
 # stop being told about lessons they are teaching, which is a different
