@@ -102,7 +102,11 @@ def audit(now=None, tomorrow=None):
     # this the nets would file `staff_rota MISSING` every night of the
     # hold and send it, which is the one thing the hold is for; and the
     # mornings in between would read like a system falling over.
-    if hold.HOLD:
+    # Held items are skipped one by one, not the whole evening. From
+    # 27/11/2026 the rota and the personal messages run again while the
+    # forecast stays stopped, and a blanket skip here would have left the
+    # two that are live with no net under them at all.
+    if all(hold.watching(i["what"]) for i in due_times(now.date())):
         return []
 
     book = rota._book()
@@ -142,6 +146,7 @@ def audit(now=None, tomorrow=None):
     # it is the one state that cannot be the owner's decision.
     preview_due = dt.datetime.combine(today, dt.time(18, 0), tzinfo=PANAMA)
     if (approval.REQUIRE_YES and not verdict["preview"]
+            and not hold.watching("forecast_preview")
             and verdict["decision"] != "stop"
             and now >= preview_due + dt.timedelta(minutes=GRACE_MINUTES)):
         missing.append({"what": "forecast_preview", "due": "18:00",
@@ -150,6 +155,8 @@ def audit(now=None, tomorrow=None):
     for item in due_times(today):
         if now < item["due"] + dt.timedelta(minutes=GRACE_MINUTES):
             continue                                   # not late yet
+        if hold.watching(item["what"]):
+            continue                                   # stopped on purpose
         if stopped and item["what"].startswith("forecast"):
             continue
 
@@ -222,14 +229,13 @@ def main():
 
     if a.json:
         print(json.dumps(missing, ensure_ascii=False))
-    elif hold.HOLD:
-        # Never "everything went out" while the hold is on. That sentence,
-        # true of a quiet evening and of a stopped one alike, is what made
-        # 24/9 and 25/9 read as ordinary nights in the morning.
-        print("the evening is on hold since %s — nothing was due, nothing "
-              "is missing" % hold.SINCE)
     elif not missing:
-        print("everything due by now went out")
+        # Never a bare "everything went out" while something is held. That
+        # sentence is true of a quiet evening and of a stopped one alike,
+        # and it is what made 24/9 and 25/9 read as ordinary nights.
+        print("everything due by now went out" + (
+            " (%s still on hold)" % ", ".join(sorted(hold.HELD))
+            if hold.HOLD and hold.HELD else ""))
     else:
         for m in missing:
             print("MISSING  %-16s due %s  to %s  (for %s)"
@@ -247,16 +253,14 @@ def main():
     # look exactly alike in the morning, which is the confusion this whole
     # file exists to prevent.
     import report
-    if hold.HOLD:
-        report.result("safety net", "RESULT held since %s — the evening is "
-                                    "stopped at the owner's request"
-                      % hold.SINCE, echo=not a.json)
-        return 0
-
-    state = approval.state(now=now)
-    report.result("safety net", "RESULT missing=%d %s approval=%s" % (
+    on_hold = ",".join(sorted(hold.HELD)) if hold.HOLD else ""
+    # The approval gate only governs the forecast, so there is nothing to
+    # ask it while the forecast is the thing being held.
+    ask = not hold.watching("forecast_he")
+    state = approval.state(now=now) if ask else {"decision": "n/a"}
+    report.result("safety net", "RESULT missing=%d %s approval=%s%s" % (
         len(missing), ",".join(m["what"] for m in missing) or "all sent",
-        state["decision"]),
+        state["decision"], (" held=%s" % on_hold) if on_hold else ""),
         echo=not a.json)
     return 1 if missing else 0
 

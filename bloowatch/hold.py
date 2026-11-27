@@ -39,11 +39,27 @@ HOLD = True
 SINCE = "19/10/2026"
 WORDS = "נעצור כרגע את התחזיות והלו״ז, נשים הכל בהולד עד שאני אומר להחזיר"
 
-# What the hold covers: everything that puts a message in front of a
-# customer, an instructor or the staff group. The reminders are not here --
-# they are a separate question the owner has not answered, and stopping
-# them would mean instructors stop being told about lessons they teach.
-HELD = ("forecast", "preview", "rota", "personal", "changes")
+# What the hold still covers. The owner lifted the rota and the personal
+# messages on 27/11/2026 -- *"אני רוצה להחזיר את עניין הלו״ז למדריכים
+# בקבוצת הצוות והודעות לכל מדריך בסוף יום"* -- and asked for nothing else
+# back, so the forecast to the two surfer groups stays stopped.
+#
+# `changes` is the 20:00 pass that tells the group and the instructors when
+# tomorrow's board moved after the 19:00 rota went out. It is left held
+# because he did not ask for it; the cost of that is that a change made
+# after seven in the evening reaches nobody until the next rota.
+HELD = ("forecast", "preview", "changes")
+
+# The reminders were never in here: stopping those would mean instructors
+# stop being told about lessons they are teaching, which is a different
+# decision and not one the owner has made.
+
+# What the safety nets call each thing, against what this file calls it.
+# Without this the nets would go on treating a lifted send as held and
+# never notice it failing to go out.
+WATCHED = {"forecast_he": "forecast", "forecast_en": "forecast",
+           "forecast_preview": "preview",
+           "staff_rota": "rota", "personal_rotas": "personal"}
 
 
 def held(what):
@@ -51,8 +67,13 @@ def held(what):
     if not HOLD or what not in HELD:
         return ""
     return ("on hold since %s at the owner's request (\"%s\"). "
-            "Nothing was deleted: set HOLD = False in hold.py to resume."
+            "Nothing was deleted: remove it from HELD in hold.py to resume."
             % (SINCE, WORDS))
+
+
+def watching(item):
+    """Is this thing the safety nets watch for on hold? A reason, or ''."""
+    return held(WATCHED.get(item, item))
 
 
 def main():

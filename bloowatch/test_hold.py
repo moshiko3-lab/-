@@ -38,16 +38,22 @@ def check(name, cond, detail=""):
 
 
 def main():
-    # --- every evening send is covered, and named the way the CLI names it -
-    # A command missing from HELD is a command that still goes out, and the
-    # only sign would be a message arriving during the hold.
+    # --- the hold list names real commands, and nothing else ---------------
+    # A name in HELD that no longer matches a subcommand holds nothing at
+    # all, and the only sign would be the message going out as usual.
     src = open(os.path.join(HERE, "evening.py"), encoding="utf-8").read()
     subs = sorted(set(
         line.split('sub.add_parser("')[1].split('"')[0]
         for line in src.splitlines() if 'sub.add_parser("' in line))
-    check("every evening.py subcommand is on the hold list",
-          subs and all(s in hold.HELD for s in subs),
-          "commands=%s held=%s" % (subs, list(hold.HELD)))
+    check("every name on the hold list is a real evening.py subcommand",
+          all(h in subs for h in hold.HELD),
+          "held=%s commands=%s" % (list(hold.HELD), subs))
+
+    # And what the safety nets look for maps onto those same names, or a
+    # lifted send would go on being treated as stopped and never watched.
+    check("and what the nets watch maps onto them too",
+          all(v in subs for v in hold.WATCHED.values()),
+          str(hold.WATCHED))
 
     # The reminders are deliberately outside it: stopping those means
     # instructors stop being told about lessons they are teaching, which is
@@ -76,16 +82,23 @@ def main():
         check("'%s' runs again the moment the flag is off" % what, off == "")
 
     # --- and the real command refuses, rather than merely intending to ----
-    # The check sits in main(), before the subcommand runs, so this is the
-    # one thing worth running for real. It builds nothing and sends nothing:
-    # with the hold on it cannot get past the first few lines of main().
+    # The check sits in main(), before the subcommand runs, so this is worth
+    # running for real: with the hold on it cannot get past the first few
+    # lines of main(), so it builds nothing and sends nothing.
+    #
+    # **Only the held ones are ever run bare.** On 27/11/2026 the owner
+    # lifted the rota and the personal messages, this loop still named them,
+    # and running the test sent five instructors tomorrow's rota at two in
+    # the afternoon. A test that sends is not a test. The list is taken from
+    # HELD itself now, so lifting something removes it from here by the same
+    # edit -- and anything not held is only ever run with --dry-run below.
     env = dict(os.environ, SHOKOGI_NO_REPORT="1")
-    for what in ("forecast", "rota", "personal", "changes", "preview"):
+    for what in hold.HELD:
         p = subprocess.run([sys.executable, "evening.py", what],
                            cwd=HERE, env=env, capture_output=True, text=True,
                            timeout=120)
         out = p.stdout + p.stderr
-        check("evening.py %s refuses while the hold is on" % what,
+        check("evening.py %s refuses while it is held" % what,
               p.returncode == 0 and "held" in out,
               "exit=%d %r" % (p.returncode, out[-300:]))
         # It must not have reached the sea, the board or the browser: those
@@ -93,6 +106,16 @@ def main():
         # does all the work would be held in name only.
         check("  and stops before it builds anything",
               "RESULT: %s held" % what in out, out[-300:])
+
+    # The guard above is only as good as the rule behind it, so the rule is
+    # the check: this file must never run a sending subcommand bare.
+    tsrc = open(os.path.join(HERE, "test_hold.py"), encoding="utf-8").read()
+    # A command named as a literal, with no --dry-run: the loop above passes
+    # `what` and so never matches, and neither does reading the file.
+    bare = [ln.strip() for ln in tsrc.splitlines()
+            if '"evening.py", "' in ln and "--dry-run" not in ln]
+    check("the test never runs an unheld evening.py command for real",
+          not bare, str(bare))
 
     # A dry run still has to work. A week of hold with no way to look at the
     # system is how we come back to something nobody can check.
@@ -102,19 +125,15 @@ def main():
     check("but a dry run is not held", "RESULT: rota held" not in p.stdout,
           p.stdout[-200:] + p.stderr[-200:])
 
-    # --- the net does not call a stopped evening a quiet one --------------
-    import watch_sends
-    check("nothing is missing from an evening that was stopped",
-          watch_sends.audit() == [])
+    # --- the net skips what is held, and watches what is not --------------
+    # A blanket skip was right while everything was stopped. With the rota
+    # live and the forecast held it would leave the live half with no net
+    # under it, which is the failure the nets exist for.
     wsrc = open(os.path.join(HERE, "watch_sends.py"), encoding="utf-8").read()
-    check("and the journal line says held, not 'all sent'",
-          "RESULT held since" in wsrc
-          and wsrc.index("if hold.HOLD:") < wsrc.index('"RESULT missing=%d'),
-          "the hold must be checked before the all-sent line")
-    check("the printed line does not claim everything went out either",
-          "elif hold.HOLD:" in wsrc
-          and wsrc.index("elif hold.HOLD:")
-          < wsrc.index('"everything due by now went out"'))
+    check("the net asks per item, not for the evening as a whole",
+          "hold.watching(item[" in wsrc and "if hold.HOLD:\n        return []" not in wsrc)
+    check("and says what is still held rather than 'all sent' alone",
+          "held=%s" in wsrc and "still on hold" in wsrc)
 
     print("\n" + ("all checks passed" if not fails
                   else "%d FAILED: %s" % (len(fails), ", ".join(fails))))
